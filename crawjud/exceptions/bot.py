@@ -1,5 +1,7 @@
 """Módulo de controle de exceptions dos bots."""
 
+import traceback
+
 from crawjud.exceptions import BaseCrawJUDError
 
 
@@ -8,15 +10,14 @@ class StartError(Exception):
 
 
 class ExecutionError(BaseCrawJUDError):
-    """Exception raised for errors during CrawJUD execution.
+    """Exceção para erros de execução do robô."""
 
-    This exception is a subclass of BaseCrawJUDError and is used to indicate
-    that an error occurred during the execution of a CrawJUD process.
+    def __init__(self, exception: Exception, bot_execution_id: str = None) -> None:
+        """Inicializador da instância de exceção."""
+        message = "\n".join(traceback.format_exception(exception))
+        super().__init__(message)
+        self.message = message
 
-    Methods:
-        __instancecheck__(instance: Exception) -> bool:
-            Check if the instance is an exception.
-        __str__() -> str:
-            Return the string representation of the exception.
-
-    """
+    def __str__(self) -> str:
+        """Retorna a mensagem."""
+        return self.message
