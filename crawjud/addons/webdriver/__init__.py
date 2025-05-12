@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.options import Options as GeckoOptions
 from selenium.webdriver.firefox.service import Service as GeckoService
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
@@ -98,7 +99,12 @@ class DriverBot:
             raise DriverNotCreatedError(message=exc) from e
 
     def configure_chrome(self) -> ChromeOptions:
-        """Configurações dos Options do ChromeDriver."""
+        """Configurações do Options do Chrome.
+
+        Returns:
+            ChromeOptions: Instância do Options Chrome
+
+        """
         chrome_options = ChromeOptions()
         chrome_options.add_argument(f"user-data-dir={str(self.chr_dir)}")
 
@@ -128,5 +134,15 @@ class DriverBot:
 
         return chrome_options
 
-    def configure_gecko(self):
-        pass
+    def configure_gecko(self) -> GeckoOptions:
+        """Configurações do Options do Gecko.
+
+        Returns:
+            GeckoOptions: Instância do Options Gecko
+
+        """
+        gecko_options = GeckoOptions()
+        gecko_options.add_argument("--no-sandbox")
+        gecko_options.add_argument("--disable-dev-shm-usage")
+
+        return gecko_options
