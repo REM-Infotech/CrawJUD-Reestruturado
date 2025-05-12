@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
+from pathlib import Path
 from time import perf_counter
 from typing import TYPE_CHECKING
 
 import pandas as pd
 from pandas import Timestamp
-from trio import Path
 
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
@@ -59,6 +60,13 @@ class CrawJUD:
             wait=self.wait,
         )
         auth.auth()
+
+    def open_cfg(self) -> None:
+        """Abre as configurações de execução."""
+        with Path(self.path_config).resolve().open("r") as f:
+            data = json.loads(f.read())
+            for k, v in list(data.items()):
+                setattr(self, k, v)
 
     def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
