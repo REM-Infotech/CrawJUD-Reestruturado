@@ -79,7 +79,9 @@ class DriverBot:
 
         """
         try:
-            cache_manager = DriverCacheManager(file_manager=FileManager(os_system_manager=OperationSystemManager()))
+            system_manager = OperationSystemManager()
+            file_manager = FileManager(os_system_manager=system_manager)
+            cache_manager = DriverCacheManager(file_manager=file_manager)
             if self.preferred_browser == "chrome":
                 options = self.configure_chrome()
                 driver_path = ChromeDriverManager(cache_manager=cache_manager).install()
