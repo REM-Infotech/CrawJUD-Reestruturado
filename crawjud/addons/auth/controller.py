@@ -2,20 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
-
-from crawjud.addons.elements.caixa import CAIXA_AM
-from crawjud.addons.elements.calculadoras import TJDFT
-from crawjud.addons.elements.elaw import ELAW_AME
-from crawjud.addons.elements.esaj import ESAJ_AM
-from crawjud.addons.elements.pje import PJE_AM
-from crawjud.addons.elements.projudi import PROJUDI_AM
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.support.wait import WebDriverWait
 
-    type_elements = Union[ESAJ_AM, PROJUDI_AM, ELAW_AME, CAIXA_AM, PJE_AM, TJDFT]
+    from crawjud.types.elements import type_elements
 
 
 class AuthController:  # noqa: B903
