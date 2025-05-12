@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from time import perf_counter
 from typing import TYPE_CHECKING
+
+import pandas as pd
+from pandas import Timestamp
+from trio import Path
 
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
@@ -29,6 +34,8 @@ class CrawJUD:
     search: SearchBot
     senhatoken: str
     elements: type_elements
+    pid: str
+    pos: int
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo."""
@@ -53,4 +60,39 @@ class CrawJUD:
         )
         auth.auth()
 
+    def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802
+        """Convert an Excel file to a list of dictionaries with formatted data.
+
+        Reads an Excel file, processes the data by formatting dates and floats,
+        and returns the data as a list of dictionaries.
+
+        Returns:
+            list[dict[str, str]]: A record list from the processed Excel file.
+
+        Raises:
+            FileNotFoundError: If the target file does not exist.
+            ValueError: For problems reading the file.
+
+        """
+        input_file = Path(self.output_dir_path).joinpath(self.xlsx).resolve()
+
+        df = pd.read_excel(input_file)
+        df.columns = df.columns.str.upper()
+
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: (x.strftime("%d/%m/%Y") if isinstance(x, (datetime, Timestamp)) else x))
+
+        for col in df.select_dtypes(include=["float"]).columns:
+            df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
+
+        vars_df = []
+
+        df_dicted = df.to_dict(orient="records")
+        for item in df_dicted:
+            for key, value in item.items():
+                if str(value) == "nan":
+                    item[key] = None
+            vars_df.append(item)
+
+        return vars_df
         # self.search = SearchBot.setup()
