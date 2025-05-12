@@ -8,7 +8,7 @@
 - **crawjud/**: Pasta de scripts de automação
   - **bots/**: Códigos dos bots
   - **exceptions/**: Tratamento de Erros
-  - **utils/**: Utilitários do robô
+  - **addons/**: Utilitários do robô
 
 ## Arquivos Raiz
 
