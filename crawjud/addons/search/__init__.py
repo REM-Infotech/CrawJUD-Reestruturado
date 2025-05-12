@@ -27,6 +27,13 @@ class SearchBot:
     wait: WebDriverWait
     url_segunda_instancia: str
 
+    @classmethod
+    def setup() -> any:
+        return SearchBot.__init__()
+
+    def __init__(self, **kwargs: str) -> None:
+        self.__dict__.update(kwargs)
+
     def search_(self) -> bool:
         """Procura processo
         Returns:
@@ -249,15 +256,12 @@ class SearchBot:
                 save.click()
 
         def get_link_grau2() -> str | None:
-            """Retrieve the link to access the resources related to the process for the second grade.
+            """Recupera link para acessar processos em segundo grau.
 
-            This method waits for the presence of the link to access the resources related to the process
-            and filters the last element in the list of elements that contains the text "Clique aqui para
-            visualizar os recursos relacionados". If the link is found, it returns the href attribute of
-            the element. Otherwise, it returns None.
+            Filtra elemento com "Clique aqui para visualizar os recursos relacionados".
 
             Returns:
-                str | None: The link to access the resources related to the process or None.
+                str | None: link ou None.
 
             """
             with suppress(Exception, TimeoutException, NoSuchElementException):
