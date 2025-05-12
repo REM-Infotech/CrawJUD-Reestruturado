@@ -1,0 +1,5 @@
+quart
+quart-jwt-extended
+flask-sqlalchemy
+flask-mail
+quart-cors
