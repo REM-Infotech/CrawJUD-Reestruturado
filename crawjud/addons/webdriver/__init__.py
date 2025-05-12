@@ -108,7 +108,7 @@ class DriverBot:
 
         """
         chrome_options = ChromeOptions()
-        chrome_options.add_argument(f"user-data-dir={str(self.chr_dir)}")
+        chrome_options.add_argument(f"user-data-dir={str(self.execution_path)}")
 
         list_args = self.list_args
         for argument in list_args:
