@@ -7,17 +7,13 @@ ensuring detailed extraction and logging of information.
 import time
 import traceback
 from contextlib import suppress
-from time import sleep
 from typing import Self
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from crawjud.core import CrawJUD
 
 
 class Capa(CrawJUD):

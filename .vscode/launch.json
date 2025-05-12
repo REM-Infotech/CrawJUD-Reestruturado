@@ -5,6 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python Debugger: Module",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "crawjud",
+      "args": [
+        "--bot_system",
+        "projudi",
+        "--bot_name",
+        "capa",
+        "--path_config",
+        "temp/config.json"
+      ]
+    },
+    {
       "name": "Debug api server",
       "type": "debugpy",
       "request": "launch",
