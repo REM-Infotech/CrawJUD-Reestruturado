@@ -16,9 +16,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
 from crawjud.bot.scripts.pje.common.varas_dict import varas as varas_pje
+from crawjud.core import CrawJUD
 
 
 class Pauta(CrawJUD):
