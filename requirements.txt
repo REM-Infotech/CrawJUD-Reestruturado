@@ -3,3 +3,5 @@ quart-jwt-extended
 flask-sqlalchemy
 flask-mail
 quart-cors
+selenium
+webdriver-manager
