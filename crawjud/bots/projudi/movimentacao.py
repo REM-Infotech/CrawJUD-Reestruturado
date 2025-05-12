@@ -6,7 +6,6 @@ Handle movement-related operations in the Projudi system with data scraping and 
 import os
 import re
 import shutil
-import time
 import traceback
 from contextlib import suppress
 from datetime import datetime
@@ -23,6 +22,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 
 class Movimentacao(CrawJUD):
@@ -45,21 +45,6 @@ class Movimentacao(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(self, *args: str | int, **kwargs: str | int) -> None:
-        """Initialize the Movimentacao instance and execute authentication.
-
-        Args:
-            *args (tuple[str | int]): Positional arguments.
-            **kwargs (dict[str, str | int]): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Loop through data rows and process each movement with error management.

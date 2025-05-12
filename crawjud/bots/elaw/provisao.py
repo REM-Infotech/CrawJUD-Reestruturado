@@ -26,6 +26,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -269,7 +270,7 @@ class Provisao(CrawJUD):
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
-            raise ExecutionError(message="Não foi possivel atualizar provisão", e=e) from e
+            raise ExecutionError(message="Não foi possível atualizar provisão", e=e) from e
 
     def edit_valor(self) -> None:
         """Edit an existing value entry."""

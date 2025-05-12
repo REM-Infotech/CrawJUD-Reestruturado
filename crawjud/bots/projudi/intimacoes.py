@@ -44,25 +44,6 @@ class Intimacoes(CrawJUD):
         """
         return cls(*args, **kwargs)
 
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Intimacoes instance and authenticate.
-
-        Args:
-            *args (tuple[str | int]): Positional arguments.
-            **kwargs (dict[str, str | int]): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-
     def execution(self) -> None:
         """Execute the intimation extraction loop and handle pagination.
 
