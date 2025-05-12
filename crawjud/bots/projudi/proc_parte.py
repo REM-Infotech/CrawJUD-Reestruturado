@@ -15,6 +15,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from urllib3.exceptions import MaxRetryError  # noqa: F401
 
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 
 class ProcParte(CrawJUD):

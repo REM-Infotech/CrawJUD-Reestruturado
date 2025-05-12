@@ -20,6 +20,7 @@ from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.bot.Utils import OtherUtils
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 
 class Emissor(CrawJUD):

@@ -18,6 +18,7 @@ from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.bot.scripts.pje.common.varas_dict import varas as varas_pje
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 
 class Pauta(CrawJUD):

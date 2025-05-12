@@ -22,6 +22,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.bot.Utils import OtherUtils
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 type_docscss = {
     "custas_iniciais": {

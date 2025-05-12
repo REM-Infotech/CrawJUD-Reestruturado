@@ -27,6 +27,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 # from typing import type
 
@@ -265,7 +266,7 @@ class Protocolo(CrawJUD):
                     cmd2 = f"return document.getElementById('{self.id_part}').checked"
                     return_cmd = self.driver.execute_script(cmd2)
                     if return_cmd is False:
-                        raise ExecutionError(message="Não é possivel selecionar parte")
+                        raise ExecutionError(message="Não é possível selecionar parte")
 
                 selected_parte = True
                 break

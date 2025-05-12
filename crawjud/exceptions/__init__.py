@@ -3,3 +3,7 @@
 
 class BaseCrawJUDError(Exception):
     """Base exception class for CrawJUD-specific errors."""
+
+
+class DriverNotCreatedError(BaseCrawJUDError):
+    """"""
