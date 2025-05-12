@@ -80,7 +80,7 @@ class Complement(CrawJUD):
         This method executes the complement bot by calling the queue method
         for each row in the DataFrame, and handling any exceptions that may
         occur. If the Webdriver is closed unexpectedly, it will be
-        reinitialized. The bot will also be stopped if the isStoped attribute
+        reinitialized. The bot will also be stopped if the is_stoped attribute
         is set to True.
 
 
@@ -91,7 +91,7 @@ class Complement(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.isStoped:
+            if self.is_stoped:
                 break
 
             with suppress(Exception):

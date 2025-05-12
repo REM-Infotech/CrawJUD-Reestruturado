@@ -37,6 +37,7 @@ class CrawJUD:
     elements: type_elements
     pid: str
     pos: int
+    is_stoped: bool
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo."""

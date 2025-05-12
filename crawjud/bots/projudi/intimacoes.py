@@ -60,7 +60,7 @@ class Intimacoes(CrawJUD):
             self.bot_data.update({"PID": self.pid, "ROW": i})
 
             self.row = i + 1
-            if self.isStoped:
+            if self.is_stoped:
                 break
 
             with suppress(Exception):

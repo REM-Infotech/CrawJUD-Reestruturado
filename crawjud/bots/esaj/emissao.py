@@ -114,7 +114,7 @@ class Emissao(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.isStoped:
+            if self.is_stoped:
                 break
 
             with suppress(Exception):

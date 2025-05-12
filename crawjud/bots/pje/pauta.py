@@ -72,7 +72,7 @@ class Pauta(CrawJUD):
             self.type_log = "log"
             self.prt()
 
-            if self.isStoped:
+            if self.is_stoped:
                 break
 
             if varas:
@@ -125,7 +125,7 @@ class Pauta(CrawJUD):
                 self.type_log = "log"
                 self.prt()
 
-                if self.isStoped:
+                if self.is_stoped:
                     break
 
                 date = self.current_date.strftime("%Y-%m-%d")

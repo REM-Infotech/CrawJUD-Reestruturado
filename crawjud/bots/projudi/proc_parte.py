@@ -49,7 +49,7 @@ class ProcParte(CrawJUD):
         """
         self.data_append = []
         self.graphicMode = "bar"
-        while not self.isStoped:
+        while not self.is_stoped:
             with suppress(Exception):
                 if self.driver.title.lower() == "a sessao expirou":
                     self.auth_bot()
@@ -136,7 +136,7 @@ class ProcParte(CrawJUD):
                     './/tr[contains(@class, "odd") or contains(@class, "even")]',
                 )
 
-            if list_processos and not self.isStoped:
+            if list_processos and not self.is_stoped:
                 self.use_list_process(list_processos)
 
                 with suppress(NoSuchElementException):
