@@ -1,3 +1,5 @@
+"""Módulo de controle de autenticação Esaj."""
+
 from __future__ import annotations
 
 import os
@@ -18,7 +20,9 @@ if TYPE_CHECKING:
 
 
 class EsajAuth(AuthController):
-    def esaj_auth(self) -> bool:
+    """Classe de autenticação Esaj."""
+
+    def auth(self) -> bool:
         """Authenticate on ESAJ system using certificate or credentials.
 
         Returns:
@@ -104,3 +108,53 @@ class EsajAuth(AuthController):
 
         except Exception as e:
             raise e
+
+    # def accept_cert(self, accepted_dir: str) -> None:
+    #     """Automatically accept a certificate using the certificate management tool.
+
+    #     Args:
+    #         accepted_dir (str): Directory path where accepted certificates are recorded.
+
+    #     Executes certificate acceptance and copies necessary files.
+
+    #     """
+    #     try:
+    #         path = r"C:\Users\%USERNAME%\AppData\Local\Softplan Sistemas\Web Signer"
+    #         resolved_path = os.path.expandvars(path)
+
+    #         app = Application(backend="uia").connect(path=resolved_path, cache_enable=True)
+    #         janela_principal = app.window()
+    #         janela_principal.set_focus()
+    #         button = janela_principal.descendants(control_type="Button")
+    #         checkbox = janela_principal.descendants(control_type="CheckBox")
+
+    #         sleep(0.5)
+
+    #         checkbox[0].click_input()
+    #         sleep(0.5)
+    #         button[1].click_input()
+
+    #         target_directory = Path(accepted_dir).parent.joinpath("chrome").resolve()
+
+    #         target_directory.mkdir(exist_ok=True)
+    #         source_directory = self.chr_dir
+
+    #         try:
+    #             comando = ["xcopy", source_directory, target_directory, "/E", "/H", "/C", "/I"]
+    #             resultados = subprocess.run(  # nosec: B603
+    #                 comando,
+    #                 check=True,
+    #                 text=True,
+    #                 stdout=subprocess.PIPE,
+    #                 stderr=subprocess.PIPE,
+    #             )
+    #             logger.info(str(resultados.stdout))
+
+    #         except Exception as e:
+    #             raise e
+
+    #         with open(Path(accepted_dir), "w", encoding="utf-8") as f:  # noqa: FURB103
+    #             f.write("")
+
+    #     except Exception as e:
+    #         raise e

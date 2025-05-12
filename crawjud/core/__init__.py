@@ -5,6 +5,7 @@ from __future__ import annotations
 from time import perf_counter
 from typing import TYPE_CHECKING
 
+from crawjud.addons.auth import authenticator
 from crawjud.addons.search import SearchBot
 from crawjud.addons.webdriver import DriverBot
 
@@ -27,8 +28,14 @@ class CrawJUD:
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo."""
         self.start_time = perf_counter()
+
+        # Instancia o WebDriver
         driverbot = DriverBot(kwargs.get("preferred_browser", "chrome"))()
         self.driver = driverbot[0]
         self.wait = driverbot[1]
+
+        # Autenticação com os sistemas
+        auth = authenticator(kwargs.get("system"))()
+        auth.auth()
 
         # self.search = SearchBot.setup()
