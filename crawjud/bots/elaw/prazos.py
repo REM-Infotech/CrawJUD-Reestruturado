@@ -10,7 +10,6 @@ Classes:
 from __future__ import annotations
 
 import os
-import time
 import traceback
 from contextlib import suppress
 from typing import Self
@@ -47,25 +46,6 @@ class Prazos(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Prazos instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute the main processing loop for deadlines."""

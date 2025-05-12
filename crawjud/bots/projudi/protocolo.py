@@ -5,7 +5,6 @@ protocol operations such as adding moves, uploading files, signing documents, an
 """
 
 import os
-import time
 import traceback
 from contextlib import suppress
 from pathlib import Path
@@ -59,25 +58,6 @@ class Protocolo(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Protocolo instance and set up authentication.
-
-        Args:
-            *args (tuple[str | int]): Positional arguments.
-            **kwargs (dict[str | int]): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute protocol processing over each data frame entry and handle errors.

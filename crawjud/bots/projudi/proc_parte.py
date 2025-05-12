@@ -4,7 +4,6 @@ Manage participant processing in the Projudi system by interacting with process 
 """
 
 import os
-import time
 import traceback
 from contextlib import suppress
 from typing import Self
@@ -43,31 +42,12 @@ class ProcParte(CrawJUD):
         """
         return cls(*args, **kwargs)
 
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the ProcParte instance and start authentication.
-
-        Args:
-            *args (tuple[str | int]): Positional arguments.
-            **kwargs (dict[str, str | int]): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-        self.data_append = []
-
     def execution(self) -> None:
         """Execute the main loop for participant processing continuously.
 
         Continuously process queues until stopping, while handling session expirations and errors.
         """
+        self.data_append = []
         self.graphicMode = "bar"
         while not self.isStoped:
             with suppress(Exception):

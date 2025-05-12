@@ -5,7 +5,6 @@ This module manages protocol operations in the ESaj system using the CrawJUD fra
 
 import os
 import shutil
-import time
 import traceback
 import unicodedata
 from contextlib import suppress
@@ -67,29 +66,6 @@ class Protocolo(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Construct a Protocolo instance.
-
-        Sets up authentication, initializes necessary variables, and prepares the processing environment.
-
-        Args:
-            *args (str | int): Variable arguments.
-            **kwargs (str | int): Arbitrary keyword arguments.
-
-        # Inline: Call parent setup and authentication.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute protocol processing on each row.

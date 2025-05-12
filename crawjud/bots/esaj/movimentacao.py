@@ -4,7 +4,6 @@ This module manages movement operations on the Esaj system using the CrawJUD fra
 """
 
 import re
-import time
 import traceback
 from contextlib import suppress
 from datetime import datetime
@@ -52,25 +51,6 @@ class Movimentacao(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(self, *args: str | int, **kwargs: str | int) -> None:
-        """Construct the Movimentacao instance.
-
-        Sets up the crawler by configuring authentication and environment.
-
-        Args:
-            *args: Positional arguments for setup.
-            **kwargs: Keyword arguments for configuration.
-
-        # Inline: Leverage parent classes for setup and authentication.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute movement processing.

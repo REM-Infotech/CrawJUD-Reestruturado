@@ -15,8 +15,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
-from crawjud.common import ExecutionError
 from crawjud.core import CrawJUD
+from crawjud.exceptions.bot import ExecutionError
 
 
 class Intimacoes(CrawJUD):

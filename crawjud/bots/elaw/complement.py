@@ -74,33 +74,6 @@ class Complement(CrawJUD):
         """
         return cls(*args, **kwargs)
 
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the complement class.
-
-        This method initializes the complement class by calling the base class's
-        __init__ method and setting up the bot and authentication.
-
-        Parameters
-        ----------
-        *args : tuple
-            A tuple of arguments to be passed to the base class's __init__ method.
-        **kwargs : dict
-            A dictionary of keyword arguments to be passed to the base class's
-            __init__ method.
-
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-
     def execution(self) -> None:
         """Execute the complement bot.
 

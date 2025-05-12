@@ -4,7 +4,6 @@ This module fetches and processes court hearing schedules (pautas) for automated
 """
 
 import os
-import time
 import traceback
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -16,7 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.scripts.pje.common.varas_dict import varas as varas_pje
+from crawjud.bots.pje.res.varas_dict import varas as varas_pje
 from crawjud.core import CrawJUD
 from crawjud.exceptions.bot import ExecutionError
 
@@ -44,25 +43,6 @@ class Pauta(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Pauta object and set up authentication and start timing now.
-
-        Args:
-            *args (str|int): Positional arguments.
-            **kwargs (str|int): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute the main process loop to retrieve pautas until data range is covered now.

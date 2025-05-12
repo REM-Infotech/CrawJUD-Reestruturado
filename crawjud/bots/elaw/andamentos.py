@@ -7,7 +7,6 @@ Classes:
     Andamentos: Manages process progress by extending the CrawJUD base class
 """
 
-import time
 import traceback
 from contextlib import suppress
 from time import sleep
@@ -41,25 +40,6 @@ class Andamentos(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Andamentos instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute the main processing loop for andamentos.

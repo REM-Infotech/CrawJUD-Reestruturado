@@ -4,7 +4,6 @@ This module executes the workflow to search and process process details,
 ensuring detailed extraction and logging of information.
 """
 
-import time
 import traceback
 from contextlib import suppress
 from typing import Self
@@ -37,24 +36,6 @@ class Capa(CrawJUD):
 
         """
         return cls(*args, **kwargs)
-
-    def __init__(self, *args: str | int, **kwargs: str | int) -> None:
-        """Initialize Capa instance and authenticate the bot for processing.
-
-        Args:
-            *args (str|int): Positional arguments.
-            **kwargs (str|int): Keyword arguments.
-
-        Side Effects:
-            Authenticates the bot and records the start time.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute capa processing by iterating over rows with robust error handling.

@@ -18,7 +18,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.Utils import OtherUtils
 from crawjud.core import CrawJUD
 from crawjud.exceptions.bot import ExecutionError
 
@@ -29,8 +28,6 @@ class Emissor(CrawJUD):
     Offer a range of functionalities to access deposit pages, handle login flows,
     generate PDFs, and extract relevant data for deposit operations.
     """
-
-    count_doc = OtherUtils.count_doc
 
     @classmethod
     def initialize(

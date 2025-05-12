@@ -6,4 +6,4 @@ class BaseCrawJUDError(Exception):
 
 
 class DriverNotCreatedError(BaseCrawJUDError):
-    """"""
+    """Handler de erro de inicialização do WebDriver."""

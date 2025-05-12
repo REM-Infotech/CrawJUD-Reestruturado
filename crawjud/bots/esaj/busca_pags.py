@@ -3,7 +3,6 @@
 This module manages page search operations for paid costs in the CrawJUD-Bots app.
 """
 
-import time
 import traceback
 from contextlib import suppress
 from datetime import datetime
@@ -52,25 +51,6 @@ class BuscaPags(CrawJUD):
         """
         return cls(*args, **kwargs)
 
-    def __init__(self, *args: str | int, **kwargs: str | int) -> None:
-        """Construct the BuscaPags instance.
-
-        Sets up the crawler, authentication, and datetime configuration.
-
-        Args:
-            *args: Positional arguments.
-            **kwargs: Keyword arguments.
-
-        # Inline: Calls parent setup and configures timezone.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-        self.datetimeNOW = datetime.now(pytz.timezone("America/Manaus")).strftime("%d-%m-%Y")
-
     def execution(self) -> None:
         """Execute page search.
 
@@ -78,9 +58,10 @@ class BuscaPags(CrawJUD):
 
         # Inline: For each row, execute the queue sequence.
         """
+        self.module_bot = __name__
         frame = self.dataFrame()
         self.max_rows = len(frame)
-
+        self.datetimeNOW = datetime.now(pytz.timezone("America/Manaus")).strftime("%d-%m-%Y")
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
