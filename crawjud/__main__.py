@@ -10,7 +10,7 @@ def main(bot_name: str, bot_system: str, path_config: Path) -> None:
     """Função de inicialização do robô."""
     bot = import_module(f"crawjud.bots.{bot_system}.{bot_name}", __package__)
     class_bot = getattr(bot, bot_name.capitalize(), None)
-    class_bot(bot_name, bot_system, path_config)
+    class_bot(bot_name=bot_name, bot_system=bot_system, path_config=path_config)
 
 
 if __name__ == "__main__":
@@ -22,4 +22,4 @@ if __name__ == "__main__":
 
     namespace = parser.parse_args(args)
 
-    main(namespace.bot_name, namespace.bot_system, Path(namespace.path_config))
+    main(bot_name=namespace.bot_name, bot_system=namespace.bot_system, path_config=Path(namespace.path_config))
