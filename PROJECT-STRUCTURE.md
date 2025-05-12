@@ -9,6 +9,7 @@
   - **bots/**: Códigos dos bots
   - **exceptions/**: Tratamento de Erros
   - **addons/**: Utilitários do robô
+  - **core/**: Núcleo do robô
 
 ## Arquivos Raiz
 
