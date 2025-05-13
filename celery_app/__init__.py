@@ -31,16 +31,6 @@ def make_celery() -> Celery:
 
     celery.Task = ContextTask
 
-    # CELERY_QUEUES = (  # noqa: N806
-    #     Queue("default"),
-    #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
-    #     Queue("projudi_queue", routing_key="crawjud.bot.projudi_launcher"),
-    # )
-    # CELERY_ROUTES = {  # noqa: N806
-    #     "crawjud.bot.caixa_launcher": {"queue": "caixa_queue"},
-    #     "crawjud.bot.projudi_launcher": {"queue": "projudi_queue"},
-    # }
-
     celery.conf.update(
         # task_queues=CELERY_QUEUES,
         # task_routes=CELERY_ROUTES,

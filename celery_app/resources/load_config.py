@@ -8,6 +8,7 @@ from os import environ
 from typing import AnyStr, Self, Type
 
 from dotenv import load_dotenv
+from kombu import Queue  # noqa: F401
 
 config_dict_model = {
     "broker_url": "",
@@ -37,6 +38,15 @@ class Config:
         "task_create_missing_queues",
         "broker_connection_retry_on_startup",
     ]
+    # CELERY_QUEUES = (  # noqa: N806
+    #     Queue("default"),
+    #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
+    #     Queue("projudi_queue", routing_key="crawjud.bot.projudi_launcher"),
+    # )
+    # CELERY_ROUTES = {  # noqa: N806
+    #     "crawjud.bot.caixa_launcher": {"queue": "caixa_queue"},
+    #     "crawjud.bot.projudi_launcher": {"queue": "projudi_queue"},
+    # }
 
     @classmethod
     def load_config(cls, **kwrgs: AnyStr) -> Self:
