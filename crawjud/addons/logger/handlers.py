@@ -43,8 +43,8 @@ class FileHandler(logging.handlers.RotatingFileHandler):
     """Custom logging handler to send logs to a file."""
 
     filename = "app.logs"
-    max_bytes = 1024
-    backup_count = 1
+    maxBytes = 1024  # noqa: N815
+    backupCount = 1  # noqa: N815
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record to JSON."""

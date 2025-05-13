@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -14,6 +15,7 @@ from pytz import timezone
 
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
+from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions.bot import StartError
@@ -57,6 +59,7 @@ class CrawJUD:
     driver: WebDriver
     search: Any
     wait: WebDriverWait
+    logger: logging.Logger
 
     # Variáveis de nome/caminho de arquivos/pastas
     xlsx: str
@@ -71,6 +74,7 @@ class CrawJUD:
 
         """
         try:
+            self.is_stoped = False
             self.start_time = perf_counter()
             self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
             for k, v in list(kwargs.items()):
@@ -110,6 +114,10 @@ class CrawJUD:
 
             # Criação de planilhas template
             self.make_templates()
+
+            log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
+            logging.config.dictConfig(dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid), FILELOG_PATH=log_path)
+            self.logger = logging.getLogger(self.pid)
 
         except Exception as e:
             raise StartError(exception=e) from e

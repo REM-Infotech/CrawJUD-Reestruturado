@@ -35,19 +35,26 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     """Gerador de configurações do logging."""
     log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
     logger_name: str = kwargs.get("LOGGER_NAME", __name__)
+
+    handlers_config = handlers
+    handlers_config["file_handler"]["level"] = log_level
+    handlers_config["file_handler"]["maxBytes"] = 40960
+    handlers_config["file_handler"]["backupCount"] = 5
+    handlers_config["file_handler"]["filename"] = kwargs["FILELOG_PATH"]
+
     config = {
         "version": 1,
         "disable_existing_loggers": False,
         "root": {
             "level": log_level,
-            "handlers": list(handlers.keys()),
+            "handlers": list(handlers_config.keys()),
         },
-        "handlers": handlers,
+        "handlers": handlers_config,
         "formatters": formatters,
         "loggers": {
             logger_name: {
                 "level": log_level,
-                "handlers": list(handlers.keys()),
+                "handlers": list(handlers_config.keys()),
                 "propagate": False,
             },
         },
