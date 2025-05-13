@@ -65,13 +65,13 @@ async def database_start(app: Quart) -> None:
 
     if not Path("is_init.txt").exists():
         async with aiofiles.open("is_init.txt", "w") as f:
-            await f.write(f"{await init_database(app, db)}")
+            await f.write(f"{await init_database()}")
 
     from api.models import Users
 
     if not db.engine.dialect.has_table(db.engine.connect(), Users.__tablename__):
         async with aiofiles.open("is_init.txt", "w") as f:
-            await f.write(f"{await init_database(app, db)}")
+            await f.write(f"{await init_database()}")
 
 
 async def register_routes(app: Quart) -> None:
