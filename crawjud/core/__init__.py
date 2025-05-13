@@ -116,7 +116,7 @@ class CrawJUD:
             self.make_templates()
 
             log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
-            logging.config.dictConfig(dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid), FILELOG_PATH=log_path)
+            logging.config.dictConfig(dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path))
             self.logger = logging.getLogger(self.pid)
 
         except Exception as e:
