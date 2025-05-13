@@ -17,6 +17,32 @@ jwt = JWTManager()
 db = SQLAlchemy()
 
 
+async def create_app() -> Quart:
+    """
+    Create and configure the Quart application instance.
+
+    Args:
+        confg (object): The configuration object to load settings from.
+
+    Returns:
+        ASGIApp: The ASGI application instance with CORS and middleware applied.
+
+    """
+    app.config.from_pyfile(Path(__file__).parent.resolve().joinpath("quartconf.py"))
+
+    async with app.app_context():
+        await init_extensions(app)
+        await register_routes(app)
+
+    app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
+    return cors(
+        app,
+        allow_origin="*",
+        allow_headers=["Content-Type", "Authorization"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
+
+
 async def database_start(app: Quart) -> None:
     """
     Initialize and configure the application database.
@@ -67,7 +93,6 @@ async def register_routes(app: Quart) -> None:
     """
     async with app.app_context():
         # Dynamically import additional route modules as needed.
-        import_module("api.routes.logs", package=__package__)
         import_module("api.routes", package=__package__)
 
     from api.routes.auth import auth
@@ -76,9 +101,8 @@ async def register_routes(app: Quart) -> None:
     from api.routes.credentials import cred
     from api.routes.dashboard import dash
     from api.routes.execution import exe
-    from api.routes.logs import logsbot
 
-    listBlueprints = [bot, auth, logsbot, exe, dash, cred, admin]  # noqa: N806
+    listBlueprints = [bot, auth, exe, dash, cred, admin]  # noqa: N806
 
     for bp in listBlueprints:
         app.register_blueprint(bp)
@@ -99,28 +123,3 @@ async def init_extensions(app: Quart) -> None:
     jwt.init_app(app)
     async with app.app_context():
         await database_start(app)
-
-
-async def create_app(confg: object) -> Quart:
-    """
-    Create and configure the Quart application instance.
-
-    Args:
-        confg (object): The configuration object to load settings from.
-
-    Returns:
-        ASGIApp: The ASGI application instance with CORS and middleware applied.
-
-    """
-    app.config.from_object(confg)
-
-    async with app.app_context():
-        await register_routes(app)
-
-    app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
-    return cors(
-        app,
-        allow_origin="*",
-        allow_headers=["Content-Type", "Authorization"],
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    )

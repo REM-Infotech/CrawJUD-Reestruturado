@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import bcrypt
 import pytz
-from flask_login import UserMixin
 from quart_jwt_extended import get_current_user
 
 from api import db, jwt
@@ -88,7 +87,7 @@ class SuperUser(db.Model):
     users = db.relationship("Users", backref=db.backref("supersu", lazy=True))
 
 
-class Users(db.Model, UserMixin):
+class Users(db.Model):
     """Database model for application users."""
 
     __tablename__ = "users"

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from traceback import format_exception
 from typing import TYPE_CHECKING
 
@@ -20,13 +19,12 @@ from quart import (
 from quart import current_app as app
 from quart_jwt_extended import get_jwt_identity, jwt_required
 
-from api.addons import generate_pid
+from api.addons import generate_pid as generate_pid
 from api.addons.make_models import MakeModels
 from api.models import BotsCrawJUD
 from api.models.bots import Credentials
 from api.models.users import LicensesUsers
-from api.routes.bot.botlaunch_methods import get_bot_info, license_user, setup_task_worker
-from api.routes.bot.botlaunch_methods import get_form_data as get_form_data
+from api.routes.bot.botlaunch_methods import license_user
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
@@ -242,45 +240,4 @@ async def botlaunch(id_: int, system: str, typebot: str) -> Response:
         Response: JSON response indicating the status of the bot launch.
 
     """
-    form = {}
-    data = await request.form
-    files = await request.files
-    pid = generate_pid()
-    try:
-        form.update(data)
-        form.update(files)
-
-        periodic_bot = False
-
-        db: SQLAlchemy = app.extensions["sqlalchemy"]
-        bot_info = await get_bot_info(db, id_)
-        if not bot_info:
-            return await make_response(jsonify(response="Erro ao iniciar"), 500)
-
-        display_name = bot_info.display_name
-        title = display_name  # noqa: F841
-
-        if not form:
-            return await make_response(jsonify(response="ok"), 403)
-
-        return await setup_task_worker(
-            id_=id_,
-            pid=pid,
-            form=form,
-            system=system,
-            typebot=typebot,
-            periodic_bot=periodic_bot,
-            bot_info=bot_info,
-        )
-
-    except (ValueError, Exception) as e:
-        app.logger.exception("\n".join(format_exception(e)))
-        abort(500, description="Erro interno.")
-
-    finally:
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-
-        except (ValueError, Exception) as e:
-            app.logger.exception("\n".join(format_exception(e)))
+    return await make_response(jsonify(message="ok"), 200)

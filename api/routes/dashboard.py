@@ -10,18 +10,15 @@ from __future__ import annotations
 from traceback import format_exception
 from typing import TYPE_CHECKING
 
-from deep_translator import GoogleTranslator
 from quart import Blueprint, Response, abort, current_app, jsonify, make_response
 from quart_jwt_extended import jwt_required
 
 from api import db
+from api.addons.colors import escurecer_cor, gerar_cor_base, rgb_to_hex
 from api.models import Executions
-from crawjud.utils import escurecer_cor, gerar_cor_base, rgb_to_hex
 
 if TYPE_CHECKING:
     from api.models.bots import BotsCrawJUD
-
-translator = GoogleTranslator(source="en", target="pt")
 
 
 dash = Blueprint("dash", __name__)
