@@ -3,7 +3,6 @@
 This module manages page search operations for paid costs in the CrawJUD-Bots app.
 """
 
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from typing import Self
@@ -96,8 +95,7 @@ class BuscaPags(CrawJUD):
             self.page_custas()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_page_custas_pagas(self) -> None:
         """Retrieve the paid costs page.

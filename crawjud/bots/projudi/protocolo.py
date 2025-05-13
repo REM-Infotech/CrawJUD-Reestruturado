@@ -5,7 +5,6 @@ protocol operations such as adding moves, uploading files, signing documents, an
 """
 
 import os
-import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
@@ -128,8 +127,7 @@ class Protocolo(CrawJUD):
             self.append_success(data)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def confirm_protocol(self) -> str | None:
         """Confirm protocol action and extract the protocol number from the success message.
@@ -272,8 +270,7 @@ class Protocolo(CrawJUD):
             """ Corrigir elements """
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def add_new_file(self) -> None:
         """Upload the main petition file and its attachments for a protocol.
@@ -336,8 +333,7 @@ class Protocolo(CrawJUD):
                     break
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def set_file_principal(self) -> None:
         """Designate the principal file among the uploaded documents.
@@ -356,8 +352,7 @@ class Protocolo(CrawJUD):
             radiobutton.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def more_files(self) -> None:
         """Upload additional files as defined in the bot data for protocol documentation.
@@ -410,8 +405,7 @@ class Protocolo(CrawJUD):
                         break
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def sign_files(self) -> None:
         """Sign the protocol documents by providing the certificate password and confirming.
@@ -459,8 +453,7 @@ class Protocolo(CrawJUD):
             self.prt()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def finish_move(self) -> None:
         """Finalize the protocol move by confirming selections and concluding the operation."""
@@ -541,8 +534,7 @@ class Protocolo(CrawJUD):
             return [self.bot_data.get("NUMERO_PROCESSO"), self.message, comprovante1]
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def remove_files(self) -> None:
         """Delete the uploaded files from the protocol after processing.

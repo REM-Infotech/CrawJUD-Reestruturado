@@ -5,7 +5,6 @@ Extract and manage process intimation information from the Projudi system.
 
 import re  # noqa: F401
 import time
-import traceback
 from contextlib import suppress
 from datetime import datetime  # noqa: F401
 from typing import Self
@@ -142,9 +141,8 @@ class Intimacoes(CrawJUD):
                 self.driver.find_element(By.CSS_SELECTOR, 'a[class="arrowNextOn"]').click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
             self.logger.exception(str(e))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_intimacao_information(self, name_colunas: list[WebElement], intimacoes: list[WebElement]) -> dict:
         """Extract detailed intimation information from table rows.

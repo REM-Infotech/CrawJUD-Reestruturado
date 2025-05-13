@@ -10,7 +10,6 @@ Classes:
 from __future__ import annotations
 
 import os
-import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -111,8 +110,7 @@ class Prazos(CrawJUD):
             self.append_success([comprovante], self.message)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def TablePautas(self) -> None:  # noqa: N802
         """Verify if there are existing schedules for the specified day.
@@ -131,8 +129,7 @@ class Prazos(CrawJUD):
             self.prt()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def NovaPauta(self) -> None:  # noqa: N802
         """Launch a new audience schedule.
@@ -189,8 +186,7 @@ class Prazos(CrawJUD):
             DataAudiencia.send_keys(self.data_Concat)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def save_Prazo(self) -> None:  # noqa: N802
         """Save the newly created deadline.
@@ -209,8 +205,7 @@ class Prazos(CrawJUD):
             btn_salvar.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def CheckLancamento(self) -> dict[str, str] | None:  # noqa: N802
         """Check if the deadline has been successfully recorded.
@@ -259,5 +254,4 @@ class Prazos(CrawJUD):
             return data
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

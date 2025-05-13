@@ -6,7 +6,6 @@ Handle movement-related operations in the Projudi system with data scraping and 
 import os
 import re
 import shutil
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
@@ -120,8 +119,7 @@ class Movimentacao(CrawJUD):
                 self.append_error(data)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def set_page_size(self) -> None:
         """Set the page size of the movement table to 1000."""

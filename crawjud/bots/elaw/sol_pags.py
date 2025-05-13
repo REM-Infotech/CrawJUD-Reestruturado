@@ -12,7 +12,6 @@ Attributes:
 """
 
 import os
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from time import sleep
@@ -104,8 +103,7 @@ class SolPags(CrawJUD):
                 raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def new_payment(self) -> None:
         """Create a new payment entry.
@@ -126,8 +124,7 @@ class SolPags(CrawJUD):
             novo_pgto.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def set_pgto(self, namedef: str) -> None:
         """Set the payment type.
@@ -175,8 +172,7 @@ class SolPags(CrawJUD):
             raise ExecutionError(message="Tipo de Pagamento não encontrado")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def condenacao(self) -> None:
         """Handle condemnation details.
@@ -371,8 +367,7 @@ class SolPags(CrawJUD):
             conta_debito.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def custas(self) -> None:
         """Manage cost-related operations.
@@ -543,8 +538,7 @@ class SolPags(CrawJUD):
                 conta_debito.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def save_changes(self) -> None:
         """Save all changes made during the payment process."""
@@ -558,8 +552,7 @@ class SolPags(CrawJUD):
             save.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def confirm_save(self) -> None:
         """Confirm the saving of payment details.
@@ -683,8 +676,7 @@ class SolPags(CrawJUD):
             raise ExecutionError(message="Pagamento não solicitado")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def getScreenShot(self, url_page: str, Name_Comprovante1: str) -> None:  # noqa: N802, N803
         """Capture a screenshot of the specified page.

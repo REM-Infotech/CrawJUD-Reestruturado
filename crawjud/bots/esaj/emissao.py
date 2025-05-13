@@ -7,7 +7,6 @@ navigating forms, and extracting barcodes following the ESaj requirements.
 import platform
 import re
 import time
-import traceback
 from contextlib import suppress
 from time import sleep
 from typing import Self
@@ -150,8 +149,7 @@ class Emissao(CrawJUD):
             self.append_success(self.get_barcode())
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def custas_iniciais(self) -> None:
         """Process initial costs: navigate to the correct URL and fill form fields.
@@ -419,5 +417,4 @@ class Emissao(CrawJUD):
             ]
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

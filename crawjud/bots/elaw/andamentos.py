@@ -7,7 +7,6 @@ Classes:
     Andamentos: Manages process progress by extending the CrawJUD base class
 """
 
-import traceback
 from contextlib import suppress
 from time import sleep
 from typing import Self
@@ -101,8 +100,7 @@ class Andamentos(CrawJUD):
                 self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def info_data(self) -> None:
         """Inform the date of the andamento.
@@ -129,8 +127,7 @@ class Andamentos(CrawJUD):
             self.interact.sleep_load('div[id="j_id_34"]')
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def info_ocorrencia(self) -> None:
         """Inform the occurrence details of the andamento.
@@ -152,8 +149,7 @@ class Andamentos(CrawJUD):
             self.interact.send_key(ocorrencia, text_andamento)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def info_observacao(self) -> None:
         """Inform the observation details of the andamento.
@@ -175,8 +171,7 @@ class Andamentos(CrawJUD):
             self.interact.send_key(observacao, text_andamento)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def add_anexo(self) -> None:
         """Add attachments to the andamento.
@@ -207,7 +202,6 @@ class Andamentos(CrawJUD):
             save_button.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(message="Não foi possivel salvar andamento", e=e) from e
 
         try:

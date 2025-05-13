@@ -4,7 +4,6 @@ This module fetches and processes court hearing schedules (pautas) for automated
 """
 
 import os
-import traceback
 from contextlib import suppress
 from datetime import datetime, timedelta
 from time import sleep
@@ -134,8 +133,7 @@ class Pauta(CrawJUD):
                 self.prt()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_pautas(self, current_date: type[datetime], vara: str) -> None:
         """Retrieve and parse pautas from the page for the given date and court branch now.
@@ -215,7 +213,6 @@ class Pauta(CrawJUD):
                         self.get_pautas(current_date, vara)
 
                 except Exception as e:
-                    self.logger.exception("".join(traceback.format_exception_only(e)))
                     raise ExecutionError(e) from e
 
             elif not itens_pautas:
@@ -224,5 +221,4 @@ class Pauta(CrawJUD):
             sleep(times)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

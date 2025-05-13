@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 import time
-import traceback
 from contextlib import suppress
 from time import sleep
 from typing import Self
@@ -112,8 +111,7 @@ class Emissor(CrawJUD):
             self.append_success(data)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_site(self) -> None:
         """Access deposit site, solve CAPTCHA, and load required deposit interface.

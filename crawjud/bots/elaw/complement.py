@@ -13,7 +13,6 @@ Attributes:
 """
 
 import time
-import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
@@ -195,8 +194,7 @@ class Complement(CrawJUD):
                 raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def save_all(self) -> None:
         """Save all changes in the process.
@@ -246,7 +244,6 @@ class Complement(CrawJUD):
                 validar.update({campo.upper(): element})
 
             except Exception as e:
-                self.logger.exception("".join(traceback.format_exception_only(e)))
                 try:
                     message = e.message
 

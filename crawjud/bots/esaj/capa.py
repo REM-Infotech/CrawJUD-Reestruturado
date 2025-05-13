@@ -4,7 +4,6 @@ This module executes the workflow to search and process process details,
 ensuring detailed extraction and logging of information.
 """
 
-import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -78,8 +77,7 @@ class Capa(CrawJUD):
             self.append_success(self.get_process_informations())
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_process_informations(self) -> list:
         """Extract and return detailed process information from the web elements.

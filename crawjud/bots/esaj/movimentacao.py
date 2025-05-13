@@ -4,7 +4,6 @@ This module manages movement operations on the Esaj system using the CrawJUD fra
 """
 
 import re
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from time import sleep
@@ -130,8 +129,7 @@ class Movimentacao(CrawJUD):
                 self.append_error(data)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception_only(e)))
-            raise ExecutionError(e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def setup_config(self) -> None:
         """Configure movement scraping by setting page size, table moves, and keywords.
