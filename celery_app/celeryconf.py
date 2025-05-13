@@ -42,7 +42,7 @@ SQLALCHEMY_POOL_TIMEOUT = 30
 SQLALCHEMY_POOL_RECYCLE = 1800
 
 # Verificar a saúde da conexão antes de usá-la
-SQLALCHEMY_POOL_PRE_PING = env.get("SQLALCHEMY_POOL_PRE_PING", "true").lower() == "true"
+SQLALCHEMY_POOL_PRE_PING = True
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///local.db"
 SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
