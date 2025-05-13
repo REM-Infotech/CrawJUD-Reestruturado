@@ -29,3 +29,8 @@ def create_socketioserver() -> tuple[AsyncServer, Redis]:
     )
 
     return io, redis_app
+
+
+create_server = create_socketioserver()
+io = create_server[0]
+redis_app = create_server[1]
