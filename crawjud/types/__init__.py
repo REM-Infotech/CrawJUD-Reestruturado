@@ -1,6 +1,7 @@
 """Web types module."""
 
 from datetime import datetime, timedelta
+from os import PathLike
 from typing import Dict, List, Literal, Tuple, TypeVar, Union
 
 numbers = Union[int, float]
@@ -33,3 +34,4 @@ AnyType = TypeVar("AnyType", bound=binds)
 WrappedFnReturnT = TypeVar("WrappedFnReturnT")
 AnyStr = TypeVar("AnyStr", bound=strings)
 app_name = Literal["Quart", "Worker"]
+StrPath = Union[str, PathLike]

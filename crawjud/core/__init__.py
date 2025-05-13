@@ -10,11 +10,14 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from pandas import Timestamp
+from pytz import timezone
 
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
+from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchBot
 from crawjud.addons.webdriver import DriverBot
+from crawjud.types import StrPath
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
@@ -38,6 +41,7 @@ class CrawJUD:
     pid: str
     pos: int
     is_stoped: bool
+    output_dir_path: StrPath
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo."""
@@ -61,6 +65,28 @@ class CrawJUD:
             wait=self.wait,
         )
         auth.auth()
+
+    def make_templates(self) -> None:
+        """Criação de planilhas de output do robô."""
+        time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
+        planilha_args = [
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Sucessos - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "sucesso",
+                "BOT_NAME": self.bot_name,
+            },
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Erros - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "erro",
+                "BOT_NAME": self.bot_name,
+            },
+        ]
+
+        for item in planilha_args:
+            attribute_name, attribute_val = MakeTemplates.constructor(**item).make()
+            setattr(self, attribute_name, attribute_val)
 
     def open_cfg(self) -> None:
         """Abre as configurações de execução."""
