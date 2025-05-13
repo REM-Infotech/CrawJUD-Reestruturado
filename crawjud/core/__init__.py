@@ -65,6 +65,7 @@ class CrawJUD:
             wait=self.wait,
         )
         auth.auth()
+        self.make_templates()
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
