@@ -6,7 +6,6 @@ This module provides endpoints for listing executions and downloading execution 
 
 from __future__ import annotations
 
-from importlib import import_module
 from traceback import format_exception
 from typing import TYPE_CHECKING
 
@@ -28,7 +27,7 @@ from api import db
 from api.models import Executions, Users
 from api.models import SuperUser as SuperUser
 from api.models import admins as admins
-from crawjud.misc import generate_signed_url
+from api.models.schedule import ScheduleModel as ScheduleModel
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
@@ -79,33 +78,6 @@ async def executions() -> Response:
     except (ValueError, Exception) as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
-
-
-@exe.route("/executions/download/<filename>")
-@jwt_required
-async def download_file(filename: str) -> Response:
-    """
-    Generate a signed URL and redirect to the file download.
-
-    Args:
-        filename (str): The name of the file to download.
-
-    Returns:
-        Response: A Quart redirect response to the signed URL.
-
-    """
-    signed_url = generate_signed_url(filename)
-
-    # Redireciona para a URL assinada
-    return await make_response(jsonify(url=signed_url))
-
-
-def schedule_route() -> None:
-    """Import the schedules module and add the route to the Quart application."""
-    import_module(".schedules", __package__)
-
-
-schedule_route()
 
 
 @exe.post("/clear_executions")

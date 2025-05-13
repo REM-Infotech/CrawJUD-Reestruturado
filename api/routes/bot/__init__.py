@@ -20,18 +20,13 @@ from quart import (
 from quart import current_app as app
 from quart_jwt_extended import get_jwt_identity, jwt_required
 
+from api.addons import generate_pid
+from api.addons.make_models import MakeModels
 from api.models import BotsCrawJUD
 from api.models.bots import Credentials
 from api.models.users import LicensesUsers
-from crawjud.misc import MakeModels
-from crawjud.utils.gen_seed import generate_pid
-
-from .botlaunch_methods import (
-    get_bot_info,
-    license_user,
-    setup_task_worker,
-)
-from .botlaunch_methods import get_form_data as get_form_data
+from api.routes.bot.botlaunch_methods import get_bot_info, license_user, setup_task_worker
+from api.routes.bot.botlaunch_methods import get_form_data as get_form_data
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
