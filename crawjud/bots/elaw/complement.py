@@ -239,7 +239,8 @@ class Complement(CrawJUD):
                 element = self.driver.execute_script(command)
 
                 if not element or element.lower() == "selecione":
-                    raise ExecutionError(message=f'Campo "{campo}" não preenchido', bot_execution_id=self.pid)
+                    message = f'Campo "{campo}" não preenchido'
+                    raise ExecutionError(message=message, bot_execution_id=self.pid)
 
                 message_campo.append(f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>')
                 validar.update({campo.upper(): element})
