@@ -11,7 +11,6 @@ from pathlib import Path
 from time import sleep
 from typing import Self
 
-import dotenv
 from PIL import Image
 from selenium.common.exceptions import (
     JavascriptException,  # noqa: F401
@@ -29,9 +28,6 @@ from crawjud.core import CrawJUD
 from crawjud.exceptions.bot import ExecutionError
 
 # from typing import type
-
-
-dotenv.load_dotenv()
 
 
 class Protocolo(CrawJUD):

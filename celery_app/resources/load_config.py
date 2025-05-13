@@ -8,7 +8,7 @@ from os import environ
 from typing import AnyStr, Self, Type
 
 from dotenv import load_dotenv
-from kombu import Queue  # noqa: F401
+from trio import Path  # noqa: F401
 
 config_dict_model = {
     "broker_url": "",
@@ -57,7 +57,7 @@ class Config:
         """Load Config."""
         self.celery_config = {}
         if len(kwrgs) == 0:
-            load_dotenv()
+            load_dotenv(str(Path(__file__).cwd().joinpath("celery_app", ".env")))
             kwrgs = environ
 
         for key, val in list(kwrgs.items()):

@@ -23,7 +23,7 @@ class RedisHandler(logging.Handler):
         """Initialize the RedisHandler."""
         super().__init__()
 
-        load_dotenv(str(Path(__file__).cwd().joinpath("crawjud", ".env")))
+        load_dotenv(str(Path(__file__).cwd().joinpath("api", ".env")))
         kwrgs = environ
 
         self.LIST_LOGS_REDIS = kwrgs["LIST_LOGS_REDIS"]

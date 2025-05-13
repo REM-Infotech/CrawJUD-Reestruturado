@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from dotenv import load_dotenv
 from google.cloud.storage import Client
 from google.oauth2.service_account import Credentials
+from trio import Path
 
 if TYPE_CHECKING:
     from typing import Any, Self
@@ -28,7 +29,7 @@ class GoogleClient:
     def __init__(self, **kwrgs: str) -> None:
         """Initialize class with args."""
         if len(kwrgs) == 0:
-            load_dotenv()
+            load_dotenv(str(Path(__file__).cwd().joinpath("celery_app", ".env")))
             kwrgs = environ
 
         self.CREDENDIALS = json.loads(kwrgs["CREDENDIALS_GCS"])

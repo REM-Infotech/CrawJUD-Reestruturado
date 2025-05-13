@@ -53,7 +53,7 @@ class Mail:
     def __init__(self, **kwrgs: str | bool | int) -> None:
         """Inicializes the Mail class with the given keyword arguments."""
         if len(kwrgs) == 0:
-            load_dotenv()
+            load_dotenv(str(Path(__file__).cwd().joinpath("celery_app", ".env")))
             kwrgs = environ
 
         self.MAIL_SERVER = kwrgs["MAIL_SERVER"]

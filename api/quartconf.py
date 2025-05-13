@@ -7,7 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent.resolve().joinpath(".env"))
+load_dotenv(str(Path(__file__).cwd().joinpath("api", ".env")))
 
 
 WITH_REDIS = False

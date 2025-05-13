@@ -1,11 +1,7 @@
 """Módulo de Addons do SocketIO Server."""
 
 import re
-from os import environ
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from platform import node
 
 
 def check_allowed_origin(origin: str = "https://google.com") -> bool:
@@ -28,7 +24,7 @@ def check_allowed_origin(origin: str = "https://google.com") -> bool:
         r"https:\/\/.*\.rhsolut\.com\.br",
     ]
     if not origin:
-        origin = f"https://{environ.get('HOSTNAME')}"
+        origin = f"https://{node()}"
 
     for orig in allowed_origins:
         pattern = orig

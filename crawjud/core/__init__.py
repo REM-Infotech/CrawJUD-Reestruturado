@@ -18,6 +18,7 @@ from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
 from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
+from crawjud.addons.printlogs import PrintMessage
 from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
@@ -61,6 +62,7 @@ class CrawJUD:
     search: Any
     wait: WebDriverWait
     logger: logging.Logger
+    prt: PrintMessage
 
     # Variáveis de nome/caminho de arquivos/pastas
     xlsx: str
@@ -130,6 +132,7 @@ class CrawJUD:
         logging.config.dictConfig(config)
 
         self.logger = logging.getLogger(logger_name)
+        self.prt = PrintMessage.constructor(logger=self.logger)
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
