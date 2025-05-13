@@ -51,7 +51,10 @@ class Config:
             kwrgs = environ
 
         for key, val in list(kwrgs.items()):
-            if key in self.bool_attributes:
-                val = kwrgs.get(key, "false").lower() == "true"
+            if getattr(self, key):
+                if key in self.bool_attributes:
+                    val = kwrgs.get(key, "false").lower() == "true"
 
-            self.celery_config[key] = val
+                self.celery_config[key] = val
+
+            setattr(self, key, val)
