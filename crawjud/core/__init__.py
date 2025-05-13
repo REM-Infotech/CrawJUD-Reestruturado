@@ -36,13 +36,20 @@ class CrawJUD:
     start_time: float
     driver: WebDriver
     search: Any
-    senhatoken: str
+
     elements: type_elements
     pid: str
     pos: int
     is_stoped: bool
     output_dir_path: StrPath
     config_bot: dict[str, AnyStr]
+    system: str
+    state_or_client: str
+
+    # Variáveis de autenticação/protocolo
+    username: str
+    password: str
+    senhatoken: str
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo.
@@ -55,6 +62,10 @@ class CrawJUD:
             self.start_time = perf_counter()
             self.output_dir_path = kwargs.get("path_config")
             for k, v in list(kwargs.items()):
+                if "bot" in k:
+                    setattr(self, k.split("_")[1], v)
+                    continue
+
                 setattr(self, k, v)
 
             self.open_cfg()
@@ -64,14 +75,20 @@ class CrawJUD:
             self.driver = driverbot[0]
             self.wait = driverbot[1]
 
-            self.elements = ElementsBot.config(**self.config_bot).bot_elements
+            self.elements = ElementsBot.config(
+                system=self.system,
+                state_or_client=self.state_or_client,
+                **self.config_bot,
+            ).bot_elements
 
             # Autenticação com os sistemas
-            auth = authenticator(kwargs.get("system"))(
-                username=kwargs.get("username"),
-                password=kwargs.get("password"),
+            auth = authenticator(self.system)(
+                username=self.username,
+                password=self.password,
                 driver=self.driver,
                 wait=self.wait,
+                system=self.system,
+                elements=self.elements,
             )
             auth.auth()
 
@@ -109,6 +126,9 @@ class CrawJUD:
             data: dict[str, AnyStr] = json.loads(f.read())
             self.config_bot = data
             for k, v in list(data.items()):
+                if k == "state" or k == "client":
+                    self.state_or_client = v
+
                 setattr(self, k, v)
 
     def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802

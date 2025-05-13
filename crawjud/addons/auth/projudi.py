@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from crawjud.addons.auth.controller import AuthController
+from crawjud.exceptions.bot import LoginSystemError
 
 
 class ProjudiAuth(AuthController):
@@ -58,4 +59,4 @@ class ProjudiAuth(AuthController):
             return check_login is not None
 
         except Exception as e:
-            raise e
+            raise LoginSystemError(exception=e) from e
