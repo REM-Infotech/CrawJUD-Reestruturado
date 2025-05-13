@@ -93,9 +93,9 @@ class Capa(CrawJUD):
         # adv_polo_ativo = "Não consta"
         # adv_polo_passivo = "Não consta"
 
-        self.message = f"Extraindo informações do processo nº{self.bot_data.get('NUMERO_PROCESSO')}"
-        self.type_log = "log"
-        self.prt()
+        message = f"Extraindo informações do processo nº{self.bot_data.get('NUMERO_PROCESSO')}"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         grau = self.bot_data.get("GRAU", 1)
 

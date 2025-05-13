@@ -50,11 +50,11 @@ class PrintMessage:
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid}, {type_log}, {row}, {time_exec})> {message}]"
 
-        self.type_log = type_log
+        type_log = type_log
         self.row = row
         self.total = self.total_rows
         self.pid = pid
-        self.message = prompt
+        message = prompt
 
         self.logger.info(prompt)
         asyncio.run(self.emit_message)

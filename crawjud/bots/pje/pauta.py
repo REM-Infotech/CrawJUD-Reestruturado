@@ -67,9 +67,9 @@ class Pauta(CrawJUD):
             vara_name, vara = row
             self.row = pos + 1
 
-            self.message = "Buscando pautas na vara: " + vara_name
-            self.type_log = "log"
-            self.prt()
+            message = "Buscando pautas na vara: " + vara_name
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             if self.is_stoped:
                 break
@@ -97,9 +97,9 @@ class Pauta(CrawJUD):
         try:
             self.current_date = self.data_inicio
             while self.current_date <= self.data_fim:
-                self.message = f"Buscando pautas na data {self.current_date.strftime('%d/%m/%Y')}"
-                self.type_log = "log"
-                self.prt()
+                message = f"Buscando pautas na data {self.current_date.strftime('%d/%m/%Y')}"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 if self.is_stoped:
                     break
@@ -128,9 +128,9 @@ class Pauta(CrawJUD):
                 self.append_success(data=[data_append], fileN=fileN, message="Dados extraídos com sucesso!")
 
             elif len(data_append) == 0:
-                self.message = "Nenhuma pauta encontrada"
-                self.type_log = "error"
-                self.prt()
+                message = "Nenhuma pauta encontrada"
+                type_log = "error"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -169,9 +169,9 @@ class Pauta(CrawJUD):
                 itens_pautas = table_pautas.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
 
             if itens_pautas:
-                self.message = "Pautas encontradas!"
-                self.type_log = "log"
-                self.prt()
+                message = "Pautas encontradas!"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 times = 6
 
@@ -200,9 +200,9 @@ class Pauta(CrawJUD):
                         }
 
                         self.data_append[vara][current_date].append(appends)
-                        self.message = f"Processo {appends['NUMERO_PROCESSO']} adicionado!"
-                        self.type_log = "info"
-                        self.prt()
+                        message = f"Processo {appends['NUMERO_PROCESSO']} adicionado!"
+                        type_log = "info"
+                        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 try:
                     btn_next = self.driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Próxima página"]')

@@ -89,9 +89,9 @@ class Provisao(CrawJUD):
         try:
             search = self.search_bot()
             if search is True:
-                self.type_log = "log"
-                self.message = "Processo encontrado! Informando valores..."
-                self.prt()
+                type_log = "log"
+                message = "Processo encontrado! Informando valores..."
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 calls = self.setup_calls()
 
@@ -138,9 +138,9 @@ class Provisao(CrawJUD):
         possible = provisao == "possível"
 
         if chk_getvals1 and possible:
-            self.message = "Aviso: Já existe uma provisão possível cadastrada."
-            self.type_log = "info"
-            self.prt()
+            message = "Aviso: Já existe uma provisão possível cadastrada."
+            type_log = "info"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         edit_button: WebElement = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_btn_edit)),
@@ -243,9 +243,9 @@ class Provisao(CrawJUD):
         """
         try:
             self.interact.sleep_load('div[id="j_id_2z"]')
-            self.message = "Informando valores"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando valores"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             campo_valor_dml = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_val_inpt)),
             )
@@ -281,9 +281,9 @@ class Provisao(CrawJUD):
 
         """
         try:
-            self.message = "Alterando risco"
-            self.type_log = "log"
-            self.prt()
+            message = "Alterando risco"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             expand_filter_risk = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_risk)),
@@ -323,9 +323,9 @@ class Provisao(CrawJUD):
 
         """
         try:
-            self.message = "Alterando datas de correção base e juros"
-            self.type_log = "log"
-            self.prt()
+            message = "Alterando datas de correção base e juros"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             def set_data_correcao(data_base_correcao: str) -> None:
                 data_correcao = self.driver.find_element(By.CSS_SELECTOR, self.elements.daata_correcaoCss)
@@ -376,9 +376,9 @@ class Provisao(CrawJUD):
 
             self.interact.sleep_load('div[id="j_id_2z"]')
 
-            self.message = "Informando justificativa"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando justificativa"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             informar_motivo: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.texto_motivo)),
             )

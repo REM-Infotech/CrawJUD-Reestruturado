@@ -84,22 +84,22 @@ class Download(CrawJUD):
         try:
             search = self.search_bot()
             if search is True:
-                self.message = "Processo encontrado!"
-                self.type_log = "log"
-                self.prt()
+                message = "Processo encontrado!"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
                 self.buscar_doc()
                 self.download_docs()
-                self.message = "Arquivos salvos com sucesso!"
+                message = "Arquivos salvos com sucesso!"
                 self.append_success(
-                    [self.bot_data.get("NUMERO_PROCESSO"), self.message, self.list_docs],
+                    [self.bot_data.get("NUMERO_PROCESSO"), message, self.list_docs],
                     "Arquivos salvos com sucesso!",
                 )
 
             elif not search:
-                self.message = "Processo não encontrado!"
-                self.type_log = "error"
-                self.prt()
-                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
+                message = "Processo não encontrado!"
+                type_log = "error"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), message])
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -111,17 +111,17 @@ class Download(CrawJUD):
             DocumentSearchError: If an error occurs while accessing the page.
 
         """
-        self.message = "Acessando página de anexos"
-        self.type_log = "log"
-        self.prt()
+        message = "Acessando página de anexos"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
         anexosbutton: WebElement = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.anexosbutton_css)),
         )
         anexosbutton.click()
         sleep(1.5)
-        self.message = "Acessando tabela de documentos"
-        self.type_log = "log"
-        self.prt()
+        message = "Acessando tabela de documentos"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def download_docs(self) -> None:
         """Download the documents.
@@ -141,9 +141,9 @@ class Download(CrawJUD):
         elif "," not in self.bot_data.get("TERMOS"):
             termos = [str(self.bot_data.get("TERMOS"))]
 
-        self.message = f'Buscando documentos que contenham "{self.bot_data.get("TERMOS").__str__().replace(",", ", ")}"'
-        self.type_log = "log"
-        self.prt()
+        message = f'Buscando documentos que contenham "{self.bot_data.get("TERMOS").__str__().replace(",", ", ")}"'
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         for item in table_doc:
             item: WebElement = item
@@ -153,9 +153,9 @@ class Download(CrawJUD):
                 if str(termo).lower() in get_name_file.lower():
                     sleep(1)
 
-                    self.message = f'Arquivo com termo de busca "{termo}" encontrado!'
-                    self.type_log = "log"
-                    self.prt()
+                    message = f'Arquivo com termo de busca "{termo}" encontrado!'
+                    type_log = "log"
+                    self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                     baixar = item.find_elements(By.TAG_NAME, "td")[13].find_element(
                         By.CSS_SELECTOR,
@@ -164,9 +164,9 @@ class Download(CrawJUD):
                     baixar.click()
 
                     self.rename_doc(get_name_file)
-                    self.message = "Arquivo baixado com sucesso!"
-                    self.type_log = "info"
-                    self.prt()
+                    message = "Arquivo baixado com sucesso!"
+                    type_log = "info"
+                    self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def rename_doc(self, namefile: str) -> None:
         """Rename the downloaded document.

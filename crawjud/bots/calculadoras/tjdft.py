@@ -110,9 +110,9 @@ class Tjdft(CrawJUD):
 
         """
         try:
-            self.message = "Acessando Página de cálculo.."
-            self.type_log = "log"
-            self.prt()
+            message = "Acessando Página de cálculo.."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             self.driver.get("https://www.tjdft.jus.br/servicos/atualizacao-monetaria-1/calculo")
 
             check_cookies = None
@@ -145,9 +145,9 @@ class Tjdft(CrawJUD):
         """
         try:
             sleep(2)
-            self.message = "Informando numero do processo"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando numero do processo"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             css_input_numproc = 'input[id="num_processo"][name="num_processo"]'
             get_input_process: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_input_numproc)),
@@ -155,9 +155,9 @@ class Tjdft(CrawJUD):
             get_input_process.click()
             get_input_process.send_keys(self.bot_data.get("NUMERO_PROCESSO"))
 
-            self.message = "numero do processo informado"
-            self.type_log = "log"
-            self.prt()
+            message = "numero do processo informado"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(message="Erro ao informar número do processo", e=e) from e
@@ -174,18 +174,18 @@ class Tjdft(CrawJUD):
         try:
             sleep(2)
             css_name_requerente = 'input[name="requerente"][id="requerente"]'
-            self.message = "Informando requerente"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando requerente"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             get_name_requerente: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_name_requerente)),
             )
             get_name_requerente.click()
             get_name_requerente.send_keys(self.bot_data.get("REQUERENTE"))
 
-            self.message = "Nome do requerente informado"
-            self.type_log = "log"
-            self.prt()
+            message = "Nome do requerente informado"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -202,18 +202,18 @@ class Tjdft(CrawJUD):
         try:
             sleep(2)
             css_name_requerido = 'input[name="requerido"][id="requerido"]'
-            self.message = "Informado requerido"
-            self.type_log = "log"
-            self.prt()
+            message = "Informado requerido"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             get_name_requerido: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_name_requerido)),
             )
             get_name_requerido.click()
             get_name_requerido.send_keys(self.bot_data.get("REQUERIDO"))
 
-            self.message = "Nome do requerido informado"
-            self.type_log = "log"
-            self.prt()
+            message = "Nome do requerido informado"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -228,9 +228,9 @@ class Tjdft(CrawJUD):
 
         """
         try:
-            self.message = "Informando incidencia de juros e data de incidencia"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando incidencia de juros e data de incidencia"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             juros_partir = str(self.bot_data.get("JUROS_PARTIR")).upper()
 
@@ -275,9 +275,9 @@ class Tjdft(CrawJUD):
         """
         try:
             css_data_valor_devido = 'input[id="data-0"][name="parcela_data:list"]'
-            self.message = "Informando data valor devido"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando data valor devido"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             data_valor_devido: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_data_valor_devido)),
             )
@@ -286,9 +286,9 @@ class Tjdft(CrawJUD):
 
             sleep(2)
             css_valor_devido = 'input[id="valor-0"][name="parcela_valor:list"]'
-            self.message = "Informando valor devido"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando valor devido"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             valor_devido: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_valor_devido)),
             )
@@ -298,9 +298,9 @@ class Tjdft(CrawJUD):
             valor = f"{valor},00" if "," not in valor else valor
             valor_devido.send_keys(valor)
 
-            self.message = "valor devido informado"
-            self.type_log = "log"
-            self.prt()
+            message = "valor devido informado"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -316,9 +316,9 @@ class Tjdft(CrawJUD):
             try:
                 sleep(1)
                 css_multa_percentual = 'input[name="multa_percent"][id="multa_percent"]'
-                self.message = "Informando multa percentual"
-                self.type_log = "log"
-                self.prt()
+                message = "Informando multa percentual"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 if self.bot_data.get("MULTA_PERCENTUAL", None):
                     multa_percentual: WebElement = self.wait.until(
@@ -340,9 +340,9 @@ class Tjdft(CrawJUD):
                     self.interact.send_key(multa_data, self.bot_data.get("MULTA_DATA"))
                     self.interact.send_key(multa_valor, valor)
 
-                self.message = "Multa informada"
-                self.type_log = "log"
-                self.prt()
+                message = "Multa informada"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             except Exception as e:
                 raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -350,9 +350,9 @@ class Tjdft(CrawJUD):
         def honorario_sucumb() -> None | Exception:
             try:
                 css_honorario_sucumb = 'input[name="honor_sucumb_percent"][id="honor_sucumb_percent"]'
-                self.message = "Informando Honorários de Sucumbência"
-                self.type_log = "log"
-                self.prt()
+                message = "Informando Honorários de Sucumbência"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 disabled_state = ""
 
@@ -388,9 +388,9 @@ class Tjdft(CrawJUD):
                     self.interact.send_key(honor_sucumb_valor, valor)
                     self.interact.send_key(sucumb_juros_partir, self.bot_data.get("HONORARIO_SUCUMB_PARTIR"))
 
-                self.message = "Percentual Honorários de Sucumbência informado"
-                self.type_log = "log"
-                self.prt()
+                message = "Percentual Honorários de Sucumbência informado"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             except Exception as e:
                 raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -406,9 +406,9 @@ class Tjdft(CrawJUD):
         def honorario_cumprimento() -> None | Exception:
             try:
                 css_honorario_exec = 'input[id="honor_exec_percent"]'
-                self.message = "Informando Honorários de Cumprimento"
-                self.type_log = "log"
-                self.prt()
+                message = "Informando Honorários de Cumprimento"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 disabled_state = ""
 
@@ -441,9 +441,9 @@ class Tjdft(CrawJUD):
                     self.interact.send_key(honor_exec_valor, valor)
                     self.interact.send_key(exec_juros_partir, self.bot_data.get("HONORARIO_CUMPRIMENTO_PARTIR"))
 
-                self.message = "Informado Honorários de Cumprimento"
-                self.type_log = "log"
-                self.prt()
+                message = "Informado Honorários de Cumprimento"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             except Exception as e:
                 raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -451,18 +451,18 @@ class Tjdft(CrawJUD):
         def custas() -> None | Exception:
             try:
                 css_data_custas = 'input[id="custas-data-0"]'
-                self.message = "Informando valor custas"
-                self.type_log = "log"
-                self.prt()
+                message = "Informando valor custas"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
                 data_custas: WebElement = self.driver.find_element(By.CSS_SELECTOR, css_data_custas)
                 data_custas.click()
                 data_custas.send_keys(self.bot_data.get("CUSTAS_DATA"))
 
                 sleep(2)
                 css_custas_valor = 'input[id="custas-valor-0"]'
-                self.message = "Informando valor devido"
-                self.type_log = "log"
-                self.prt()
+                message = "Informando valor devido"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
                 custas_valor: WebElement = self.driver.find_element(By.CSS_SELECTOR, css_custas_valor)
                 custas_valor.click()
 
@@ -470,9 +470,9 @@ class Tjdft(CrawJUD):
                 valor = f"{valor},00" if "," not in valor else valor
                 custas_valor.send_keys(valor)
 
-                self.message = "Valor custas informado"
-                self.type_log = "log"
-                self.prt()
+                message = "Valor custas informado"
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             except Exception as e:
                 raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

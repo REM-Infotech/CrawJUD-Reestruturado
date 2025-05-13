@@ -165,9 +165,9 @@ class Emissao(CrawJUD):
 
         self.driver.get(url_custas_ini)
 
-        self.message = "Informando foro"
-        self.type_log = "log"
-        self.prt()
+        message = "Informando foro"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         set_foro: WebElement = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.ome_foro)),
@@ -356,9 +356,9 @@ class Emissao(CrawJUD):
         self.driver.close()
         sleep(0.7)
         self.driver.switch_to.window(self.original_window)
-        self.message = f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
-        self.type_log = "log"
-        self.prt()
+        message = f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def get_barcode(self) -> None:
         """Extract and return the barcode from the downloaded PDF by matching a regex.
@@ -371,9 +371,9 @@ class Emissao(CrawJUD):
 
         """
         try:
-            self.message = "Extraindo código de barras"
-            self.type_log = "log"
-            self.prt()
+            message = "Extraindo código de barras"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             sleep(2)
             # Inicialize uma lista para armazenar os números encontrados

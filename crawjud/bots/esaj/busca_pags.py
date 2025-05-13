@@ -130,9 +130,9 @@ class BuscaPags(CrawJUD):
                 continue
 
             if "Lista de custas pagas" in nomediv:
-                self.message = "Extraindo dados..."
-                self.type_log = "log"
-                self.prt()
+                message = "Extraindo dados..."
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
                 find_table_pgmt = divcorreta.find_element(By.CSS_SELECTOR, 'table[class="spwTabelaGrid"]')
 

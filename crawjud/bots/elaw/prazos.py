@@ -79,21 +79,21 @@ class Prazos(CrawJUD):
         try:
             search = self.search_bot()
             if not search:
-                self.message = "Buscando Processo"
+                message = "Buscando Processo"
                 raise ExecutionError(message="Não Encontrado!")
 
             comprovante = ""
             self.data_Concat = f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
-            self.message = "Processo Encontrado!"
-            self.type_log = "log"
-            self.prt()
+            message = "Processo Encontrado!"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             self.TablePautas()
             chk_lancamento = self.CheckLancamento()
 
             if chk_lancamento:
-                self.message = "Já existe lançamento para esta pauta"
-                self.type_log = "info"
+                message = "Já existe lançamento para esta pauta"
+                type_log = "info"
                 chk_lancamento.update({"MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"})
 
                 comprovante = chk_lancamento
@@ -105,9 +105,9 @@ class Prazos(CrawJUD):
                 if not comprovante:
                     raise ExecutionError(message="Não foi possível comprovar lançamento, verificar manualmente")
 
-                self.message = "Pauta lançada!"
+                message = "Pauta lançada!"
 
-            self.append_success([comprovante], self.message)
+            self.append_success([comprovante], message)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -124,9 +124,9 @@ class Prazos(CrawJUD):
 
             switch_pautaandamento.click()
 
-            self.message = f"Verificando se existem pautas para o dia {self.data_Concat}"
-            self.type_log = "log"
-            self.prt()
+            message = f"Verificando se existem pautas para o dia {self.data_Concat}"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -139,9 +139,9 @@ class Prazos(CrawJUD):
 
         """
         try:
-            self.message = "Lançando nova audiência"
-            self.type_log = "log"
-            self.prt()
+            message = "Lançando nova audiência"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             btn_novaaudiencia = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.btn_novaaudiencia)),
@@ -150,9 +150,9 @@ class Prazos(CrawJUD):
             btn_novaaudiencia.click()
 
             # Info tipo Audiencia
-            self.message = "Informando tipo de audiência"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando tipo de audiência"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             selectortipoaudiencia: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.selectortipoaudiencia)),
@@ -175,9 +175,9 @@ class Prazos(CrawJUD):
                 self.driver.execute_script(command2)
 
             # Info Data Audiencia
-            self.message = "Informando data da Audiência"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando data da Audiência"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             DataAudiencia: WebElement = self.wait.until(  # noqa: N806
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.DataAudiencia)),
@@ -196,9 +196,9 @@ class Prazos(CrawJUD):
 
         """
         try:
-            self.message = "Salvando..."
-            self.type_log = "log"
-            self.prt()
+            message = "Salvando..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             btn_salvar = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_salvar)
 

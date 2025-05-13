@@ -105,27 +105,27 @@ class Movimentacao(CrawJUD):
             if search is not True:
                 raise ExecutionError(message="Processo não encontrado!")
 
-            self.message = "Buscando movimentações"
-            self.type_log = "log"
-            self.prt()
+            message = "Buscando movimentações"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             self.setup_config()
 
             if len(self.appends) > 0:
-                self.type_log = "log"
+                type_log = "log"
                 self.append_success(self.appends)
 
             if len(self.another_append) > 0:
                 for data, msg, fileN in self.another_append:  # noqa: N806
-                    self.type_log = "info"
+                    type_log = "info"
                     self.append_success([data], msg, fileN)
 
             elif len(self.appends) == 0 and len(self.another_append) == 0:
-                self.message = "Nenhuma movimentação encontrada"
-                self.type_log = "error"
-                self.prt()
+                message = "Nenhuma movimentação encontrada"
+                type_log = "error"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
                 data = self.bot_data
-                data.update({"MOTIVO_ERRO": self.message})
+                data.update({"MOTIVO_ERRO": message})
                 self.append_error(data)
 
         except Exception as e:
@@ -344,10 +344,10 @@ class Movimentacao(CrawJUD):
             _msg_ += "\n====================================================\n"
             message_.append(_msg_)
 
-        self.message = "".join(message_)
+        message = "".join(message_)
 
-        self.type_log = "info"
-        self.prt()
+        type_log = "info"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         """ Checagens dentro do Loop de movimentações """
 
@@ -420,10 +420,10 @@ class Movimentacao(CrawJUD):
             ms_ = [f'Movimentação "{nome_mov}" salva na planilha!']
             if keyword != "*":
                 ms_.append(f" Parâmetro: {keyword}")
-            self.message = "".join(ms_)
+            message = "".join(ms_)
 
-            self.type_log = "info"
-            self.prt()
+            type_log = "info"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             self.appends.append(data)
 
@@ -482,8 +482,8 @@ class Movimentacao(CrawJUD):
             termos = palavra_chave.replace(", ", ",").split(",")
 
         for termo in termos:
-            self.message = f'Buscando movimentações que contenham "{termo}"'
-            self.type_log = "log"
+            message = f'Buscando movimentações que contenham "{termo}"'
+            type_log = "log"
 
             for item in itens:
                 td_tr = item.find_elements(By.TAG_NAME, "td")

@@ -130,9 +130,9 @@ class Intimacoes(CrawJUD):
 
         """
         try:
-            self.message = "Buscando intimações..."
-            self.type_log = "log"
-            self.prt()
+            message = "Buscando intimações..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             name_colunas, intimacoes = self.get_intimacoes(self.aba_initmacoes())
             data = self.get_intimacao_information(name_colunas, intimacoes)
             self.append_success(data, "Intimações extraídas com sucesso!")
@@ -162,9 +162,9 @@ class Intimacoes(CrawJUD):
             itens2: tuple[str] = tuple(item.find_elements(By.TAG_NAME, "td")[1].text.split("\n"))
             itens3: tuple[str] = tuple(item.find_elements(By.TAG_NAME, "td")[2].text.split("\n"))
 
-            self.message = "Intimação do processo %s encontrada!" % itens[0]
-            self.type_log = "log"
-            self.prt()
+            message = "Intimação do processo %s encontrada!" % itens[0]
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             with suppress(IndexError):
                 data["NUMERO_PROCESSO"] = itens[0]

@@ -69,41 +69,10 @@ class ProcParte(CrawJUD):
 
         """
         try:
-            for vara in self.varas:
-                self.vara: str = vara
-                search = self.search_bot()
-                if search is True:
-                    self.get_process_list()
-
-                with suppress(Exception):
-                    if self.driver.title.lower() == "a sessao expirou":
-                        self.auth_bot()
+            self.queue()
 
         except Exception as e:
-            old_message = None
-
-            # check_window = any([isinstance(e, NoSuchWindowException), isinstance(e, MaxRetryError)])
-            # if check_window:
-            #     with suppress(Exception):
-            #         self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
-
-            #         old_message = self.message
-
-            #         self.auth_bot()
-
-            if old_message is None:
-                old_message = self.message
-            message_error = str(e)
-
-            self.type_log = "error"
-            self.message_error = f"{message_error}. | Operação: {old_message}"
-            self.prt()
-
-            self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-            self.append_error(self.bot_data)
-
-            self.message_error = None
-            self.queue()
+            self.tratamento_erros(exc=e)
 
     def get_process_list(self) -> None:
         """Retrieve and process the list of processes from the web interface.
@@ -133,7 +102,6 @@ class ProcParte(CrawJUD):
                         self.elements.exception_arrow,
                     )
 
-                self.type_log = "info"
                 self.append_success(
                     self.data_append,
                     "Processos salvos na planilha!",
@@ -192,6 +160,6 @@ class ProcParte(CrawJUD):
                 },
             )
             self.row += 1
-            self.message = f"Processo {numero_processo} salvo!"
-            self.type_log = "success"
-            self.prt()
+            message = f"Processo {numero_processo} salvo!"
+            type_log = "success"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)

@@ -43,7 +43,7 @@ class LoginSystemError(BaseCrawJUDError):
         """Inicializador da instância de exceção."""
         message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
-        self.message = "Erro Ao realizar login.\n Exception: " + message
+        message = "Erro Ao realizar login.\n Exception: " + message
 
     def __str__(self) -> str:
         """Retorna a mensagem."""
@@ -57,7 +57,7 @@ class ProcNotFoundError(BaseCrawJUDError):
         """Inicializador da instância de exceção."""
         message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
-        self.message = "Erro Ao realizar login.\n Exception: " + message
+        message = "Erro Ao realizar login.\n Exception: " + message
 
     def __str__(self) -> str:
         """Retorna a mensagem."""

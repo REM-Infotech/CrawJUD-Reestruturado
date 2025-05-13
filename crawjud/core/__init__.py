@@ -285,5 +285,5 @@ class CrawJUD:
         message = f"Erro de Operação: {err_message}"
         self.prt.print_msg(message=message, type_log="error")
 
-        self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+        self.bot_data.update({"MOTIVO_ERRO": err_message})
         self.append_error(self.bot_data)

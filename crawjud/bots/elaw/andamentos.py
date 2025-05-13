@@ -94,10 +94,10 @@ class Andamentos(CrawJUD):
                 self.save_andamento()
 
             elif search is not True:
-                self.message = "Processo não encontrado!"
-                self.type_log = "error"
-                self.prt()
-                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
+                message = "Processo não encontrado!"
+                type_log = "error"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), message])
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -112,9 +112,9 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            self.message = "Informando data"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando data"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             css_Data = self.elements.input_data  # noqa: N806
             campo_data: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, css_Data)))
             campo_data.click()
@@ -139,9 +139,9 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            self.message = "Informando ocorrência"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando ocorrência"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             ocorrencia = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_ocorrencia)
             text_andamento = str(self.bot_data.get("OCORRENCIA")).replace("\t", "").replace("\n", "")
@@ -161,9 +161,9 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            self.message = "Informando observação"
-            self.type_log = "log"
-            self.prt()
+            message = "Informando observação"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             observacao = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_obs)
             text_andamento = str(self.bot_data.get("OBSERVACAO")).replace("\t", "").replace("\n", "")
@@ -193,9 +193,9 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            self.message = "Salvando andamento..."
-            self.type_log = "log"
-            self.prt()
+            message = "Salvando andamento..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             sleep(1)
             self.link = self.driver.current_url
             save_button = self.driver.find_element(By.ID, self.elements.botao_salvar_andamento)

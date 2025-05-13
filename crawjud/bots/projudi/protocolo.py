@@ -157,9 +157,9 @@ class Protocolo(CrawJUD):
 
         """
         # self.driver.switch_to.frame(self.driver.find_element(By.CSS_SELECTOR, 'iframe[name="userMainFrame"]'))
-        self.message = "Selecionando parte"
-        self.type_log = "log"
-        self.prt()
+        message = "Selecionando parte"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         table_partes = self.driver.find_element(By.CSS_SELECTOR, "#juntarDocumentoForm > table:nth-child(28)")
         table_partes = table_partes.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
@@ -235,9 +235,9 @@ class Protocolo(CrawJUD):
 
         """
         try:
-            self.message = "Inicializando peticionamento..."
-            self.type_log = "log"
-            self.prt()
+            message = "Inicializando peticionamento..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             button_add_move = self.driver.find_element(By.ID, "peticionarButton")
             button_add_move.click()
 
@@ -249,9 +249,9 @@ class Protocolo(CrawJUD):
                 alert.accept()
 
             """ Corrigir elements """
-            self.message = "Informando tipo de protocolo..."
-            self.type_log = "log"
-            self.prt()
+            message = "Informando tipo de protocolo..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             input_tipo_move: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, 'input[name="descricaoTipoDocumento"]')),
             )
@@ -282,9 +282,9 @@ class Protocolo(CrawJUD):
         try:
             """PARA CORRIGIR"""
             # file = str(self.bot_data.get("PETICAO_PRINCIPAL"))
-            # self.message = "Inserindo Petição/Anexos..."
-            # self.type_log = "log"
-            # self.prt()
+            # message = "Inserindo Petição/Anexos..."
+            # type_log = "log"
+            # self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             # button_new_file = self.driver.find_element(
             #     By.CSS_SELECTOR, self.elements.includeContent
             # )
@@ -292,18 +292,18 @@ class Protocolo(CrawJUD):
             """ PARA CORRIGIR """
 
             file = str(self.bot_data.get("PETICAO_PRINCIPAL"))
-            self.message = "Inserindo Petição/Anexos..."
-            self.type_log = "log"
-            self.prt()
+            message = "Inserindo Petição/Anexos..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             button_new_file = self.driver.find_element(By.CSS_SELECTOR, 'input#editButton[value="Adicionar"]')
             button_new_file.click()
 
             sleep(2.5)
 
             self.driver.switch_to.frame(self.driver.find_element(By.CSS_SELECTOR, self.elements.border))
-            self.message = f"Enviando arquivo '{file}'"
-            self.type_log = "log"
-            self.prt()
+            message = f"Enviando arquivo '{file}'"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             css_inptfile = 'input[id="conteudo"]'
             input_file_element: WebElement = WebDriverWait(self.driver, 10).until(
@@ -318,9 +318,9 @@ class Protocolo(CrawJUD):
 
             self.wait_progressbar()
 
-            self.message = "Arquivo enviado com sucesso!"
-            self.type_log = "log"
-            self.prt()
+            message = "Arquivo enviado com sucesso!"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             sleep(1)
             type_file: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, "tipo0")))
@@ -369,10 +369,10 @@ class Protocolo(CrawJUD):
                 anexos_list = self.bot_data.get("ANEXOS").__str__().split(",")
 
             for file in anexos_list:
-                self.message = f"Enviando arquivo '{file}'"
+                message = f"Enviando arquivo '{file}'"
                 file_to_upload = self.format_string(file)
-                self.type_log = "log"
-                self.prt()
+                type_log = "log"
+                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
                 input_file_element: WebElement = WebDriverWait(self.driver, 10).until(
                     ec.presence_of_element_located((By.XPATH, self.elements.conteudo)),
                 )
@@ -380,9 +380,9 @@ class Protocolo(CrawJUD):
                     f"{os.path.join(Path(self.path_args).parent.resolve())}/{file_to_upload}",
                 )
                 self.wait_progressbar()
-                self.message = f"Arquivo '{file}' enviado com sucesso!"
-                self.type_log = "log"
-            self.prt()
+                message = f"Arquivo '{file}' enviado com sucesso!"
+                type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             sleep(3)
             tablefiles: WebElement = self.wait.until(ec.presence_of_element_located((By.CLASS_NAME, "resultTable")))
@@ -415,9 +415,9 @@ class Protocolo(CrawJUD):
 
         """
         try:
-            self.message = "Assinando arquivos..."
-            self.type_log = "log"
-            self.prt()
+            message = "Assinando arquivos..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             password_input = self.driver.find_element(By.ID, "senhaCertificado")
             password_input.click()
             senhatoken = f"{self.token}"
@@ -448,18 +448,18 @@ class Protocolo(CrawJUD):
             sleep(1)
 
             self.driver.switch_to.default_content()
-            self.message = "Arquivos assinados"
-            self.type_log = "log"
-            self.prt()
+            message = "Arquivos assinados"
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def finish_move(self) -> None:
         """Finalize the protocol move by confirming selections and concluding the operation."""
-        self.message = f"Concluindo peticionamento do processo {self.bot_data.get('NUMERO_PROCESSO')}"
-        self.type_log = "log"
-        self.prt()
+        message = f"Concluindo peticionamento do processo {self.bot_data.get('NUMERO_PROCESSO')}"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
         # return_cmd = False
 
         # id_parte = self.id_part
@@ -526,12 +526,12 @@ class Protocolo(CrawJUD):
             filename = f"Protocolo - {self.bot_data.get('NUMERO_PROCESSO')} - PID{self.pid}.png"
             self.driver.get_screenshot_as_file(os.path.join(self.output_dir_path, filename))
 
-            self.message = f"Peticionamento do processo Nº{self.bot_data.get('NUMERO_PROCESSO')} concluído com sucesso!"
+            message = f"Peticionamento do processo Nº{self.bot_data.get('NUMERO_PROCESSO')} concluído com sucesso!"
 
-            self.type_log = "log"
-            self.prt()
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
-            return [self.bot_data.get("NUMERO_PROCESSO"), self.message, comprovante1]
+            return [self.bot_data.get("NUMERO_PROCESSO"), message, comprovante1]
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

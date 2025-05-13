@@ -139,9 +139,9 @@ class Capa(CrawJUD):
             ).click()
 
         def export() -> None:
-            self.message = "Baixando cópia integral do processo..."
-            self.type_log = "log"
-            self.prt()
+            message = "Baixando cópia integral do processo..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
             time.sleep(5)
 
             n_processo = self.bot_data.get("NUMERO_PROCESSO")
@@ -311,9 +311,9 @@ class Capa(CrawJUD):
 
                 return valor_causa
 
-            self.message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
-            self.type_log = "log"
-            self.prt()
+            message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
+            type_log = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             btn_infogeral = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_infogeral)
             btn_infogeral.click()
