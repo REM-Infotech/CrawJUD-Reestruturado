@@ -1,5 +1,6 @@
 """Módulo de gerenciamento de logs CrawJUD."""
 
+import asyncio
 import logging
 from datetime import datetime
 from os import environ
@@ -15,6 +16,10 @@ class PrintMessage:
     logger: logging.Logger
     url_server: str
     namespace: str
+    total_rows: int
+    row: int
+    pid: str
+    message: str
 
     def __init__(self, **kwrgs: str | object) -> None:
         """Inicializa o PrintMessage."""
@@ -44,11 +49,32 @@ class PrintMessage:
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid}, {type_log}, {row}, {time_exec})> {message}]"
 
+        self.type_log = type_log
+        self.row = row
+        self.total = self.total_rows
+        self.pid = pid
+        self.message = prompt
+
         self.logger.info(prompt)
+        asyncio.run(self.emit_message)
 
     async def emit_message(self) -> None:
         """Envia a mensagem para o servidor SocketIO."""
         async with socketio.AsyncSimpleClient() as sio:
             await sio.connect(
-                url=self.url_server, headers={"Content-Type": "application/json"}, namespace=self.namespace
+                url=self.url_server,
+                headers={"Content-Type": "application/json"},
+                namespace=self.namespace,
+                transports="websocket",
+            )
+
+            await sio.emit(
+                "log_bot",
+                data={
+                    "message": self.message,
+                    "pid": self.pid,
+                    "type": self.type_log,
+                    "pos": self.row,
+                    "total": self.total_rows,
+                },
             )
