@@ -18,7 +18,7 @@ Attributes:
 from __future__ import annotations
 
 from importlib import import_module
-from typing import Self
+from typing import AnyStr, Self
 
 from crawjud.addons.elements.elaw import ELAW_AME
 from crawjud.addons.elements.esaj import ESAJ_AM
@@ -38,30 +38,27 @@ class ElementsBot:
 
     """
 
-    elements_bot = None
+    elements_bot: ELAW_AME | ESAJ_AM | PJE_AM | PROJUDI_AM
+    system: str
+    state_or_client: str
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs: str) -> None:
         """Initialize the ElementsBot instance.
 
         Call the parent initialization if required.
         """
+        for k, v in list(kwargs.items()):
+            setattr(self, k, v)
 
-    def config(self) -> Self:
-        """Configure the elements_bot attribute.
+        self.elements_bot = getattr(
+            import_module(f".{self.system.lower()}", __package__),
+            f"{self.system.upper()}_{self.state_or_client.upper()}",
+        )
 
-        Dynamically import the module based on `system` and `state_or_client`,
-        and assign the corresponding class to elements_bot.
-
-        Returns:
-            Self: The configured ElementsBot instance.
-
-        """
-        if self.elements_bot is None:
-            self.elements_bot = getattr(
-                import_module(f".{self.system.lower()}", __package__),
-                f"{self.system.upper()}_{self.state_or_client.upper()}",
-            )
-        return self
+    @classmethod
+    def config(cls, **kwrgs: AnyStr) -> Self:
+        """Configure the elements_bot attribute."""
+        return cls(**kwrgs)
 
     @property
     def bot_elements(self) -> ELAW_AME | ESAJ_AM | PJE_AM | PROJUDI_AM:

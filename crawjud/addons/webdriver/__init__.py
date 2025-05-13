@@ -14,9 +14,9 @@ from selenium.webdriver.firefox.options import Options as GeckoOptions
 from selenium.webdriver.firefox.service import Service as GeckoService
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.driver_cache import DriverCacheManager
-from webdriver_manager.core.file_manager import FileManager
-from webdriver_manager.core.os_manager import OperationSystemManager
+from webdriver_manager.core.driver_cache import DriverCacheManager  # noqa: F401
+from webdriver_manager.core.file_manager import FileManager  # noqa: F401
+from webdriver_manager.core.os_manager import OperationSystemManager  # noqa: F401
 from webdriver_manager.firefox import GeckoDriverManager
 
 from crawjud.exceptions import DriverNotCreatedError
@@ -79,12 +79,13 @@ class DriverBot:
 
         """
         try:
-            system_manager = OperationSystemManager()
-            file_manager = FileManager(os_system_manager=system_manager)
-            cache_manager = DriverCacheManager(file_manager=file_manager)
+            # system_manager = OperationSystemManager()
+            # file_manager = FileManager(os_system_manager=system_manager)
+            # cache_manager = DriverCacheManager(file_manager=file_manager)
             if self.preferred_browser == "chrome":
                 options = self.configure_chrome()
-                driver_path = ChromeDriverManager(cache_manager=cache_manager).install()
+                # driver_path = ChromeDriverManager(cache_manager=cache_manager).install()
+                driver_path = ChromeDriverManager().install()
                 service = ChromeService(driver_path)
                 driver = webdriver.Chrome(options=options, service=service)
             elif self.preferred_browser == "gecko":
@@ -108,7 +109,6 @@ class DriverBot:
 
         """
         chrome_options = ChromeOptions()
-        chrome_options.add_argument(f"user-data-dir={str(self.execution_path)}")
 
         list_args = self.list_args
         for argument in list_args:

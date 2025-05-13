@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, AnyStr
 
 import pandas as pd
 from pandas import Timestamp
@@ -15,8 +15,8 @@ from pytz import timezone
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
 from crawjud.addons.make_templates import MakeTemplates
-from crawjud.addons.search import SearchBot
 from crawjud.addons.webdriver import DriverBot
+from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
 
 if TYPE_CHECKING:
@@ -35,37 +35,51 @@ class CrawJUD:
     bot_data: dict[str, str]
     start_time: float
     driver: WebDriver
-    search: SearchBot
+    search: Any
     senhatoken: str
     elements: type_elements
     pid: str
     pos: int
     is_stoped: bool
     output_dir_path: StrPath
+    config_bot: dict[str, AnyStr]
 
     def __init__(self, *args: str, **kwargs: str) -> None:
-        """Inicializador do núcleo."""
-        self.start_time = perf_counter()
+        """Inicializador do núcleo.
 
-        for k, v in list(kwargs.items()):
-            setattr(self, k, v)
+        Raises:
+            StartError: Exception de erro de inicialização.
 
-        # Instancia o WebDriver
-        driverbot = DriverBot(kwargs.get("preferred_browser", "chrome"))()
-        self.driver = driverbot[0]
-        self.wait = driverbot[1]
+        """
+        try:
+            self.start_time = perf_counter()
+            self.output_dir_path = kwargs.get("path_config")
+            for k, v in list(kwargs.items()):
+                setattr(self, k, v)
 
-        self.elements = ElementsBot().config().bot_elements
+            self.open_cfg()
 
-        # Autenticação com os sistemas
-        auth = authenticator(kwargs.get("system"))(
-            username=kwargs.get("username"),
-            password=kwargs.get("password"),
-            driver=self.driver,
-            wait=self.wait,
-        )
-        auth.auth()
-        self.make_templates()
+            # Instancia o WebDriver
+            driverbot = DriverBot(kwargs.get("preferred_browser", "chrome"), execution_path=self.output_dir_path)()
+            self.driver = driverbot[0]
+            self.wait = driverbot[1]
+
+            self.elements = ElementsBot.config(**self.config_bot).bot_elements
+
+            # Autenticação com os sistemas
+            auth = authenticator(kwargs.get("system"))(
+                username=kwargs.get("username"),
+                password=kwargs.get("password"),
+                driver=self.driver,
+                wait=self.wait,
+            )
+            auth.auth()
+
+            # Criação de planilhas template
+            self.make_templates()
+
+        except Exception as e:
+            raise StartError(exception=e) from e
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
@@ -92,7 +106,8 @@ class CrawJUD:
     def open_cfg(self) -> None:
         """Abre as configurações de execução."""
         with Path(self.path_config).resolve().open("r") as f:
-            data = json.loads(f.read())
+            data: dict[str, AnyStr] = json.loads(f.read())
+            self.config_bot = data
             for k, v in list(data.items()):
                 setattr(self, k, v)
 
