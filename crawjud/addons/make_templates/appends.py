@@ -3,6 +3,8 @@
 This module contains utility classes for template configurations.
 """
 
+from contextlib import suppress
+
 
 class Listas:
     """Provide predefined lists for template processing.
@@ -33,9 +35,13 @@ class Listas:
         if tipo_planilha == "erro":
             retorno_none = ["Mensagem Erro"]
 
-        return getattr(class_instance, f"{nome_bot.lower()}_{tipo_planilha}") or getattr(
-            class_instance, tipo_planilha, retorno_none
-        )
+        with suppress(AttributeError):
+            return getattr(class_instance, f"{nome_bot.lower()}_{tipo_planilha}")
+
+        with suppress(AttributeError):
+            return getattr(class_instance, tipo_planilha, retorno_none)
+
+        return retorno_none
 
     @property
     def emissor_sucesso(self) -> list[str]:

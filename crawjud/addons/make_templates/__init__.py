@@ -60,6 +60,7 @@ class MakeTemplates:
 
         """
         path_template = Path(self.PATH_OUTPUT).resolve().joinpath(self.TEMPLATE_NAME)
+        path_template.touch(exist_ok=True)
 
         lista_colunas: list[str] = Listas.listas_colunas(self.BOT_NAME, self.TEMPLATE_TYPE)
         # Create workbook and sheet

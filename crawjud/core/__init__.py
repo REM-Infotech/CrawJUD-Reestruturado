@@ -21,6 +21,7 @@ from crawjud.types import StrPath
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
+    from selenium.webdriver.support.wait import WebDriverWait
 
     from crawjud.types.elements import type_elements
 
@@ -32,17 +33,17 @@ class CrawJUD:
     of the CrawJUD bot.
     """
 
+    # Variáveis de dados/configuraçoes
     bot_data: dict[str, str]
-    start_time: float
-    driver: WebDriver
-    search: Any
+    config_bot: dict[str, AnyStr]
 
-    elements: type_elements
+    # Variáveis de estado/posição/indice
     pid: str
     pos: int
     is_stoped: bool
-    output_dir_path: StrPath
-    config_bot: dict[str, AnyStr]
+    start_time: float
+
+    # Variáveis de verificações
     system: str
     state_or_client: str
 
@@ -50,6 +51,16 @@ class CrawJUD:
     username: str
     password: str
     senhatoken: str
+
+    # Classes Globais
+    elements: type_elements
+    driver: WebDriver
+    search: Any
+    wait: WebDriverWait
+
+    # Variáveis de nome/caminho de arquivos/pastas
+    xlsx: str
+    output_dir_path: StrPath
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo.
@@ -60,7 +71,7 @@ class CrawJUD:
         """
         try:
             self.start_time = perf_counter()
-            self.output_dir_path = kwargs.get("path_config")
+            self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
             for k, v in list(kwargs.items()):
                 if "bot" in k:
                     setattr(self, k.split("_")[1], v)
@@ -70,11 +81,15 @@ class CrawJUD:
 
             self.open_cfg()
 
+            # Define o InputFile
+            self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
+
             # Instancia o WebDriver
             driverbot = DriverBot(kwargs.get("preferred_browser", "chrome"), execution_path=self.output_dir_path)()
             self.driver = driverbot[0]
             self.wait = driverbot[1]
 
+            # Instancia o elements
             self.elements = ElementsBot.config(
                 system=self.system,
                 state_or_client=self.state_or_client,
@@ -106,13 +121,13 @@ class CrawJUD:
                 "PATH_OUTPUT": self.output_dir_path,
                 "TEMPLATE_NAME": f"Sucessos - PID {self.pid} {time_xlsx}.xlsx",
                 "TEMPLATE_TYPE": "sucesso",
-                "BOT_NAME": self.bot_name,
+                "BOT_NAME": self.name,
             },
             {
                 "PATH_OUTPUT": self.output_dir_path,
                 "TEMPLATE_NAME": f"Erros - PID {self.pid} {time_xlsx}.xlsx",
                 "TEMPLATE_TYPE": "erro",
-                "BOT_NAME": self.bot_name,
+                "BOT_NAME": self.name,
             },
         ]
 
