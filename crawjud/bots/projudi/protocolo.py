@@ -24,7 +24,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError, SaveError
+from crawjud.exceptions.bot import CadastroParteError, ExecutionError, PasswordError, ProcNotFoundError, SaveError
 
 # from typing import type
 
@@ -97,7 +97,7 @@ class Protocolo(CrawJUD):
             self.add_new_move()
 
             # if self.set_parte() is not True:
-            #     raise ExecutionError(message="Não foi possível selecionar parte")
+            #     raise Exception
 
             self.add_new_file()
             if self.bot_data.get("ANEXOS", None) is not None:
@@ -198,7 +198,9 @@ class Protocolo(CrawJUD):
                             cmd2 = f"return document.getElementById('{self.id_part}').checked"
                             return_cmd = self.driver.execute_script(cmd2)
                             if return_cmd is False:
-                                raise ExecutionError(message="Não é possivel selecionar parte")
+                                raise CadastroParteError(
+                                    message="Não é possivel selecionar parte", bot_execution_id=self.pid
+                                )
 
                         selected_parte = True
                         break
@@ -217,7 +219,7 @@ class Protocolo(CrawJUD):
                     cmd2 = f"return document.getElementById('{self.id_part}').checked"
                     return_cmd = self.driver.execute_script(cmd2)
                     if return_cmd is False:
-                        raise ExecutionError(message="Não é possível selecionar parte")
+                        raise CadastroParteError(message="Não é possível selecionar parte", bot_execution_id=self.pid)
 
                 selected_parte = True
                 break
@@ -414,46 +416,34 @@ class Protocolo(CrawJUD):
             ExecutionError: If the signing process fails.
 
         """
-        try:
-            message = "Assinando arquivos..."
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
-            password_input = self.driver.find_element(By.ID, "senhaCertificado")
-            password_input.click()
-            senhatoken = f"{self.token}"
-            password_input.send_keys(senhatoken)
+        message = "Assinando arquivos..."
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        password_input = self.driver.find_element(By.ID, "senhaCertificado")
+        password_input.click()
+        senhatoken = f"{self.token}"
+        password_input.send_keys(senhatoken)
 
-            sign_button = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_assinar)
-            sign_button.click()
+        sign_button = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_assinar)
+        sign_button.click()
 
-            check_p_element = ""
-            with suppress(TimeoutException):
-                check_p_element: WebElement = WebDriverWait(self.driver, 5, 0.01).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, "#errorMessages > div.box-content")),
-                )
+        check_p_element = ""
+        with suppress(TimeoutException):
+            check_p_element: WebElement = WebDriverWait(self.driver, 5, 0.01).until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, "#errorMessages > div.box-content")),
+            )
 
-            if check_p_element != "":
-                raise ExecutionError(message="Senha Incorreta!")
+        if check_p_element != "":
+            raise PasswordError(message="Senha Incorreta!", bot_execution_id=self.pid)
 
-            """ PARA CORRIGIR """
-            # confirm_button = self.driver.find_element(
-            #     By.CSS_SELECTOR, self.elements.botao_confirmar
-            # )
-            # confirm_button.click()
-            # sleep(1)
-            """ PARA CORRIGIR """
+        confirm_button = self.driver.find_element(By.CSS_SELECTOR, 'input#closeButton[value="Confirmar Inclusão"]')
+        confirm_button.click()
+        sleep(1)
 
-            confirm_button = self.driver.find_element(By.CSS_SELECTOR, 'input#closeButton[value="Confirmar Inclusão"]')
-            confirm_button.click()
-            sleep(1)
-
-            self.driver.switch_to.default_content()
-            message = "Arquivos assinados"
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
-
-        except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+        self.driver.switch_to.default_content()
+        message = "Arquivos assinados"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def finish_move(self) -> None:
         """Finalize the protocol move by confirming selections and concluding the operation."""

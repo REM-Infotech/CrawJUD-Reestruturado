@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import CadastroParteError, ExecutionError, FileError, SaveError
 
 
 class Protocolo(CrawJUD):
@@ -160,8 +160,12 @@ class Protocolo(CrawJUD):
                 link = button_peticionamento.get_attribute("onclick").split("'")[1]
                 self.driver.execute_script(f"return window.location.href = '{link}';")
 
-        except Exception:
-            raise ExecutionError(message="Erro ao inicializar peticionamento") from None
+        except Exception as e:
+            raise ExecutionError(
+                message="Erro ao inicializar peticionamento",
+                bot_execution_id=self.pid,
+                exception=e,
+            ) from None
 
     def set_tipo_protocolo(self) -> None:
         """Set protocol type.
@@ -195,8 +199,10 @@ class Protocolo(CrawJUD):
             sleep(1.5)
             self.interact.send_key(input_tipo_peticao, Keys.ENTER)
 
-        except Exception:
-            raise ExecutionError(message="Erro ao informar tipo de protocolo") from None
+        except Exception as e:
+            raise ExecutionError(
+                message="Erro ao informar tipo de protocolo", bot_execution_id=self.pid, exception=e
+            ) from e
 
     def set_subtipo_protocolo(self) -> None:
         """Set protocol subtype.
@@ -228,8 +234,12 @@ class Protocolo(CrawJUD):
             input_categoria_peticao_option.click()
             sleep(1)
 
-        except Exception:
-            raise ExecutionError(message="Erro ao informar subtipo de protocolo") from None
+        except Exception as e:
+            raise ExecutionError(
+                exception=e,
+                message="Erro ao informar subtipo de protocolo",
+                bot_execution_id=self.pid,
+            ) from e
 
     def set_petition_file(self) -> None:
         """Attach petition file.
@@ -268,12 +278,12 @@ class Protocolo(CrawJUD):
                 )
 
             if file_uploaded == "":
-                raise ExecutionError(message="Erro ao enviar petição")
+                raise FileError(message="Erro ao enviar petição", bot_execution_id=self.pid)
 
             self.prt.print_log("log", "Petição do processo anexada com sucesso")
 
-        except Exception:
-            raise ExecutionError(message="Erro ao enviar petição") from None
+        except Exception as e:
+            raise FileError(message="Erro ao enviar petição", bot_execution_id=self.pid) from e
 
     def vincular_parte(self) -> None:
         """Link party to petition.
@@ -326,10 +336,13 @@ class Protocolo(CrawJUD):
                                 break
 
             elif not partes:
-                raise ExecutionError(message="Não foi possivel vincular parte a petição")
+                raise CadastroParteError(message="Não foi possivel vincular parte a petição", bot_execution_id=self.pid)
 
-        except Exception:
-            raise ExecutionError(message="Não foi possivel vincular parte a petição") from None
+        except Exception as e:
+            raise ExecutionError(
+                exception=e,
+                bot_execution_id=self.pid,
+            ) from e
 
     def finish_petition(self) -> None:
         """Finalize petition process.
@@ -392,4 +405,4 @@ class Protocolo(CrawJUD):
             ]
 
         except Exception as e:
-            raise ExecutionError(message="Erro ao confirmar protocolo", e=e) from e
+            raise SaveError(message="Erro ao confirmar protocolo", exception=e, bot_execution_id=self.pid) from e

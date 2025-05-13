@@ -21,7 +21,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import MoveNotFoundError, ProcNotFoundError
 
 
 class Movimentacao(CrawJUD):
@@ -78,48 +78,40 @@ class Movimentacao(CrawJUD):
             ExecutionError: If processing fails during movement queue operations.
 
         """
-        try:
-            self.appends = []
-            self.another_append: list[tuple[dict, str, str]] = []
-            self.resultados = []
+        self.appends = []
+        self.another_append: list[tuple[dict, str, str]] = []
+        self.resultados = []
 
-            self.table_moves = None
+        self.table_moves = None
 
-            list_botdata = list(self.bot_data.items())
-            for key, value in list_botdata:
-                if value is None:
-                    self.bot_data.pop(key)
+        list_botdata = list(self.bot_data.items())
+        for key, value in list_botdata:
+            if value is None:
+                self.bot_data.pop(key)
 
-            search = self.search_bot()
+        search = self.search_bot()
 
-            if search is not True:
-                raise ExecutionError(message="Processo não encontrado!", bot_execution_id=self.pid)
+        if search is not True:
+            raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
-            message = "Buscando movimentações"
+        message = "Buscando movimentações"
+        type_log = "log"
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+
+        self.setup_config()
+
+        if len(self.appends) > 0:
             type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.append_success(self.appends)
 
-            self.setup_config()
+        if len(self.another_append) > 0:
+            for data, msg, fileN in self.another_append:  # noqa: N806
+                type_log = "info"
+                self.append_success([data], msg, fileN)
 
-            if len(self.appends) > 0:
-                type_log = "log"
-                self.append_success(self.appends)
-
-            if len(self.another_append) > 0:
-                for data, msg, fileN in self.another_append:  # noqa: N806
-                    type_log = "info"
-                    self.append_success([data], msg, fileN)
-
-            elif len(self.appends) == 0 and len(self.another_append) == 0:
-                message = "Nenhuma movimentação encontrada"
-                type_log = "error"
-                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
-                data = self.bot_data
-                data.update({"MOTIVO_ERRO": message})
-                self.append_error(data)
-
-        except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+        elif len(self.appends) == 0 and len(self.another_append) == 0:
+            message = "Nenhuma movimentação encontrada"
+            raise MoveNotFoundError(message=message, bot_execution_id=self.pid)
 
     def set_page_size(self) -> None:
         """Set the page size of the movement table to 1000."""
@@ -153,7 +145,7 @@ class Movimentacao(CrawJUD):
             encontrado = self.scrap_moves(keyword)
 
         if encontrado is False:
-            raise ExecutionError(message="Nenhuma movimentação encontrada")
+            raise MoveNotFoundError(message="Nenhuma movimentação encontrada", bot_execution_id=self.pid)
 
     def filter_moves(self, move: WebElement) -> bool:
         """Filter a movement element based on given date and keyword criteria.

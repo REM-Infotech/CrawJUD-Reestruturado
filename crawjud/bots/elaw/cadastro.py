@@ -26,8 +26,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import SaveError
-from crawjud.exceptions.elaw import AdvogadoError, CadastroParteError, ElawError
+from crawjud.exceptions.bot import CadastroParteError, SaveError
+from crawjud.exceptions.elaw import AdvogadoError, ElawError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 

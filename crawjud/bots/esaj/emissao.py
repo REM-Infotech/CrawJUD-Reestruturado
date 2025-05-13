@@ -20,7 +20,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, SaveError
 
 type_docscss = {
     "custas_iniciais": {
@@ -261,7 +261,9 @@ class Emissao(CrawJUD):
             ).text
 
         elif portal == "não informado":
-            raise ExecutionError(message="Informar portal do processo na planilha (PROJUDI ou ESAJ)")
+            raise SaveError(
+                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)", bot_execution_id=self.pid
+            )
 
     def renajud(self) -> None:
         """Implement Renajud emission process navigation and actions when needed.
@@ -323,7 +325,7 @@ class Emissao(CrawJUD):
             self.driver.close()
             sleep(0.7)
             self.driver.switch_to.window(original_window)
-            raise ExecutionError(message="Esaj não gerou a guia")
+            raise SaveError(message="Esaj não gerou a guia", bot_execution_id=self.pid)
 
         if not check:
             return f"https://consultasaj.tjam.jus.br{url}"

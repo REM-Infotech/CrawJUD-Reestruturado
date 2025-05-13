@@ -24,7 +24,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ProcNotFoundError
+from crawjud.exceptions.bot import ProcNotFoundError, SaveError
 from crawjud.exceptions.elaw import ElawError
 
 type_doc = {11: "cpf", 14: "cnpj"}
@@ -256,8 +256,6 @@ class Provisao(CrawJUD):
             )
 
             valor_informar = self.bot_data.get("VALOR_ATUALIZACAO")
-            # if valor_informar == 0:
-            #     raise ExecutionError(message="Valor de atualização inválido")
 
             campo_valor_dml.send_keys(Keys.CONTROL + "a")
             campo_valor_dml.send_keys(Keys.BACKSPACE)
@@ -412,7 +410,7 @@ class Provisao(CrawJUD):
             )
 
         if not check_provisao_atualizada:
-            raise ExecutionError(message="Não foi possivel atualizar provisão")
+            raise SaveError(message="Não foi possivel atualizar provisão", bot_execution_id=self.pid)
 
         comprovante = self.print_comprovante()
         data = [str(self.bot_data.get("NUMERO_PROCESSO")), comprovante, "Provisão atualizada com sucesso!"]

@@ -213,7 +213,7 @@ class Pauta(CrawJUD):
                         self.get_pautas(current_date, vara)
 
                 except Exception as e:
-                    raise ExecutionError(e) from e
+                    raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
             elif not itens_pautas:
                 times = 1

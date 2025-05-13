@@ -17,7 +17,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
+from crawjud.exceptions.bot import ExecutionError, FileError, ProcNotFoundError
 
 # from memory_profiler import profile
 # fp = open("memory_profiler_capa_projudi.log", "+w")
@@ -187,7 +187,7 @@ class Capa(CrawJUD):
             #     response = requests.post(url=self.driver.current_url, data=form_values, cookies=cookies, timeout=60)
 
             # except Exception as e:
-            #     raise ExecutionError(f"Erro ao baixar cópia integral do processo: {e}") from e
+            #   raise e
 
             # if response.status_code == 200:
             #     with open(path_pdf, "wb") as f:
@@ -214,7 +214,7 @@ class Capa(CrawJUD):
                 count += 1
 
             if not path_copia.exists():
-                raise ExecutionError(message="Arquivo não encontrado!")
+                raise FileError(message="Arquivo não encontrado!", bot_execution_id=self.pid)
 
             shutil.move(path_copia, path_pdf)
 

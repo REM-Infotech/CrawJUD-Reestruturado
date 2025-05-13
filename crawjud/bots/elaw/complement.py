@@ -26,7 +26,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError, SaveError
+from crawjud.exceptions.elaw import AdvogadoError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -238,7 +239,7 @@ class Complement(CrawJUD):
                 element = self.driver.execute_script(command)
 
                 if not element or element.lower() == "selecione":
-                    raise ExecutionError(message=f'Campo "{campo}" não preenchido')
+                    raise ExecutionError(message=f'Campo "{campo}" não preenchido', bot_execution_id=self.pid)
 
                 message_campo.append(f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>')
                 validar.update({campo.upper(): element})
@@ -287,7 +288,7 @@ class Complement(CrawJUD):
         element = self.driver.execute_script(command)
 
         if not element or element.lower() == "selecione":
-            raise ExecutionError(message='Campo "Advogado Responsável" não preenchido')
+            raise AdvogadoError(message='Campo "Advogado Responsável" não preenchido', bot_execution_id=self.pid)
 
         message = f'Campo "Advogado Responsável" | Texto: {element}'
         type_log = "info"
@@ -312,7 +313,7 @@ class Complement(CrawJUD):
         adv_name = data_bot.get("ADVOGADO_INTERNO", self.validar_advogado())
 
         if not adv_name.strip():
-            raise ExecutionError(message="Necessário advogado interno para validação!")
+            raise AdvogadoError(message="Necessário advogado interno para validação!", bot_execution_id=self.pid)
 
         message = "Validando advogados participantes"
         type_log = "log"
@@ -326,7 +327,7 @@ class Complement(CrawJUD):
             not_adv = tb_Advs.find_element(By.CSS_SELECTOR, tr_not_adv)
 
         if not_adv is not None:
-            raise ExecutionError(message="Sem advogados participantes!")
+            raise AdvogadoError(message="Sem advogados participantes!", bot_execution_id=self.pid)
 
         advs = tb_Advs.find_elements(By.TAG_NAME, "tr")
 
@@ -336,7 +337,10 @@ class Complement(CrawJUD):
                 break
 
         else:
-            raise ExecutionError(message="Advogado responsável não encontrado na lista de advogados participantes!")
+            raise AdvogadoError(
+                message="Advogado responsável não encontrado na lista de advogados participantes!",
+                bot_execution_id=self.pid,
+            )
 
         message = "Advogados participantes validados"
         type_log = "info"
@@ -368,9 +372,9 @@ class Complement(CrawJUD):
             return True
 
         if not wait_confirm_save:
-            ErroElaw: WebElement | str = None  # noqa: N806
+            erro_elaw: WebElement | str = None
             with suppress(TimeoutException, NoSuchElementException):
-                ErroElaw = (  # noqa: N806
+                erro_elaw = (
                     self.wait.until(
                         ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.div_messageerro_css)),
                         message="Erro ao encontrar elemento",
@@ -379,10 +383,10 @@ class Complement(CrawJUD):
                     .text
                 )
 
-            if not ErroElaw:
-                ErroElaw = "Cadastro do processo nao finalizado, verificar manualmente"  # noqa: N806
+            if not erro_elaw:
+                erro_elaw = "Cadastro do processo nao finalizado, verificar manualmente"
 
-            raise ExecutionError(ErroElaw)
+            raise SaveError(message=erro_elaw, bot_execution_id=self.pid)
 
     def print_comprovante(self) -> str:
         """Print the comprovante (receipt) of the registration.
@@ -440,7 +444,7 @@ class Complement(CrawJUD):
         if wait_adv:
             wait_adv.click()
         elif not wait_adv:
-            raise ExecutionError(message="Advogado interno não encontrado")
+            raise AdvogadoError(message="Advogado interno não encontrado", bot_execution_id=self.pid)
 
         self.interact.sleep_load('div[id="j_id_3x"]')
 
