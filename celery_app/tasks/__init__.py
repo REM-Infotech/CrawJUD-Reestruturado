@@ -10,10 +10,9 @@ from typing import TYPE_CHECKING
 from celery_app import shared_task
 from celery_app.addons.mail import Mail
 from celery_app.addons.storage.google import GoogleClient
-from celery_app.types import StrPath, TReturnMessageExecutBot, TReturnMessageUploadFile
 
 if TYPE_CHECKING:
-    from celery_app.types import TReturnMessageMail
+    from celery_app.types import StrPath, TReturnMessageExecutBot, TReturnMessageMail, TReturnMessageUploadFile
 
 
 @shared_task
