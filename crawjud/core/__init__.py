@@ -227,3 +227,14 @@ class CrawJUD:
                 data["CNPJ_FAVORECIDO"] = "04.812.509/0001-90"
 
         return data
+
+    @property
+    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
+        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+
+        Returns:
+            dict[str, str]: City names with associated regional classification.
+
+        """
+        with Path(__file__).parent.resolve().joinpath("data_formatters", " cities_amazonas.json").open("r") as f:
+            return json.loads(f.read())
