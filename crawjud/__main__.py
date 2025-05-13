@@ -11,6 +11,7 @@ def main(bot_name: str, bot_system: str, path_config: Path) -> None:
     bot = import_module(f"crawjud.bots.{bot_system}.{bot_name}", __package__)
     class_bot = getattr(bot, bot_name.capitalize(), None)
     class_bot.initialize(bot_name=bot_name, bot_system=bot_system, path_config=path_config)
+    class_bot.execution()
 
 
 if __name__ == "__main__":

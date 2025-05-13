@@ -39,7 +39,7 @@ def initialize_bot(bot_name: str, bot_system: str, path_config: str) -> TReturnM
 
     class_bot = getattr(bot, bot_name.capitalize(), None)
     class_bot.initialize(bot_name=bot_name, bot_system=bot_system, path_config=path_config)
-
+    class_bot.execution()
     return "Execução encerrada com sucesso!"
 
 
