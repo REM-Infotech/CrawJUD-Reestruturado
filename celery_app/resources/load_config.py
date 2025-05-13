@@ -5,10 +5,10 @@ Provides functionality to load configuration from an object.
 
 from ast import TypeVar
 from os import environ
+from pathlib import Path  # noqa: F401
 from typing import AnyStr, Self, Type
 
 from dotenv import load_dotenv
-from trio import Path  # noqa: F401
 
 config_dict_model = {
     "broker_url": "",
