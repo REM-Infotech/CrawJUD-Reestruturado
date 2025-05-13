@@ -5,7 +5,7 @@ from typing import Any
 
 handlers = {
     "file_handler": {
-        "class": "crawjud.logger.handlers.FileHandler",
+        "class": "crawjud.addons.logger.handlers.FileHandler",
         "level": logging.INFO,
         "formatter": "json",
         "filename": "app.log",
@@ -13,7 +13,7 @@ handlers = {
         "backupCount": 1,
     },
     "redis_handler": {
-        "class": "crawjud.logger.handlers.RedisHandler",
+        "class": "crawjud.addons.logger.handlers.RedisHandler",
         "level": logging.INFO,
         "formatter": "json",
     },
@@ -25,7 +25,7 @@ formatters = (
             "format": "%(levelname)s:%(name)s:%(message)s",
         },
         "json": {
-            "()": "crawjud.logger.formatters.JsonFormatter",
+            "()": "crawjud.addons.logger.formatters.JsonFormatter",
         },
     },
 )

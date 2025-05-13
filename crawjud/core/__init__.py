@@ -116,12 +116,20 @@ class CrawJUD:
             # Criação de planilhas template
             self.make_templates()
 
-            log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
-            logging.config.dictConfig(dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path))
-            self.logger = logging.getLogger(self.pid)
+            # Configuração do logger
+            self.configure_logger()
 
         except Exception as e:
             raise StartError(exception=e) from e
+
+    def configure_logger(self) -> None:
+        """Configura o logger."""
+        log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
+
+        config, logger_name = dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path)
+        logging.config.dictConfig(config)
+
+        self.logger = logging.getLogger(logger_name)
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
