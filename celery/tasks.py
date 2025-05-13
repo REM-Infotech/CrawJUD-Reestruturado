@@ -4,7 +4,7 @@ from celery import shared_task
 
 
 @shared_task
-def send_email(recipient: str, to: str, message: str) -> None:
+def send_email(to: str, message: str) -> None:
     """Send an email to the specified recipient."""
 
 
