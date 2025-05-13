@@ -98,7 +98,7 @@ class DriverBot:
             return driver, wait
 
         except Exception as e:
-            exc = "\n".join(traceback.format_exception(e))
+            exc = "\n".join(traceback.format_exception_only(e))
             raise DriverNotCreatedError(message=exc) from e
 
     def configure_chrome(self) -> ChromeOptions:

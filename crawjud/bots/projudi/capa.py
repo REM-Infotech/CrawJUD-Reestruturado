@@ -112,7 +112,7 @@ class Capa(CrawJUD):
             self.append_success([data], "Informações do processo extraidas com sucesso!")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             self.logger.exception(str(e))
             raise ExecutionError(e=e) from e
 
@@ -207,7 +207,7 @@ class Capa(CrawJUD):
             # except Exception as e:
             #   self.logger.exception(
             #     "".join(
-            #         traceback.format_exception(
+            #         traceback.format_exception_only(
             #             e
             #             value=e,
             #             tb=e.__traceback__,
@@ -451,5 +451,5 @@ class Capa(CrawJUD):
             return process_info
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e

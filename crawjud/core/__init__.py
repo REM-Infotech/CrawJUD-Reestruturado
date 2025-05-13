@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import logging.config
+import traceback
+from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -50,6 +52,7 @@ class CrawJUD:
     # Variáveis de verificações
     system: str
     state_or_client: str
+    preferred_browser: str = "gecko"
 
     # Variáveis de autenticação/protocolo
     username: str
@@ -68,6 +71,17 @@ class CrawJUD:
     xlsx: str
     input_file: StrPath
     output_dir_path: StrPath
+    _cities_am: dict[str, str]
+
+    @property
+    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
+        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+
+        Returns:
+            dict[str, str]: City names with associated regional classification.
+
+        """
+        return self._cities_am
 
     def __init__(self, *args: str, **kwargs: str) -> None:
         """Inicializador do núcleo.
@@ -77,6 +91,9 @@ class CrawJUD:
 
         """
         try:
+            with Path(__file__).parent.resolve().joinpath("data_formatters", " cities_amazonas.json").open("r") as f:
+                self._cities_am = json.loads(f.read())
+
             self.is_stoped = False
             self.start_time = perf_counter()
             self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
@@ -93,9 +110,7 @@ class CrawJUD:
             self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
 
             # Instancia o WebDriver
-            driverbot = DriverBot(kwargs.get("preferred_browser", "chrome"), execution_path=self.output_dir_path)()
-            self.driver = driverbot[0]
-            self.wait = driverbot[1]
+            self.configure_webdriver()
 
             # Instancia o elements
             self.elements = ElementsBot.config(
@@ -105,15 +120,7 @@ class CrawJUD:
             ).bot_elements
 
             # Autenticação com os sistemas
-            auth = authenticator(self.system)(
-                username=self.username,
-                password=self.password,
-                driver=self.driver,
-                wait=self.wait,
-                system=self.system,
-                elements=self.elements,
-            )
-            auth.auth()
+            self.portal_authentication()
 
             # Criação de planilhas template
             self.make_templates()
@@ -123,6 +130,24 @@ class CrawJUD:
 
         except Exception as e:
             raise StartError(exception=e) from e
+
+    def portal_authentication(self) -> None:
+        """Autenticação com os sistemas."""
+        auth = authenticator(self.system)(
+            username=self.username,
+            password=self.password,
+            driver=self.driver,
+            wait=self.wait,
+            system=self.system,
+            elements=self.elements,
+        )
+        auth.auth()
+
+    def configure_webdriver(self) -> None:
+        """Instancia o WebDriver."""
+        driverbot = DriverBot(self.preferred_browser, execution_path=self.output_dir_path)()
+        self.driver = driverbot[0]
+        self.wait = driverbot[1]
 
     def configure_logger(self) -> None:
         """Configura o logger."""
@@ -248,13 +273,17 @@ class CrawJUD:
 
         return data
 
-    @property
-    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
-        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+    def tratamento_erros(self, exc: Exception, last_message: str = None) -> None:
+        """Tratamento de erros dos robôs."""
+        with suppress(Exception):
+            windows = self.driver.window_handles
+            if len(windows) == 0:
+                self.configure_webdriver()
+                self.portal_authentication()
 
-        Returns:
-            dict[str, str]: City names with associated regional classification.
+        err_message = "\n".join(traceback.format_exception_only(exc))
+        message = f"Erro de Operação: {err_message}"
+        self.prt.print_msg(message=message, type_log="error")
 
-        """
-        with Path(__file__).parent.resolve().joinpath("data_formatters", " cities_amazonas.json").open("r") as f:
-            return json.loads(f.read())
+        self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+        self.append_error(self.bot_data)

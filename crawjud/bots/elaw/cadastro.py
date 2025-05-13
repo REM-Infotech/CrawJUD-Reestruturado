@@ -81,29 +81,7 @@ class Cadastro(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                old_message = None
-                windows = self.driver.window_handles
-
-                if len(windows) == 0:
-                    with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
-
-                    old_message = self.message
-
-                    self.auth_bot()
-
-                if old_message is None:
-                    old_message = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old_message}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
+                self.tratamento_erros(exc=e)
 
         self.finalize_execution()
 
@@ -173,7 +151,7 @@ class Cadastro(CrawJUD):
                     self.print_comprovante()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def area_direito(self) -> None:
@@ -516,7 +494,7 @@ class Cadastro(CrawJUD):
                 self.interact.sleep_load('div[id="j_id_3x"]')
 
             except Exception as e:
-                self.logger.exception("".join(traceback.format_exception(e)))
+                self.logger.exception("".join(traceback.format_exception_only(e)))
                 raise ExecutionError(message="Não foi possível cadastrar parte", e=e) from e
 
         self.messsage = "Parte adicionada!"
@@ -907,7 +885,7 @@ class Cadastro(CrawJUD):
             self.interact.sleep_load('div[id="j_id_3x"]')
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(message="Não foi possível cadastrar advogado", e=e) from e
 
     def cad_parte(self) -> None:
@@ -1019,7 +997,7 @@ class Cadastro(CrawJUD):
             self.prt()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def salvar_tudo(self) -> None:

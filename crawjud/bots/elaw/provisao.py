@@ -74,29 +74,7 @@ class Provisao(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                old_message = None
-                windows = self.driver.window_handles
-
-                if len(windows) == 0:
-                    with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
-
-                    old_message = self.message
-
-                    self.auth_bot()
-
-                if old_message is None:
-                    old_message = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old_message}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
+                self.tratamento_erros(exc=e)
 
         self.finalize_execution()
 
@@ -127,7 +105,7 @@ class Provisao(CrawJUD):
                 raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e
 
     def chk_risk(self) -> None:
@@ -249,7 +227,7 @@ class Provisao(CrawJUD):
             self.interact.sleep_load('div[id="j_id_7t"]')
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(message="Não foi possível atualizar provisão", e=e) from e
 
     def edit_valor(self) -> None:
@@ -296,7 +274,7 @@ class Provisao(CrawJUD):
             self.interact.sleep_load('div[id="j_id_2z"]')
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e
 
     def set_risk(self) -> None:
@@ -339,7 +317,7 @@ class Provisao(CrawJUD):
             self.interact.sleep_load('div[id="j_id_2z"]')
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e
 
     def informar_datas(self) -> None:
@@ -386,7 +364,7 @@ class Provisao(CrawJUD):
                 set_data_juros(data_base_juros)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e
 
     def informar_motivo(self) -> None:
@@ -415,7 +393,7 @@ class Provisao(CrawJUD):
             self.driver.execute_script(f"document.getElementById('{id_informar_motivo}').blur()")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise e
 
     def save_changes(self) -> None:

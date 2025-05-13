@@ -151,7 +151,7 @@ class Protocolo(CrawJUD):
             self.append_success(data)
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def confirm_protocol(self) -> str | None:
@@ -295,7 +295,7 @@ class Protocolo(CrawJUD):
             """ Corrigir elements """
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def add_new_file(self) -> None:
@@ -359,7 +359,7 @@ class Protocolo(CrawJUD):
                     break
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def set_file_principal(self) -> None:
@@ -379,7 +379,7 @@ class Protocolo(CrawJUD):
             radiobutton.click()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def more_files(self) -> None:
@@ -433,7 +433,7 @@ class Protocolo(CrawJUD):
                         break
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def sign_files(self) -> None:
@@ -482,7 +482,7 @@ class Protocolo(CrawJUD):
             self.prt()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def finish_move(self) -> None:
@@ -564,7 +564,7 @@ class Protocolo(CrawJUD):
             return [self.bot_data.get("NUMERO_PROCESSO"), self.message, comprovante1]
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def remove_files(self) -> None:

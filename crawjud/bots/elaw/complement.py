@@ -102,29 +102,7 @@ class Complement(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                old_message = None
-                windows = self.driver.window_handles
-
-                if len(windows) == 0:
-                    with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
-
-                    old_message = self.message
-
-                    self.auth_bot()
-
-                if old_message is None:
-                    old_message = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old_message}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
+                self.tratamento_erros(exc=e)
 
         self.finalize_execution()
 
@@ -217,7 +195,7 @@ class Complement(CrawJUD):
                 raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("".join(traceback.format_exception_only(e)))
             raise ExecutionError(e=e) from e
 
     def save_all(self) -> None:
@@ -268,7 +246,7 @@ class Complement(CrawJUD):
                 validar.update({campo.upper(): element})
 
             except Exception as e:
-                self.logger.exception("".join(traceback.format_exception(e)))
+                self.logger.exception("".join(traceback.format_exception_only(e)))
                 try:
                     message = e.message
 

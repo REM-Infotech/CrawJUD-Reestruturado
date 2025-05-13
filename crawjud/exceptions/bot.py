@@ -10,7 +10,7 @@ class StartError(Exception):
 
     def __init__(self, exception: Exception, bot_execution_id: str = None) -> None:
         """Inicializador da instância de exceção."""
-        message = "\n".join(traceback.format_exception(exception))
+        message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
         self.message = message
 
@@ -24,7 +24,7 @@ class ExecutionError(BaseCrawJUDError):
 
     def __init__(self, exception: Exception, bot_execution_id: str = None) -> None:
         """Inicializador da instância de exceção."""
-        message = "\n".join(traceback.format_exception(exception))
+        message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
         self.message = message
 
@@ -38,7 +38,21 @@ class LoginSystemError(BaseCrawJUDError):
 
     def __init__(self, exception: Exception, bot_execution_id: str = None) -> None:
         """Inicializador da instância de exceção."""
-        message = "\n".join(traceback.format_exception(exception))
+        message = "\n".join(traceback.format_exception_only(exception))
+        super().__init__(message)
+        self.message = "Erro Ao realizar login.\n Exception: " + message
+
+    def __str__(self) -> str:
+        """Retorna a mensagem."""
+        return self.message
+
+
+class ProcNotFoundError(BaseCrawJUDError):
+    """Exception de Processo não encontrado."""
+
+    def __init__(self, exception: Exception, bot_execution_id: str = None) -> None:
+        """Inicializador da instância de exceção."""
+        message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
         self.message = "Erro Ao realizar login.\n Exception: " + message
 
