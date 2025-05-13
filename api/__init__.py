@@ -1,20 +1,14 @@
 """Quart application package."""
 
-import re
-from datetime import timedelta
 from importlib import import_module
-from os import getenv
 from pathlib import Path
 
 import aiofiles
 import quart_flask_patch  # noqa: F401
-from celery import Celery
 from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
 from quart_cors import cors
 from quart_jwt_extended import JWTManager
-from redis import Redis
-from socketio import ASGIApp, AsyncRedisManager, AsyncServer
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 
@@ -90,7 +84,7 @@ async def register_routes(app: Quart) -> None:
         app.register_blueprint(bp)
 
 
-async def init_extensions(app: Quart) -> AsyncServer:
+async def init_extensions(app: Quart) -> None:
     """
     Initialize and configure the application extensions.
 
@@ -101,40 +95,13 @@ async def init_extensions(app: Quart) -> AsyncServer:
         AsyncServer: The SocketIO server instance
 
     """
-    from crawjud.utils import check_allowed_origin
-
-    mail.init_app(app)
     db.init_app(app)
     jwt.init_app(app)
-
-    if app.config["WITH_REDIS"] == "True":
-        host_redis = getenv("REDIS_HOST")
-        pass_redis = getenv("REDIS_PASSWORD")
-        port_redis = getenv("REDIS_PORT")
-        database_redis = getenv("REDIS_DB_LOGS")
-        database_redis_io = getenv("REDIS_DB_IO")
-        redis_manager = AsyncRedisManager(url=f"redis://:{pass_redis}@{host_redis}:{port_redis}/{database_redis_io}")
-        app.extensions["redis"] = Redis(host=host_redis, port=port_redis, password=pass_redis, db=database_redis)
-
-    io = AsyncServer(
-        async_mode="asgi",
-        cors_allowed_origins=check_allowed_origin,
-        client_manager=redis_manager if app.config["WITH_REDIS"] == "True" else None,
-        ping_interval=25,
-        ping_timeout=10,
-        namespaces=["/bot", "/logs"],
-    )
-
     async with app.app_context():
         await database_start(app)
-        await create_celery_app()
-
-    app.extensions["socketio"] = io
-
-    return io
 
 
-async def create_app(confg: object) -> ASGIApp:
+async def create_app(confg: object) -> Quart:
     """
     Create and configure the Quart application instance.
 
@@ -148,20 +115,12 @@ async def create_app(confg: object) -> ASGIApp:
     app.config.from_object(confg)
 
     async with app.app_context():
-        io = await init_extensions(app)
         await register_routes(app)
 
-    allowed_origins = [  # noqa: F841
-        re.compile(r"http\:\/\/127\.0\.0\.1:*\d*"),
-        re.compile(r"http\:\/\/localhost:*\d*"),
-    ]
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
-    return ASGIApp(
-        io,
-        cors(
-            app,
-            allow_origin="*",
-            allow_headers=["Content-Type", "Authorization"],
-            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        ),
+    return cors(
+        app,
+        allow_origin="*",
+        allow_headers=["Content-Type", "Authorization"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
