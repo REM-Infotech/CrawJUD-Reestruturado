@@ -26,6 +26,12 @@ class SearchBot:
     driver: WebDriver
     wait: WebDriverWait
     url_segunda_instancia: str
+    data_inicio: datetime
+    data_fim: datetime
+    vara: str
+    parte_name: str
+    doc_parte: str
+    polo_parte: str
 
     @classmethod
     def setup() -> any:
@@ -35,9 +41,11 @@ class SearchBot:
         self.__dict__.update(kwargs)
 
     def search_(self) -> bool:
-        """Procura processo
+        """Procura processo.
+
         Returns:
             bool: True se encontrado; ou False
+
         """
         self.message = (
             f'Buscando processos pelo nome "{self.parte_name}"'
@@ -57,10 +65,12 @@ class SearchBot:
         return src
 
     def elaw_search(self) -> bool:
-        """Procura processo no elaw
+        """Procura processo no elaw.
+
         Returns:
            bool: True se encontrado; ou False
         Navega pela pagina do ELAW, interwage com elementos, clica pra abrir processo.
+
         """
         if self.driver.current_url != "https://amazonas.elaw.com.br/processoList.elaw":
             self.driver.get("https://amazonas.elaw.com.br/processoList.elaw")
@@ -105,10 +115,12 @@ class SearchBot:
         return False
 
     def esaj_search(self) -> bool:
-        """Procura processo no ESAJ
+        """Procura processo no ESAJ.
+
         Returns:
            bool: True se encontrado; ou False
         Navega pela pagina do ESAJ, processa entradas com base no grau do processo.
+
         """
         grau = self.bot_data.get("GRAU", 1)
 
@@ -188,10 +200,12 @@ class SearchBot:
         return check_process is not None
 
     def projudi_search(self) -> bool:
-        """Procura processos no PROJUDI
+        """Procura processos no PROJUDI.
+
         Returns:
             bool: True se encontrado; ou False
         redireciona pra cada rota apropriada
+
         """
         url_search = self.elements.url_busca
 
@@ -333,12 +347,12 @@ class SearchBot:
         return False
 
     def search_proc_parte(self) -> bool:
-        """Perform a PROJUDI search for a legal process by party name.
+        """Busca no PROJUDI nome da parte processual.
 
         Returns:
-            bool: True if the process is found; False otherwise.
+            bool: True se encontrado ou False.
 
-        Inputs party, document, date data and handles the search process.
+        Insere dados, documento e gerencia pesquisa.
 
         """
         allprocess = self.wait.until(
