@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import traceback
 from datetime import datetime
 from os import environ
 from typing import Self
@@ -60,21 +61,25 @@ class PrintMessage:
 
     async def emit_message(self) -> None:
         """Envia a mensagem para o servidor SocketIO."""
-        async with socketio.AsyncSimpleClient() as sio:
-            await sio.connect(
-                url=self.url_server,
-                headers={"Content-Type": "application/json"},
-                namespace=self.namespace,
-                transports="websocket",
-            )
+        try:
+            async with socketio.AsyncSimpleClient() as sio:
+                await sio.connect(
+                    url=self.url_server,
+                    headers={"Content-Type": "application/json"},
+                    namespace=self.namespace,
+                    transports="websocket",
+                )
 
-            await sio.emit(
-                "log_bot",
-                data={
-                    "message": self.message,
-                    "pid": self.pid,
-                    "type": self.type_log,
-                    "pos": self.row,
-                    "total": self.total_rows,
-                },
-            )
+                await sio.emit(
+                    "log_bot",
+                    data={
+                        "message": self.message,
+                        "pid": self.pid,
+                        "type": self.type_log,
+                        "pos": self.row,
+                        "total": self.total_rows,
+                    },
+                )
+
+        except Exception as e:
+            self.logger.error("Erro ao emitir mensagem: Exception %s", "\n".join(traceback.format_exception_only(e)))
