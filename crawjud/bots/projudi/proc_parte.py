@@ -58,17 +58,7 @@ class ProcParte(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                old = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
+                self.tratamento_erros(exc=e)
 
         self.finalize_execution()
 
