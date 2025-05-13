@@ -1,6 +1,6 @@
 """Modulo de gerenciamento de tarefas do Celery."""
 
-from celery import shared_task
+from celery_app import shared_task
 
 
 @shared_task
