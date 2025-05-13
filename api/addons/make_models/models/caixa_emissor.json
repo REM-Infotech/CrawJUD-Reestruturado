@@ -1,0 +1,16 @@
+[
+    "AUTOR",
+    "CPF_CNPJ_AUTOR",
+    "REU",
+    "CPF_CNPJ_REU",
+    "TRIBUNAL",
+    "COMARCA",
+    "VARA",
+    "AGENCIA",
+    "TIPO_ACAO",
+    "VALOR_CALCULADO",
+    "TEXTO_DESC",
+    "DATA_PGTO",
+    "NOME_CUSTOM",
+    "VIA_CONDENACAO"
+]
