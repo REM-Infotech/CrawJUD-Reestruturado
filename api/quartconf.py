@@ -5,7 +5,10 @@ import secrets
 from datetime import timedelta
 from pathlib import Path
 
-workdir = Path(__file__).cwd()
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.resolve().joinpath(".env"))
+
 
 WITH_REDIS = False
 LOG_LEVEL = logging.INFO
