@@ -26,10 +26,11 @@ dependencies = [
     "redis (>=6.1.0,<7.0.0)",
     "openpyxl (>=3.1.5,<4.0.0)",
     "hypercorn (>=0.17.3,<0.18.0)",
-    "clear (>=2.0.0,<3.0.0)"
+    "clear (>=2.0.0,<3.0.0)",
+    "python-socketio (>=5.13.0,<6.0.0)"
 ]
 [tool.poetry]
-package-mode = true
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

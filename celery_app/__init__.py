@@ -1,11 +1,12 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
 from celery import Celery
+from kombu import Queue  # noqa: F401
 
 from celery_app.resources.load_config import Config
 
 
-async def make_celery() -> Celery:
+def make_celery() -> Celery:
     """Create and configure a Celery instance with Quart application context.
 
     Args:
@@ -29,4 +30,23 @@ async def make_celery() -> Celery:
             return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
+
+    # CELERY_QUEUES = (  # noqa: N806
+    #     Queue("default"),
+    #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
+    #     Queue("projudi_queue", routing_key="crawjud.bot.projudi_launcher"),
+    # )
+    # CELERY_ROUTES = {  # noqa: N806
+    #     "crawjud.bot.caixa_launcher": {"queue": "caixa_queue"},
+    #     "crawjud.bot.projudi_launcher": {"queue": "projudi_queue"},
+    # }
+
+    celery.conf.update(
+        # task_queues=CELERY_QUEUES,
+        # task_routes=CELERY_ROUTES,
+        task_default_queue="default",
+        task_default_exchange="default",
+        task_default_routing_key="default",
+    )
+
     return celery
