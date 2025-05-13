@@ -60,6 +60,7 @@ class CrawJUD:
 
     # Variáveis de nome/caminho de arquivos/pastas
     xlsx: str
+    input_file: StrPath
     output_dir_path: StrPath
 
     def __init__(self, *args: str, **kwargs: str) -> None:
@@ -160,9 +161,7 @@ class CrawJUD:
             ValueError: For problems reading the file.
 
         """
-        input_file = Path(self.output_dir_path).joinpath(self.xlsx).resolve()
-
-        df = pd.read_excel(input_file)
+        df = pd.read_excel(self.input_file)
         df.columns = df.columns.str.upper()
 
         for col in df.columns:
@@ -182,3 +181,49 @@ class CrawJUD:
 
         return vars_df
         # self.search = SearchBot.setup()
+
+    def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
+        """Format a legal case dictionary according to pre-defined rules.
+
+        Args:
+            data (dict[str, str]): The raw data dictionary.
+
+        Returns:
+            dict[str, str]: The data formatted with proper types and values.
+
+        Rules:
+            - If the key is "TIPO_EMPRESA" and its value is "RÉU", update "TIPO_PARTE_CONTRARIA" to "Autor".
+            - If the key is "COMARCA", update "CAPITAL_INTERIOR" based on the value using the cities_Amazonas method.
+            - If the key is "DATA_LIMITE" and "DATA_INICIO" is not present, set "DATA_INICIO" to the value of "DATA_LIMITE".
+            - If the value is an integer or float, format it to two decimal places and replace the decimal point with a clcomma.
+            - If the key is "CNPJ_FAVORECIDO" and its value is empty, set it to "04.812.509/0001-90".
+
+        """  # noqa: E501
+        data_listed = list(data.items())
+        for key, value in data_listed:
+            if isinstance(value, str):
+                if not value.strip():
+                    data.pop(key)
+
+            elif value is None:
+                data.pop(key)
+
+            if key.upper() == "TIPO_EMPRESA":
+                data["TIPO_PARTE_CONTRARIA"] = "Autor"
+                if value.upper() == "RÉU":
+                    data["TIPO_PARTE_CONTRARIA"] = "Autor"
+
+            elif key.upper() == "COMARCA":
+                set_locale = self.cities_Amazonas.get(value, "Outro Estado")
+                data["CAPITAL_INTERIOR"] = set_locale
+
+            elif key == "DATA_LIMITE" and not data.get("DATA_INICIO"):
+                data["DATA_INICIO"] = value
+
+            elif isinstance(value, (int, float)):
+                data[key] = f"{value:.2f}".replace(".", ",")
+
+            elif key == "CNPJ_FAVORECIDO" and not value:
+                data["CNPJ_FAVORECIDO"] = "04.812.509/0001-90"
+
+        return data
