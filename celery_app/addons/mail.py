@@ -119,7 +119,7 @@ class Mail:
         """Server authentication."""
         self.server.login(self.MAIL_USERNAME, self.MAIL_PASSWORD)
 
-    def send_message(self, message_object: MIMEMultipart, to: str) -> None:
+    def send_message(self, to: str) -> None:
         """Send message to recipient.
 
         Arguments:
@@ -129,7 +129,9 @@ class Mail:
         """
         try:
             self.login()
-            self.server.sendmail(self.MAIL_DEFAULT_SENDER, to, message_object.as_string())
+
+            self.message["From"] = self.MAIL_DEFAULT_SENDER
+            self.server.sendmail(self.MAIL_DEFAULT_SENDER, to, self.message.as_string())
             self.server.quit()
 
             return "Message sent successfully"
