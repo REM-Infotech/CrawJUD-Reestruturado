@@ -1,5 +1,6 @@
 """Módulo de controle de exceptions dos bots."""
 
+import logging
 import traceback
 
 from crawjud.exceptions import BaseCrawJUDError
@@ -27,6 +28,8 @@ class ExecutionError(BaseCrawJUDError):
         message = "\n".join(traceback.format_exception_only(exception))
         super().__init__(message)
         self.message = message
+        logger = logging.getLogger(bot_execution_id)
+        logger.error(message)
 
     def __str__(self) -> str:
         """Retorna a mensagem."""
