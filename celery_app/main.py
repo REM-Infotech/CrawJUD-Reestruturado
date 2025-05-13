@@ -4,11 +4,11 @@ import argparse
 import asyncio
 from multiprocessing import Process
 from nt import environ
+from pathlib import Path
 from platform import node
 from sys import argv
 
 import tqdm
-from anyio import Path
 from celery.apps.beat import Beat  # noqa: F401
 from celery.apps.worker import Worker
 
@@ -50,12 +50,13 @@ def start_beat() -> None:
     celery = make_celery()
     environ.update({"APPLICATION_APP": "beat"})
     scheduler = "celery_app.addons.scheduler:DatabaseScheduler"
+    worker_name = f"{worker_name_generator()}_celery"
     beat = Beat(
         app=celery,
         scheduler=scheduler,
         max_interval=5,
         loglevel="INFO",
-        logfile=Path().cwd().joinpath("crawjud", "logs", "beat_celery.log"),
+        logfile=Path().cwd().joinpath("temp", "logs", f"{worker_name}.log"),
         no_color=False,
     )
     beat.run()
