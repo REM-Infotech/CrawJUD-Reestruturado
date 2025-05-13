@@ -3,38 +3,27 @@
 import logging
 from typing import Any
 
-handlers = {
-    "file_handler": {
-        "class": "crawjud.addons.logger.handlers.FileHandler",
-        "level": logging.INFO,
-        "formatter": "json",
-        "filename": "app.log",
-        "maxBytes": 1024,
-        "backupCount": 1,
-    },
-    "redis_handler": {
-        "class": "crawjud.addons.logger.handlers.RedisHandler",
-        "level": logging.INFO,
-        "formatter": "json",
-    },
-}
-
-formatters = {
-    "default": {
-        "format": "%(levelname)s:%(name)s:%(message)s",
-    },
-    "json": {
-        "()": "crawjud.addons.logger.formatters.JsonFormatter",
-    },
-}
-
 
 def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     """Gerador de configurações do logging."""
     log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
     logger_name: str = kwargs.get("LOGGER_NAME", __name__)
 
-    handlers_config = handlers
+    handlers_config = {
+        "file_handler": {
+            "class": "crawjud.addons.logger.handlers.FileHandler",
+            "level": logging.INFO,
+            "formatter": "json",
+            "filename": "app.log",
+            "maxBytes": 1024,
+            "backupCount": 1,
+        },
+        # "redis_handler": {
+        #     "class": "crawjud.addons.logger.handlers.RedisHandler",
+        #     "level": logging.INFO,
+        #     "formatter": "json",
+        # },
+    }
     handlers_config["file_handler"]["level"] = log_level
     handlers_config["file_handler"]["maxBytes"] = 40960
     handlers_config["file_handler"]["backupCount"] = 5
@@ -48,7 +37,14 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
             "handlers": list(handlers_config.keys()),
         },
         "handlers": handlers_config,
-        "formatters": formatters,
+        "formatters": {
+            "default": {
+                "format": "%(levelname)s:%(name)s:%(message)s",
+            },
+            "json": {
+                "()": "crawjud.addons.logger.handlers.JsonFormatter",
+            },
+        },
         "loggers": {
             logger_name: {
                 "level": log_level,

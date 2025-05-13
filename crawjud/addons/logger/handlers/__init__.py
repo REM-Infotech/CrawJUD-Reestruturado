@@ -3,8 +3,10 @@
 import json
 import logging
 import logging.handlers
+import time
 from os import environ
 from pathlib import Path
+from typing import AnyStr
 
 import redis
 from dotenv import load_dotenv
@@ -51,7 +53,49 @@ class FileHandler(logging.handlers.RotatingFileHandler):
         log_data = {
             "level": record.levelname,
             "message": record.getMessage(),
+            "time": self.format_time(record, "%Y-%m-%d %H:%M:%S"),
+            "module": record.module,
+        }
+        return json.dumps(log_data)
+
+    def format_time(self, record: logging.LogRecord, datefmt: str = None) -> AnyStr:
+        """
+        Return the creation time of the specified LogRecord as formatted text.
+
+        This method should be called from format() by a formatter which
+        wants to make use of a formatted time. This method can be overridden
+        in formatters to provide for any specific requirement, but the
+        basic behaviour is as follows: if datefmt (a string) is specified,
+        it is used with time.strftime() to format the creation time of the
+        record. Otherwise, an ISO8601-like (or RFC 3339-like) format is used.
+        The resulting string is returned. This function uses a user-configurable
+        function to convert the creation time to a tuple. By default,
+        time.localtime() is used; to change this for a particular formatter
+        instance, set the 'converter' attribute to a function with the same
+        signature as time.localtime() or time.gmtime(). To change it for all
+        formatters, for example if you want all logging times to be shown in GMT,
+        set the 'converter' attribute in the Formatter class.
+        """
+        ct = time.localtime(record.created)
+        if datefmt:
+            s = time.strftime(datefmt, ct)
+        else:
+            s = time.strftime(self.default_time_format, ct)
+            if self.default_msec_format:
+                s = self.default_msec_format % (s, record.msecs)
+        return s
+
+
+class JsonFormatter(logging.Formatter):
+    """Json Formatter for logging."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        """Format the log record to JSON."""
+        log_data = {
+            "level": record.levelname,
+            "message": record.getMessage(),
             "time": self.formatTime(record, "%Y-%m-%d %H:%M:%S"),
             "module": record.module,
+            "module_name": record.name,
         }
         return json.dumps(log_data)
