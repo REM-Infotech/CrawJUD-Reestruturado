@@ -26,7 +26,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import SaveError
+from crawjud.exceptions.elaw import AdvogadoError, CadastroParteError, ElawError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -150,7 +151,7 @@ class Cadastro(CrawJUD):
                     self.print_comprovante()
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid, message=str(e)) from e
 
     def area_direito(self) -> None:
         """Select the area of law in the web form.
@@ -492,7 +493,9 @@ class Cadastro(CrawJUD):
                 self.interact.sleep_load('div[id="j_id_3x"]')
 
             except Exception as e:
-                raise ExecutionError(message="Não foi possível cadastrar parte", e=e) from e
+                raise CadastroParteError(
+                    message="Não foi possível cadastrar parte", exception=e, bot_execution_id=self.pid
+                ) from e
 
         self.messsage = "Parte adicionada!"
         type_log = "info"
@@ -623,7 +626,7 @@ class Cadastro(CrawJUD):
         if wait_adv:
             wait_adv.click()
         elif not wait_adv:
-            raise ExecutionError(message="Advogado interno não encontrado")
+            raise AdvogadoError(message="Advogado interno não encontrado", bot_execution_id=self.pid)
 
         self.interact.sleep_load('div[id="j_id_3x"]')
 
@@ -882,7 +885,11 @@ class Cadastro(CrawJUD):
             self.interact.sleep_load('div[id="j_id_3x"]')
 
         except Exception as e:
-            raise ExecutionError(message="Não foi possível cadastrar advogado", e=e) from e
+            raise AdvogadoError(
+                message="Não foi possível cadastrar advogado",
+                exception=e,
+                bot_execution_id=self.pid,
+            ) from e
 
     def cad_parte(self) -> None:
         """Register the party information.
@@ -993,7 +1000,7 @@ class Cadastro(CrawJUD):
             self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise CadastroParteError(exception=e, bot_execution_id=self.pid) from e
 
     def salvar_tudo(self) -> None:
         """Save all entered information.
@@ -1086,9 +1093,9 @@ class Cadastro(CrawJUD):
             return True
 
         if not wait_confirm_save:
-            ErroElaw: WebElement | str = None  # noqa: N806
+            erro_elaw: WebElement | str = None
             with suppress(TimeoutException, NoSuchElementException):
-                ErroElaw = (  # noqa: N806
+                erro_elaw = (
                     self.wait.until(
                         ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.div_messageerro_css)),
                         message="Erro ao encontrar elemento",
@@ -1097,7 +1104,7 @@ class Cadastro(CrawJUD):
                     .text
                 )
 
-            if not ErroElaw:
-                ErroElaw = "Cadastro do processo nao finalizado, verificar manualmente"  # noqa: N806
+            if not erro_elaw:
+                erro_elaw = "Cadastro do processo nao finalizado, verificar manualmente"
 
-            raise ExecutionError(ErroElaw)
+            raise SaveError(message=erro_elaw, bot_execution_id=self.pid)

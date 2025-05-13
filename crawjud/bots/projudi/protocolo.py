@@ -24,7 +24,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError, SaveError
 
 # from typing import type
 
@@ -92,7 +92,7 @@ class Protocolo(CrawJUD):
             search = self.search_bot()
 
             if search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
             self.add_new_move()
 
@@ -114,12 +114,12 @@ class Protocolo(CrawJUD):
                 confirm_protocol = self.confirm_protocol()
                 if not confirm_protocol:
                     if self.set_parte() is not True:
-                        raise ExecutionError(message="Nao foi possivel confirmar protocolo")
+                        raise SaveError(message="Nao foi possivel confirmar protocolo", bot_execution_id=self.pid)
 
                     self.finish_move()
                     confirm_protocol = self.confirm_protocol()
                     if not confirm_protocol:
-                        raise ExecutionError(message="Nao foi possivel confirmar protocolo")
+                        raise SaveError(message="Nao foi possivel confirmar protocolo", bot_execution_id=self.pid)
 
                 data = self.screenshot_sucesso()
                 data.append(confirm_protocol)

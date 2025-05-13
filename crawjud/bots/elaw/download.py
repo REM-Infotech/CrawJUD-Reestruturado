@@ -18,7 +18,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.elaw import ElawError
 
 
 class Download(CrawJUD):
@@ -102,7 +102,7 @@ class Download(CrawJUD):
                 self.append_error([self.bot_data.get("NUMERO_PROCESSO"), message])
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def buscar_doc(self) -> None:
         """Access the attachments page.

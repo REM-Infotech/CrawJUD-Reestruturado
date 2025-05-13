@@ -17,8 +17,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
+from crawjud.addons.auth.elaw import ElawAuth
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ProcNotFoundError, SaveError
+from crawjud.exceptions.elaw import ElawError
 
 
 class Prazos(CrawJUD):
@@ -80,7 +82,7 @@ class Prazos(CrawJUD):
             search = self.search_bot()
             if not search:
                 message = "Buscando Processo"
-                raise ExecutionError(message="Não Encontrado!")
+                raise ProcNotFoundError(message="Não Encontrado!", bot_execution_id=self.pid)
 
             comprovante = ""
             self.data_Concat = f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
@@ -103,14 +105,17 @@ class Prazos(CrawJUD):
                 self.save_Prazo()
                 comprovante = self.CheckLancamento()
                 if not comprovante:
-                    raise ExecutionError(message="Não foi possível comprovar lançamento, verificar manualmente")
+                    raise SaveError(
+                        message="Não foi possível comprovar lançamento, verificar manualmente",
+                        bot_execution_id=self.pid,
+                    )
 
                 message = "Pauta lançada!"
 
             self.append_success([comprovante], message)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawAuth(exception=e, bot_execution_id=self.pid) from e
 
     def TablePautas(self) -> None:  # noqa: N802
         """Verify if there are existing schedules for the specified day.
@@ -129,7 +134,7 @@ class Prazos(CrawJUD):
             self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def NovaPauta(self) -> None:  # noqa: N802
         """Launch a new audience schedule.
@@ -186,7 +191,7 @@ class Prazos(CrawJUD):
             DataAudiencia.send_keys(self.data_Concat)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def save_Prazo(self) -> None:  # noqa: N802
         """Save the newly created deadline.
@@ -205,7 +210,7 @@ class Prazos(CrawJUD):
             btn_salvar.click()
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise SaveError(exception=e, bot_execution_id=self.pid) from e
 
     def CheckLancamento(self) -> dict[str, str] | None:  # noqa: N802
         """Check if the deadline has been successfully recorded.
@@ -254,4 +259,4 @@ class Prazos(CrawJUD):
             return data
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e

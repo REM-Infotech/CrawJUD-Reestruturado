@@ -141,7 +141,6 @@ class Intimacoes(CrawJUD):
                 self.driver.find_element(By.CSS_SELECTOR, 'a[class="arrowNextOn"]').click()
 
         except Exception as e:
-            self.logger.exception(str(e))
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_intimacao_information(self, name_colunas: list[WebElement], intimacoes: list[WebElement]) -> dict:

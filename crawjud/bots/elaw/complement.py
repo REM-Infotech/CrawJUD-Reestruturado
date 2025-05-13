@@ -26,7 +26,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -191,7 +191,7 @@ class Complement(CrawJUD):
                 self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
             elif search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

@@ -14,7 +14,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
 
 
 class Movimentacao(CrawJUD):
@@ -103,7 +103,7 @@ class Movimentacao(CrawJUD):
             search = self.search_bot()
 
             if search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
             message = "Buscando movimentações"
             type_log = "log"
@@ -484,7 +484,7 @@ class Movimentacao(CrawJUD):
         for termo in termos:
             message = f'Buscando movimentações que contenham "{termo}"'
             type_log = "log"
-
+            self.prt.print_msg(message=message, type_log=type_log, row=self.row, pid=self.pid)
             for item in itens:
                 td_tr = item.find_elements(By.TAG_NAME, "td")
                 mov = td_tr[2].text

@@ -17,7 +17,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
 
 # from memory_profiler import profile
 # fp = open("memory_profiler_capa_projudi.log", "+w")
@@ -85,7 +85,7 @@ class Capa(CrawJUD):
             search = self.search_bot()
             trazer_copia = self.bot_data.get("TRAZER_COPIA", "não")
             if search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!")
 
             self.driver.refresh()
             data = self.get_process_informations()
@@ -96,7 +96,6 @@ class Capa(CrawJUD):
             self.append_success([data], "Informações do processo extraidas com sucesso!")
 
         except Exception as e:
-            self.logger.exception(str(e))
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def copia_pdf(self, data: dict[str, str | int | datetime]) -> dict[str, str | int | datetime]:
@@ -188,15 +187,6 @@ class Capa(CrawJUD):
             #     response = requests.post(url=self.driver.current_url, data=form_values, cookies=cookies, timeout=60)
 
             # except Exception as e:
-            #   self.logger.exception(
-            #     "".join(
-            #         traceback.format_exception_only(
-            #             e
-            #             value=e,
-            #             tb=e.__traceback__,
-            #         )
-            #     )
-            # )
             #     raise ExecutionError(f"Erro ao baixar cópia integral do processo: {e}") from e
 
             # if response.status_code == 200:

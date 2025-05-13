@@ -93,7 +93,7 @@ class Movimentacao(CrawJUD):
             search = self.search_bot()
 
             if search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ExecutionError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
             message = "Buscando movimentações"
             type_log = "log"

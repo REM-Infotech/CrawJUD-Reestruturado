@@ -160,7 +160,7 @@ class Tjdft(CrawJUD):
             self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
         except Exception as e:
-            raise ExecutionError(message="Erro ao informar número do processo", e=e) from e
+            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def info_requerente(self) -> None:
         """Inform the petitioner.

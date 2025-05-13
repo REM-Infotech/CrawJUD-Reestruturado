@@ -26,7 +26,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError, SaveError
+from crawjud.exceptions.elaw import ElawError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -100,10 +101,10 @@ class SolPags(CrawJUD):
                 self.append_success(self.confirm_save())
 
             elif search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def new_payment(self) -> None:
         """Create a new payment entry.
@@ -169,10 +170,10 @@ class SolPags(CrawJUD):
                             item.click()
                             return
 
-            raise ExecutionError(message="Tipo de Pagamento não encontrado")
+            raise ProcNotFoundError(message="Tipo de Pagamento não encontrado", bot_execution_id=self.pid)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def condenacao(self) -> None:
         """Handle condemnation details.
@@ -538,7 +539,7 @@ class SolPags(CrawJUD):
                 conta_debito.click()
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def save_changes(self) -> None:
         """Save all changes made during the payment process."""
@@ -552,7 +553,7 @@ class SolPags(CrawJUD):
             save.click()
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise SaveError(exception=e, bot_execution_id=self.pid) from e
 
     def confirm_save(self) -> None:
         """Confirm the saving of payment details.
@@ -561,122 +562,118 @@ class SolPags(CrawJUD):
             ExecutionError: If the save operation fails.
 
         """
-        try:
-            tab_pagamentos: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor_pagamento)),
-            )
-            tab_pagamentos.click()
+        tab_pagamentos: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor_pagamento)),
+        )
+        tab_pagamentos.click()
 
-            enter_table: WebElement = (
-                self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor_resultado)))
-                .find_element(By.TAG_NAME, "table")
-                .find_element(By.TAG_NAME, "tbody")
-            )
-            check_solicitacoes = enter_table.find_elements(By.TAG_NAME, "tr")
-            info_sucesso = [self.bot_data.get("NUMERO_PROCESSO"), "Pagamento solicitado com sucesso!!"]
-            current_handle = self.driver.current_window_handle
+        enter_table: WebElement = (
+            self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor_resultado)))
+            .find_element(By.TAG_NAME, "table")
+            .find_element(By.TAG_NAME, "tbody")
+        )
+        check_solicitacoes = enter_table.find_elements(By.TAG_NAME, "tr")
+        info_sucesso = [self.bot_data.get("NUMERO_PROCESSO"), "Pagamento solicitado com sucesso!!"]
+        current_handle = self.driver.current_window_handle
 
-            for pos, item in enumerate(check_solicitacoes):
-                if item.text == "Nenhum registro encontrado!":
-                    raise ExecutionError(message="Pagamento não solicitado")
+        for pos, item in enumerate(check_solicitacoes):
+            if item.text == "Nenhum registro encontrado!":
+                raise SaveError(message="Pagamento não solicitado", bot_execution_id=self.pid)
 
-                open_details = item.find_element(By.CSS_SELECTOR, self.elements.botao_ver)
-                open_details.click()
+            open_details = item.find_element(By.CSS_SELECTOR, self.elements.botao_ver)
+            open_details.click()
 
-                sleep(1)
-                id_task = item.find_elements(By.TAG_NAME, "td")[2].text
-                closeContext = self.wait.until(  # noqa: N806
-                    ec.presence_of_element_located(
-                        (
-                            By.CSS_SELECTOR,
-                            f'div[id="tabViewProcesso:pvp-dtProcessoValorResults:{pos}:pvp-pgBotoesValoresPagamentoBtnVer_dlg"]',
-                        ),
+            sleep(1)
+            id_task = item.find_elements(By.TAG_NAME, "td")[2].text
+            closeContext = self.wait.until(  # noqa: N806
+                ec.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        f'div[id="tabViewProcesso:pvp-dtProcessoValorResults:{pos}:pvp-pgBotoesValoresPagamentoBtnVer_dlg"]',
                     ),
-                ).find_element(By.TAG_NAME, "a")
+                ),
+            ).find_element(By.TAG_NAME, "a")
 
-                WaitFrame = WebDriverWait(self.driver, 5).until(  # noqa: N806
-                    ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor)),
+            WaitFrame = WebDriverWait(self.driver, 5).until(  # noqa: N806
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.valor)),
+            )
+            self.driver.switch_to.frame(WaitFrame)
+
+            tipoCusta = ""  # noqa: N806
+            cod_bars = ""
+            tipoCondenacao = ""  # noqa: N806
+            now = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%Y %H.%M.%S")
+            Name_Comprovante1 = f"COMPROVANTE 1 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
+            cod_bars_xls = str(self.bot_data.get("COD_BARRAS").replace(".", "").replace(" ", ""))
+
+            with suppress(TimeoutException):
+                tipoCusta = str(  # noqa: N806
+                    self.wait.until(
+                        ec.presence_of_element_located((
+                            By.CSS_SELECTOR,
+                            self.elements.visualizar_tipo_custas,
+                        )),
+                    )
+                    .text.split(":")[-1]
+                    .replace("\n", ""),
                 )
-                self.driver.switch_to.frame(WaitFrame)
 
-                tipoCusta = ""  # noqa: N806
-                cod_bars = ""
-                tipoCondenacao = ""  # noqa: N806
-                now = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%Y %H.%M.%S")
-                Name_Comprovante1 = f"COMPROVANTE 1 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
-                cod_bars_xls = str(self.bot_data.get("COD_BARRAS").replace(".", "").replace(" ", ""))
-
-                with suppress(TimeoutException):
-                    tipoCusta = str(  # noqa: N806
-                        self.wait.until(
-                            ec.presence_of_element_located((
-                                By.CSS_SELECTOR,
-                                self.elements.visualizar_tipo_custas,
-                            )),
-                        )
-                        .text.split(":")[-1]
-                        .replace("\n", ""),
+            with suppress(TimeoutException):
+                cod_bars = str(
+                    self.wait.until(
+                        ec.presence_of_element_located((
+                            By.CSS_SELECTOR,
+                            self.elements.visualizar_cod_barras,
+                        )),
                     )
+                    .text.split(":")[-1]
+                    .replace("\n", ""),
+                )
 
-                with suppress(TimeoutException):
-                    cod_bars = str(
-                        self.wait.until(
-                            ec.presence_of_element_located((
-                                By.CSS_SELECTOR,
-                                self.elements.visualizar_cod_barras,
-                            )),
-                        )
-                        .text.split(":")[-1]
-                        .replace("\n", ""),
+            with suppress(TimeoutException):
+                tipoCondenacao = (  # noqa: N806
+                    self.wait.until(
+                        ec.presence_of_element_located((
+                            By.CSS_SELECTOR,
+                            self.elements.visualizar_tipoCondenacao,
+                        )),
                     )
+                    .text.split(":")[-1]
+                    .replace("\n", "")
+                )
 
-                with suppress(TimeoutException):
-                    tipoCondenacao = (  # noqa: N806
-                        self.wait.until(
-                            ec.presence_of_element_located((
-                                By.CSS_SELECTOR,
-                                self.elements.visualizar_tipoCondenacao,
-                            )),
-                        )
-                        .text.split(":")[-1]
-                        .replace("\n", "")
-                    )
+            namedef = self.format_string(self.bot_data.get("TIPO_PAGAMENTO")).lower()
 
-                namedef = self.format_string(self.bot_data.get("TIPO_PAGAMENTO")).lower()
+            chk_bars = cod_bars == cod_bars_xls
 
-                chk_bars = cod_bars == cod_bars_xls
+            if namedef == "condenacao":
+                tipo_condenacao_xls = str(self.bot_data.get("TIPO_CONDENACAO", ""))
+                match_condenacao = tipo_condenacao_xls.lower() == tipoCondenacao.lower()
+                matchs = all([match_condenacao, chk_bars])
 
-                if namedef == "condenacao":
-                    tipo_condenacao_xls = str(self.bot_data.get("TIPO_CONDENACAO", ""))
-                    match_condenacao = tipo_condenacao_xls.lower() == tipoCondenacao.lower()
-                    matchs = all([match_condenacao, chk_bars])
+            elif namedef == "custas":
+                tipo_custa_xls = str(self.bot_data.get("TIPO_GUIA", ""))
+                match_custa = tipo_custa_xls.lower() == tipoCusta.lower()
+                matchs = all([match_custa, chk_bars])
 
-                elif namedef == "custas":
-                    tipo_custa_xls = str(self.bot_data.get("TIPO_GUIA", ""))
-                    match_custa = tipo_custa_xls.lower() == tipoCusta.lower()
-                    matchs = all([match_custa, chk_bars])
-
-                if matchs:
-                    self.driver.switch_to.default_content()
-                    url_page = WaitFrame.get_attribute("src")
-                    self.getScreenShot(url_page, Name_Comprovante1)
-                    self.driver.switch_to.window(current_handle)
-
-                    closeContext.click()
-                    Name_Comprovante2 = f"COMPROVANTE 2 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
-                    item.screenshot(os.path.join(self.output_dir_path, Name_Comprovante2))
-
-                    info_sucesso.extend([tipoCondenacao, Name_Comprovante1, id_task, Name_Comprovante2])
-                    return info_sucesso
-
+            if matchs:
                 self.driver.switch_to.default_content()
+                url_page = WaitFrame.get_attribute("src")
+                self.getScreenShot(url_page, Name_Comprovante1)
+                self.driver.switch_to.window(current_handle)
+
                 closeContext.click()
-                sleep(0.25)
+                Name_Comprovante2 = f"COMPROVANTE 2 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
+                item.screenshot(os.path.join(self.output_dir_path, Name_Comprovante2))
 
-            raise ExecutionError(message="Pagamento não solicitado")
+                info_sucesso.extend([tipoCondenacao, Name_Comprovante1, id_task, Name_Comprovante2])
+                return info_sucesso
 
-        except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            self.driver.switch_to.default_content()
+            closeContext.click()
+            sleep(0.25)
+
+        raise SaveError(message="Pagamento não solicitado", bot_execution_id=self.pid)
 
     def getScreenShot(self, url_page: str, Name_Comprovante1: str) -> None:  # noqa: N802, N803
         """Capture a screenshot of the specified page.

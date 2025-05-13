@@ -24,7 +24,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ProcNotFoundError
+from crawjud.exceptions.elaw import ElawError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -101,7 +102,7 @@ class Provisao(CrawJUD):
                 self.save_changes()
 
             if search is False:
-                raise ExecutionError(message="Processo não encontrado!")
+                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
 
         except Exception as e:
             raise e
@@ -225,7 +226,11 @@ class Provisao(CrawJUD):
             self.interact.sleep_load('div[id="j_id_7t"]')
 
         except Exception as e:
-            raise ExecutionError(message="Não foi possível atualizar provisão", e=e) from e
+            raise ElawError(
+                message="Não foi possível atualizar provisão",
+                exception=e,
+                bot_execution_id=self.pid,
+            ) from e
 
     def edit_valor(self) -> None:
         """Edit an existing value entry."""

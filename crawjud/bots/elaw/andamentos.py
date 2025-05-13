@@ -18,7 +18,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import SaveError
+from crawjud.exceptions.elaw import ElawError
 
 
 class Andamentos(CrawJUD):
@@ -100,7 +101,7 @@ class Andamentos(CrawJUD):
                 self.append_error([self.bot_data.get("NUMERO_PROCESSO"), message])
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def info_data(self) -> None:
         """Inform the date of the andamento.
@@ -127,7 +128,7 @@ class Andamentos(CrawJUD):
             self.interact.sleep_load('div[id="j_id_34"]')
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def info_ocorrencia(self) -> None:
         """Inform the occurrence details of the andamento.
@@ -149,7 +150,7 @@ class Andamentos(CrawJUD):
             self.interact.send_key(ocorrencia, text_andamento)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def info_observacao(self) -> None:
         """Inform the observation details of the andamento.
@@ -171,7 +172,7 @@ class Andamentos(CrawJUD):
             self.interact.send_key(observacao, text_andamento)
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            raise ElawError(exception=e, bot_execution_id=self.pid) from e
 
     def add_anexo(self) -> None:
         """Add attachments to the andamento.
@@ -202,7 +203,7 @@ class Andamentos(CrawJUD):
             save_button.click()
 
         except Exception as e:
-            raise ExecutionError(message="Não foi possivel salvar andamento", e=e) from e
+            raise SaveError(message="Não foi possivel salvar andamento", exception=e, bot_execution_id=self.pid) from e
 
         try:
             check_save: WebElement = WebDriverWait(self.driver, 10).until(
@@ -213,5 +214,9 @@ class Andamentos(CrawJUD):
 
                 self.append_success([self.numproc, "Andamento salvo com sucesso!", ""], "Andamento salvo com sucesso!")
 
-        except Exception:
-            raise ExecutionError(message="Aviso: não foi possivel validar salvamento de andamento") from None
+        except Exception as e:
+            raise SaveError(
+                message="Aviso: não foi possivel validar salvamento de andamento",
+                exception=e,
+                bot_execution_id=self.pid,
+            ) from e

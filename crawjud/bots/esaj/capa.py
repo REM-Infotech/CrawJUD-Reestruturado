@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.exceptions.bot import ExecutionError, ProcNotFoundError
 
 
 class Capa(CrawJUD):
@@ -72,7 +72,7 @@ class Capa(CrawJUD):
             search = self.search_bot()
 
             if search is False:
-                raise ExecutionError(message="Processo não encontrado.")
+                raise ProcNotFoundError(message="Processo não encontrado.")
 
             self.append_success(self.get_process_informations())
 
