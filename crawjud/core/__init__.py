@@ -91,7 +91,7 @@ class CrawJUD:
 
         """
         try:
-            with Path(__file__).parent.resolve().joinpath("data_formatters", " cities_amazonas.json").open("r") as f:
+            with Path(__file__).parent.resolve().joinpath("data_formatters", "cities_amazonas.json").open("r") as f:
                 self._cities_am = json.loads(f.read())
 
             self.is_stoped = False

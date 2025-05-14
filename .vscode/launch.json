@@ -15,7 +15,7 @@
         "--bot_name",
         "capa",
         "--path_config",
-        "C:\\Github\\CrawJUD-Reestruturado\\temp\\Q9M1E6\\Q9M1E6.json"
+        "${workspaceFolder}\\temp\\Q9M1E6\\Q9M1E6.json"
       ]
     },
   ]
