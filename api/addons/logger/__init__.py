@@ -1,4 +1,4 @@
-"""Módulo de gerenciamento de logs do CrawJUD."""
+"""Módulo de gerenciamento de logs da api."""
 
 import logging
 from typing import Any
@@ -11,7 +11,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
 
     handlers_config = {
         "file_handler": {
-            "class": "crawjud.addons.logger.handlers.FileHandler",
+            "class": "api.addons.logger.handlers.FileHandler",
             "level": logging.INFO,
             "formatter": "json",
             "filename": "app.log",
@@ -19,7 +19,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
             "backupCount": 1,
         },
         # "redis_handler": {
-        #     "class": "crawjud.addons.logger.handlers.RedisHandler",
+        #     "class": "api.addons.logger.handlers.RedisHandler",
         #     "level": logging.INFO,
         #     "formatter": "json",
         # },
@@ -42,7 +42,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
                 "format": "%(levelname)s:%(name)s:%(message)s",
             },
             "json": {
-                "()": "crawjud.addons.logger.handlers.JsonFormatter",
+                "()": "api.addons.logger.handlers.JsonFormatter",
             },
         },
         "loggers": {
