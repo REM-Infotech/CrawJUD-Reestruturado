@@ -1,13 +1,16 @@
 """Módulo gerenciador do servidor SocketIO CrawJUD."""
 
-import asyncio
 from os import environ
 
+from quart import Quart
 from redis import Redis
-from socketio import AsyncRedisManager, AsyncServer
+from socketio import ASGIApp, AsyncRedisManager, AsyncServer
 
 from socketio_server.addons import check_allowed_origin
+from socketio_server.middleware import ProxyFixMiddleware
 from socketio_server.namespaces.bot_message import BotsNamespace
+
+app = Quart(__name__)
 
 with_redis = environ.get("WITH_REDIS", "false").lower() == "true"
 
@@ -19,10 +22,11 @@ if with_redis:
 
 async def register_namespaces(sio: AsyncServer) -> None:
     """Função para registrar namespaces."""
-    sio.register_namespace(BotsNamespace("/logs"))
+    async with app.app_context():
+        sio.register_namespace(BotsNamespace("/logs"))
 
 
-async def create_socketioserver() -> AsyncServer:
+async def create_socketioserver() -> ASGIApp:
     """Construtor para o SocketIO Server."""
     sio = AsyncServer(
         async_mode="asgi",
@@ -31,9 +35,10 @@ async def create_socketioserver() -> AsyncServer:
         ping_interval=25,
         ping_timeout=10,
         namespaces=["/bot", "/logs"],
+        transports=["websocket"],
     )
 
-    return sio
-
-
-sio = asyncio.run(create_socketioserver())
+    await register_namespaces(sio)
+    app.asgi_app = ProxyFixMiddleware(app.asgi_app)
+    app.extensions["socketio"] = sio
+    return ASGIApp(sio, app)

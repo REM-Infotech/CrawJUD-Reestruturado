@@ -18,5 +18,11 @@
         "${workspaceFolder}\\temp\\Q9M1E6\\Q9M1E6.json"
       ]
     },
+    {
+      "name": "Python Debugger: Socketio Server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "socketio_server",
+    },
   ]
 }
