@@ -19,7 +19,7 @@ class BotsNamespace(socketio.AsyncNamespace):
     namespace: str
     server: ASyncServerType
 
-    async def save_session(self, sid: str, session: dict[str, AnyStr], namespace: str = None) -> None:
+    async def save_session(self, sid: str, session: dict[str, AnyStr], namespace: str | None = None) -> None:
         """Store the user session for a client.
 
         :param sid: The session id of the client.
