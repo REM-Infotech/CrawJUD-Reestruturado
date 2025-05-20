@@ -137,6 +137,9 @@ class CrawJUD:
 
             self.open_cfg()
 
+            # Configuração do logger
+            self.configure_logger()
+
             # Define o InputFile
             self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
 
@@ -155,9 +158,6 @@ class CrawJUD:
 
             # Criação de planilhas template
             self.make_templates()
-
-            # Configuração do logger
-            self.configure_logger()
 
             self.interact = Interact(driver=self.driver, wait=self.wait, pid=self.pid)
 
@@ -329,7 +329,7 @@ class CrawJUD:
 
         err_message = "\n".join(traceback.format_exception_only(exc))
         message = f"Erro de Operação: {err_message}"
-        self.prt.print_msg(message=message, type_log="error")
+        self.prt.print_msg(message=message, type_log="error", pid=self.pid, row=self.row)
 
         self.bot_data.update({"MOTIVO_ERRO": err_message})
         self.append_error(self.bot_data)

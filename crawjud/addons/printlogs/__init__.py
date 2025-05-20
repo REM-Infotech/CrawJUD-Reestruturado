@@ -1,10 +1,10 @@
 """Módulo de gerenciamento de logs CrawJUD."""
 
-import asyncio
 import logging
 import traceback
 from datetime import datetime
 from os import environ
+from time import sleep
 from typing import Self
 
 import socketio
@@ -57,21 +57,21 @@ class PrintMessage:
         self.message = prompt
 
         self.logger.info(prompt)
-        asyncio.run(self.emit_message())
+        self.emit_message()
 
-    async def emit_message(self) -> None:
+    def emit_message(self) -> None:
         """Envia a mensagem para o servidor SocketIO."""
         try:
-            async with socketio.AsyncSimpleClient() as sio:
-                await sio.connect(
+            with socketio.SimpleClient() as sio:
+                sio.connect(
                     url=self.url_server,
                     headers={"Content-Type": "application/json"},
                     namespace=self.namespace,
-                    transports="websocket",
+                    transports=["websocket"],
                 )
 
-                await sio.emit(
-                    "log_bot",
+                sio.emit(
+                    "log_execution",
                     data={
                         "message": self.message,
                         "pid": self.pid,
@@ -80,6 +80,7 @@ class PrintMessage:
                         "total": self.total_rows,
                     },
                 )
+                sleep(1)
 
         except Exception as e:
             self.logger.error("Erro ao emitir mensagem: Exception %s", "\n".join(traceback.format_exception_only(e)))
