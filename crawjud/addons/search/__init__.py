@@ -1,22 +1,24 @@
 """Módulo de pesquisa CrawJUD."""
 
-from contextlib import suppress
-from datetime import datetime
-from time import sleep
+from __future__ import annotations
 
-import pytz
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait
+from typing import Union
 
+from crawjud.addons.search.elaw import ElawSearch
+from crawjud.addons.search.esaj import EsajSearch
+from crawjud.addons.search.projudi import ProjudiSearch
 from crawjud.exceptions import ExecutionError as ExecutionError
 
-search_systems = {
+search_types = Union[ElawSearch, EsajSearch, ProjudiSearch]
+search_systems: dict[str, search_types] = {
     "elaw": ElawSearch,
     "esaj": EsajSearch,
     "projudi": ProjudiSearch,
 }
 
-search_types = Unior[type[ElawSearch], Type[EsajSearch], Type[ProjudiSearch]]
+
+def search_engine(system: str) -> search_types:
+    """Retorna o objeto do autenticador."""
+    search: search_types = search_systems[system]
+
+    return search

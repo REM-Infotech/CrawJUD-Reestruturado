@@ -21,6 +21,7 @@ from crawjud.addons.elements import ElementsBot
 from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.printlogs import PrintMessage
+from crawjud.addons.search import search_engine
 from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.support.wait import WebDriverWait
 
+    from crawjud.addons.search import search_types
     from crawjud.types.elements import type_elements
 
 
@@ -51,6 +53,7 @@ class CrawJUD:
 
     # Variáveis de verificações
     system: str
+    typebot: str
     state_or_client: str
     preferred_browser: str = "gecko"
 
@@ -72,6 +75,17 @@ class CrawJUD:
     input_file: StrPath
     output_dir_path: StrPath
     _cities_am: dict[str, str]
+    _search: search_types = None
+
+    @property
+    def search_bot(self) -> search_types:
+        """Property para o searchbot."""
+        return self._search
+
+    @search_bot.setter
+    def search_bot(self, instancia: search_types) -> None:
+        """Define a instância do searchbot."""
+        self._search = instancia
 
     @property
     def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
@@ -128,8 +142,19 @@ class CrawJUD:
             # Configuração do logger
             self.configure_logger()
 
+            # Configura o search_bot
+
         except Exception as e:
             raise StartError(exception=e) from e
+
+    def configure_searchengine(self) -> None:
+        """Configura a instância do search engine."""
+        self.search_bot = search_engine(self.system)(
+            typebot=self.typebot,
+            driver=self.driver,
+            wait=self.wait,
+            elements=self.elements,
+        )
 
     def portal_authentication(self) -> None:
         """Autenticação com os sistemas."""

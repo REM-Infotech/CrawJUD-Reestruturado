@@ -1,8 +1,21 @@
 """Módulo de pesquisa CrawJUD."""
 
+from contextlib import suppress
+from datetime import datetime
+from time import sleep
+from typing import TYPE_CHECKING
+
+import pytz
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.addons.search.controller import SearchController
+from crawjud.exceptions.bot import ExecutionError
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
 
 
 class ProjudiSearch(SearchController):
@@ -87,12 +100,18 @@ class ProjudiSearch(SearchController):
             with suppress(Exception, TimeoutException, NoSuchElementException):
                 info_proc = self.wait.until(
                     ec.presence_of_all_elements_located(
-                        (By.CSS_SELECTOR, "table#informacoesProcessuais > tbody > tr > td > a"),
+                        (
+                            By.CSS_SELECTOR,
+                            "table#informacoesProcessuais > tbody > tr > td > a",
+                        ),
                     ),
                 )
 
                 info_proc = list(
-                    filter(lambda x: "Clique aqui para visualizar os recursos relacionados" in x.text, info_proc),
+                    filter(
+                        lambda x: "Clique aqui para visualizar os recursos relacionados" in x.text,
+                        info_proc,
+                    ),
                 )[-1]
 
                 return info_proc.get_attribute("href")
@@ -102,7 +121,10 @@ class ProjudiSearch(SearchController):
         if grau == 1:
             with suppress(TimeoutException):
                 inputproc: WebElement = self.wait.until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, "#numeroProcesso")),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        "#numeroProcesso",
+                    )),
                 )
 
         elif grau == 2:
@@ -162,7 +184,10 @@ class ProjudiSearch(SearchController):
 
         """
         allprocess = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'input[value="qualquerAdvogado"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'input[value="qualquerAdvogado"]',
+            )),
         )
         allprocess.click()
         data_inicio_xls = self.data_inicio
@@ -180,7 +205,10 @@ class ProjudiSearch(SearchController):
 
         if self.vara == "TODAS AS COMARCAS":
             alljudge = WebDriverWait(self.driver, 10).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, 'input[name="pesquisarTodos"]')),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    'input[name="pesquisarTodos"]',
+                )),
             )
             alljudge.click()
 
