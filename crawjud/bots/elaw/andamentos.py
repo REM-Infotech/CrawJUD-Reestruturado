@@ -79,7 +79,7 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search()
+            search = self.search_bot.search(self.bot_data)
             if search is True:
                 btn_newmove = self.elements.botao_andamento
                 new_move: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove)))

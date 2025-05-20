@@ -13,11 +13,13 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Any, AnyStr
 
 import pandas as pd
+from dotenv import load_dotenv
 from pandas import Timestamp
 from pytz import timezone
 
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
+from crawjud.addons.interator import Interact
 from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.printlogs import PrintMessage
@@ -32,6 +34,8 @@ if TYPE_CHECKING:
 
     from crawjud.addons.search import search_types
     from crawjud.types.elements import type_elements
+
+load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
 
 class CrawJUD:
@@ -56,6 +60,7 @@ class CrawJUD:
     typebot: str
     state_or_client: str
     preferred_browser: str = "gecko"
+    total_rows: int
 
     # Variáveis de autenticação/protocolo
     username: str
@@ -76,6 +81,18 @@ class CrawJUD:
     output_dir_path: StrPath
     _cities_am: dict[str, str]
     _search: search_types = None
+    _data_bot: dict[str, str] = {}
+    interact: Interact
+
+    @property
+    def bot_data(self) -> dict[str, str]:
+        """Property bot data."""
+        return self._data_bot
+
+    @bot_data.setter
+    def bot_data(self, new_data: dict[str, str]) -> None:
+        """Property bot data."""
+        self._data_bot = new_data
 
     @property
     def search_bot(self) -> search_types:
@@ -142,18 +159,22 @@ class CrawJUD:
             # Configuração do logger
             self.configure_logger()
 
-            # Configura o search_bot
+            self.interact = Interact(driver=self.driver, wait=self.wait, pid=self.pid)
 
+            # Configura o search_bot
+            self.configure_searchengine()
         except Exception as e:
             raise StartError(exception=e) from e
 
     def configure_searchengine(self) -> None:
         """Configura a instância do search engine."""
         self.search_bot = search_engine(self.system)(
-            typebot=self.typebot,
+            typebot=self.name,
             driver=self.driver,
             wait=self.wait,
             elements=self.elements,
+            bot_data=self.bot_data,
+            interact=self.interact,
         )
 
     def portal_authentication(self) -> None:
@@ -182,7 +203,7 @@ class CrawJUD:
         logging.config.dictConfig(config)
 
         self.logger = logging.getLogger(logger_name)
-        self.prt = PrintMessage.constructor(logger=self.logger)
+        self.prt = PrintMessage.constructor(logger=self.logger, total_rows=self.total_rows)
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""

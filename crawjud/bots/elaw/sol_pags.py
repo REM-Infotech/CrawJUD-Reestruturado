@@ -88,7 +88,7 @@ class SolPags(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search()
+            search = self.search_bot.search(self.bot_data)
 
             if search is True:
                 namedef = self.format_string(self.bot_data.get("TIPO_PAGAMENTO"))

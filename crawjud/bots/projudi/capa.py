@@ -82,7 +82,12 @@ class Capa(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search()
+            search = self.search_bot.search(self.bot_data)
+
+            message = "Processo encontrado"
+            typelog = "log"
+            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=typelog)
+
             trazer_copia = self.bot_data.get("TRAZER_COPIA", "não")
             if search is not True:
                 raise ProcNotFoundError(message="Processo não encontrado!")

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class ProjudiSearch(SearchController):
     """Classe de pesquisa PROJUDI."""
 
-    def search(self) -> bool:
+    def search(self, bot_data: dict[str, str]) -> bool:
         """Procura processos no PROJUDI.
 
         Returns:
@@ -29,6 +29,7 @@ class ProjudiSearch(SearchController):
         redireciona pra cada rota apropriada
 
         """
+        self.bot_data = bot_data
         url_search = self.elements.url_busca
 
         grau = self.bot_data.get("GRAU", 1) or 1

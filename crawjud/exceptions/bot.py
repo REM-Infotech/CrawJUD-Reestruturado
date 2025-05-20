@@ -230,3 +230,27 @@ class PasswordError(BaseCrawJUDError):
     def __str__(self) -> str:
         """Retorna a mensagem."""
         return self.message
+
+
+class NotFoundError(BaseCrawJUDError):
+    """Exceção para erros de execução do robô."""
+
+    def __init__(
+        self,
+        bot_execution_id: str,
+        exception: Exception = None,
+        message: str = "Erro ao executar operaçao: ",
+    ) -> None:
+        """Exception para erros de salvamento de Formulários/Arquivos."""
+        self.message = message
+
+        if exception:
+            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+
+        logger = logging.getLogger(bot_execution_id)
+        logger.error(message)
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        """Retorna a mensagem."""
+        return self.message

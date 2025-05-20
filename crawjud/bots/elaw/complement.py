@@ -133,7 +133,7 @@ class Complement(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search()
+            search = self.search_bot.search(self.bot_data)
             self.bot_data = self.elawFormats(self.bot_data)
 
             if search is True:

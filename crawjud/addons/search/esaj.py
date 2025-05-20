@@ -12,13 +12,13 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.addons.search.controller import SearchController
-from crawjud.exceptions import ExecutionError
+from crawjud.exceptions.bot import ExecutionError
 
 
 class EsajSearch(SearchController):
     """Classe de autenticação Esaj."""
 
-    def search(self) -> bool:
+    def search(self, bot_data: dict[str, str]) -> bool:
         """Procura processo no ESAJ.
 
         Returns:
@@ -26,6 +26,7 @@ class EsajSearch(SearchController):
         Navega pela pagina do ESAJ, processa entradas com base no grau do processo.
 
         """
+        self.bot_data = bot_data
         grau = self.bot_data.get("GRAU", 1)
 
         if not grau:

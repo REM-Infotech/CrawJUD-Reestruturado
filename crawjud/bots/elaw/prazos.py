@@ -79,7 +79,7 @@ class Prazos(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search()
+            search = self.search_bot.search(self.bot_data)
             if not search:
                 message = "Buscando Processo"
                 raise ProcNotFoundError(message="Não Encontrado!", bot_execution_id=self.pid)

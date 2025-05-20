@@ -14,7 +14,7 @@ from crawjud.addons.search.controller import SearchController
 class ElawSearch(SearchController):
     """Classe de pesquisa Elaw."""
 
-    def search(self) -> bool:
+    def search(self, bot_data: dict[str, str]) -> bool:
         """Procura processo no elaw.
 
         Returns:
@@ -22,6 +22,7 @@ class ElawSearch(SearchController):
         Navega pela pagina do ELAW, interwage com elementos, clica pra abrir processo.
 
         """
+        self.bot_data = bot_data
         if self.driver.current_url != "https://amazonas.elaw.com.br/processoList.elaw":
             self.driver.get("https://amazonas.elaw.com.br/processoList.elaw")
 
