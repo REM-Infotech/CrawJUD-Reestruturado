@@ -20,3 +20,7 @@ class BotsNamespace(socketio.AsyncNamespace):
     async def on_log_message(self, sid: str, data: dict[str, str]) -> None:
         """Evento de recebimento de log."""
         await self.emit("log_message", data)
+
+    async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
+        """Evento de recebimento de log."""
+        await self.emit("log_message", data, room=data["pid"])
