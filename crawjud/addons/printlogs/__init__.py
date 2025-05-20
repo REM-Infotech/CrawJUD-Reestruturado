@@ -50,14 +50,14 @@ class PrintMessage:
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid}, {type_log}, {row}, {time_exec})> {message}]"
 
-        type_log = type_log
+        self.type_log = type_log
         self.row = row
         self.total = self.total_rows
         self.pid = pid
-        message = prompt
+        self.message = prompt
 
         self.logger.info(prompt)
-        asyncio.run(self.emit_message)
+        asyncio.run(self.emit_message())
 
     async def emit_message(self) -> None:
         """Envia a mensagem para o servidor SocketIO."""
