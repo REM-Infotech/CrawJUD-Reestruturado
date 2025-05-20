@@ -1,0 +1,223 @@
+"""Módulo de controle de variáveis CrawJUD."""
+
+import json
+import logging
+import logging.config
+from datetime import datetime
+from logging import Logger
+from pathlib import Path
+from time import perf_counter
+from typing import AnyStr
+
+from pytz import timezone
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
+
+from crawjud.addons.auth import authenticator
+from crawjud.addons.elements import ElementsBot
+from crawjud.addons.interator import Interact
+from crawjud.addons.logger import dict_config
+from crawjud.addons.make_templates import MakeTemplates
+from crawjud.addons.printlogs import PrintMessage
+from crawjud.addons.search import search_engine, search_types
+from crawjud.addons.webdriver import DriverBot
+from crawjud.exceptions.bot import StartError
+from crawjud.types import StrPath
+from crawjud.types.elements import type_elements
+
+
+class Controller:
+    """Classe de controle de variáveis CrawJUD."""
+
+    # Variáveis de dados/configuraçoes
+    bot_data: dict[str, str]
+    config_bot: dict[str, AnyStr]
+
+    # Variáveis de estado/posição/indice
+    pid: str
+    pos: int
+    is_stoped: bool
+    start_time: float
+
+    # Variáveis de verificações
+    system: str
+    typebot: str
+    state_or_client: str
+    preferred_browser: str = "gecko"
+    total_rows: int
+
+    # Variáveis de autenticação/protocolo
+    username: str
+    password: str
+    senhatoken: str
+
+    # Classes Globais
+    elements: type_elements
+    driver: WebDriver
+    search: search_types
+    wait: WebDriverWait
+    logger: Logger
+    prt: PrintMessage
+
+    # Variáveis de nome/caminho de arquivos/pastas
+    xlsx: str
+    input_file: StrPath
+    output_dir_path: StrPath
+    _cities_am: dict[str, str]
+    _search: search_types = None
+    _data_bot: dict[str, str] = {}
+    interact: Interact
+
+    @property
+    def bot_data(self) -> dict[str, str]:
+        """Property bot data."""
+        return self._data_bot
+
+    @bot_data.setter
+    def bot_data(self, new_data: dict[str, str]) -> None:
+        """Property bot data."""
+        self._data_bot = new_data
+
+    @property
+    def search_bot(self) -> search_types:
+        """Property para o searchbot."""
+        return self._search
+
+    @search_bot.setter
+    def search_bot(self, instancia: search_types) -> None:
+        """Define a instância do searchbot."""
+        self._search = instancia
+
+    @property
+    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
+        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+
+        Returns:
+            dict[str, str]: City names with associated regional classification.
+
+        """
+        return self._cities_am
+
+    def __init__(self, *args: str, **kwargs: str) -> None:
+        """Inicializador do núcleo.
+
+        Raises:
+            StartError: Exception de erro de inicialização.
+
+        """
+        try:
+            with Path(__file__).parent.resolve().joinpath("data_formatters", "cities_amazonas.json").open("r") as f:
+                self._cities_am = json.loads(f.read())
+
+            self.is_stoped = False
+            self.start_time = perf_counter()
+            self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
+            for k, v in list(kwargs.items()):
+                if "bot" in k:
+                    setattr(self, k.split("_")[1], v)
+                    continue
+
+                setattr(self, k, v)
+
+            self.open_cfg()
+
+            # Configuração do logger
+            self.configure_logger()
+
+            # Define o InputFile
+            self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
+
+            # Instancia o WebDriver
+            self.configure_webdriver()
+
+            # Instancia o elements
+            self.elements = ElementsBot.config(
+                system=self.system,
+                state_or_client=self.state_or_client,
+                **self.config_bot,
+            ).bot_elements
+
+            # Autenticação com os sistemas
+            self.portal_authentication()
+
+            # Criação de planilhas template
+            self.make_templates()
+
+            self.interact = Interact(driver=self.driver, wait=self.wait, pid=self.pid)
+
+            # Configura o search_bot
+            self.configure_searchengine()
+        except Exception as e:
+            raise StartError(exception=e) from e
+
+    def configure_searchengine(self) -> None:
+        """Configura a instância do search engine."""
+        self.search_bot = search_engine(self.system)(
+            typebot=self.name,
+            driver=self.driver,
+            wait=self.wait,
+            elements=self.elements,
+            bot_data=self.bot_data,
+            interact=self.interact,
+        )
+
+    def portal_authentication(self) -> None:
+        """Autenticação com os sistemas."""
+        auth = authenticator(self.system)(
+            username=self.username,
+            password=self.password,
+            driver=self.driver,
+            wait=self.wait,
+            system=self.system,
+            elements=self.elements,
+        )
+        auth.auth()
+
+    def configure_webdriver(self) -> None:
+        """Instancia o WebDriver."""
+        driverbot = DriverBot(self.preferred_browser, execution_path=self.output_dir_path)()
+        self.driver = driverbot[0]
+        self.wait = driverbot[1]
+
+    def configure_logger(self) -> None:
+        """Configura o logger."""
+        log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
+
+        config, logger_name = dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path)
+        logging.config.dictConfig(config)
+
+        self.logger = logging.getLogger(logger_name)
+        self.prt = PrintMessage.constructor(logger=self.logger, total_rows=self.total_rows)
+
+    def make_templates(self) -> None:
+        """Criação de planilhas de output do robô."""
+        time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
+        planilha_args = [
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Sucessos - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "sucesso",
+                "BOT_NAME": self.name,
+            },
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Erros - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "erro",
+                "BOT_NAME": self.name,
+            },
+        ]
+
+        for item in planilha_args:
+            attribute_name, attribute_val = MakeTemplates.constructor(**item).make()
+            setattr(self, attribute_name, attribute_val)
+
+    def open_cfg(self) -> None:
+        """Abre as configurações de execução."""
+        with Path(self.path_config).resolve().open("r") as f:
+            data: dict[str, AnyStr] = json.loads(f.read())
+            self.config_bot = data
+            for k, v in list(data.items()):
+                if k == "state" or k == "client":
+                    self.state_or_client = v
+
+                setattr(self, k, v)

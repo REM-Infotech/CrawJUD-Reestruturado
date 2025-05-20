@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from os import PathLike
 from typing import Dict, List, Literal, Tuple, TypeVar, Union
 
+Numbers = Union[int, float, complex, datetime, timedelta]
 numbers = Union[int, float]
 strings = Union[str, bytes]
 TupleType = Tuple[Union[strings, numbers]]
@@ -16,6 +17,7 @@ datastores = Union[
     DictType,
 ]
 
+TypeData = Union[list[dict[str, Union[str, Numbers, datetime]]], dict[str, Union[str, Numbers, datetime]]]
 binds = Union[
     numbers,
     strings,
