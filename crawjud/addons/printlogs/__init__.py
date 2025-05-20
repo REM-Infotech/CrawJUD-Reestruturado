@@ -65,7 +65,7 @@ class PrintMessage:
             with socketio.SimpleClient() as sio:
                 sio.connect(
                     url=self.url_server,
-                    headers={"Content-Type": "application/json"},
+                    headers={"Content-Type": "application/json", "room": self.pid},
                     namespace=self.namespace,
                     transports=["websocket"],
                 )

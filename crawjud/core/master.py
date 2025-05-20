@@ -29,10 +29,11 @@ from crawjud.types.elements import type_elements
 class Controller:
     """Classe de controle de variáveis CrawJUD."""
 
+    row: int
     # Variáveis de dados/configuraçoes
     bot_data: dict[str, str]
     config_bot: dict[str, AnyStr]
-
+    planilha_sucesso: StrPath
     # Variáveis de estado/posição/indice
     pid: str
     pos: int
@@ -43,7 +44,7 @@ class Controller:
     system: str
     typebot: str
     state_or_client: str
-    preferred_browser: str = "gecko"
+    preferred_browser: str = "chrome"
     total_rows: int
 
     # Variáveis de autenticação/protocolo

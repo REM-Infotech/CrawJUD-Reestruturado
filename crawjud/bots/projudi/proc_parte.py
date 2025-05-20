@@ -105,7 +105,7 @@ class ProcParte(CrawJUD):
                 self.append_success(
                     self.data_append,
                     "Processos salvos na planilha!",
-                    fileN=os.path.basename(self.path),
+                    fileN=os.path.basename(self.planilha_sucesso),
                 )
                 if next_page:
                     next_page.click()

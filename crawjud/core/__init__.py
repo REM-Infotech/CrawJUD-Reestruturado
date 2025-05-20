@@ -118,11 +118,13 @@ class CrawJUD(Controller):
 
     def tratamento_erros(self, exc: Exception, last_message: str = None) -> None:
         """Tratamento de erros dos robôs."""
+        windows = []
         with suppress(Exception):
             windows = self.driver.window_handles
-            if len(windows) == 0:
-                self.configure_webdriver()
-                self.portal_authentication()
+
+        if len(windows) == 0:
+            self.configure_webdriver()
+            self.portal_authentication()
 
         err_message = "\n".join(traceback.format_exception_only(exc))
         message = f"Erro de Operação: {err_message}"
@@ -208,14 +210,18 @@ class CrawJUD(Controller):
             fileN (str, optional): Filename override for saving data.
 
         """
+        type_log = "info"
+        if message:
+            type_log = "success"
+
         if not message:
             message = "Execução do processo efetuada com sucesso!"
 
         def save_info(data: list[dict[str, str]]) -> None:
-            output_success = self.path
+            output_success = self.planilha_sucesso
 
             if fileN or not output_success:
-                output_success = Path(self.path).parent.resolve().joinpath(fileN)
+                output_success = Path(self.planilha_sucesso).parent.resolve().joinpath(fileN)
 
             if not output_success.exists():
                 df = pd.DataFrame(data)
@@ -242,12 +248,7 @@ class CrawJUD(Controller):
 
         save_info(data)
 
-        if message:
-            if self.type_log == "log":
-                self.type_log = "success"
-
-            self.message = message
-            self.prt()
+        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def append_error(self, data: dict[str, str] = None) -> None:
         """Append error information to the error spreadsheet file.
@@ -256,15 +257,15 @@ class CrawJUD(Controller):
             data (dict[str, str], optional): The error record to log.
 
         """
-        if not path.exists(self.path_erro):
+        if not path.exists(self.planilha_erro):
             df = pd.DataFrame([data])
         else:
-            df_existing = pd.read_excel(self.path_erro)
+            df_existing = pd.read_excel(self.planilha_erro)
             df = df_existing.to_dict(orient="records")
             df.extend([data])
 
         new_data = pd.DataFrame(df)
-        new_data.to_excel(self.path_erro, index=False)
+        new_data.to_excel(self.planilha_erro, index=False)
 
     def append_validarcampos(self, data: list[dict[str, str]]) -> None:
         """Append validated field records to the validation spreadsheet.
@@ -274,7 +275,7 @@ class CrawJUD(Controller):
 
         """
         nomeplanilha = f"CAMPOS VALIDADOS PID {self.pid}.xlsx"
-        planilha_validar = Path(self.path).parent.resolve().joinpath(nomeplanilha)
+        planilha_validar = Path(self.planilha_sucesso).parent.resolve().joinpath(nomeplanilha)
         if not path.exists(planilha_validar):
             df = pd.DataFrame(data)
         else:

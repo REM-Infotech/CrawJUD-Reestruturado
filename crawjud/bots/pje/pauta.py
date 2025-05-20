@@ -123,7 +123,7 @@ class Pauta(CrawJUD):
                 self.current_date += timedelta(days=1)
 
             data_append = self.group_date_all(self.data_append)
-            fileN = os.path.basename(self.path)  # noqa: N806
+            fileN = os.path.basename(self.planilha_sucesso)  # noqa: N806
             if len(data_append) > 0:
                 self.append_success(data=[data_append], fileN=fileN, message="Dados extraídos com sucesso!")
 

@@ -32,9 +32,21 @@ class BotsNamespace(socketio.AsyncNamespace):
         eio_session = await self.server.eio.get_session(eio_sid)
         eio_session[namespace] = session
 
-    async def on_connect(self, sid: str, environ: str) -> None:
+    async def on_connect(self, sid: str, environ: dict[str, str], test: str) -> None:
         """Evento de conexão."""
         session = {"sid": sid}
+
+        room = environ.get("HTTP_ROOM")
+
+        dict_items_query = {
+            item.split("=")[0]: item.split("=")[1] for item in list(environ.get("QUERY_STRING").split("&"))
+        }
+
+        if dict_items_query.get("pid"):
+            room = dict_items_query.get("pid")
+
+        if room:
+            await self.enter_room(sid=sid, room=room, namespace=self.namespace)
         await self.save_session(sid, session, self.namespace)
 
     async def on_disconnect(self, sid: str, reason: str) -> None:
