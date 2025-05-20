@@ -1,20 +1,17 @@
 {
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "tsconfig.json": "tsconfig.*.json, env.d.ts, forge.config.ts, components.d.ts",
-    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, vite.config.main.*, vite.config.preload.*, vite.config.renderer.*",
-    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig",
-    "pyproject.toml": "poetry.lock, poetry.*, ruff.*, bandit.*, requirements.txt, .pre-commit-config.yaml"
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "always"
-  },
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[jsonc][typescript][javascript][vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cmake.ignoreCMakeListsMissing": true,
   "css.lint.unknownProperties": "ignore",
   "debug.javascript.terminalOptions": {
     "resolveSourceMapLocations": [
@@ -23,14 +20,18 @@
       "**/node_modules/.vite-temp/**"
     ]
   },
-  "cmake.ignoreCMakeListsMissing": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "always"
   },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig",
+    "pyproject.toml": "poetry.lock, poetry.*, ruff.*, bandit.*, requirements.txt, .pre-commit-config.yaml",
+    "tsconfig.json": "tsconfig.*.json, env.d.ts, forge.config.ts, components.d.ts",
+    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, vite.config.main.*, vite.config.preload.*, vite.config.renderer.*"
   },
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
-  }
+  "python.analysis.typeCheckingMode": "off"
 }

@@ -30,4 +30,4 @@ class SearchController:
         self.typebot = typebot
         self.driver = driver
         self.wait = wait
-        self.elements = type_elements
+        self.elements = elements

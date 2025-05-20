@@ -7,10 +7,9 @@ from typing import Union
 from crawjud.addons.search.elaw import ElawSearch
 from crawjud.addons.search.esaj import EsajSearch
 from crawjud.addons.search.projudi import ProjudiSearch
-from crawjud.exceptions import ExecutionError as ExecutionError
 
 search_types = Union[ElawSearch, EsajSearch, ProjudiSearch]
-search_systems: dict[str, search_types] = {
+search_systems = {
     "elaw": ElawSearch,
     "esaj": EsajSearch,
     "projudi": ProjudiSearch,
