@@ -47,6 +47,10 @@ class BotsNamespace(socketio.AsyncNamespace):
         await path_log_msg.mkdir(exist_ok=True, parents=True)
         await self.emit("log_message", data)
 
+    async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
+        """Evento de recebimento de log."""
+        await self.emit("log_message", data, room=data["pid"])
+
 
 # @sio.on("connect", namespace="/logs")
 # async def connect(sid: str, environ: str) -> None:
