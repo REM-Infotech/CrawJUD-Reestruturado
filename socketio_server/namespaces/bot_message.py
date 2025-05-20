@@ -50,25 +50,3 @@ class BotsNamespace(socketio.AsyncNamespace):
     async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
         """Evento de recebimento de log."""
         await self.emit("log_message", data, room=data["pid"])
-
-
-# @sio.on("connect", namespace="/logs")
-# async def connect(sid: str, environ: str) -> None:
-#     """Evento de conexão."""
-#     sio.save_session(sid, session, "/logs")
-
-
-# @sio.on("disconnect", namespace="/logs")
-# async def disconnect(sid: str, reason: str) -> None:
-#     """Evento de desconexão."""
-
-
-# @sio.on("log_message", namespace="/logs")
-# async def log_message(sid: str, data: dict[str, str]) -> None:
-#     """Evento de recebimento de log."""
-#     path_log_msg = await Path(__file__).parent.resolve()
-#     path_log_msg = path_log_msg.joinpath("temp", "log_msg")
-#     await path_log_msg.mkdir(exist_ok=true, parents=true)
-#     async with await path_log_msg.joinpath(f"{sid}.log").open("w") as f:
-#         await f.write(data)
-#     await sio.emit("log_message", data)
