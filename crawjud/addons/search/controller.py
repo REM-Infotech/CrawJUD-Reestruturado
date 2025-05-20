@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.support.wait import WebDriverWait
 
     from crawjud.types.elements import type_elements
+
+    elements_type = TypeVar("ElementsType", bound=type_elements)
 
 
 class SearchController:
@@ -17,14 +19,14 @@ class SearchController:
     typebot: str
     driver: WebDriver
     wait: WebDriverWait
-    elements: type_elements
+    elements: elements_type
 
     def __init__(
         self,
         typebot: str,
         driver: WebDriver,
         wait: WebDriverWait,
-        elements: type_elements,
+        elements: elements_type,
     ) -> None:
         """Inicializador do SearchController."""
         self.typebot = typebot
