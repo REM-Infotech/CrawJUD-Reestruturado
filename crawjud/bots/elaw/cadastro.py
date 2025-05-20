@@ -98,7 +98,7 @@ class Cadastro(CrawJUD):
         """
         try:
             self.bot_data = self.elawFormats(self.bot_data)
-            search = self.search_bot()
+            search = self.search_bot.search()
 
             if search is True:
                 self.append_success([self.bot_data.get("NUMERO_PROCESSO"), "Processo já cadastrado!", self.pid])

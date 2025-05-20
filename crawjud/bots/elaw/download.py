@@ -82,7 +82,7 @@ class Download(CrawJUD):
 
         """
         try:
-            search = self.search_bot()
+            search = self.search_bot.search()
             if search is True:
                 message = "Processo encontrado!"
                 type_log = "log"

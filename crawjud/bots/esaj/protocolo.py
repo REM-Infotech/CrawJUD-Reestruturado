@@ -110,7 +110,7 @@ class Protocolo(CrawJUD):
 
         """
         try:
-            self.search_bot()
+            self.search_bot.search()
             self.init_protocolo()
             self.set_tipo_protocolo()
             self.set_subtipo_protocolo()

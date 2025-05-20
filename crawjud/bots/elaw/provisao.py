@@ -88,7 +88,7 @@ class Provisao(CrawJUD):
         # module = "search_processo"
 
         try:
-            search = self.search_bot()
+            search = self.search_bot.search()
             if search is True:
                 type_log = "log"
                 message = "Processo encontrado! Informando valores..."

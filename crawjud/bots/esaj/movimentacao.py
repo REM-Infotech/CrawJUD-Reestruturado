@@ -99,7 +99,7 @@ class Movimentacao(CrawJUD):
             if value is None:
                 self.bot_data.pop(key)
 
-        search = self.search_bot()
+        search = self.search_bot.search()
 
         if search is not True:
             raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
