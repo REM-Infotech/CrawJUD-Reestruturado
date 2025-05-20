@@ -4,7 +4,6 @@ from typing import AnyStr
 
 import engineio
 import socketio
-from anyio import Path
 
 
 class ASyncServerType(socketio.AsyncServer):
@@ -36,28 +35,26 @@ class BotsNamespace(socketio.AsyncNamespace):
         """Evento de conexão."""
         session = {"sid": sid}
 
-        room = environ.get("HTTP_ROOM")
-
-        dict_items_query = {
-            item.split("=")[0]: item.split("=")[1] for item in list(environ.get("QUERY_STRING").split("&"))
-        }
-
-        if dict_items_query.get("pid"):
-            room = dict_items_query.get("pid")
-
-        if room:
-            await self.enter_room(sid=sid, room=room, namespace=self.namespace)
         await self.save_session(sid, session, self.namespace)
 
     async def on_disconnect(self, sid: str, reason: str) -> None:
         """Evento de desconexão."""
 
-    async def on_log_message(self, sid: str, data: dict[str, str]) -> None:
-        """Evento de recebimento de log."""
-        path_log_msg = await Path(__file__).parent.resolve()
-        path_log_msg = path_log_msg.joinpath("temp", "log_msg")
-        await path_log_msg.mkdir(exist_ok=True, parents=True)
-        await self.emit("log_message", data)
+    async def on_join_room(self, sid: str, data: dict[str], environ: dict[str, str] | None = None) -> None:
+        """JOIN ROOM."""
+        room = data.get("pid")
+        await self.enter_room(sid=sid, room=room, namespace=self.namespace)
+
+    async def on_push_route(self, sid: str, data: dict[str, str]) -> None:
+        """Push route."""
+        await self.emit("push_route", room=data["pid"], data=data)
+
+    # async def on_log_message(self, sid: str, data: dict[str, str]) -> None:
+    #     """Evento de recebimento de log."""
+    #     path_log_msg = await Path(__file__).parent.resolve()
+    #     path_log_msg = path_log_msg.joinpath("temp", "log_msg")
+    #     await path_log_msg.mkdir(exist_ok=True, parents=True)
+    #     await self.emit("log_message", data)
 
     async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
         """Evento de recebimento de log."""

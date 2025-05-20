@@ -70,6 +70,8 @@ class PrintMessage:
                     transports=["websocket"],
                 )
 
+                sio.emit("join_room", data={"pid": self.pid})
+                sleep(1)
                 sio.emit(
                     "log_execution",
                     data={
