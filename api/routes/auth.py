@@ -1,4 +1,25 @@
-"""Module for authentication routes."""
+"""Module for authentication routes.
+
+This module defines the authentication-related routes for the API, including
+    user login, logout, and token refresh functionality.
+    It utilizes Quart for asynchronous HTTP handling and quart_jwt_extended for
+    JWT-based authentication. The module provides endpoints
+    for user authentication, session management, and secure token handling.
+
+Routes:
+    /login (GET, POST, OPTIONS): Authenticates a user and issues JWT tokens.
+    /logout (POST): Logs out the current user and clears JWT cookies.
+    /refresh (POST): Refreshes the access token using a valid refresh token.
+Classes:
+    LoginForm: Dataclass representing the structure of the login form data.
+Dependencies:
+    - Quart
+    - quart_jwt_extended
+    - pytz
+    - SQLAlchemy (for database access)
+    - api.models.users (for user and token blocklist models)
+
+"""
 
 from __future__ import annotations
 
@@ -43,6 +64,16 @@ usr = None
 
 @dataclass
 class LoginForm:
+    """
+    Represents the data required for user login.
+
+    Attributes:
+        login (str): The user's login identifier (e.g., username or email).
+        password (str): The user's password.
+        remember_me (bool): Indicates whether the user should remain logged in across sessions.
+
+    """
+
     """Dataclass for the login form."""
 
     login: str
