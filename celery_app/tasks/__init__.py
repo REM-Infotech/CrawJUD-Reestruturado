@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import mimetypes
-from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from celery_app import shared_task
+from celery.app import shared_task
+
 from celery_app.addons.mail import Mail
 from celery_app.addons.storage.google import GoogleClient
 
 if TYPE_CHECKING:
-    from celery_app.types import StrPath, TReturnMessageExecutBot, TReturnMessageMail, TReturnMessageUploadFile
+    from celery_app.types import StrPath, TReturnMessageMail, TReturnMessageUploadFile
 
 
 @shared_task
@@ -30,17 +30,6 @@ def send_email(subject: str, to: str, message: str, files_path: list[str] = None
     mail.send_message(to=to)
 
     return "E-mail enviado com sucesso!"
-
-
-@shared_task
-def initialize_bot(bot_name: str, bot_system: str, path_config: str) -> TReturnMessageExecutBot:
-    """Inicializa uma execução de robô."""
-    bot = import_module(f"crawjud.bots.{bot_system.lower()}.{bot_name.lower()}", __package__)
-
-    class_bot = getattr(bot, bot_name.capitalize(), None)
-    class_bot.initialize(bot_name=bot_name, bot_system=bot_system, path_config=path_config)
-    class_bot.execution()
-    return "Execução encerrada com sucesso!"
 
 
 @shared_task
