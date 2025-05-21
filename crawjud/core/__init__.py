@@ -42,7 +42,7 @@ class CrawJUD(Controller):
         and returns the data as a list of dictionaries.
 
         Returns:
-            list[dict[str, str]]: A record list from the processed Excel file.
+            List(list[dict[str, str]]): A record list from the processed Excel file.
 
         Raises:
             FileNotFoundError: If the target file does not exist.
