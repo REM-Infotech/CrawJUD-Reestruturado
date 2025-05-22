@@ -8,7 +8,7 @@ from socketio import ASGIApp, AsyncRedisManager, AsyncServer
 
 from socketio_server.addons import check_allowed_origin
 from socketio_server.middleware import ProxyFixMiddleware
-from socketio_server.namespaces.bot_message import BotsNamespace
+from socketio_server.namespaces import BotsNamespace
 
 app = Quart(__name__)
 

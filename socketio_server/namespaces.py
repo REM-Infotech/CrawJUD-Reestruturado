@@ -49,13 +49,6 @@ class BotsNamespace(socketio.AsyncNamespace):
         """Push route."""
         await self.emit("push_route", room=data["pid"], data=data)
 
-    # async def on_log_message(self, sid: str, data: dict[str, str]) -> None:
-    #     """Evento de recebimento de log."""
-    #     path_log_msg = await Path(__file__).parent.resolve()
-    #     path_log_msg = path_log_msg.joinpath("temp", "log_msg")
-    #     await path_log_msg.mkdir(exist_ok=True, parents=True)
-    #     await self.emit("log_message", data)
-
     async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
         """Evento de recebimento de log."""
         await self.emit("log_execution", data, room=data["pid"])
