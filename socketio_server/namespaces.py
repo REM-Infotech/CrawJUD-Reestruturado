@@ -40,7 +40,14 @@ class BotsNamespace(socketio.AsyncNamespace):
     async def on_disconnect(self, sid: str, reason: str) -> None:
         """Evento de desconexão."""
 
-    async def on_join_room(self, sid: str, data: dict[str], environ: dict[str, str] | None = None) -> None:
+    async def on_get_selectors_data(self, sid: str, data: dict[str, str]) -> dict[str, list[dict[str, str]]]:
+        """Evento de desconexão."""
+        return {
+            "credentials": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
+            "other_info": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
+        }
+
+    async def on_join_room(self, sid: str, data: dict[str, str], environ: dict[str, str] | None = None) -> None:
         """JOIN ROOM."""
         room = data.get("pid")
         await self.enter_room(sid=sid, room=room, namespace=self.namespace)
