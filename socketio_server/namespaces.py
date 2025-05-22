@@ -1,5 +1,6 @@
 """Namespaces de bot."""
 
+import asyncio
 from typing import AnyStr
 
 import engineio
@@ -34,15 +35,19 @@ class BotsNamespace(socketio.AsyncNamespace):
         eio_session = await self.server.eio.get_session(eio_sid)
         eio_session[namespace] = session
 
+    async def save_file(self, file: UploadableFile, path_temp: Path) -> None:
+        """Save file."""
+        async with await path_temp.joinpath(file.name).open("wb") as f:
+            await f.write(file.file)
+
     async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
         """Receive files from FormBot."""
         file = UploadableFile(**data.get("file"))
 
         path_temp = (await Path(__file__).cwd()).joinpath("temp", data.get("id_temp"))
-        await path_temp.mkdir(exist_ok=True, parents=True)
+        asyncio.create_task(self.save_file(file, path_temp))
 
-        async with await path_temp.joinpath(file.name).open("wb") as f:
-            await f.write(file.file)
+        print("ok")
 
     async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
         """Evento de conexão."""
