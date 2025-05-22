@@ -1,6 +1,7 @@
 """Namespaces de bot."""
 
 import asyncio
+import os
 from typing import AnyStr
 
 import engineio
@@ -37,8 +38,16 @@ class BotsNamespace(socketio.AsyncNamespace):
 
     async def save_file(self, file: UploadableFile, path_temp: Path) -> None:
         """Save file."""
-        async with await path_temp.joinpath(file.name).open("wb") as f:
-            await f.write(file.file)
+        try:
+            await path_temp.mkdir(exist_ok=True, parents=True)
+            async with await path_temp.joinpath(file.name).open("wb") as f:
+                await f.write(file.file)
+
+        except Exception as e:
+            print(e)  # noqa: T201
+        print("salvo!")  # noqa: T201
+        files = os.listdir(path_temp)
+        print(f"ok {len(files)}")  # noqa: T201
 
     async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
         """Receive files from FormBot."""
@@ -46,8 +55,6 @@ class BotsNamespace(socketio.AsyncNamespace):
 
         path_temp = (await Path(__file__).cwd()).joinpath("temp", data.get("id_temp"))
         asyncio.create_task(self.save_file(file, path_temp))
-
-        print("ok")
 
     async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
         """Evento de conexão."""

@@ -18,7 +18,7 @@ from socketio_server.addons.logger import dict_config  # noqa: F401
 
 async def main(log_config: dict, app: ASGIApp) -> None:
     """Run socketio server."""
-    config = uvicorn.Config(app, port=5000, log_level="info", log_config=log_config)
+    config = uvicorn.Config(app, host="0.0.0.0", port=5000, log_level="info", log_config=log_config)  # noqa: S104
     server = uvicorn.Server(config)
     await server.serve()
 
