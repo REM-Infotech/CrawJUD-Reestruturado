@@ -4,6 +4,9 @@ from typing import AnyStr
 
 import engineio
 import socketio
+from anyio import Path
+
+from socketio_server.constructor.file import UploadableFile
 
 
 class ASyncServerType(socketio.AsyncServer):
@@ -31,7 +34,17 @@ class BotsNamespace(socketio.AsyncNamespace):
         eio_session = await self.server.eio.get_session(eio_sid)
         eio_session[namespace] = session
 
-    async def on_connect(self, sid: str, environ: dict[str, str], test: str) -> None:
+    async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
+        """Receive files from FormBot."""
+        file = UploadableFile(**data.get("file"))
+
+        path_temp = (await Path(__file__).cwd()).joinpath("temp", data.get("id_temp"))
+        await path_temp.mkdir(exist_ok=True, parents=True)
+
+        async with await path_temp.joinpath(file.name).open("wb") as f:
+            await f.write(file.file)
+
+    async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
         """Evento de conexão."""
         session = {"sid": sid}
 
