@@ -1,14 +1,9 @@
 """Namespaces de bot."""
 
-import asyncio
-import os
 from typing import AnyStr
 
 import engineio
 import socketio
-from anyio import Path
-
-from socketio_server.constructor.file import UploadableFile
 
 
 class ASyncServerType(socketio.AsyncServer):
@@ -36,26 +31,6 @@ class BotsNamespace(socketio.AsyncNamespace):
         eio_session = await self.server.eio.get_session(eio_sid)
         eio_session[namespace] = session
 
-    async def save_file(self, file: UploadableFile, path_temp: Path) -> None:
-        """Save file."""
-        try:
-            await path_temp.mkdir(exist_ok=True, parents=True)
-            async with await path_temp.joinpath(file.name).open("wb") as f:
-                await f.write(file.file)
-
-        except Exception as e:
-            print(e)  # noqa: T201
-        print("salvo!")  # noqa: T201
-        files = os.listdir(path_temp)
-        print(f"ok {len(files)}")  # noqa: T201
-
-    async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
-        """Receive files from FormBot."""
-        file = UploadableFile(**data.get("file"))
-
-        path_temp = (await Path(__file__).cwd()).joinpath("temp", data.get("id_temp"))
-        asyncio.create_task(self.save_file(file, path_temp))
-
     async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
         """Evento de conexão."""
         session = {"sid": sid}
@@ -65,21 +40,10 @@ class BotsNamespace(socketio.AsyncNamespace):
     async def on_disconnect(self, sid: str, reason: str) -> None:
         """Evento de desconexão."""
 
-    async def on_get_selectors_data(self, sid: str, data: dict[str, str]) -> dict[str, list[dict[str, str]]]:
-        """Evento de desconexão."""
-        return {
-            "credentials": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
-            "other_info": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
-        }
-
     async def on_join_room(self, sid: str, data: dict[str, str], environ: dict[str, str] | None = None) -> None:
         """JOIN ROOM."""
         room = data.get("pid")
         await self.enter_room(sid=sid, room=room, namespace=self.namespace)
-
-    async def on_push_route(self, sid: str, data: dict[str, str]) -> None:
-        """Push route."""
-        await self.emit("push_route", room=data["pid"], data=data)
 
     async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
         """Evento de recebimento de log."""
