@@ -56,11 +56,3 @@ Consulte os `readme.md` de cada pasta para detalhes específicos.
 ## Contribuindo
 
 Contribuições são bem-vindas! Siga as instruções de cada módulo e mantenha o padrão de documentação para facilitar a manutenção e o uso do mkdocs.
-
----
-
-> **Dica:** Para gerar a documentação do projeto com mkdocs, utilize o comando:
-> ```powershell
-> mkdocs serve
-> ```
-> e acesse o site local para visualizar toda a documentação enriquecida.
