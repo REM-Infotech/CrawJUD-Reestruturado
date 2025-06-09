@@ -6,9 +6,9 @@ from typing import AnyStr
 import socketio
 from anyio import Path
 
-from socketio_server.constructor.file import UploadableFile
-from socketio_server.domains.file_service import FileService
-from socketio_server.types import ASyncServerType
+from api.constructor.file import UploadableFile
+from api.domains.file_service import FileService
+from api.types import ASyncServerType
 
 
 class FileNamespaces(socketio.AsyncNamespace):

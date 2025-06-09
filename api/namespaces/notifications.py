@@ -2,7 +2,7 @@
 
 import socketio
 
-from socketio_server.types import ASyncServerType
+from api.types import ASyncServerType
 
 
 class NotificationNamespace(socketio.AsyncNamespace):

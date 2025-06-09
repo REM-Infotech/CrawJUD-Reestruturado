@@ -4,7 +4,7 @@ from typing import Any, AnyStr
 
 from anyio import Path
 
-from socketio_server.constructor.file import UploadableFile
+from api.constructor.file import UploadableFile
 
 
 class FileService:
