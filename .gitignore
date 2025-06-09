@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+bandit.html
 # C extensions
 *.so
 is_init.txt

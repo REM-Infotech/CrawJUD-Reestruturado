@@ -1,11 +1,8 @@
 {
   "compounds": [
     {
-      "configurations": [
-        "Python Debugger: CrawJUD",
-        "Python Debugger: CrawJUD2"
-      ],
-      "name": "Test Multiple Logs",
+      "configurations": ["Debug API CrawJUD", "Debug SocketIO CrawJUD"],
+      "name": "Test Backend",
       "presentation": {
         "group": "",
         "hidden": false,
@@ -16,39 +13,17 @@
   ],
   "configurations": [
     {
-      "args": [
-        "--bot_system",
-        "projudi",
-        "--bot_name",
-        "capa",
-        "--path_config",
-        "${workspaceFolder}\\temp\\Q9M1E6\\Q9M1E6.json"
-      ],
-      "module": "crawjud",
-      "name": "Python Debugger: CrawJUD",
+      "name": "Debug API CrawJUD",
+      "type": "debugpy",
       "request": "launch",
-      "type": "debugpy"
+      "module": "api"
     },
     {
-      "args": [
-        "--bot_system",
-        "projudi",
-        "--bot_name",
-        "capa",
-        "--path_config",
-        "${workspaceFolder}\\temp\\Q9M1E2\\Q9M1E2.json"
-      ],
-      "module": "crawjud",
-      "name": "Python Debugger: CrawJUD2",
+      "name": "Debug SocketIO CrawJUD",
+      "type": "debugpy",
       "request": "launch",
-      "type": "debugpy"
-    },
-    {
-      "module": "socketio_server",
-      "name": "Python Debugger: Socketio Server",
-      "request": "launch",
-      "type": "debugpy"
-    },
+      "module": "socketio_server"
+    }
   ],
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.

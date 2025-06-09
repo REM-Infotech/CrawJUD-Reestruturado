@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "--bot_system",
+      "projudi",
+      "--bot_name",
+      "capa",
+      "--path_config",
+      "${workspaceFolder}\\temp\\Q9M1E6\\Q9M1E6.json"
+    ],
+    "module": "crawjud",
+    "name": "Python Debugger: CrawJUD",
+    "request": "launch",
+    "type": "debugpy"
+  },
+  {
+    "args": [
+      "--bot_system",
+      "projudi",
+      "--bot_name",
+      "capa",
+      "--path_config",
+      "${workspaceFolder}\\temp\\Q9M1E2\\Q9M1E2.json"
+    ],
+    "module": "crawjud",
+    "name": "Python Debugger: CrawJUD2",
+    "request": "launch",
+    "type": "debugpy"
+  }
+]
