@@ -1,5 +1,5 @@
 """Modulo de gerenciamento de tarefas do Celery."""
 
-from celery_app.tasks import bot, email, files
+from celery_app.tasks import _email, bot, files
 
-__all__ = ["bot", "email", "files"]
+__all__ = ["bot", "_email", "files"]

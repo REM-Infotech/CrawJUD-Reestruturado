@@ -1,10 +1,15 @@
 {
   "compounds": [
     {
-      "configurations": ["Debug API CrawJUD", "Debug SocketIO CrawJUD"],
+      "configurations": [
+        "Debug API CrawJUD",
+        "Debug SocketIO CrawJUD",
+        "Debug Celery-Beat CrawJUD",
+        "Debug Celery-Worker CrawJUD"
+      ],
       "name": "Test Backend",
       "presentation": {
-        "group": "",
+        "group": "Test Backend",
         "hidden": false,
         "order": 1
       },
@@ -23,6 +28,20 @@
       "type": "debugpy",
       "request": "launch",
       "module": "socketio_server"
+    },
+    {
+      "name": "Debug Celery-Worker CrawJUD",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "celery_app",
+      "args": ["--type", "worker"]
+    },
+    {
+      "name": "Debug Celery-Beat CrawJUD",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "celery_app",
+      "args": ["--type", "beat"]
     }
   ],
   // Use IntelliSense to learn about possible attributes.
