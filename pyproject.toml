@@ -33,7 +33,8 @@ dependencies = [
     "uvicorn (>=0.34.2,<0.35.0)",
     "aiohttp (>=3.11.18,<4.0.0)",
     "cryptography (>=45.0.2,<46.0.0)",
-    "quart-flask-patch (>=0.3.0,<0.4.0)"
+    "quart-flask-patch (>=0.3.0,<0.4.0)",
+    "quart-socketio @ git+https://github.com/Robotz213/Quart-SocketIO.git"
 ]
 [tool.poetry]
 package-mode = false
