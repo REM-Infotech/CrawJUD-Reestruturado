@@ -21,7 +21,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "stream_handler": {
             "class": "logging.StreamHandler",
             "level": log_level,
-            "formatter": "default",
+            "formatter": "color",  # Usa o novo formatter colorido
         },
         # "redis_handler": {
         #     "class": "api.addons.logger.handlers.RedisHandler",
@@ -44,10 +44,15 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "handlers": handlers_config,
         "formatters": {
             "default": {
-                "format": "%(levelname)s:%(name)s:%(message)s",
+                "format": "%(message)s",
             },
             "json": {
                 "()": "api.addons.logger.handlers.JsonFormatter",
+            },
+            "color": {
+                "()": "api.addons.logger.handlers._ColorFormatter",
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },
         "loggers": {
