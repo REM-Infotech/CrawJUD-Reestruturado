@@ -2675,7 +2675,7 @@ asymmetric-crypto = ["cryptography (>=35.0.0)"]
 
 [[package]]
 name = "quart-socketio"
-version = "1.0.2.post1"
+version = "1.0.2.post2"
 description = "Async Socket.IO integration for Quart applications"
 optional = false
 python-versions = ">=3.12"
@@ -2695,7 +2695,7 @@ docs = ["sphinx"]
 type = "git"
 url = "https://github.com/Robotz213/Quart-SocketIO.git"
 reference = "HEAD"
-resolved_reference = "2d548ce3a3fbe86adcfc125bb78f4f477b23c3e1"
+resolved_reference = "31e9b0db77735741bc3837dd96e51618ac1eff4e"
 
 [[package]]
 name = "redis"

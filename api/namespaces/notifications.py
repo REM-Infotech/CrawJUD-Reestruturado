@@ -1,11 +1,11 @@
 """Socket.IO namespace for notification events and management."""
 
-import socketio
+from quart_socketio import Namespace
 
 from api.types import ASyncServerType
 
 
-class NotificationNamespace(socketio.AsyncNamespace):
+class NotificationNamespace(Namespace):
     """Socket.IO namespace for handling notification events between server and clients."""
 
     namespace: str

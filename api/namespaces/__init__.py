@@ -24,6 +24,6 @@ async def register_namespaces(io: SocketIO) -> None:
 
     :param io: The Socket.IO instance to register namespaces with.
     """
-    await io.register_namespace(FileNamespaces())
-    await io.register_namespace(BotsNamespace())
-    await io.register_namespace(NotificationNamespace())
+    await io.register_namespace(FileNamespaces("/filex"))
+    await io.register_namespace(BotsNamespace("/logs"))
+    await io.register_namespace(NotificationNamespace("/notifications"))

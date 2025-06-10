@@ -4,6 +4,7 @@ from typing import AnyStr
 
 import engineio
 import socketio
+from quart_socketio import Namespace
 
 
 class ASyncServerType(socketio.AsyncServer):
@@ -12,7 +13,7 @@ class ASyncServerType(socketio.AsyncServer):
     eio: engineio.AsyncServer
 
 
-class BotsNamespace(socketio.AsyncNamespace):
+class BotsNamespace(Namespace):
     """Namespace bots."""
 
     namespace: str

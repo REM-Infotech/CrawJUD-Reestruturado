@@ -12,7 +12,7 @@ from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
-from api.namespaces import register_namespaces
+from api.namespaces import register_namespaces as register_namespaces
 
 app = Quart(__name__)
 jwt = JWTManager()
@@ -36,7 +36,6 @@ async def create_app() -> Quart:
     async with app.app_context():
         await init_extensions(app)
         await register_routes(app)
-        await register_namespaces(io)
 
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
     return cors(

@@ -1,6 +1,7 @@
 from os import environ
 
 from api import create_app, io
+from api.namespaces import register_namespaces
 
 
 async def main_app() -> None:
@@ -16,7 +17,7 @@ async def main_app() -> None:
     """
     app = await create_app()
     await io.init_app(app)
-
+    await register_namespaces(io)
     host = environ.get("host", "0.0.0.0")
     port = environ.get("port", 5000)
 
