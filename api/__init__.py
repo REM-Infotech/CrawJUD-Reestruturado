@@ -9,12 +9,15 @@ from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
 from quart_cors import cors
 from quart_jwt_extended import JWTManager
+from quart_socketio import SocketIO
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
+from api.namespaces import register_namespaces
 
 app = Quart(__name__)
 jwt = JWTManager()
 db = SQLAlchemy()
+io = SocketIO(async_mode="asgi", launch_mode="uvicorn")
 
 
 async def create_app() -> Quart:
@@ -33,6 +36,7 @@ async def create_app() -> Quart:
     async with app.app_context():
         await init_extensions(app)
         await register_routes(app)
+        await register_namespaces(io)
 
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
     return cors(
