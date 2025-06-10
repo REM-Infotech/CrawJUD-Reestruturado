@@ -3,25 +3,24 @@
 import asyncio
 from typing import AnyStr
 
-import socketio
 from anyio import Path
+from quart_socketio import Namespace
 
 from api.constructor.file import UploadableFile
 from api.domains.file_service import FileService
 from api.types import ASyncServerType
 
 
-class FileNamespaces(socketio.AsyncNamespace):
+class FileNamespaces(Namespace):
     """Socket.IO namespace for handling file uploads, session management, and selector data for bots."""
 
     namespace: str
     server: ASyncServerType
 
-    def __init__(self, namespace: str, server: ASyncServerType) -> None:
+    def __init__(self, namespace: str) -> None:
         """Initialize FileNamespaces with namespace and server, and inject FileService."""
         super().__init__(namespace)
         self.namespace = namespace
-        self.server = server
         self.file_service = FileService()
 
     async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
