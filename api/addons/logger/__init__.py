@@ -12,11 +12,16 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     handlers_config = {
         "file_handler": {
             "class": "api.addons.logger.handlers.FileHandler",
-            "level": logging.INFO,
+            "level": log_level,
             "formatter": "json",
             "filename": "app.log",
             "maxBytes": 1024,
             "backupCount": 1,
+        },
+        "stream_handler": {
+            "class": "logging.StreamHandler",
+            "level": log_level,
+            "formatter": "default",
         },
         # "redis_handler": {
         #     "class": "api.addons.logger.handlers.RedisHandler",
