@@ -1768,14 +1768,14 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.85.0"
+version = "1.86.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "openai-1.85.0-py3-none-any.whl", hash = "sha256:7dc3e839cb8bb8747979a90c63ad4cb25a8e0cbec17b53eec009532c9965cecf"},
-    {file = "openai-1.85.0.tar.gz", hash = "sha256:6ba76e4ebc5725f71f2f6126c7cb5169ca8de60dd5aa61f350f9448ad162c913"},
+    {file = "openai-1.86.0-py3-none-any.whl", hash = "sha256:c8889c39410621fe955c230cc4c21bfe36ec887f4e60a957de05f507d7e1f349"},
+    {file = "openai-1.86.0.tar.gz", hash = "sha256:c64d5b788359a8fdf69bd605ae804ce41c1ce2e78b8dd93e2542e0ee267f1e4b"},
 ]
 
 [package.dependencies]
@@ -2675,7 +2675,7 @@ asymmetric-crypto = ["cryptography (>=35.0.0)"]
 
 [[package]]
 name = "quart-socketio"
-version = "1.0.2.post7"
+version = "1.0.2.post8.dev1"
 description = "Async Socket.IO integration for Quart applications"
 optional = false
 python-versions = ">=3.12"
@@ -2695,7 +2695,7 @@ docs = ["sphinx"]
 type = "git"
 url = "https://github.com/Robotz213/Quart-SocketIO.git"
 reference = "HEAD"
-resolved_reference = "bfed2c7114d45c0cab0252a1275cb5225162fb88"
+resolved_reference = "962bed01134689bf03e559b4346953df16319658"
 
 [[package]]
 name = "redis"
