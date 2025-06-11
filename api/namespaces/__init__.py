@@ -3,7 +3,10 @@
 This module exposes all available namespaces for direct import.
 """
 
-from quart_socketio import SocketIO
+from typing import AnyStr
+
+from quart import session, websocket
+from quart_socketio import Namespace, SocketIO
 
 from .files import FileNamespaces
 from .logs import BotsNamespace
@@ -16,6 +19,48 @@ __all__ = [
 ]
 
 
+class MasterNamespace(Namespace):
+    """Base class for all namespaces in the application.
+
+    This class serves as a base for defining custom namespaces
+    that handle specific events and interactions within the application.
+    """
+
+    async def on_connect(self, **kwargs: AnyStr) -> None:
+        """Handle client connection event.
+
+        Creates and saves a session for the connected client.
+
+        Args:
+            **kwargs: Additional keyword arguments passed during connection.
+
+
+        """
+        sid = websocket.sid
+        websocket.headers["HTTP_AUTHENTICATION"]
+        await self.save_session(sid, session=session)
+
+    async def on_teste(self, data: AnyStr) -> None:
+        """Handle a test event.
+
+        This method is an example of how to handle custom events.
+        It can be overridden in subclasses to implement specific logic.
+
+        Args:
+            data: The data sent with the event.
+
+        """
+
+    async def on_disconnect(self, sid: str, reason: str) -> None:
+        """Handle client disconnection event.
+
+        Args:
+            sid: The session ID of the client.
+            reason: The reason for disconnection.
+
+        """
+
+
 async def register_namespaces(io: SocketIO) -> None:
     """Register all namespaces with the Socket.IO server.
 
@@ -24,6 +69,7 @@ async def register_namespaces(io: SocketIO) -> None:
 
     :param io: The Socket.IO instance to register namespaces with.
     """
-    await io.register_namespace(FileNamespaces("/filex"))
-    await io.register_namespace(BotsNamespace("/logs"))
-    await io.register_namespace(NotificationNamespace("/notifications"))
+    await io.register_namespace(MasterNamespace("/", io))
+    await io.register_namespace(FileNamespaces("/filex", io))
+    await io.register_namespace(BotsNamespace("/logs", io))
+    await io.register_namespace(NotificationNamespace("/notifications", io))

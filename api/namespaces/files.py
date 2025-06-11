@@ -4,7 +4,7 @@ import asyncio
 from typing import AnyStr
 
 from anyio import Path
-from quart_socketio import Namespace
+from quart_socketio import Namespace, SocketIO
 
 from api.constructor.file import UploadableFile
 from api.domains.file_service import FileService
@@ -17,9 +17,9 @@ class FileNamespaces(Namespace):
     namespace: str
     server: ASyncServerType
 
-    def __init__(self, namespace: str) -> None:
+    def __init__(self, namespace: str, io: SocketIO) -> None:
         """Initialize FileNamespaces with namespace and server, and inject FileService."""
-        super().__init__(namespace)
+        super().__init__(namespace, io)
         self.namespace = namespace
         self.file_service = FileService()
 
