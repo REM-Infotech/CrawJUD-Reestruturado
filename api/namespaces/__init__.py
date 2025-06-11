@@ -5,7 +5,7 @@ This module exposes all available namespaces for direct import.
 
 from typing import AnyStr
 
-from quart import session, websocket
+from quart import request, session, websocket
 from quart_socketio import Namespace, SocketIO
 
 from .files import FileNamespaces
@@ -37,21 +37,19 @@ class MasterNamespace(Namespace):
 
         """
         sid = websocket.sid
-        websocket.headers["HTTP_AUTHENTICATION"]
+        websocket.headers.get("HTTP_AUTHENTICATION")
         await self.save_session(sid, session=session)
 
-    async def on_teste(self, data: AnyStr) -> None:
+    async def on_teste(self) -> None:
         """Handle a test event.
 
         This method is an example of how to handle custom events.
         It can be overridden in subclasses to implement specific logic.
 
-        Args:
-            data: The data sent with the event.
-
         """
+        print(request)  # noqa: T201
 
-    async def on_disconnect(self, sid: str, reason: str) -> None:
+    async def on_disconnect(self) -> None:
         """Handle client disconnection event.
 
         Args:
@@ -59,6 +57,7 @@ class MasterNamespace(Namespace):
             reason: The reason for disconnection.
 
         """
+        print(websocket, request)  # noqa: T201
 
 
 async def register_namespaces(io: SocketIO) -> None:

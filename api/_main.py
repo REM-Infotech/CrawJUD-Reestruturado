@@ -27,7 +27,7 @@ async def main_app() -> None:
         port = environ.get("port", 5000)
 
         log_folder = Path(__file__).cwd().joinpath("temp", "logs")
-        log_folder.mkdir(exist_ok=True)
+        log_folder.mkdir(exist_ok=True, parents=True)
         log_file = str(log_folder.joinpath(f"{__package__}.log"))
         cfg, _ = dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=__package__, FILELOG_PATH=log_file)
 
