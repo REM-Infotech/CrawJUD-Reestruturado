@@ -6,7 +6,7 @@ from pathlib import Path
 import aiofiles
 import quart_flask_patch  # noqa: F401
 from flask_sqlalchemy import SQLAlchemy
-from quart import Quart, request
+from quart import Quart, request, websocket
 from quart_cors import cors
 from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
@@ -28,7 +28,7 @@ async def on_connect() -> None:
 
     except Exception as e:
         print(e)
-    print("Client connected:", request.sid)
+    print("Client connected:", websocket.sid)
     await io.emit("response", {})
 
 
