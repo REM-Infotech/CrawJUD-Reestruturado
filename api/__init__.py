@@ -6,7 +6,7 @@ from pathlib import Path
 import aiofiles
 import quart_flask_patch  # noqa: F401
 from flask_sqlalchemy import SQLAlchemy
-from quart import Quart
+from quart import Quart, request
 from quart_cors import cors
 from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
@@ -18,6 +18,18 @@ app = Quart(__name__)
 jwt = JWTManager()
 db = SQLAlchemy()
 io = SocketIO(async_mode="asgi", launch_mode="uvicorn")
+
+
+@io.on("connect", namespace="/")
+async def on_connect() -> None:
+    """Handle client connection event."""
+    try:
+        data = await request.json  # noqa: F841
+
+    except Exception as e:
+        print(e)
+    print("Client connected:", request.sid)
+    await io.emit("response", {})
 
 
 async def create_app() -> Quart:

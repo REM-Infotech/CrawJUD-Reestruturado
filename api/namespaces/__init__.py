@@ -3,9 +3,9 @@
 This module exposes all available namespaces for direct import.
 """
 
-from typing import AnyStr
+from typing import AnyStr  # noqa: F401
 
-from quart import request, session, websocket
+from quart import request, session, websocket  # noqa: F401
 from quart_socketio import Namespace, SocketIO
 
 from .files import FileNamespaces
@@ -26,19 +26,18 @@ class MasterNamespace(Namespace):
     that handle specific events and interactions within the application.
     """
 
-    async def on_connect(self, **kwargs: AnyStr) -> None:
-        """Handle client connection event.
+    # async def on_connect(self, **kwargs: AnyStr) -> None:
+    #     """Handle client connection event.
 
-        Creates and saves a session for the connected client.
+    #     Creates and saves a session for the connected client.
 
-        Args:
-            **kwargs: Additional keyword arguments passed during connection.
+    #     Args:
+    #         **kwargs: Additional keyword arguments passed during connection.
 
-
-        """
-        sid = websocket.sid
-        websocket.headers.get("HTTP_AUTHENTICATION")
-        await self.save_session(sid, session=session)
+    #     """
+    #     sid = websocket.sid
+    #     websocket.headers.get("HTTP_AUTHENTICATION")
+    #     await self.save_session(sid, session=session)
 
     async def on_teste(self) -> None:
         """Handle a test event.
@@ -68,7 +67,7 @@ async def register_namespaces(io: SocketIO) -> None:
 
     :param io: The Socket.IO instance to register namespaces with.
     """
-    await io.register_namespace(MasterNamespace("/", io))
+    await io.register_namespace(MasterNamespace("/test", io))
     await io.register_namespace(FileNamespaces("/filex", io))
     await io.register_namespace(BotsNamespace("/logs", io))
     await io.register_namespace(NotificationNamespace("/notifications", io))

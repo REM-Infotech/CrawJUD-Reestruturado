@@ -34,13 +34,15 @@ dependencies = [
     "aiohttp (>=3.11.18,<4.0.0)",
     "cryptography (>=45.0.2,<46.0.0)",
     "quart-flask-patch (>=0.3.0,<0.4.0)",
-    "quart-socketio @ git+https://github.com/Robotz213/Quart-SocketIO.git"
+    "quart-socketio @ git+https://github.com/Robotz213/Quart-SocketIO.git",
+    
 ]
 [tool.poetry]
 package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.2.0"
+quart-jwt-extended = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
