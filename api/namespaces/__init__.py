@@ -26,18 +26,14 @@ class MasterNamespace(Namespace):
     that handle specific events and interactions within the application.
     """
 
-    # async def on_connect(self, **kwargs: AnyStr) -> None:
-    #     """Handle client connection event.
+    async def on_connect(self) -> None:
+        """Handle client connection event.
 
-    #     Creates and saves a session for the connected client.
-
-    #     Args:
-    #         **kwargs: Additional keyword arguments passed during connection.
-
-    #     """
-    #     sid = websocket.sid
-    #     websocket.headers.get("HTTP_AUTHENTICATION")
-    #     await self.save_session(sid, session=session)
+        Creates and saves a session for the connected client.
+        """
+        jdata = request.data  # noqa: F841
+        websocket  # noqa: B018
+        await self.save_session(request.sid, session=session)
 
     async def on_teste(self) -> None:
         """Handle a test event.
@@ -47,6 +43,7 @@ class MasterNamespace(Namespace):
 
         """
         print(request)  # noqa: T201
+        self.auth  # noqa: B018
 
     async def on_disconnect(self) -> None:
         """Handle client disconnection event.
