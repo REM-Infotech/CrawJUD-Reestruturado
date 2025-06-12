@@ -2695,7 +2695,7 @@ docs = ["sphinx"]
 type = "git"
 url = "https://github.com/Robotz213/Quart-SocketIO.git"
 reference = "HEAD"
-resolved_reference = "0dbc9a9b9d3cf1b5c23284c459d1480fbdbec62e"
+resolved_reference = "e550a6fc52cd6862005945c50ad00cbddd8ab565"
 
 [[package]]
 name = "redis"

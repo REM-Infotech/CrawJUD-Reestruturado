@@ -31,7 +31,7 @@ class MasterNamespace(Namespace):
 
         Creates and saves a session for the connected client.
         """
-        jdata = request.data  # noqa: F841
+        jdata = await request.data  # noqa: F841
         websocket  # noqa: B018
         await self.save_session(request.sid, session=session)
 
