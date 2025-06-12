@@ -46,18 +46,24 @@ async def handle_http_exception(error: HTTPException) -> Response:
     return await make_response(jsonify(name=name, description=desc), error.code)
 
 
-# @app.after_request
-# async def after_request(response: Response) -> Response:
-#     """
-#     Add CORS headers to the response.
+# @app.before_request
+# def load_user():
+#     request
+#     if "user_id" in session:
+#         g.user = db.session.get(session["user_id"])
 
-#     Args:
-#         response (Response): The HTTP response object.
 
-#     Returns:
-#         Response: The modified HTTP response object with CORS headers.
+@app.after_request
+async def after_request(response: Response) -> Response:
+    """
+    Add CORS headers to the response.
 
-#     """
-#     response.headers["Access-Control-Allow-Origin"] = "*"  # noqa: ERA001
-#     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"  # noqa: ERA001
-#     return response  # noqa: ERA001
+    Args:
+        response (Response): The HTTP response object.
+
+    Returns:
+        Response: The modified HTTP response object with CORS headers.
+
+    """
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"  # noqa: ERA001
+    return response  # noqa: ERA001

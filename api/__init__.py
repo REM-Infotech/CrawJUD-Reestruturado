@@ -14,10 +14,15 @@ from quart_socketio import SocketIO
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 from api.namespaces import register_namespaces as register_namespaces
 
+
+def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
+    return True
+
+
 app = Quart(__name__)
 jwt = JWTManager()
 db = SQLAlchemy()
-io = SocketIO(async_mode="asgi", launch_mode="uvicorn")
+io = SocketIO(async_mode="asgi", launch_mode="uvicorn", cookie="access")
 
 
 @io.on("connect", namespace="/")
@@ -52,9 +57,10 @@ async def create_app() -> Quart:
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
     return cors(
         app,
-        allow_origin="*",
+        allow_origin=["http://localhost:5173"],
         allow_headers=["Content-Type", "Authorization"],
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_credentials=True,
     )
 
 

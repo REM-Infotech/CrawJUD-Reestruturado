@@ -102,12 +102,14 @@ async def login() -> Response:
         if not request_json:
             return await make_response(jsonify({"message": "Erro ao efetuar login!"}), 400)
 
-        username = request_json.get("login")
+        username = request_json.get("login", request_json.get("email"))
         password = request_json.get("password")
         remember = request_json.get("remember_me")
         form = LoginForm(username, password, remember)
 
-        usr = db.session.query(Users).filter(Users.login == form.login).first()
+        from sqlalchemy import or_
+
+        usr = db.session.query(Users).filter(or_(Users.login == form.login, Users.email == form.login)).first()
         if usr and usr.check_password(form.password):
             access_token = create_access_token(identity=usr)
             refresh_token = create_refresh_token(identity=usr)
@@ -118,7 +120,7 @@ async def login() -> Response:
             expiration_access = (current_time + timedelta(days=7)).strftime("%d-%m-%Y %H:%M:%S")
             expiration_refresh = (current_time + timedelta(days=15)).strftime("%d-%m-%Y %H:%M:%S")
 
-            return await make_response(
+            resp = await make_response(
                 jsonify({
                     "access": {"token": access_token, "expiration": expiration_access},
                     "refresh": {"token": refresh_token, "expiration": expiration_refresh},
@@ -127,6 +129,10 @@ async def login() -> Response:
                 }),
                 200,
             )
+
+            set_access_cookies(resp, access_token)
+            set_refresh_cookies(resp, refresh_token)
+            return resp
 
         if not usr or not usr.check_password(form.password):
             resp = jsonify({"message": "Usuário ou senha incorretos!"})

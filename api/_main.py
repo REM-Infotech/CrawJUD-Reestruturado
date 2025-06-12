@@ -3,7 +3,7 @@ from contextlib import suppress
 from os import environ
 from pathlib import Path
 
-from api import create_app, io
+from api import check_cors_allowed_origins, create_app, io
 from api.addons.logger import dict_config
 from api.namespaces import register_namespaces
 
@@ -21,7 +21,7 @@ async def main_app() -> None:
     """
     with suppress(KeyboardInterrupt):
         app = await create_app()
-        await io.init_app(app)
+        await io.init_app(app, cors_allowed_origins=check_cors_allowed_origins)
         await register_namespaces(io)
         host = environ.get("host", "0.0.0.0")
         port = environ.get("port", 5000)

@@ -5,7 +5,8 @@ This module exposes all available namespaces for direct import.
 
 from typing import AnyStr  # noqa: F401
 
-from quart import request, session, websocket  # noqa: F401
+from quart import current_app, request, websocket  # noqa: F401
+from quart_jwt_extended import verify_jwt_in_request
 from quart_socketio import Namespace, SocketIO
 
 from .files import FileNamespaces
@@ -31,9 +32,10 @@ class MasterNamespace(Namespace):
 
         Creates and saves a session for the connected client.
         """
-        jdata = await request.data  # noqa: F841
+        app = current_app
+        await verify_jwt_in_request()
         websocket  # noqa: B018
-        await self.save_session(request.sid, session=session)
+        await self.save_session(websocket.sid, app.session_interface)
 
     async def on_teste(self) -> None:
         """Handle a test event.
@@ -42,8 +44,8 @@ class MasterNamespace(Namespace):
         It can be overridden in subclasses to implement specific logic.
 
         """
+        session = self.server.session(websocket.sid, self.namespace)  # noqa: B018, F841
         print(request)  # noqa: T201
-        self.auth  # noqa: B018
 
     async def on_disconnect(self) -> None:
         """Handle client disconnection event.
