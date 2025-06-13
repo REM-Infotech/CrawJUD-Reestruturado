@@ -11,6 +11,7 @@ Attributes:
 
 """
 
+import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
@@ -24,8 +25,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ProcNotFoundError, SaveError
-from crawjud.exceptions.elaw import ElawError
+from crawjud.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -88,11 +88,11 @@ class Provisao(CrawJUD):
         # module = "search_processo"
 
         try:
-            search = self.search_bot.search(self.bot_data)
+            search = self.search_bot()
             if search is True:
-                type_log = "log"
-                message = "Processo encontrado! Informando valores..."
-                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.type_log = "log"
+                self.message = "Processo encontrado! Informando valores..."
+                self.prt()
 
                 calls = self.setup_calls()
 
@@ -102,9 +102,10 @@ class Provisao(CrawJUD):
                 self.save_changes()
 
             if search is False:
-                raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
+                raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
     def chk_risk(self) -> None:
@@ -139,9 +140,9 @@ class Provisao(CrawJUD):
         possible = provisao == "possível"
 
         if chk_getvals1 and possible:
-            message = "Aviso: Já existe uma provisão possível cadastrada."
-            type_log = "info"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.message = "Aviso: Já existe uma provisão possível cadastrada."
+            self.type_log = "info"
+            self.prt()
 
         edit_button: WebElement = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_btn_edit)),
@@ -187,7 +188,7 @@ class Provisao(CrawJUD):
 
         for item in check_exists_provisao:
             item: WebElement = item
-
+            item_text = str(item.text).split("\n")  # noqa: F841
             valueprovisao = item.find_elements(By.TAG_NAME, "td")[0].text
             with suppress(NoSuchElementException):
                 valueprovisao = item.find_element(By.CSS_SELECTOR, self.elements.value_provcss).text
@@ -223,14 +224,11 @@ class Provisao(CrawJUD):
             add_objeto = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_adicionar)
             add_objeto.click()
 
-            self.interact.sleep_load('div[id="j_id_7t"]')
+            self.interact.sleep_load('div[id="j_id_8c"]')
 
         except Exception as e:
-            raise ElawError(
-                message="Não foi possível atualizar provisão",
-                exception=e,
-                bot_execution_id=self.pid,
-            ) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(message="Não foi possivel atualizar provisão", e=e) from e
 
     def edit_valor(self) -> None:
         """Edit an existing value entry."""
@@ -248,14 +246,16 @@ class Provisao(CrawJUD):
         """
         try:
             self.interact.sleep_load('div[id="j_id_2z"]')
-            message = "Informando valores"
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.message = "Informando valores"
+            self.type_log = "log"
+            self.prt()
             campo_valor_dml = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_val_inpt)),
             )
 
             valor_informar = self.bot_data.get("VALOR_ATUALIZACAO")
+            # if valor_informar == 0:
+            #     raise ExecutionError(message="Valor de atualização inválido")
 
             campo_valor_dml.send_keys(Keys.CONTROL + "a")
             campo_valor_dml.send_keys(Keys.BACKSPACE)
@@ -274,6 +274,7 @@ class Provisao(CrawJUD):
             self.interact.sleep_load('div[id="j_id_2z"]')
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
     def set_risk(self) -> None:
@@ -284,38 +285,44 @@ class Provisao(CrawJUD):
 
         """
         try:
-            message = "Alterando risco"
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.message = "Alterando risco"
+            self.type_log = "log"
+            self.prt()
 
-            expand_filter_risk = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_risk)),
+            row_valores = self.wait.until(
+                ec.presence_of_element_located((By.ID, "j_id_2z:j_id_32_2e:processoAmountObjetoDt_data"))
+            ).find_elements(By.TAG_NAME, "tr")
+
+            selector_filter_risk = (
+                list(
+                    filter(
+                        lambda x: x.find_elements(By.TAG_NAME, "td")[5]
+                        .find_element(By.CSS_SELECTOR, 'input[id*="_input"]')
+                        .get_attribute("value"),
+                        row_valores,
+                    )
+                )[0]
+                .find_elements(By.TAG_NAME, "td")[6]
+                .find_element(By.TAG_NAME, "div")
+                .find_element(By.TAG_NAME, "select")
             )
-            expand_filter_risk.click()
 
-            div_filter_risk = self.driver.find_element(By.CSS_SELECTOR, self.elements.processo_objt)
-            filter_risk = div_filter_risk.find_elements(By.TAG_NAME, "li")
+            id_selector = selector_filter_risk.get_attribute("id")
+            css_selector_filter_risk = f'select[id="{id_selector}"]'
 
-            for item in filter_risk:
-                provisao_from_xlsx = (
-                    str(self.bot_data.get("PROVISAO"))
-                    .lower()
-                    .replace("possivel", "possível")
-                    .replace("provavel", "provável")
-                )
+            provisao_from_xlsx = (
+                str(self.bot_data.get("PROVISAO"))
+                .lower()
+                .replace("possivel", "possível")
+                .replace("provavel", "provável")
+            )
 
-                provisao = item.text.lower()
-                if provisao == provisao_from_xlsx:
-                    sleep(1)
-                    item.click()
-                    break
+            self.interact.select2_elaw(css_selector_filter_risk, provisao_from_xlsx)
 
-            id_expand_filter = expand_filter_risk.get_attribute("id")
-            self.driver.execute_script(f"document.getElementById('{id_expand_filter}').blur()")
-
-            self.interact.sleep_load('div[id="j_id_2z"]')
+            self.interact.sleep_load('div[id="j_id_3c"]')
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
     def informar_datas(self) -> None:
@@ -326,12 +333,12 @@ class Provisao(CrawJUD):
 
         """
         try:
-            message = "Alterando datas de correção base e juros"
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.message = "Alterando datas de correção base e juros"
+            self.type_log = "log"
+            self.prt()
 
             def set_data_correcao(data_base_correcao: str) -> None:
-                data_correcao = self.driver.find_element(By.CSS_SELECTOR, self.elements.daata_correcaoCss)
+                data_correcao = self.driver.find_element(By.CSS_SELECTOR, self.elements.data_correcaoCss)
                 css_daata_correcao = data_correcao.get_attribute("id")
                 self.interact.clear(data_correcao)
                 self.interact.send_key(data_correcao, data_base_correcao)
@@ -362,6 +369,7 @@ class Provisao(CrawJUD):
                 set_data_juros(data_base_juros)
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
     def informar_motivo(self) -> None:
@@ -379,9 +387,9 @@ class Provisao(CrawJUD):
 
             self.interact.sleep_load('div[id="j_id_2z"]')
 
-            message = "Informando justificativa"
-            type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.message = "Informando justificativa"
+            self.type_log = "log"
+            self.prt()
             informar_motivo: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.texto_motivo)),
             )
@@ -390,6 +398,7 @@ class Provisao(CrawJUD):
             self.driver.execute_script(f"document.getElementById('{id_informar_motivo}').blur()")
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
     def save_changes(self) -> None:
@@ -410,7 +419,7 @@ class Provisao(CrawJUD):
             )
 
         if not check_provisao_atualizada:
-            raise SaveError(message="Não foi possivel atualizar provisão", bot_execution_id=self.pid)
+            raise ExecutionError(message="Não foi possivel atualizar provisão")
 
         comprovante = self.print_comprovante()
         data = [str(self.bot_data.get("NUMERO_PROCESSO")), comprovante, "Provisão atualizada com sucesso!"]
