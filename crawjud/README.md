@@ -1,4 +1,4 @@
-## Função principal para inicialização do robô.
+# Função principal para inicialização do robô.
 
 ```python
 def main(bot_name: str, bot_system: str, path_config: Path) -> None:
@@ -10,7 +10,9 @@ O nome do robô e do sistema são usados para localizar o módulo correto
 dentro da estrutura do projeto. O arquivo de configuração é passado para o
 robô durante a inicialização.
 
-### Argumentos:
+## Argumentos:
+
+> Caso esteja chamando a função `main` partir do arquivo `__main__.py`, você deve passar os argumentos:
 
 ```python
 
@@ -20,7 +22,16 @@ path_config (Path): Caminho para o arquivo de configuração necessário para in
 
 ```
 
-### Exemplo:
+> Caso esteja executando o robô a partir do terminal, você deve passar os argumentos:
+
+```bash
+poetry run python -m crawjud \
+  --bot_name "capa" \
+  --bot_system "projudi" \
+  --path_config "/caminho/para/config.json"
+```
+
+## Exemplo:
 
 ```python
     main(
@@ -32,12 +43,19 @@ path_config (Path): Caminho para o arquivo de configuração necessário para in
     )
 ```
 
-## Disclaimer:
+## Observações:
 
-> Funcionamento do`path_config`
+### _Funcionamento do argumento `path_config`_
 
-O arquivo do Json tem que estar junto com a planilha de execução do robô.
-Os parâmetros do Json devem ser:
+O arquivo do Json tem que estar junto com a planilha de execução do robô e o nome da pasta precisa ser o ID da execução do robô.
+
+> Exemplo de estrutura da pasta:
+
+    Q6M2N9 # ID da Execução do Robô
+    │ config.json # ou o nome que você escolher `*.json`
+    │ planilha.xlsx # ou o nome que você escolher `*.xlsx`
+
+### _Parâmetros do Json_
 
 ```json
 {
