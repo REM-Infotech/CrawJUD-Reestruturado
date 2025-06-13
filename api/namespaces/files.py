@@ -5,6 +5,7 @@ from typing import AnyStr
 
 from anyio import Path
 from quart_socketio import Namespace, SocketIO
+from tqdm import tqdm
 
 from api.constructor.file import UploadableFile
 from api.domains.file_service import FileService
@@ -45,6 +46,7 @@ class FileNamespaces(Namespace):
             environ: The WSGI environment dictionary for the connection.
 
         """
+        tqdm.write(f"Client connected to namespace {self.namespace}")
 
     async def on_disconnect(self) -> None:
         """Handle client disconnection event.

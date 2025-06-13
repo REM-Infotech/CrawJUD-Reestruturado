@@ -6,7 +6,6 @@ This module exposes all available namespaces for direct import.
 from typing import AnyStr  # noqa: F401
 
 from quart import current_app, request, websocket  # noqa: F401
-from quart_jwt_extended import verify_jwt_in_request
 from quart_socketio import Namespace, SocketIO
 
 from .files import FileNamespaces
@@ -26,16 +25,6 @@ class MasterNamespace(Namespace):
     This class serves as a base for defining custom namespaces
     that handle specific events and interactions within the application.
     """
-
-    async def on_connect(self) -> None:
-        """Handle client connection event.
-
-        Creates and saves a session for the connected client.
-        """
-        app = current_app
-        await verify_jwt_in_request()
-        websocket  # noqa: B018
-        await self.save_session(websocket.sid, app.session_interface)
 
     async def on_teste(self) -> None:
         """Handle a test event.
