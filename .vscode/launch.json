@@ -18,6 +18,13 @@
   ],
   "configurations": [
     {
+      "name": "Debug CrawJUD Bot",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "crawjud",
+      "args": "${command:pickArgs}"
+    },
+    {
       "name": "Debug API CrawJUD",
       "type": "debugpy",
       "request": "launch",

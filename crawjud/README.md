@@ -25,10 +25,7 @@ path_config (Path): Caminho para o arquivo de configuração necessário para in
 > Caso esteja executando o robô a partir do terminal, você deve passar os argumentos:
 
 ```bash
-poetry run python -m crawjud \
-  --bot_name "capa" \
-  --bot_system "projudi" \
-  --path_config "/caminho/para/config.json"
+poetry run python -m crawjud --bot_name "capa" --bot_system "projudi" --path_config "/caminho/para/config.json"
 ```
 
 ## Exemplo:
