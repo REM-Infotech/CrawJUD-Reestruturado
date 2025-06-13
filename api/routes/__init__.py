@@ -15,7 +15,7 @@ from quart_jwt_extended import jwt_required
 from werkzeug.exceptions import HTTPException
 
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET"], websocket=True)
 @jwt_required
 async def index() -> Response:
     """

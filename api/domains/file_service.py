@@ -3,18 +3,20 @@
 from typing import Any, AnyStr
 
 from anyio import Path
-
-from api.constructor.file import UploadableFile
+from quart import request
+from quart.datastructures import FileStorage
 
 
 class FileService:
     """Serviço de domínio para manipulação de arquivos e sessões de usuário."""
 
-    async def save_file(self, file: UploadableFile, path_temp: Path) -> None:
+    async def save_file(self) -> None:
         """Salva um arquivo enviado para o diretório temporário especificado."""
-        await path_temp.mkdir(exist_ok=True, parents=True)
-        async with await path_temp.joinpath(file.name).open("wb") as f:
-            await f.write(file.file)
+        file_data = await request.files
+        path_temp = (await Path(__file__).cwd()).joinpath("temp", file_data.get("id_temp"))
+        for _, v in list(file_data.items()):
+            value: FileStorage = v
+            await value.save(path_temp)
 
     async def save_session(
         self, server: Any, sid: str, session: dict[str, AnyStr], namespace: str | None = None

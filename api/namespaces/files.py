@@ -23,7 +23,7 @@ class FileNamespaces(Namespace):
         self.namespace = namespace
         self.file_service = FileService()
 
-    async def on_add_file(self, sid: str, data: dict[str, str]) -> None:
+    async def on_add_file(self) -> None:
         """Handle file upload event from a client (e.g., FormBot).
 
         Receives file data, constructs an UploadableFile, and saves it asynchronously to a temporary directory.
@@ -33,11 +33,9 @@ class FileNamespaces(Namespace):
             data: Dictionary containing file data and a temporary ID ('id_temp').
 
         """
-        file = UploadableFile(**data.get("file"))
-        path_temp = (await Path(__file__).cwd()).joinpath("temp", data.get("id_temp"))
-        asyncio.create_task(self.file_service.save_file(file, path_temp))
+        asyncio.create_task(self.file_service.save_file())
 
-    async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
+    async def on_connect(self) -> None:
         """Handle client connection event.
 
         Creates and saves a session for the connected client.
@@ -47,10 +45,8 @@ class FileNamespaces(Namespace):
             environ: The WSGI environment dictionary for the connection.
 
         """
-        session = {"sid": sid}
-        await self.file_service.save_session(self.server, sid, session, self.namespace)
 
-    async def on_disconnect(self, sid: str, reason: str) -> None:
+    async def on_disconnect(self) -> None:
         """Handle client disconnection event.
 
         Args:
@@ -59,7 +55,7 @@ class FileNamespaces(Namespace):
 
         """
 
-    async def on_get_selectors_data(self, sid: str, data: dict[str, str]) -> dict[str, list[dict[str, str]]]:
+    async def on_get_selectors_data(self) -> dict[str, list[dict[str, str]]]:
         """Provide selector data for the client (e.g., dropdown options).
 
         Args:
