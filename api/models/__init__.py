@@ -2,6 +2,8 @@
 
 from os import environ
 
+from dotenv import load_dotenv
+
 from api import app, db
 from api.models.bots import BotsCrawJUD, Credentials, Executions, ThreadBots
 from api.models.schedule import CrontabModel, ScheduleModel
@@ -21,6 +23,8 @@ __all__ = [
     CrontabModel,
     ThreadBots,
 ]
+
+load_dotenv()
 
 
 async def init_database() -> None:

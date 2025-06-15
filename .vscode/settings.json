@@ -33,5 +33,10 @@
     "tsconfig.json": "tsconfig.*.json, env.d.ts, forge.config.ts, components.d.ts",
     "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, vite.config.main.*, vite.config.preload.*, vite.config.renderer.*"
   },
-  "python.analysis.typeCheckingMode": "off"
+  "python.analysis.typeCheckingMode": "off",
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "file": ".github/copilot-commit-message-instructions.md"
+    }
+  ]
 }

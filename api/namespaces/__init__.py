@@ -8,6 +8,8 @@ from typing import AnyStr  # noqa: F401
 from quart import current_app, request, websocket  # noqa: F401
 from quart_socketio import Namespace, SocketIO
 
+from api.namespaces.system import SystemNamespace
+
 from .files import FileNamespaces
 from .logs import BotsNamespace
 from .notifications import NotificationNamespace
@@ -55,6 +57,7 @@ async def register_namespaces(io: SocketIO) -> None:
 
     :param io: The Socket.IO instance to register namespaces with.
     """
+    await io.register_namespace(SystemNamespace("/system_namespace", io))
     await io.register_namespace(MasterNamespace("/test", io))
     await io.register_namespace(FileNamespaces("/filex", io))
     await io.register_namespace(BotsNamespace("/logs", io))

@@ -1,6 +1,5 @@
 """Quart application package."""
 
-from contextlib import suppress
 from importlib import import_module
 from pathlib import Path
 
@@ -9,7 +8,7 @@ import quart_flask_patch  # noqa: F401
 from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
 from quart_cors import cors
-from quart_jwt_extended import JWTManager, verify_jwt_in_request
+from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
@@ -37,22 +36,6 @@ async def on_connect() -> None:
         environ: The WSGI environment dictionary for the connection.
 
     """
-
-
-@io.on("check-token", namespace="/")
-async def on_check_token() -> None:
-    """Handle token validation request from client.
-
-    Validates the JWT token in the request and emits the result back to the client.
-    This function is triggered when the client sends a 'check-token' event.
-    It checks if the JWT token is valid and emits a 'check-token' event with the result.
-    """
-    validated = False
-    with suppress(Exception):
-        await verify_jwt_in_request()
-        validated = True
-
-    await io.emit("validate-auth", validated)
 
 
 async def create_app() -> Quart:

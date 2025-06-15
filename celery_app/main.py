@@ -3,7 +3,7 @@
 import argparse
 import asyncio
 from multiprocessing import Process
-from nt import environ
+from os import environ
 from pathlib import Path
 from platform import node
 from sys import argv
