@@ -39,6 +39,17 @@ class BotsNamespace(Namespace):
         """
         # Example: send a list of bots to all connected clients
 
-        bots = db.session.query(BotsCrawJUD).all()
+        bots = []
 
-        return [bot.display_name for bot in bots]
+        for bot in db.session.query(BotsCrawJUD).all():
+            bot_data = {}
+            for k, v in list(bot.__dict__.items()):
+                if k.startswith("_"):
+                    continue
+                if isinstance(v, bytes):
+                    v = v.decode("utf-8")
+                bot_data.update({k: v})
+
+            bots.append(bot_data)
+
+        return bots
