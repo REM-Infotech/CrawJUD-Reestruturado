@@ -12,7 +12,6 @@ from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
-from api.namespaces import register_namespaces as register_namespaces
 
 
 def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103

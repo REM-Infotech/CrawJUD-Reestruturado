@@ -13,7 +13,7 @@ class ASyncServerType(socketio.AsyncServer):
     eio: engineio.AsyncServer
 
 
-class BotsNamespace(Namespace):
+class LogsNamespace(Namespace):
     """Namespace bots."""
 
     namespace: str
