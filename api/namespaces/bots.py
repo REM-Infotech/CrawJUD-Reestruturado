@@ -41,4 +41,4 @@ class BotsNamespace(Namespace):
 
         bots = db.session.query(BotsCrawJUD).all()
 
-        return [bot.name for bot in bots]
+        return [bot.display_name for bot in bots]

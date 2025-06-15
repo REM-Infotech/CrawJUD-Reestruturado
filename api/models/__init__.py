@@ -1,8 +1,11 @@
 """Módulo de gestão de Models do banco de dados."""
 
+import pathlib
 from os import environ
 
+import pandas as pd
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 from api import app, db
 from api.models.bots import BotsCrawJUD, Credentials, Executions, ThreadBots
@@ -43,3 +46,18 @@ async def init_database() -> None:
 
             db.session.add(user)
             db.session.commit()
+
+        path_file = pathlib.Path(__file__).parent.resolve().joinpath("export.json")
+        excel = pd.read_json(path_file).to_dict(orient="records")
+
+        bot_toadd = []
+        for row in excel:
+            bot = db.session.query(BotsCrawJUD).filter(BotsCrawJUD.display_name == row["display_name"]).first()
+
+            if not bot:
+                bot = BotsCrawJUD(**row)
+                bot_toadd.append(bot)
+        if bot_toadd:
+            db.session.add_all(bot_toadd)
+            db.session.commit()
+        tqdm.write("Database initialized successfully.")
