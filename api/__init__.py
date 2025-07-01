@@ -3,7 +3,6 @@
 from importlib import import_module
 from pathlib import Path
 
-import aiofiles
 import quart_flask_patch  # noqa: F401
 from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
@@ -84,15 +83,7 @@ async def database_start(app: Quart) -> None:
     """
     from api.models import init_database
 
-    if not Path("is_init.txt").exists():
-        async with aiofiles.open("is_init.txt", "w") as f:
-            await f.write(f"{await init_database()}")
-
-    from api.models import Users
-
-    if not db.engine.dialect.has_table(db.engine.connect(), Users.__tablename__):
-        async with aiofiles.open("is_init.txt", "w") as f:
-            await f.write(f"{await init_database()}")
+    await init_database()
 
 
 async def register_routes(app: Quart) -> None:

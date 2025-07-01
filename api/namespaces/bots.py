@@ -53,3 +53,6 @@ class BotsNamespace(Namespace):
             bots.append(bot_data)
 
         return bots
+
+    async def on_setup_form(self) -> None:  # noqa: D102
+        pass
