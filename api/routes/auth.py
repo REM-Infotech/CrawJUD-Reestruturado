@@ -25,11 +25,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from traceback import format_exception
 from typing import TYPE_CHECKING
 
-import pytz
 from quart import (
     Blueprint,
     Response,
@@ -116,15 +114,9 @@ async def login() -> Response:
 
             is_admin = bool(usr.admin or usr.supersu)
 
-            current_time = datetime.now(pytz.timezone("America/Manaus"))
-            expiration_access = (current_time + timedelta(days=7)).strftime("%d-%m-%Y %H:%M:%S")
-            expiration_refresh = (current_time + timedelta(days=15)).strftime("%d-%m-%Y %H:%M:%S")
-
             resp = await make_response(
                 jsonify({
-                    "access": {"token": access_token, "expiration": expiration_access},
-                    "refresh": {"token": refresh_token, "expiration": expiration_refresh},
-                    "timezone": "America/Manaus",
+                    "message": "Login Efetuado com sucesso!",
                     "isAdmin": is_admin,
                 }),
                 200,

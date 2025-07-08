@@ -8,6 +8,7 @@ from os import environ
 from pathlib import Path
 
 from dotenv import load_dotenv
+from redis import Redis
 
 load_dotenv(str(Path(__file__).cwd().joinpath("api", ".env")))
 
@@ -62,5 +63,11 @@ RESULT_BACKEND_DATABASE = 2
 
 # JWT CONFIG
 JWT_SECRET_KEY = secrets.token_hex()
-JWT_TOKEN_LOCATION = ["cookies", "headers", "json"]
+JWT_TOKEN_LOCATION = ["cookies"]
 JWT_COOKIE_CSRF_PROTECT = True
+JWT_CSRF_IN_COOKIES = True
+JWT_ACCESS_CSRF_HEADER_NAME = "X-Xsrf-Token"
+JWT_ACCESS_CSRF_COOKIE_NAME = "X-Xsrf-Token"
+
+SESSION_TYPE = "redis"
+SESSION_REDIS = Redis.from_url(env.get("REDIS_URI"))

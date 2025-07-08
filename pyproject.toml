@@ -35,6 +35,7 @@ dependencies = [
     "cryptography (>=45.0.2,<46.0.0)",
     "quart-flask-patch (>=0.3.0,<0.4.0)",
     "quart-socketio @ git+https://github.com/Robotz213/Quart-SocketIO.git",
+    "flask-session[redis] (>=0.8.0,<0.9.0)",
     
 ]
 [tool.poetry]

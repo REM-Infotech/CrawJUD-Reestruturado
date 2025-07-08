@@ -1,9 +1,11 @@
 """Quart application package."""
 
+import re
 from importlib import import_module
 from pathlib import Path
 
 import quart_flask_patch  # noqa: F401
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
 from quart_cors import cors
@@ -17,6 +19,7 @@ def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
     return True
 
 
+sess = Session()
 app = Quart(__name__)
 jwt = JWTManager()
 db = SQLAlchemy()
@@ -56,7 +59,7 @@ async def create_app() -> Quart:
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
     return cors(
         app,
-        allow_origin=["http://localhost:5173"],
+        allow_origin=[re.compile(r"^https?:\/\/[^\/]+$"), "http://localhost:5173"],
         allow_headers=["Content-Type", "Authorization"],
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_credentials=True,
@@ -133,5 +136,6 @@ async def init_extensions(app: Quart) -> None:
     """
     db.init_app(app)
     jwt.init_app(app)
+    sess.init_app(app)
     async with app.app_context():
         await database_start(app)
