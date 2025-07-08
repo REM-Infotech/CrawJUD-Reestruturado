@@ -60,7 +60,7 @@ async def create_app() -> Quart:
     return cors(
         app,
         allow_origin=[re.compile(r"^https?:\/\/[^\/]+$")],
-        allow_headers=["Content-Type", "Authorization"],
+        allow_headers=["Content-Type", "Authorization", "x-xsrf-token", "X-Xsrf-Token"],
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_credentials=True,
     )

@@ -9,9 +9,10 @@ from quart import (
     Response,
     jsonify,
     make_response,
+    request,
 )
 from quart import current_app as app
-from quart_jwt_extended import jwt_required
+from quart_jwt_extended import jwt_required, unset_jwt_cookies
 from werkzeug.exceptions import HTTPException
 
 
@@ -65,5 +66,7 @@ async def after_request(response: Response) -> Response:
         Response: The modified HTTP response object with CORS headers.
 
     """
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"  # noqa: ERA001
+    if request.path == "/logout":
+        unset_jwt_cookies(response)
+
     return response  # noqa: ERA001

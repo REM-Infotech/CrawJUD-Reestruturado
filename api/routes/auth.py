@@ -110,7 +110,6 @@ async def login() -> Response:
         usr = db.session.query(Users).filter(or_(Users.login == form.login, Users.email == form.login)).first()
         if usr and usr.check_password(form.password):
             access_token = create_access_token(identity=usr)
-            refresh_token = create_refresh_token(identity=usr)
 
             is_admin = bool(usr.admin or usr.supersu)
 
@@ -123,7 +122,6 @@ async def login() -> Response:
             )
 
             set_access_cookies(resp, access_token)
-            set_refresh_cookies(resp, refresh_token)
             return resp
 
         if not usr or not usr.check_password(form.password):
