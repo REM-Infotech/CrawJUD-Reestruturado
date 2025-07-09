@@ -35,6 +35,7 @@ from quart import (
     jsonify,
     make_response,
     request,
+    session,
 )
 from quart_jwt_extended import (  # noqa: F401
     create_access_token,
@@ -117,8 +118,6 @@ async def login() -> Response:
             .first()
         )
         if usr and usr.check_password(form.password):
-            access_token = create_access_token(identity=usr)
-
             is_admin = bool(usr.admin or usr.supersu)
 
             resp = await make_response(
@@ -129,7 +128,11 @@ async def login() -> Response:
                 200,
             )
 
+            access_token = create_access_token(identity=usr)
             set_access_cookies(resp, access_token)
+
+            session.permanent = remember
+
             return resp
 
         if not usr or not usr.check_password(form.password):

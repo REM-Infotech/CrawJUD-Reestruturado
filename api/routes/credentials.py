@@ -74,14 +74,15 @@ async def license_user(usr: int, db: SQLAlchemy) -> str:
 
 
     """
-    return (
+    query = (
         db.session.query(LicensesUsers)
         .select_from(Users)
         .join(Users, LicensesUsers.user)
         .filter(Users.id == usr)
         .first()
-        .license_token
     )
+
+    return query.license_token
 
 
 @cred.get("/systems")
@@ -193,9 +194,9 @@ async def cadastro() -> Response:
             passwd = Credentials(
                 nome_credencial=form["nome_cred"],
                 system=form["system"],
-                login_method=form.auth_method,
-                login=form.login,
-                password=form.password,
+                login_method=form["auth_method"],
+                login=form["login"],
+                password=form["password"],
             )
             licenseusr = LicensesUsers.query.filter(
                 LicensesUsers.license_token
