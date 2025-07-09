@@ -7,12 +7,11 @@ import aiofiles
 from quart_socketio import Namespace
 
 from api import db
-from api.models.bots import BotsCrawJUD, Credentials
-from api.namespaces.interface.credentials import (
+from api.interface.credentials import (
     CredendialDictSelect,
-    CredendialsDict,
     CredendialsSystemDict,
 )
+from api.models.bots import BotsCrawJUD, Credentials
 from api.types import ASyncServerType
 from api.wrapper import verify_jwt_websocket
 
@@ -86,29 +85,6 @@ class BotsNamespace(Namespace):
         for item in query:
             credentials.get(item.system.lower(), []).append(
                 CredendialDictSelect(value=item.id, text=item.nome_credencial)
-            )
-
-        return credentials
-
-    @verify_jwt_websocket
-    async def on_bot_credentials_list(self) -> None:  # noqa: D102
-        query = db.session.query(Credentials).all()
-
-        credentials: list[CredendialsDict] = []
-
-        for item in query:
-            loginmethod = (
-                "Usuário/Senha"
-                if item.login_method == "pw"
-                else "Certificado difital"
-            )
-            credentials.append(
-                CredendialsDict(
-                    id=item.id,
-                    nome_credencial=item.nome_credencial,
-                    system=item.system,
-                    login_method=loginmethod,
-                )
             )
 
         return credentials

@@ -19,6 +19,7 @@ from quart import (
     jsonify,
     make_response,
     request,
+    session,
 )
 from quart import current_app as app
 from quart.datastructures import FileStorage
@@ -27,6 +28,8 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
 from api import db
+from api.interface.credentials import CredendialsDict
+from api.interface.session import SessionDict
 from api.models import BotsCrawJUD, Credentials, LicensesUsers, Users
 
 cred = Blueprint("creds", __name__)
@@ -122,30 +125,37 @@ async def credentials() -> Response:
 
     """
     try:
-        current_user = get_jwt_identity()
+        sess = SessionDict(**{
+            k: v for k, v in list(session.items()) if not k.startswith("_")
+        })
+        license_user = sess["license_object"]
+        license_token = license_user["license_token"]
+        query = (
+            db.session.query(Credentials)
+            .select_from(LicensesUsers)
+            .join(Credentials.license_usr)
+            .filter(LicensesUsers.license_token == license_token)
+            .all()
+        )
 
-        user = db.session.query(Users).filter(Users.id == current_user).first()
-        database = db.session.query(Credentials).all()
-        if not user.supersu:
-            token = user.licenseusr.license_token
-            database = (
-                db.session.query(Credentials)
-                .join(LicensesUsers)
-                .filter_by(license_token=token)
-                .all()
+        credentials: list[CredendialsDict] = []
+
+        for item in query:
+            loginmethod = (
+                "Usuário/Senha"
+                if item.login_method == "pw"
+                else "Certificado difital"
+            )
+            credentials.append(
+                CredendialsDict(
+                    id=item.id,
+                    nome_credencial=item.nome_credencial,
+                    system=item.system,
+                    login_method=loginmethod,
+                )
             )
 
-        cred_list = [
-            {
-                "id": item.id,
-                "credential": item.nome_credencial,
-                "system": item.system,
-                "login_method": item.system,
-            }
-            for item in database
-        ]
-
-        return await make_response(jsonify(database=cred_list), 200)
+        return await make_response(jsonify(database=credentials), 200)
 
     except (ValueError, Exception) as e:
         app.logger.error("\n".join(format_exception(e)))
