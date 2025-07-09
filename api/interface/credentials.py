@@ -1,10 +1,12 @@
 # noqa: D100
+
 from typing import TypedDict
 
 
 class CredendialDictSelect(TypedDict):  # noqa: D101
-    value: int
+    value: int | None
     text: str
+    disabled: bool
 
 
 class CredendialsSystemDict(TypedDict):  # noqa: D101

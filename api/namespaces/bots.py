@@ -80,7 +80,28 @@ class BotsNamespace(Namespace):
     async def on_bot_credentials_select(self) -> None:  # noqa: D102
         query = db.session.query(Credentials).all()
 
-        credentials = CredendialsSystemDict(elaw=[], esaj=[], projudi=[], pje=[])
+        credentials = CredendialsSystemDict(
+            elaw=[
+                CredendialDictSelect(
+                    value=None, text="Selecione uma Credencial", disabled=True
+                )
+            ],
+            esaj=[
+                CredendialDictSelect(
+                    value=None, text="Selecione uma Credencial", disabled=True
+                )
+            ],
+            projudi=[
+                CredendialDictSelect(
+                    value=None, text="Selecione uma Credencial", disabled=True
+                )
+            ],
+            pje=[
+                CredendialDictSelect(
+                    value=None, text="Selecione uma Credencial", disabled=True
+                )
+            ],
+        )
 
         for item in query:
             credentials.get(item.system.lower(), []).append(
