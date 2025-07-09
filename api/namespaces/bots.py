@@ -2,27 +2,19 @@
 
 import json
 from pathlib import Path
-from typing import TypedDict
 
 import aiofiles
 from quart_socketio import Namespace
 
 from api import db
 from api.models.bots import BotsCrawJUD, Credentials
+from api.namespaces.interface.credentials import (
+    CredendialDictSelect,
+    CredendialsDict,
+    CredendialsSystemDict,
+)
 from api.types import ASyncServerType
 from api.wrapper import verify_jwt_websocket
-
-
-class CredendialDict(TypedDict):  # noqa: D101
-    value: int
-    text: str
-
-
-class CredendialsSystemDict(TypedDict):  # noqa: D101
-    elaw: list[CredendialDict]
-    projudi: list[CredendialDict]
-    esaj: list[CredendialDict]
-    pje: list[CredendialDict]
 
 
 class BotsNamespace(Namespace):
@@ -86,14 +78,37 @@ class BotsNamespace(Namespace):
         return bots
 
     @verify_jwt_websocket
-    async def on_bot_credentials(self) -> None:  # noqa: D102
+    async def on_bot_credentials_select(self) -> None:  # noqa: D102
         query = db.session.query(Credentials).all()
 
         credentials = CredendialsSystemDict(elaw=[], esaj=[], projudi=[], pje=[])
 
         for item in query:
             credentials.get(item.system.lower(), []).append(
-                CredendialDict(value=item.id, text=item.nome_credencial)
+                CredendialDictSelect(value=item.id, text=item.nome_credencial)
+            )
+
+        return credentials
+
+    @verify_jwt_websocket
+    async def on_bot_credentials_list(self) -> None:  # noqa: D102
+        query = db.session.query(Credentials).all()
+
+        credentials: list[CredendialsDict] = []
+
+        for item in query:
+            loginmethod = (
+                "Usuário/Senha"
+                if item.login_method == "pw"
+                else "Certificado difital"
+            )
+            credentials.append(
+                CredendialsDict(
+                    id=item.id,
+                    nome_credencial=item.nome_credencial,
+                    system=item.system,
+                    login_method=loginmethod,
+                )
             )
 
         return credentials
