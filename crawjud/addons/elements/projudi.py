@@ -32,14 +32,19 @@ class PROJUDI_AM(Configuracao):  # noqa: N801
 
     """
 
-    url_login = "https://projudi.tjam.jus.br/projudi/usuario/logon.do?actionType=inicio"
+    url_login = (
+        "https://projudi.tjam.jus.br/projudi/usuario/logon.do?actionType=inicio"
+    )
     campo_username = "#login"
     campo_passwd = "#senha"  # noqa: S105 # nosec: B105
     btn_entrar = "#btEntrar"
     chk_login = 'iframe[name="userMainFrame"]'
 
     url_busca = "".join(
-        ("https://projudi.tjam.jus.br/projudi/processo/", "buscaProcessosQualquerInstancia.do?actionType=pesquisar"),
+        (
+            "https://projudi.tjam.jus.br/projudi/processo/",
+            "buscaProcessosQualquerInstancia.do?actionType=pesquisar",
+        ),
     )
 
     url_mesa_adv = "".join((

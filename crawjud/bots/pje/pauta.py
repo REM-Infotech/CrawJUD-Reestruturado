@@ -9,7 +9,11 @@ from datetime import datetime, timedelta
 from time import sleep
 from typing import Self
 
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
@@ -69,7 +73,9 @@ class Pauta(CrawJUD):
 
             message = "Buscando pautas na vara: " + vara_name
             type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )
 
             if self.is_stoped:
                 break
@@ -99,7 +105,9 @@ class Pauta(CrawJUD):
             while self.current_date <= self.data_fim:
                 message = f"Buscando pautas na data {self.current_date.strftime('%d/%m/%Y')}"
                 type_log = "log"
-                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.prt.print_msg(
+                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                )
 
                 if self.is_stoped:
                     break
@@ -125,12 +133,18 @@ class Pauta(CrawJUD):
             data_append = self.group_date_all(self.data_append)
             fileN = os.path.basename(self.planilha_sucesso)  # noqa: N806
             if len(data_append) > 0:
-                self.append_success(data=[data_append], fileN=fileN, message="Dados extraídos com sucesso!")
+                self.append_success(
+                    data=[data_append],
+                    fileN=fileN,
+                    message="Dados extraídos com sucesso!",
+                )
 
             elif len(data_append) == 0:
                 message = "Nenhuma pauta encontrada"
                 type_log = "error"
-                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.prt.print_msg(
+                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                )
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -166,12 +180,16 @@ class Pauta(CrawJUD):
             )[-1]
 
             with suppress(NoSuchElementException, TimeoutException):
-                itens_pautas = table_pautas.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
+                itens_pautas = table_pautas.find_element(
+                    By.TAG_NAME, "tbody"
+                ).find_elements(By.TAG_NAME, "tr")
 
             if itens_pautas:
                 message = "Pautas encontradas!"
                 type_log = "log"
-                self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                self.prt.print_msg(
+                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                )
 
                 times = 6
 
@@ -186,11 +204,15 @@ class Pauta(CrawJUD):
 
                         appends = {
                             "INDICE": int(itens_tr[0].text),
-                            "NUMERO_PROCESSO": itens_tr[3].find_element(By.TAG_NAME, "a").text.split(" ")[1],
+                            "NUMERO_PROCESSO": itens_tr[3]
+                            .find_element(By.TAG_NAME, "a")
+                            .text.split(" ")[1],
                             "VARA": vara_name,
                             "HORARIO": itens_tr[1].text,
                             "TIPO": itens_tr[2].text,
-                            "ATO": itens_tr[3].find_element(By.TAG_NAME, "a").text.split(" ")[0],
+                            "ATO": itens_tr[3]
+                            .find_element(By.TAG_NAME, "a")
+                            .text.split(" ")[0],
                             "PARTES": itens_tr[3]
                             .find_element(By.TAG_NAME, "span")
                             .find_element(By.TAG_NAME, "span")
@@ -202,10 +224,17 @@ class Pauta(CrawJUD):
                         self.data_append[vara][current_date].append(appends)
                         message = f"Processo {appends['NUMERO_PROCESSO']} adicionado!"
                         type_log = "info"
-                        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+                        self.prt.print_msg(
+                            message=message,
+                            pid=self.pid,
+                            row=self.row,
+                            type_log=type_log,
+                        )
 
                 try:
-                    btn_next = self.driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Próxima página"]')
+                    btn_next = self.driver.find_element(
+                        By.CSS_SELECTOR, 'button[aria-label="Próxima página"]'
+                    )
 
                     buttondisabled = btn_next.get_attribute("disabled")
                     if not buttondisabled:
@@ -213,7 +242,9 @@ class Pauta(CrawJUD):
                         self.get_pautas(current_date, vara)
 
                 except Exception as e:
-                    raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+                    raise ExecutionError(
+                        exception=e, bot_execution_id=self.pid
+                    ) from e
 
             elif not itens_pautas:
                 times = 1

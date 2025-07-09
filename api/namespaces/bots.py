@@ -72,7 +72,11 @@ class BotsNamespace(Namespace):
             return v
 
         for bot in db.session.query(BotsCrawJUD).all():
-            bot_data = {k: decode_str(v) for k, v in list(bot.__dict__.items()) if not k.startswith("_")}
+            bot_data = {
+                k: decode_str(v)
+                for k, v in list(bot.__dict__.items())
+                if not k.startswith("_")
+            }
             bots.append(bot_data)
 
         if not Path("cache_bots.json").exists():
@@ -88,6 +92,8 @@ class BotsNamespace(Namespace):
         credentials = CredendialsSystemDict(elaw=[], esaj=[], projudi=[], pje=[])
 
         for item in query:
-            credentials.get(item.system.lower(), []).append(CredendialDict(value=item.id, text=item.nome_credencial))
+            credentials.get(item.system.lower(), []).append(
+                CredendialDict(value=item.id, text=item.nome_credencial)
+            )
 
         return credentials

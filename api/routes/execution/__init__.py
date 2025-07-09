@@ -53,11 +53,17 @@ async def executions() -> Response:
 
         if not user.supersu:
             executions = list(
-                filter(lambda x: str(x.license_usr.license_token) == str(user.licenseusr.license_token), executions),
+                filter(
+                    lambda x: str(x.license_usr.license_token)
+                    == str(user.licenseusr.license_token),
+                    executions,
+                ),
             )
 
             if not user.admin:
-                executions = list(filter(lambda x: x.user.id == current_user, executions))
+                executions = list(
+                    filter(lambda x: x.user.id == current_user, executions)
+                )
 
         data = [
             {
@@ -92,7 +98,9 @@ async def clear_executions() -> Response:
     """
     try:
         db: SQLAlchemy = app.extensions["sqlalchemy"]
-        db.session.query(Executions).filter(Executions.status == "Finalizado").delete()
+        db.session.query(Executions).filter(
+            Executions.status == "Finalizado"
+        ).delete()
         db.session.commit()
 
     except (ValueError, Exception) as e:

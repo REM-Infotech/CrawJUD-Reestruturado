@@ -38,22 +38,32 @@ class ScheduleModel(db.Model):
     task: str = db.Column(db.String(128), nullable=False)
     email: str = db.Column(db.String(128), nullable=True)
 
-    schedule_id = db.Column(db.Integer, db.ForeignKey("crontab_model.id"), nullable=False)
+    schedule_id = db.Column(
+        db.Integer, db.ForeignKey("crontab_model.id"), nullable=False
+    )
     schedule = db.relationship("CrontabModel", backref="schedule", lazy=True)
 
-    args: str = db.Column(db.Text, nullable=True, default="[]")  # JSON para argumentos
+    args: str = db.Column(
+        db.Text, nullable=True, default="[]"
+    )  # JSON para argumentos
 
     kwargs: str = db.Column(db.Text, nullable=True, default="{}")  # JSON para kwargs
     last_run_at: datetime = db.Column(db.DateTime, nullable=True)
 
     license_id: int = db.Column(db.Integer, db.ForeignKey("licenses_users.id"))
-    license_usr = db.relationship("LicensesUsers", backref=db.backref("scheduled_execution", lazy=True))
+    license_usr = db.relationship(
+        "LicensesUsers", backref=db.backref("scheduled_execution", lazy=True)
+    )
 
     user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
-    user = db.relationship("Users", backref=db.backref("scheduled_execution", lazy=True))
+    user = db.relationship(
+        "Users", backref=db.backref("scheduled_execution", lazy=True)
+    )
 
     exec_id: int = db.Column(db.Integer, db.ForeignKey("executions.id"))
-    exec = db.relationship("Executions", backref=db.backref("scheduled_execution", lazy=True))
+    exec = db.relationship(
+        "Executions", backref=db.backref("scheduled_execution", lazy=True)
+    )
 
     def __repr__(self) -> str:  # pragma: no cover
         """

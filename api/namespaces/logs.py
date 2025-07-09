@@ -19,7 +19,9 @@ class LogsNamespace(Namespace):
     namespace: str
     server: ASyncServerType
 
-    async def save_session(self, sid: str, session: dict[str, AnyStr], namespace: str | None = None) -> None:
+    async def save_session(
+        self, sid: str, session: dict[str, AnyStr], namespace: str | None = None
+    ) -> None:
         """Store the user session for a client.
 
         :param sid: The session id of the client.
@@ -41,7 +43,9 @@ class LogsNamespace(Namespace):
     async def on_disconnect(self, sid: str, reason: str) -> None:
         """Evento de desconexão."""
 
-    async def on_join_room(self, sid: str, data: dict[str, str], environ: dict[str, str] | None = None) -> None:
+    async def on_join_room(
+        self, sid: str, data: dict[str, str], environ: dict[str, str] | None = None
+    ) -> None:
         """JOIN ROOM."""
         room = data.get("pid")
         await self.enter_room(sid=sid, room=room, namespace=self.namespace)

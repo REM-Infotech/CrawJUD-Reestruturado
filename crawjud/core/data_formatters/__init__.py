@@ -3,7 +3,9 @@
 from typing import AnyStr
 
 
-def elawFormats(data: dict[str, str], cities_amazonas: dict[str, AnyStr]) -> dict[str, str]:  # noqa: N802
+def elawFormats(
+    data: dict[str, str], cities_amazonas: dict[str, AnyStr]
+) -> dict[str, str]:  # noqa: N802
     """Format a legal case dictionary according to pre-defined rules.
 
     Args:

@@ -30,13 +30,17 @@ class RedisHandler(logging.Handler):
         self.URI_REDIS = kwrgs["URI_REDIS"]
         self.DATABASE = int(kwrgs["DATABASE"])
 
-        self.client = redis.Redis.from_url(url=self.URI_REDIS, db=self.DATABASE)  # Conexão com o Redis
+        self.client = redis.Redis.from_url(
+            url=self.URI_REDIS, db=self.DATABASE
+        )  # Conexão com o Redis
 
     def emit(self, record: logging.LogRecord) -> None:
         """Emit the log record to Redis."""
         try:
             log_entry = self.format(record)  # Formata o log conforme configurado
-            self.client.rpush(self.LIST_LOGS_REDIS, log_entry)  # Adiciona à lista no Redis
+            self.client.rpush(
+                self.LIST_LOGS_REDIS, log_entry
+            )  # Adiciona à lista no Redis
         except Exception:
             self.handleError(record)  # Captura erros ao salvar no Redis
 

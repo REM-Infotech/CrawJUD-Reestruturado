@@ -32,7 +32,7 @@ exclude = [
 
 extend-exclude = ["hooks"]
 extend-include = ["*.ipynb"]
-line-length = 120
+line-length = 86
 indent-width = 4
 
 [lint]
@@ -84,6 +84,7 @@ extend-select = [
 ]
 
 ignore = [
+    "E501",
     "T201",
     "S104",
     "COM812",

@@ -44,10 +44,16 @@ async def schedules() -> Response:
         if not chksupersu:
             alias = aliased(
                 Users,
-                (db.session.query(Users).filter(Users.login == session["login"]).subquery()),
+                (
+                    db.session.query(Users)
+                    .filter(Users.login == session["login"])
+                    .subquery()
+                ),
             )
 
-            executions = executions.join(alias, ScheduleModel.license_id == alias.licenseus_id)
+            executions = executions.join(
+                alias, ScheduleModel.license_id == alias.licenseus_id
+            )
 
             chk_admin = (
                 db.session.query(admins)

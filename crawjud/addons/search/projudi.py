@@ -71,18 +71,24 @@ class ProjudiSearch(SearchController):
 
         def detect_intimacao() -> None:
             if "intimacaoAdvogado.do" in self.driver.current_url:
-                raise ExecutionError(message="Processo com Intimação pendente de leitura!")
+                raise ExecutionError(
+                    message="Processo com Intimação pendente de leitura!"
+                )
 
         def allow_access() -> None:
             with suppress(TimeoutException, NoSuchElementException):
                 nonlocal allowacess
-                allowacess = self.driver.find_element(By.CSS_SELECTOR, "#habilitacaoProvisoriaButton")
+                allowacess = self.driver.find_element(
+                    By.CSS_SELECTOR, "#habilitacaoProvisoriaButton"
+                )
 
             if allowacess:
                 allowacess.click()
                 sleep(1)
 
-                confirmterms = self.driver.find_element(By.CSS_SELECTOR, "#termoAceito")
+                confirmterms = self.driver.find_element(
+                    By.CSS_SELECTOR, "#termoAceito"
+                )
                 confirmterms.click()
                 sleep(1)
 
@@ -110,7 +116,8 @@ class ProjudiSearch(SearchController):
 
                 info_proc = list(
                     filter(
-                        lambda x: "Clique aqui para visualizar os recursos relacionados" in x.text,
+                        lambda x: "Clique aqui para visualizar os recursos relacionados"
+                        in x.text,
                         info_proc,
                     ),
                 )[-1]
@@ -131,7 +138,10 @@ class ProjudiSearch(SearchController):
         elif grau == 2:
             with suppress(TimeoutException):
                 inputproc = WebDriverWait(self.driver, 10).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, "#numeroRecurso")),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        "#numeroRecurso",
+                    )),
                 )
 
         if inputproc:
@@ -201,7 +211,9 @@ class ProjudiSearch(SearchController):
             data_inicio_xls = data_inicio_xls.strftime("%d/%m/%Y")
 
         if type(data_fim_xls) is str:
-            data_fim_xls = datetime.strptime(data_fim_xls, "%Y-%m-%d").replace(tzinfo=pytz.timezone("America/Manaus"))
+            data_fim_xls = datetime.strptime(data_fim_xls, "%Y-%m-%d").replace(
+                tzinfo=pytz.timezone("America/Manaus")
+            )
             data_fim_xls = data_fim_xls.strftime("%d/%m/%Y")
 
         if self.vara == "TODAS AS COMARCAS":
@@ -218,28 +230,38 @@ class ProjudiSearch(SearchController):
             search_vara.click()
             search_vara.send_keys(self.vara)
             sleep(3)
-            vara_option = self.driver.find_element(By.ID, "ajaxAuto_descricaoVara").find_elements(By.TAG_NAME, "li")[0]
+            vara_option = self.driver.find_element(
+                By.ID, "ajaxAuto_descricaoVara"
+            ).find_elements(By.TAG_NAME, "li")[0]
             vara_option.click()
 
         sleep(3)
-        input_parte = self.driver.find_element(By.CSS_SELECTOR, 'input[name="nomeParte"]')
+        input_parte = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[name="nomeParte"]'
+        )
         input_parte.send_keys(self.parte_name)
 
         cpfcnpj = self.driver.find_element(By.CSS_SELECTOR, 'input[name="cpfCnpj"]')
         cpfcnpj.send_keys(self.doc_parte)
 
-        data_inicio = self.driver.find_element(By.CSS_SELECTOR, 'input[id="dataInicio"]')
+        data_inicio = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[id="dataInicio"]'
+        )
         data_inicio.send_keys(data_inicio_xls)
 
         data_fim = self.driver.find_element(By.CSS_SELECTOR, 'input[name="dataFim"]')
         data_fim.send_keys(data_fim_xls)
 
         if self.polo_parte.lower() == "reu":
-            setréu = self.driver.find_element(By.CSS_SELECTOR, 'input[value="promovido"]')
+            setréu = self.driver.find_element(
+                By.CSS_SELECTOR, 'input[value="promovido"]'
+            )
             setréu.click()
 
         elif self.polo_parte.lower() == "autor":
-            setautor = self.driver.find_element(By.CSS_SELECTOR, 'input[value="promovente"')
+            setautor = self.driver.find_element(
+                By.CSS_SELECTOR, 'input[value="promovente"'
+            )
             setautor.click()
 
         procenter = self.driver.find_element(By.ID, "pesquisar")
@@ -247,7 +269,9 @@ class ProjudiSearch(SearchController):
         sleep(3)
 
         with suppress(TimeoutException):
-            enterproc: WebElement = self.wait.until(ec.presence_of_element_located((By.CLASS_NAME, "link")))
+            enterproc: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.CLASS_NAME, "link"))
+            )
 
         if enterproc:
             return True

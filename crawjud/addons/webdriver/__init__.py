@@ -51,7 +51,9 @@ class DriverBot:
         # "--disable-features=VizDisplayCompositor",
     ]
     settings: dict[str, str | list[dict[str, str]] | int] = {
-        "recentDestinations": [{"id": "Save as PDF", "origin": "local", "account": ""}],
+        "recentDestinations": [
+            {"id": "Save as PDF", "origin": "local", "account": ""}
+        ],
         "selectedDestinationId": "Save as PDF",
         "version": 2,
     }
@@ -125,7 +127,9 @@ class DriverBot:
             "download.prompt_for_download": False,
             "plugins.always_open_pdf_externally": True,
             "profile.default_content_settings.popups": 0,
-            "printing.print_preview_sticky_settings.appState": json.dumps(self.settings),
+            "printing.print_preview_sticky_settings.appState": json.dumps(
+                self.settings
+            ),
             "download.default_directory": f"{self.execution_path}",
             "credentials_enable_service": False,
             "profile.password_manager_enabled": False,

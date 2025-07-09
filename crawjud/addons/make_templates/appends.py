@@ -134,7 +134,13 @@ class Listas:
             list[str]: Field names related to sols_pag success.
 
         """
-        return ["MENSAGEM_COMCLUSAO", "TIPO_PGTO", "COMPROVANTE_1", "ID_PGTO", "COMPROVANTE_2"]
+        return [
+            "MENSAGEM_COMCLUSAO",
+            "TIPO_PGTO",
+            "COMPROVANTE_1",
+            "ID_PGTO",
+            "COMPROVANTE_2",
+        ]
 
     @property
     def sucesso(self) -> list[str]:

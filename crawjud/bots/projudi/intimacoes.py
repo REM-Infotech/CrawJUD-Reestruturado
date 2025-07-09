@@ -76,7 +76,12 @@ class Intimacoes(CrawJUD):
 
     def enter_intimacoes(self) -> None:
         """Enter the 'intimações' tab in the Projudi system via script execution."""
-        self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.btn_aba_intimacoes)))
+        self.wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.btn_aba_intimacoes,
+            ))
+        )
         self.driver.execute_script(self.elements.tab_intimacoes_script)
         time.sleep(1)
 
@@ -87,7 +92,9 @@ class Intimacoes(CrawJUD):
             WebElement: The intimações table element.
 
         """
-        return self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, 'div[id="tabprefix1"]')))
+        return self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, 'div[id="tabprefix1"]'))
+        )
 
     def set_page_size(self) -> None:
         """Set the page size for the intimacoes table to 100."""
@@ -110,7 +117,9 @@ class Intimacoes(CrawJUD):
             int: The total number of pages.
 
         """
-        info_count = aba_intimacoes.find_element(By.CSS_SELECTOR, 'div[class="navLeft"]').text.split(" ")[0]
+        info_count = aba_intimacoes.find_element(
+            By.CSS_SELECTOR, 'div[class="navLeft"]'
+        ).text.split(" ")[0]
         info_count = int(info_count)
         calculate = info_count // 100
 
@@ -132,18 +141,24 @@ class Intimacoes(CrawJUD):
         try:
             message = "Buscando intimações..."
             type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )
             name_colunas, intimacoes = self.get_intimacoes(self.aba_initmacoes())
             data = self.get_intimacao_information(name_colunas, intimacoes)
             self.append_success(data, "Intimações extraídas com sucesso!")
 
             if self.total_rows > 1:
-                self.driver.find_element(By.CSS_SELECTOR, 'a[class="arrowNextOn"]').click()
+                self.driver.find_element(
+                    By.CSS_SELECTOR, 'a[class="arrowNextOn"]'
+                ).click()
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
-    def get_intimacao_information(self, name_colunas: list[WebElement], intimacoes: list[WebElement]) -> dict:
+    def get_intimacao_information(
+        self, name_colunas: list[WebElement], intimacoes: list[WebElement]
+    ) -> dict:
         """Extract detailed intimation information from table rows.
 
         Args:
@@ -157,13 +172,21 @@ class Intimacoes(CrawJUD):
         list_data = []
         for item in intimacoes:
             data: dict[str, str] = {}
-            itens: tuple[str] = tuple(item.find_elements(By.TAG_NAME, "td")[0].text.split("\n"))
-            itens2: tuple[str] = tuple(item.find_elements(By.TAG_NAME, "td")[1].text.split("\n"))
-            itens3: tuple[str] = tuple(item.find_elements(By.TAG_NAME, "td")[2].text.split("\n"))
+            itens: tuple[str] = tuple(
+                item.find_elements(By.TAG_NAME, "td")[0].text.split("\n")
+            )
+            itens2: tuple[str] = tuple(
+                item.find_elements(By.TAG_NAME, "td")[1].text.split("\n")
+            )
+            itens3: tuple[str] = tuple(
+                item.find_elements(By.TAG_NAME, "td")[2].text.split("\n")
+            )
 
             message = "Intimação do processo %s encontrada!" % itens[0]
             type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )
 
             with suppress(IndexError):
                 data["NUMERO_PROCESSO"] = itens[0]
@@ -182,7 +205,9 @@ class Intimacoes(CrawJUD):
 
         return list_data
 
-    def get_intimacoes(self, aba_intimacoes: WebElement) -> tuple[list[WebElement], list[WebElement]]:
+    def get_intimacoes(
+        self, aba_intimacoes: WebElement
+    ) -> tuple[list[WebElement], list[WebElement]]:
         """Retrieve the header and row elements from the intimações table.
 
         Args:
@@ -192,9 +217,15 @@ class Intimacoes(CrawJUD):
             tuple: A tuple containing headers and row elements.
 
         """
-        table_intimacoes = aba_intimacoes.find_element(By.CSS_SELECTOR, 'table[class="resultTable"]')
+        table_intimacoes = aba_intimacoes.find_element(
+            By.CSS_SELECTOR, 'table[class="resultTable"]'
+        )
 
-        thead_table = table_intimacoes.find_element(By.TAG_NAME, "thead").find_elements(By.TAG_NAME, "th")
-        tbody_table = table_intimacoes.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
+        thead_table = table_intimacoes.find_element(
+            By.TAG_NAME, "thead"
+        ).find_elements(By.TAG_NAME, "th")
+        tbody_table = table_intimacoes.find_element(
+            By.TAG_NAME, "tbody"
+        ).find_elements(By.TAG_NAME, "tr")
 
         return thead_table, tbody_table

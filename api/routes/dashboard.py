@@ -108,8 +108,12 @@ async def linechart_system() -> Response:
             for key, value in it:
                 numbers = list(value.values())
 
-                background_color = system_colors.get(key.upper(), {}).get("background_color", "#000000")
-                border_color = system_colors.get(key.upper(), {}).get("border_color", "#000000")
+                background_color = system_colors.get(key.upper(), {}).get(
+                    "background_color", "#000000"
+                )
+                border_color = system_colors.get(key.upper(), {}).get(
+                    "border_color", "#000000"
+                )
                 # Se não houver cor definida, gerar nova cor
                 if not system_colors.get(key.upper()):
                     # Gerar cor base
@@ -227,8 +231,12 @@ async def linechart_bot() -> Response:
             for key, value in it:
                 numbers = list(value.values())
 
-                background_color = system_colors.get(key.upper(), {}).get("background_color", "#000000")
-                border_color = system_colors.get(key.upper(), {}).get("border_color", "#000000")
+                background_color = system_colors.get(key.upper(), {}).get(
+                    "background_color", "#000000"
+                )
+                border_color = system_colors.get(key.upper(), {}).get(
+                    "border_color", "#000000"
+                )
                 # Se não houver cor definida, gerar nova cor
                 if not system_colors.get(key):
                     # Gerar cor base

@@ -50,7 +50,9 @@ class GoogleClient:
             Credentials: GCS service account credentials.
 
         """
-        return Credentials.from_service_account_info(json.loads(self.CREDENDIALS)).with_scopes(
+        return Credentials.from_service_account_info(
+            json.loads(self.CREDENDIALS)
+        ).with_scopes(
             ["https://www.googleapis.com/auth/cloud-platform"],
         )
 

@@ -6,14 +6,16 @@ This module defines endpoints for listing, creating, editing, and deleting crede
 
 from pathlib import Path
 from traceback import format_exception
+from typing import TypedDict
 
 import aiofiles
-from flask import abort
 from flask_sqlalchemy import SQLAlchemy
 from quart import (
     Blueprint,
     Response,
+    abort,
     current_app,
+    json,
     jsonify,
     make_response,
     request,
@@ -21,6 +23,7 @@ from quart import (
 from quart import current_app as app
 from quart.datastructures import FileStorage
 from quart_jwt_extended import get_jwt_identity, jwt_required
+from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
 from api import db
@@ -29,7 +32,7 @@ from api.models import BotsCrawJUD, Credentials, LicensesUsers, Users
 cred = Blueprint("creds", __name__)
 
 
-class CredentialsForm:
+class CredentialsForm(TypedDict):
     """
     CredentialsForm is a data container for managing authentication credentials.
 
@@ -47,6 +50,7 @@ class CredentialsForm:
 
     """
 
+    doc_cert: str
     nome_cred: str
     system: str
     auth_method: str
@@ -54,37 +58,6 @@ class CredentialsForm:
     password: str
     cert: FileStorage
     key: str
-
-    def __init__(
-        self,
-        nome_cred: str,
-        system: str,
-        auth_method: str,
-        login: str = None,
-        password: str = None,
-        cert: FileStorage = None,
-        key: str = None,
-    ) -> None:
-        """
-        Initialize a CredentialsForm instance.
-
-        Args:
-            nome_cred (str): The unique name or identifier for the credentials.
-            system (str): The system associated with the credentials.
-            auth_method (str): The authentication method for the credentials.
-            login (Optional[str]): The login username if applicable.
-            password (Optional[str]): The login password if applicable.
-            cert (Optional[FileStorage]): The certificate file for authentication, if required.
-            key (Optional[str]): The key associated with the certificate, if applicable.
-
-        """
-        self.nome_cred = nome_cred
-        self.system = system
-        self.auth_method = auth_method
-        self.login = login
-        self.password = password
-        self.cert = cert
-        self.key = key
 
 
 async def license_user(usr: int, db: SQLAlchemy) -> str:
@@ -122,7 +95,9 @@ async def systems() -> Response:
 
 
     """
-    list_systems: list[dict[str, str]] = [{"value": None, "text": "Escolha um sistema", "disabled": True}]
+    list_systems: list[dict[str, str]] = [
+        {"value": None, "text": "Escolha um sistema", "disabled": True}
+    ]
 
     for item in db.session.query(BotsCrawJUD).all():
         if item.system not in [i["text"] for i in list_systems]:
@@ -152,7 +127,12 @@ async def credentials() -> Response:
         database = db.session.query(Credentials).all()
         if not user.supersu:
             token = user.licenseusr.license_token
-            database = db.session.query(Credentials).join(LicensesUsers).filter_by(license_token=token).all()
+            database = (
+                db.session.query(Credentials)
+                .join(LicensesUsers)
+                .filter_by(license_token=token)
+                .all()
+            )
 
         cred_list = [
             {
@@ -182,7 +162,14 @@ async def cadastro() -> Response:
 
     """
     try:
-        request_data: dict[str, str | None] = await request.form or await request.data or await request.json
+        request_data: MultiDict = (
+            await request.form or await request.data or await request.json
+        )
+
+        if isinstance(request_data, bytes):
+            request_data = request_data.decode()
+            if isinstance(request_data, str):
+                request_data = json.loads(request_data)
 
         action_ = request_data.get("action")
 
@@ -190,22 +177,29 @@ async def cadastro() -> Response:
             cred_id = request_data.get("id")
             db.session.query(Credentials).filter(Credentials.id == cred_id).delete()
             db.session.commit()
-            return await make_response(jsonify(message="Credencial deletada com sucesso!"), 200)
+            return await make_response(
+                jsonify(message="Credencial deletada com sucesso!"), 200
+            )
 
         form = CredentialsForm(**request_data)
 
         async def pw(form: CredentialsForm) -> None:
-            form.system = db.session.query(BotsCrawJUD).filter(BotsCrawJUD.id == int(form.system)).first().system
-
+            form["system"] = (
+                db.session.query(BotsCrawJUD)
+                .filter(BotsCrawJUD.system == form["system"])
+                .first()
+                .system
+            )
             passwd = Credentials(
-                nome_credencial=form.nome_cred,
-                system=form.system,
+                nome_credencial=form["nome_cred"],
+                system=form["system"],
                 login_method=form.auth_method,
                 login=form.login,
                 password=form.password,
             )
             licenseusr = LicensesUsers.query.filter(
-                LicensesUsers.license_token == await license_user(get_jwt_identity(), db),
+                LicensesUsers.license_token
+                == await license_user(get_jwt_identity(), db),
             ).first()
 
             passwd.license_usr = licenseusr
@@ -213,11 +207,20 @@ async def cadastro() -> Response:
             db.session.commit()
 
         async def cert(form: CredentialsForm) -> None:
-            form.system = db.session.query(BotsCrawJUD).filter(BotsCrawJUD.id == form.system).first().system
+            form["system"] = (
+                db.session.query(BotsCrawJUD)
+                .filter(BotsCrawJUD.id == form["system"])
+                .first()
+                .system
+            )
             temporarypath = current_app.config["TEMP_DIR"]
-            filecert = form.cert
+            filecert = form["cert"]
 
-            cer_path = str(Path(temporarypath).resolve().joinpath(secure_filename(filecert.filename)))
+            cer_path = str(
+                Path(temporarypath)
+                .resolve()
+                .joinpath(secure_filename(filecert.filename))
+            )
 
             await filecert.save(cer_path)
 
@@ -225,16 +228,17 @@ async def cadastro() -> Response:
                 certficate_blob = f.read()
 
                 passwd = Credentials(
-                    nome_credencial=form.nome_cred,
-                    system=form.system,
-                    login_method=form.auth_method,
-                    login=form.doc_cert,
-                    key=form.key,
+                    nome_credencial=form["nome_cred"],
+                    system=form["system"],
+                    login_method=form["auth_method"],
+                    login=form["doc_cert"],
+                    key=form["key"],
                     certficate=secure_filename(filecert.filename),
                     certficate_blob=await certficate_blob,
                 )
                 licenseusr = LicensesUsers.query.filter(
-                    LicensesUsers.license_token == await license_user(get_jwt_identity(), db),
+                    LicensesUsers.license_token
+                    == await license_user(get_jwt_identity(), db),
                 ).first()
 
                 passwd.license_usr = licenseusr
@@ -244,7 +248,7 @@ async def cadastro() -> Response:
 
         callables = {"cert": cert, "pw": pw}
 
-        await callables[request_data.get("auth_method")](form)
+        await callables[form["auth_method"]](form)
 
         return await make_response(jsonify(message="Credencial salva com sucesso!"))
 

@@ -90,7 +90,9 @@ async def login() -> Response:
     """
     try:
         db: SQLAlchemy = current_app.extensions["sqlalchemy"]
-        request_json: dict[str, str] = await request.json or await request.form or await request.data
+        request_json: dict[str, str] = (
+            await request.json or await request.form or await request.data
+        )
         if request.method == "OPTIONS":
             return await make_response(jsonify({"message": "OK"}), 200)
 
@@ -98,7 +100,9 @@ async def login() -> Response:
             request_json = json.loads(request_json.decode("utf-8"))
 
         if not request_json:
-            return await make_response(jsonify({"message": "Erro ao efetuar login!"}), 400)
+            return await make_response(
+                jsonify({"message": "Erro ao efetuar login!"}), 400
+            )
 
         username = request_json.get("login", request_json.get("email"))
         password = request_json.get("password")
@@ -107,7 +111,11 @@ async def login() -> Response:
 
         from sqlalchemy import or_
 
-        usr = db.session.query(Users).filter(or_(Users.login == form.login, Users.email == form.login)).first()
+        usr = (
+            db.session.query(Users)
+            .filter(or_(Users.login == form.login, Users.email == form.login))
+            .first()
+        )
         if usr and usr.check_password(form.password):
             access_token = create_access_token(identity=usr)
 
@@ -168,4 +176,6 @@ async def refresh() -> Response:
     new_access_token = create_access_token(identity=current_user)
     new_refresh_token = create_refresh_token(identity=current_user)
 
-    return await make_response(jsonify(access_token=new_access_token, refresh_token=new_refresh_token), 200)
+    return await make_response(
+        jsonify(access_token=new_access_token, refresh_token=new_refresh_token), 200
+    )

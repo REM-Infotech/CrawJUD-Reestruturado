@@ -8,7 +8,9 @@ from typing import Any, Optional
 class UploadableFile:
     """Uploadable File."""
 
-    file: bytes  # Substitua por um tipo mais específico se souber (ex: io.BytesIO, etc)
+    file: (
+        bytes  # Substitua por um tipo mais específico se souber (ex: io.BytesIO, etc)
+    )
     name: str
     id: Optional[Any] = None
     url: Optional[str] = None

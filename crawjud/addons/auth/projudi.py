@@ -32,26 +32,38 @@ class ProjudiAuth(AuthController):
             self.driver.refresh()
 
             username: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.campo_username)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.campo_username,
+                )),
             )
             username.send_keys(self.username)
 
-            password = self.driver.find_element(By.CSS_SELECTOR, self.elements.campo_passwd)
+            password = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.campo_passwd
+            )
             password.send_keys(self.password)
 
-            entrar = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_entrar)
+            entrar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.btn_entrar
+            )
             entrar.click()
 
             check_login = None
 
             with suppress(TimeoutException):
                 check_login = WebDriverWait(self.driver, 10).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.chk_login)),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        self.elements.chk_login,
+                    )),
                 )
 
             alert = None
             with suppress(TimeoutException):
-                alert: type[Alert] = WebDriverWait(self.driver, 5).until(ec.alert_is_present())
+                alert: type[Alert] = WebDriverWait(self.driver, 5).until(
+                    ec.alert_is_present()
+                )
 
             if alert:
                 alert.accept()

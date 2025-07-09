@@ -41,7 +41,9 @@ class PrintMessage:
         """
         return cls(**kwrgs)
 
-    def print_msg(self, message: str, pid: str, row: int, type_log: str = "log") -> None:
+    def print_msg(
+        self, message: str, pid: str, row: int, type_log: str = "log"
+    ) -> None:
         """Print current log message and emit it via the socket.
 
         Uses internal message attributes, logs the formatted string,
@@ -85,4 +87,7 @@ class PrintMessage:
                 sleep(1)
 
         except Exception as e:
-            self.logger.error("Erro ao emitir mensagem: Exception %s", "\n".join(traceback.format_exception_only(e)))
+            self.logger.error(
+                "Erro ao emitir mensagem: Exception %s",
+                "\n".join(traceback.format_exception_only(e)),
+            )

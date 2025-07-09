@@ -19,7 +19,12 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import CadastroParteError, ExecutionError, FileError, SaveError
+from crawjud.exceptions.bot import (
+    CadastroParteError,
+    ExecutionError,
+    FileError,
+    SaveError,
+)
 
 
 class Protocolo(CrawJUD):
@@ -136,8 +141,12 @@ class Protocolo(CrawJUD):
         """
         try:
             try:
-                self.prt.print_log("log", "Processo encontrado! Inicializando peticionamento...")
-                button_peticionamento: WebElement = WebDriverWait(self.driver, 10).until(
+                self.prt.print_log(
+                    "log", "Processo encontrado! Inicializando peticionamento..."
+                )
+                button_peticionamento: WebElement = WebDriverWait(
+                    self.driver, 10
+                ).until(
                     ec.element_to_be_clickable((By.ID, "pbPeticionar")),
                 )
                 link = button_peticionamento.get_attribute("onclick").split("'")[1]
@@ -146,15 +155,23 @@ class Protocolo(CrawJUD):
 
             except Exception:
                 button_enterproc: WebElement = WebDriverWait(self.driver, 5).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, "#processoSelecionado")),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        "#processoSelecionado",
+                    )),
                 )
                 button_enterproc.click()
 
                 enterproc: WebElement = WebDriverWait(self.driver, 5).until(
-                    ec.element_to_be_clickable((By.CSS_SELECTOR, "#botaoEnviarIncidente")),
+                    ec.element_to_be_clickable((
+                        By.CSS_SELECTOR,
+                        "#botaoEnviarIncidente",
+                    )),
                 )
                 enterproc.click()
-                button_peticionamento: WebElement = WebDriverWait(self.driver, 10).until(
+                button_peticionamento: WebElement = WebDriverWait(
+                    self.driver, 10
+                ).until(
                     ec.element_to_be_clickable((By.ID, "pbPeticionar")),
                 )
                 link = button_peticionamento.get_attribute("onclick").split("'")[1]
@@ -182,26 +199,41 @@ class Protocolo(CrawJUD):
             self.interact.sleep_load('div[id="loadFeedback"]')
             self.prt.print_log("log", "Informando tipo de peticionamento")
             button_classification: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.ID, self.elements.editar_classificacao)),
+                ec.presence_of_element_located((
+                    By.ID,
+                    self.elements.editar_classificacao,
+                )),
             )
             self.interact.click(button_classification)
 
             select_tipo_peticao: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.selecionar_classe)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.selecionar_classe,
+                )),
             )
-            select_tipo_peticao = select_tipo_peticao.find_element(By.CSS_SELECTOR, self.elements.toggle)
+            select_tipo_peticao = select_tipo_peticao.find_element(
+                By.CSS_SELECTOR, self.elements.toggle
+            )
             self.interact.click(select_tipo_peticao)
 
             input_tipo_peticao: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.input_classe)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.input_classe,
+                )),
             )
-            self.interact.send_key(input_tipo_peticao, self.bot_data.get("TIPO_PROTOCOLO"))
+            self.interact.send_key(
+                input_tipo_peticao, self.bot_data.get("TIPO_PROTOCOLO")
+            )
             sleep(1.5)
             self.interact.send_key(input_tipo_peticao, Keys.ENTER)
 
         except Exception as e:
             raise ExecutionError(
-                message="Erro ao informar tipo de protocolo", bot_execution_id=self.pid, exception=e
+                message="Erro ao informar tipo de protocolo",
+                bot_execution_id=self.pid,
+                exception=e,
             ) from e
 
     def set_subtipo_protocolo(self) -> None:
@@ -218,18 +250,31 @@ class Protocolo(CrawJUD):
         try:
             self.prt.print_log("log", "Informando subtipo de peticionamento")
             select_categoria_peticao: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.select_categoria)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.select_categoria,
+                )),
             )
-            select_categoria_peticao = select_categoria_peticao.find_element(By.CSS_SELECTOR, self.elements.toggle)
+            select_categoria_peticao = select_categoria_peticao.find_element(
+                By.CSS_SELECTOR, self.elements.toggle
+            )
             self.interact.click(select_categoria_peticao)
 
             input_categoria_peticao: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.input_categoria)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.input_categoria,
+                )),
             )
-            self.interact.send_key(input_categoria_peticao, self.bot_data.get("SUBTIPO_PROTOCOLO"))
+            self.interact.send_key(
+                input_categoria_peticao, self.bot_data.get("SUBTIPO_PROTOCOLO")
+            )
 
             input_categoria_peticao_option: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.XPATH, self.elements.selecionar_grupo)),
+                ec.presence_of_element_located((
+                    By.XPATH,
+                    self.elements.selecionar_grupo,
+                )),
             )
             input_categoria_peticao_option.click()
             sleep(1)
@@ -255,7 +300,10 @@ class Protocolo(CrawJUD):
         try:
             self.prt.print_log("log", "Anexando petição")
             input_file: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.input_documento)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.input_documento,
+                )),
             )
             sleep(2)
 
@@ -274,16 +322,23 @@ class Protocolo(CrawJUD):
             file_uploaded = ""
             with suppress(TimeoutException):
                 file_uploaded: WebElement = WebDriverWait(self.driver, 25).until(
-                    ec.presence_of_element_located((By.XPATH, self.elements.documento)),
+                    ec.presence_of_element_located((
+                        By.XPATH,
+                        self.elements.documento,
+                    )),
                 )
 
             if file_uploaded == "":
-                raise FileError(message="Erro ao enviar petição", bot_execution_id=self.pid)
+                raise FileError(
+                    message="Erro ao enviar petição", bot_execution_id=self.pid
+                )
 
             self.prt.print_log("log", "Petição do processo anexada com sucesso")
 
         except Exception as e:
-            raise FileError(message="Erro ao enviar petição", bot_execution_id=self.pid) from e
+            raise FileError(
+                message="Erro ao enviar petição", bot_execution_id=self.pid
+            ) from e
 
     def vincular_parte(self) -> None:
         """Link party to petition.
@@ -300,18 +355,25 @@ class Protocolo(CrawJUD):
             parte_peticao = self.bot_data.get("PARTE_PETICIONANTE").__str__().lower()
             self.prt.print_log("log", "Vinculando parte a petição...")
             partes: WebElement = self.wait.until(
-                ec.presence_of_all_elements_located((By.CSS_SELECTOR, self.elements.processo_view)),
+                ec.presence_of_all_elements_located((
+                    By.CSS_SELECTOR,
+                    self.elements.processo_view,
+                )),
             )
             if partes:
                 for parte in partes:
                     parte: WebElement = parte
-                    parte_name = parte.find_element(By.CSS_SELECTOR, self.elements.nome).text.lower()
+                    parte_name = parte.find_element(
+                        By.CSS_SELECTOR, self.elements.nome
+                    ).text.lower()
                     if parte_name == parte_peticao:
                         sleep(3)
 
                         incluir_button = None
                         with suppress(NoSuchElementException):
-                            incluir_button = parte.find_element(By.CSS_SELECTOR, self.elements.botao_incluir_peticao)
+                            incluir_button = parte.find_element(
+                                By.CSS_SELECTOR, self.elements.botao_incluir_peticao
+                            )
 
                         if not incluir_button:
                             with suppress(NoSuchElementException):
@@ -327,16 +389,26 @@ class Protocolo(CrawJUD):
                         break
 
                     if parte_name != parte_peticao:
-                        partes = self.driver.find_elements(By.CSS_SELECTOR, self.elements.parte_view)
+                        partes = self.driver.find_elements(
+                            By.CSS_SELECTOR, self.elements.parte_view
+                        )
                         for parte in partes:
-                            parte_name = parte.find_element(By.CSS_SELECTOR, self.elements.nome).text.lower()
+                            parte_name = parte.find_element(
+                                By.CSS_SELECTOR, self.elements.nome
+                            ).text.lower()
                             if parte_name == parte_peticao.lower():
-                                self.prt.print_log("log", "Parte já vinculada, finalizando peticionamento...")
+                                self.prt.print_log(
+                                    "log",
+                                    "Parte já vinculada, finalizando peticionamento...",
+                                )
                                 sleep(0.3)
                                 break
 
             elif not partes:
-                raise CadastroParteError(message="Não foi possivel vincular parte a petição", bot_execution_id=self.pid)
+                raise CadastroParteError(
+                    message="Não foi possivel vincular parte a petição",
+                    bot_execution_id=self.pid,
+                )
 
         except Exception as e:
             raise ExecutionError(
@@ -353,13 +425,18 @@ class Protocolo(CrawJUD):
         """
         self.prt.print_log("log", "Finalizando...")
 
-        finish_button = self.driver.find_element(By.XPATH, self.elements.botao_protocolar)
+        finish_button = self.driver.find_element(
+            By.XPATH, self.elements.botao_protocolar
+        )
         sleep(1)
         finish_button.click()
         sleep(5)
 
         confirm_button: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.botao_confirmar)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.botao_confirmar,
+            )),
         )
         confirm_button.click()
 
@@ -379,18 +456,25 @@ class Protocolo(CrawJUD):
         """
         try:
             getlinkrecibo: WebElement = WebDriverWait(self.driver, 60).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.botao_recibo)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.botao_recibo,
+                )),
             )
 
             sleep(3)
 
             name_recibo = f"Recibo Protocolo - {self.bot_data.get('NUMERO_PROCESSO')} - PID {self.pid}.pdf"
-            self.driver.get_screenshot_as_file(f"{self.output_dir_path}/{name_recibo.replace('.pdf', '.png')}")
+            self.driver.get_screenshot_as_file(
+                f"{self.output_dir_path}/{name_recibo.replace('.pdf', '.png')}"
+            )
 
             getlinkrecibo.click()
 
             path = os.path.join(self.output_dir_path, name_recibo)
-            pathpdf = os.path.join(Path(self.path_args).parent.resolve(), "recibo.pdf")
+            pathpdf = os.path.join(
+                Path(self.path_args).parent.resolve(), "recibo.pdf"
+            )
 
             while True:
                 if os.path.exists(pathpdf):
@@ -405,4 +489,8 @@ class Protocolo(CrawJUD):
             ]
 
         except Exception as e:
-            raise SaveError(message="Erro ao confirmar protocolo", exception=e, bot_execution_id=self.pid) from e
+            raise SaveError(
+                message="Erro ao confirmar protocolo",
+                exception=e,
+                bot_execution_id=self.pid,
+            ) from e

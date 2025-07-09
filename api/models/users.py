@@ -96,16 +96,22 @@ class Users(db.Model):
     nome_usuario: str = db.Column(db.String(length=64), nullable=False, unique=True)
     email: str = db.Column(db.String(length=50), nullable=False, unique=True)
     password: str = db.Column(db.String(length=60), nullable=False)
-    login_time = db.Column(db.DateTime, default=datetime.now(pytz.timezone("Etc/GMT+4")))
+    login_time = db.Column(
+        db.DateTime, default=datetime.now(pytz.timezone("Etc/GMT+4"))
+    )
     verification_code: str = db.Column(db.String(length=45), unique=True)
-    login_id: str = db.Column(db.String(length=64), nullable=False, default=str(uuid4()))
+    login_id: str = db.Column(
+        db.String(length=64), nullable=False, default=str(uuid4())
+    )
     filename: str = db.Column(db.String(length=128))
     blob_doc = db.Column(db.LargeBinary(length=(2**32) - 1))
 
     licenseus_id: int = db.Column(db.Integer, db.ForeignKey("licenses_users.id"))
     licenseusr = db.relationship("LicensesUsers", backref="user")
 
-    def __init__(self, login: str = None, nome_usuario: str = None, email: str = None) -> None:
+    def __init__(
+        self, login: str = None, nome_usuario: str = None, email: str = None
+    ) -> None:
         """
         Initialize a new user instance.
 
@@ -152,7 +158,9 @@ class Users(db.Model):
             bool: True if valid, False otherwise.
 
         """
-        return bcrypt.checkpw(senha_texto_claro.encode("utf-8"), self.password.encode("utf-8"))
+        return bcrypt.checkpw(
+            senha_texto_claro.encode("utf-8"), self.password.encode("utf-8")
+        )
 
     @property
     def dict_query(self) -> dict[str, str | int]:

@@ -92,11 +92,15 @@ class Movimentacao(CrawJUD):
         search = self.search_bot.search(self.bot_data)
 
         if search is not True:
-            raise ProcNotFoundError(message="Processo não encontrado!", bot_execution_id=self.pid)
+            raise ProcNotFoundError(
+                message="Processo não encontrado!", bot_execution_id=self.pid
+            )
 
         message = "Buscando movimentações"
         type_log = "log"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
         self.setup_config()
 
@@ -116,7 +120,12 @@ class Movimentacao(CrawJUD):
     def set_page_size(self) -> None:
         """Set the page size of the movement table to 1000."""
         select = Select(
-            self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.select_page_size))),
+            self.wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.select_page_size,
+                ))
+            ),
         )
         select.select_by_value("1000")
 
@@ -132,7 +141,9 @@ class Movimentacao(CrawJUD):
         self.set_page_size()
         self.set_tablemoves()
 
-        keyword = self.bot_data.get("PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*"))
+        keyword = self.bot_data.get(
+            "PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*")
+        )
 
         if keyword != "*":
             keywords.extend(keyword.split(",") if "," in keyword else [keyword])
@@ -145,7 +156,9 @@ class Movimentacao(CrawJUD):
             encontrado = self.scrap_moves(keyword)
 
         if encontrado is False:
-            raise MoveNotFoundError(message="Nenhuma movimentação encontrada", bot_execution_id=self.pid)
+            raise MoveNotFoundError(
+                message="Nenhuma movimentação encontrada", bot_execution_id=self.pid
+            )
 
     def filter_moves(self, move: WebElement) -> bool:
         """Filter a movement element based on given date and keyword criteria.
@@ -251,7 +264,10 @@ class Movimentacao(CrawJUD):
                     keyword.lower() == text_mov.split("\n")[0].lower(),
                     keyword.lower() == text_mov.lower(),
                     keyword.lower() in text_mov.lower(),
-                    self.similaridade(keyword.lower(), text_mov.split("\n")[0].lower()) > 0.8,
+                    self.similaridade(
+                        keyword.lower(), text_mov.split("\n")[0].lower()
+                    )
+                    > 0.8,
                 ]
             )
 
@@ -278,7 +294,11 @@ class Movimentacao(CrawJUD):
 
             return intimado_chk
 
-        resultados = all([data_check(data_mov), text_check(text_mov), check_intimado()])
+        resultados = all([
+            data_check(data_mov),
+            text_check(text_mov),
+            check_intimado(),
+        ])
 
         return resultados
 
@@ -308,7 +328,9 @@ class Movimentacao(CrawJUD):
 
         message_.append(f'\nPALAVRA_CHAVE: <span class="fw-bold">{keyword}</span>')
         if data_inicio:
-            message_.append(f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>')
+            message_.append(
+                f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>'
+            )
         if data_fim:
             message_.append(f'\nDATA_FIM: <span class="fw-bold">{data_fim}</span>')
 
@@ -336,18 +358,27 @@ class Movimentacao(CrawJUD):
         message = "".join(message_)
 
         type_log = "info"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
         """ Checagens dentro do Loop de movimentações """
 
         def check_others(text_mov: str) -> tuple[bool, bool, str, bool, bool]:
-            save_another_file = str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
+            save_another_file = (
+                str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
+            )
 
             mov = ""
             mov_chk = False
-            trazer_teor = str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
+            trazer_teor = (
+                str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
+            )
 
-            patterns = [r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)", r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)"]
+            patterns = [
+                r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)",
+                r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)",
+            ]
             for pattern in patterns:
                 match = re.match(pattern, text_mov)
 
@@ -368,7 +399,9 @@ class Movimentacao(CrawJUD):
             data_mov = str(itensmove[2].text.split(" ")[0]).replace(" ", "")
 
             """ Outros Checks """
-            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(text_mov)
+            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(
+                text_mov
+            )
 
             nome_mov = str(itensmove[3].find_element(By.TAG_NAME, "b").text)
             movimentador = itensmove[4].text
@@ -412,7 +445,9 @@ class Movimentacao(CrawJUD):
             message = "".join(ms_)
 
             type_log = "info"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )
 
             self.appends.append(data)
 
@@ -449,7 +484,9 @@ class Movimentacao(CrawJUD):
         """
         expand = None
         with suppress(NoSuchElementException):
-            self.expand_btn = move.find_element(By.CSS_SELECTOR, self.elements.expand_btn_projudi)
+            self.expand_btn = move.find_element(
+                By.CSS_SELECTOR, self.elements.expand_btn_projudi
+            )
 
             expand = self.expand_btn
 
@@ -490,7 +527,9 @@ class Movimentacao(CrawJUD):
         id_tr = expandattrib.replace("linkArquivos", "row")
         css_tr = f'tr[id="{id_tr}"]'
 
-        table_docs: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)))
+        table_docs: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr))
+        )
         style_expand = table_docs.get_attribute("style")
 
         if style_expand == "display: none;":
@@ -501,7 +540,9 @@ class Movimentacao(CrawJUD):
         text_doc_1 = ""
 
         sleep(2)
-        table_docs: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)))
+        table_docs: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr))
+        )
         rows = table_docs.find_elements(By.TAG_NAME, "tr")
         rows_reverse = rows[::-1]
         max_rows = len(rows) - 1
@@ -522,10 +563,15 @@ class Movimentacao(CrawJUD):
             url = link_doc.get_attribute("href")
 
             # Get cookies from ChromeDriver session
-            cookies = {cookie["name"]: cookie["value"] for cookie in self.driver.get_cookies()}
+            cookies = {
+                cookie["name"]: cookie["value"]
+                for cookie in self.driver.get_cookies()
+            }
 
             # Download using requests
-            response = requests.get(url, cookies=cookies, allow_redirects=True, timeout=60)
+            response = requests.get(
+                url, cookies=cookies, allow_redirects=True, timeout=60
+            )
 
             if response.status_code == 200:
                 with open(path_pdf, "wb") as f:
@@ -555,7 +601,10 @@ class Movimentacao(CrawJUD):
 
             text_mov = self.openfile(path_pdf)
 
-            if str(self.bot_data.get("TRAZER_PDF", "NÃO")).upper() == "NÃO" or pos < max_rows:
+            if (
+                str(self.bot_data.get("TRAZER_PDF", "NÃO")).upper() == "NÃO"
+                or pos < max_rows
+            ):
                 sleep(1)
                 Path(path_pdf).unlink(missing_ok=True)
 
@@ -574,7 +623,11 @@ class Movimentacao(CrawJUD):
                     " foram salvos em uma planilha separada",
                 )
 
-                self.another_append.append((data, "".join(msg), f"{self.pid} - Info_Mov_Docs.xlsx"))
+                self.another_append.append((
+                    data,
+                    "".join(msg),
+                    f"{self.pid} - Info_Mov_Docs.xlsx",
+                ))
 
             if pos == max_rows:
                 text_doc_1 = text_mov
@@ -606,4 +659,6 @@ class Movimentacao(CrawJUD):
     def set_tablemoves(self) -> None:
         """Locate the movement table and assign its elements to self.table_moves."""
         table_moves = self.driver.find_element(By.CLASS_NAME, "resultTable")
-        self.table_moves = table_moves.find_elements(By.XPATH, self.elements.table_moves)
+        self.table_moves = table_moves.find_elements(
+            By.XPATH, self.elements.table_moves
+        )

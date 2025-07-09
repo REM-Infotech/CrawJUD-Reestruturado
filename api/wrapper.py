@@ -14,7 +14,10 @@ def verify_jwt_websocket(func: Callable) -> WrappedFnReturnT:  # noqa: ANN001, D
     async def decorated_function(*args, **kwargs) -> Any:  # noqa: ANN002, ANN003, ANN202
         valid = False
         with suppress(Exception):
-            decode_token(request.cookies["access_token_cookie"], request.cookies["X-Xsrf-Token"])
+            decode_token(
+                request.cookies["access_token_cookie"],
+                request.cookies["X-Xsrf-Token"],
+            )
             valid = True
 
         if not valid:

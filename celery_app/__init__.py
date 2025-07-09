@@ -42,7 +42,9 @@ def config_loggers(
     if getenv("DEBUG", "False").lower() == "true":
         log_level = logging.DEBUG
 
-    config, _ = dict_config(LOG_LEVEL=log_level, LOGGER_NAME=logger_name, FILELOG_PATH=log_file)
+    config, _ = dict_config(
+        LOG_LEVEL=log_level, LOGGER_NAME=logger_name, FILELOG_PATH=log_file
+    )
 
     dictConfig(config)
     # Alter the Celery logger using the provided logger from kwargs if available.

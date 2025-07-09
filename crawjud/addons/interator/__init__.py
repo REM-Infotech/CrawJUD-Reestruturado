@@ -103,7 +103,9 @@ class Interact:
             bool: True if the selection is successful; otherwise, raises NotFoundError.
 
         """
-        itens: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, elemento)))
+        itens: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, elemento))
+        )
 
         self.display_none(itens)
         sleep(0.5)
@@ -112,17 +114,23 @@ class Interact:
             itens = list(
                 filter(
                     lambda item: not item.text.isupper(),
-                    itens.find_element(By.CSS_SELECTOR, "ul").find_elements(By.TAG_NAME, "li"),
+                    itens.find_element(By.CSS_SELECTOR, "ul").find_elements(
+                        By.TAG_NAME, "li"
+                    ),
                 ),
             )
 
         elif text.isupper():
-            itens = itens.find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
+            itens = itens.find_element(By.TAG_NAME, "ul").find_elements(
+                By.TAG_NAME, "li"
+            )
 
         item = next(filter(lambda item: text == item.text, itens), None)
 
         if not item:
-            raise NotFoundError(message=f'Item "{text}" não encontrado!', bot_execution_id=self.pid)
+            raise NotFoundError(
+                message=f'Item "{text}" não encontrado!', bot_execution_id=self.pid
+            )
 
         action = ActionChains(self.driver)
         action.double_click(item).perform()
@@ -167,7 +175,12 @@ class Interact:
                     break
 
                 if aria_value is None or any(
-                    value == aria_value for value in ["off", "true", "spinner--fullpage spinner--fullpage--show"]
+                    value == aria_value
+                    for value in [
+                        "off",
+                        "true",
+                        "spinner--fullpage spinner--fullpage--show",
+                    ]
                 ):
                     break
 
@@ -241,7 +254,9 @@ class Interact:
             to_search_elaw (str): The option text to search and select.
 
         """
-        selector: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, element_select)))
+        selector: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, element_select))
+        )
 
         items = selector.find_elements(By.TAG_NAME, "option")
         opt_itens: dict[str, str] = {}

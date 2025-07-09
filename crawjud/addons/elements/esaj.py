@@ -93,7 +93,9 @@ class ESAJ_AM(Configuracao):  # noqa: N801
         ),
     )
 
-    get_page_custas_pagas = 'button[class="btn btn-secondary btn-space linkConsultaSG"]'
+    get_page_custas_pagas = (
+        'button[class="btn btn-secondary btn-space linkConsultaSG"]'
+    )
 
     consultaproc_grau1 = "https://consultasaj.tjam.jus.br/cpopg/open.do"
     consultaproc_grau2 = "https://consultasaj.tjam.jus.br/cposgcr/open.do"
@@ -152,7 +154,9 @@ class ESAJ_AM(Configuracao):  # noqa: N801
     movimentacoes = 'tbody[id="tabelaTodasMovimentacoes"]'
     ultimas_movimentacoes = "tabelaUltimasMovimentacoes"
     editar_classificacao = "botaoEditarClassificacao"
-    selecionar_classe = 'div.ui-select-container[input-id="selectClasseIntermediaria"]'
+    selecionar_classe = (
+        'div.ui-select-container[input-id="selectClasseIntermediaria"]'
+    )
     toggle = "span.btn.btn-default.form-control.ui-select-toggle"
     input_classe = "input#selectClasseIntermediaria"
     select_categoria = 'div.ui-select-container[input-id="selectCategoria"]'
@@ -162,11 +166,17 @@ class ESAJ_AM(Configuracao):  # noqa: N801
     documento = '//nav[@class="document-data__nav"]/div/ul/li[5]/button[2]'
     processo_view = 'div[ui-view="parteProcessoView"]'
     nome = 'span[ng-bind="parte.nome"]'
-    botao_incluir_peticao = 'button[ng-click="incluirParteDoProcessoPeticaoDiversa(parte)"]'
-    botao_incluir_partecontraria = 'button[ng-click="incluirParteDoProcessoNoPoloContrario(parte)"]'
+    botao_incluir_peticao = (
+        'button[ng-click="incluirParteDoProcessoPeticaoDiversa(parte)"]'
+    )
+    botao_incluir_partecontraria = (
+        'button[ng-click="incluirParteDoProcessoNoPoloContrario(parte)"]'
+    )
     parte_view = 'div[ui-view="parteView"]'
     botao_protocolar = '//*[@id="botaoProtocolar"]'
     botao_confirmar = "div.popover-content button.confirm-button"
     botao_recibo = 'button[ng-click="consultarReciboPeticao(peticao)"]'
 
-    table_moves = './/tr[contains(@class, "fundoClaro") or contains(@class, "fundoEscuro")]'
+    table_moves = (
+        './/tr[contains(@class, "fundoClaro") or contains(@class, "fundoEscuro")]'
+    )

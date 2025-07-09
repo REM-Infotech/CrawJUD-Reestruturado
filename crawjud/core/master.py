@@ -107,7 +107,12 @@ class Controller:
 
         """
         try:
-            with Path(__file__).parent.resolve().joinpath("data_formatters", "cities_amazonas.json").open("r") as f:
+            with (
+                Path(__file__)
+                .parent.resolve()
+                .joinpath("data_formatters", "cities_amazonas.json")
+                .open("r") as f
+            ):
                 self._cities_am = json.loads(f.read())
 
             self.is_stoped = False
@@ -176,7 +181,9 @@ class Controller:
 
     def configure_webdriver(self) -> None:
         """Instancia o WebDriver."""
-        driverbot = DriverBot(self.preferred_browser, execution_path=self.output_dir_path)()
+        driverbot = DriverBot(
+            self.preferred_browser, execution_path=self.output_dir_path
+        )()
         self.driver = driverbot[0]
         self.wait = driverbot[1]
 
@@ -184,11 +191,15 @@ class Controller:
         """Configura o logger."""
         log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
 
-        config, logger_name = dict_config(LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path)
+        config, logger_name = dict_config(
+            LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path
+        )
         logging.config.dictConfig(config)
 
         self.logger = logging.getLogger(logger_name)
-        self.prt = PrintMessage.constructor(logger=self.logger, total_rows=self.total_rows)
+        self.prt = PrintMessage.constructor(
+            logger=self.logger, total_rows=self.total_rows
+        )
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""

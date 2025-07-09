@@ -158,7 +158,9 @@ async def users() -> Response:
 
         if request.method == "POST":
             try:
-                form_data = await request.json or await request.data or await request.form
+                form_data = (
+                    await request.json or await request.data or await request.form
+                )
 
                 form = {}
                 form.update(form_data)
@@ -184,7 +186,9 @@ async def users() -> Response:
             data = []
 
             database = (
-                db.session.query(Users).join(LicensesUsers).filter_by(license_token=user.licenseusr.license_token)
+                db.session.query(Users)
+                .join(LicensesUsers)
+                .filter_by(license_token=user.licenseusr.license_token)
             )
 
             for item in database:

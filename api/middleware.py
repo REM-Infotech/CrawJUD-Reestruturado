@@ -31,7 +31,12 @@ class ProxyFixMiddleware:  # noqa: D101
 
             if (
                 self.mode == "modern"
-                and (value := _get_trusted_value(b"forwarded", headers, self.trusted_hops)) is not None
+                and (
+                    value := _get_trusted_value(
+                        b"forwarded", headers, self.trusted_hops
+                    )
+                )
+                is not None
             ):
                 for part in value.split(";"):
                     if part.startswith("for="):
@@ -42,9 +47,15 @@ class ProxyFixMiddleware:  # noqa: D101
                         scheme = part[6:].strip()
 
             else:
-                client = _get_trusted_value(b"x-forwarded-for", headers, self.trusted_hops)
-                scheme = _get_trusted_value(b"x-forwarded-proto", headers, self.trusted_hops)
-                host = _get_trusted_value(b"x-forwarded-host", headers, self.trusted_hops)
+                client = _get_trusted_value(
+                    b"x-forwarded-for", headers, self.trusted_hops
+                )
+                scheme = _get_trusted_value(
+                    b"x-forwarded-proto", headers, self.trusted_hops
+                )
+                host = _get_trusted_value(
+                    b"x-forwarded-host", headers, self.trusted_hops
+                )
 
             if client is not None:
                 scope["client"] = (client, 0)
@@ -53,21 +64,29 @@ class ProxyFixMiddleware:  # noqa: D101
                 scope["scheme"] = scheme
 
             if host is not None:
-                headers = [(name, header_value) for name, header_value in headers if name.lower() != b"host"]
+                headers = [
+                    (name, header_value)
+                    for name, header_value in headers
+                    if name.lower() != b"host"
+                ]
                 headers.append((b"host", host.encode()))
                 scope["headers"] = headers
 
         await self.app(scope, receive, send)
 
 
-def _get_trusted_value(name: bytes, headers: Iterable[tuple[bytes, bytes]], trusted_hops: int) -> str | None:
+def _get_trusted_value(
+    name: bytes, headers: Iterable[tuple[bytes, bytes]], trusted_hops: int
+) -> str | None:
     if trusted_hops == 0:
         return None
 
     values = []
     for header_name, header_value in headers:
         if header_name.lower() == name:
-            values.extend([value.decode("latin1").strip() for value in header_value.split(b",")])
+            values.extend([
+                value.decode("latin1").strip() for value in header_value.split(b",")
+            ])
 
     if len(values) >= trusted_hops:
         return values[-trusted_hops]

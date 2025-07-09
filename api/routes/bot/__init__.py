@@ -35,7 +35,14 @@ bot = Blueprint("bot", __name__, url_prefix="/bot")
 FORM_CONFIGURATOR = {
     "JURIDICO": {
         "only_auth": ["creds", "state", "periodic_task", "periodic_task_group"],
-        "file_auth": ["xlsx", "creds", "state", "confirm_fields", "periodic_task", "periodic_task_group"],
+        "file_auth": [
+            "xlsx",
+            "creds",
+            "state",
+            "confirm_fields",
+            "periodic_task",
+            "periodic_task_group",
+        ],
         "multipe_files": [
             "xlsx",
             "creds",
@@ -45,8 +52,22 @@ FORM_CONFIGURATOR = {
             "periodic_task",
             "periodic_task_group",
         ],
-        "only_file": ["xlsx", "state", "confirm_fields", "periodic_task", "periodic_task_group"],
-        "pautas": ["data_inicio", "data_fim", "creds", "state", "varas", "periodic_task", "periodic_task_group"],
+        "only_file": [
+            "xlsx",
+            "state",
+            "confirm_fields",
+            "periodic_task",
+            "periodic_task_group",
+        ],
+        "pautas": [
+            "data_inicio",
+            "data_fim",
+            "creds",
+            "state",
+            "varas",
+            "periodic_task",
+            "periodic_task_group",
+        ],
         "proc_parte": [
             "parte_name",
             "doc_parte",
@@ -61,7 +82,14 @@ FORM_CONFIGURATOR = {
         ],
     },
     "ADMINISTRATIVO": {
-        "file_auth": ["xlsx", "creds", "client", "confirm_fields", "periodic_task", "periodic_task_group"],
+        "file_auth": [
+            "xlsx",
+            "creds",
+            "client",
+            "confirm_fields",
+            "periodic_task",
+            "periodic_task_group",
+        ],
         "multipe_files": [
             "xlsx",
             "creds",

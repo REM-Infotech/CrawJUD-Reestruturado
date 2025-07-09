@@ -32,33 +32,48 @@ class EsajAuth(AuthController):
 
         """
         try:
-            loginuser = "".join(filter(lambda x: x not in string.punctuation, self.username))
+            loginuser = "".join(
+                filter(lambda x: x not in string.punctuation, self.username)
+            )
             passuser = self.password
             if self.login_method == "cert":
                 self.driver.get(self.elements.url_login_cert)
                 sleep(3)
                 loginopt: WebElement = self.wait.until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, 'select[id="certificados"]')),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        'select[id="certificados"]',
+                    )),
                 )
                 loginopt = loginopt.find_elements(By.TAG_NAME, "option")
 
                 item = None
 
                 try:
-                    item = next(filter(lambda item: loginuser in item.text, loginopt), None)
+                    item = next(
+                        filter(lambda item: loginuser in item.text, loginopt), None
+                    )
 
                 except Exception as e:
                     raise e
                 if item:
                     try:
                         sencert = item.get_attribute("value")
-                        select = Select(self.driver.find_element(By.CSS_SELECTOR, 'select[id="certificados"]'))
+                        select = Select(
+                            self.driver.find_element(
+                                By.CSS_SELECTOR, 'select[id="certificados"]'
+                            )
+                        )
                         select.select_by_value(sencert)
-                        entrar = self.driver.find_element(By.XPATH, '//*[@id="submitCertificado"]')
+                        entrar = self.driver.find_element(
+                            By.XPATH, '//*[@id="submitCertificado"]'
+                        )
                         entrar.click()
                         sleep(2)
 
-                        user_accept_cert_dir = os.path.join(self.path_accepted, "ACCEPTED")
+                        user_accept_cert_dir = os.path.join(
+                            self.path_accepted, "ACCEPTED"
+                        )
                         if not os.path.exists(user_accept_cert_dir):
                             self.accept_cert(user_accept_cert_dir)
 
@@ -87,21 +102,30 @@ class EsajAuth(AuthController):
             self.driver.get(self.elements.url_login)
             sleep(3)
 
-            userlogin = self.driver.find_element(By.CSS_SELECTOR, self.elements.campo_username)
+            userlogin = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.campo_username
+            )
             userlogin.click()
             userlogin.send_keys(loginuser)
 
-            userpass = self.driver.find_element(By.CSS_SELECTOR, self.elements.campo_passwd)
+            userpass = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.campo_passwd
+            )
             userpass.click()
             userpass.send_keys(passuser)
-            entrar = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_entrar)
+            entrar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.btn_entrar
+            )
             entrar.click()
             sleep(2)
 
             checkloged = None
             with suppress(TimeoutException):
                 checkloged = WebDriverWait(self.driver, 15).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.chk_login)),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        self.elements.chk_login,
+                    )),
                 )
 
             return checkloged is not None

@@ -51,18 +51,24 @@ class EsajSearch(SearchController):
 
         sleep(1)
         # Coloca o campo em formato "Outros" para inserir o número do processo
-        ratioNumberOld: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, "radioNumeroAntigo")))  # noqa: N806
+        ratioNumberOld: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.ID, "radioNumeroAntigo"))
+        )  # noqa: N806
         self.interact.click(ratioNumberOld)
 
         # Insere o processo no Campo
-        lineprocess: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, "nuProcessoAntigoFormatado")))
+        lineprocess: WebElement = self.wait.until(
+            ec.presence_of_element_located((By.ID, "nuProcessoAntigoFormatado"))
+        )
         self.interact.click(lineprocess)
         self.interact.send_key(lineprocess, self.bot_data.get("NUMERO_PROCESSO"))
 
         # Abre o Processo
         openprocess = None
         with suppress(TimeoutException):
-            openprocess: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, id_consultar)))
+            openprocess: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.ID, id_consultar))
+            )
             self.interact.click(openprocess)
 
         check_process = None
@@ -75,7 +81,10 @@ class EsajSearch(SearchController):
         if not check_process:
             with suppress(NoSuchElementException, TimeoutException):
                 check_process: WebElement = WebDriverWait(self.driver, 5).until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, 'div[id="listagemDeProcessos"]')),
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        'div[id="listagemDeProcessos"]',
+                    )),
                 )
 
                 if check_process:
@@ -93,13 +102,18 @@ class EsajSearch(SearchController):
             with suppress(NoSuchElementException, TimeoutException):
                 check_process: WebElement = WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located(
-                        (By.CSS_SELECTOR, 'div.modal__process-choice > input[type="radio"]'),
+                        (
+                            By.CSS_SELECTOR,
+                            'div.modal__process-choice > input[type="radio"]',
+                        ),
                     ),
                 )
 
                 if check_process:
                     check_process.click()
-                    btEnviarIncidente = self.driver.find_element(By.CSS_SELECTOR, 'input[name="btEnviarIncidente"]')  # noqa: N806
+                    btEnviarIncidente = self.driver.find_element(
+                        By.CSS_SELECTOR, 'input[name="btEnviarIncidente"]'
+                    )  # noqa: N806
                     btEnviarIncidente.click()
 
         return check_process is not None

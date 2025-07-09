@@ -26,9 +26,24 @@ class PjeAuth(AuthController):
         try:
             self.driver.get(self.elements.url_login)
 
-            login = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.login_input)))
-            password = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.password_input)))
-            entrar = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.btn_entrar)))
+            login = self.wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.login_input,
+                ))
+            )
+            password = self.wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.password_input,
+                ))
+            )
+            entrar = self.wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.btn_entrar,
+                ))
+            )
 
             login.send_keys(self.username)
             sleep(0.5)
@@ -38,7 +53,9 @@ class PjeAuth(AuthController):
 
             logado = None
             with suppress(TimeoutException):
-                logado = WebDriverWait(self.driver, 10).until(ec.url_to_be(self.elements.chk_login))
+                logado = WebDriverWait(self.driver, 10).until(
+                    ec.url_to_be(self.elements.chk_login)
+                )
 
             return logado is not None
 

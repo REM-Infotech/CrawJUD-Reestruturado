@@ -25,13 +25,19 @@ class ElawAuth(AuthController):
             self.driver.get("https://amazonas.elaw.com.br/login")
 
             # wait until page load
-            username: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, "username")))
+            username: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.ID, "username"))
+            )
             username.send_keys(self.username)
 
-            password: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, "#password")))
+            password: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, "#password"))
+            )
             password.send_keys(self.password)
 
-            entrar: WebElement = self.wait.until(ec.presence_of_element_located((By.ID, "j_id_a_1_5_f")))
+            entrar: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.ID, "j_id_a_1_5_f"))
+            )
             entrar.click()
 
             sleep(7)

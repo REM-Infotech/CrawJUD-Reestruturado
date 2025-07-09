@@ -13,13 +13,19 @@ class FileService:
     async def save_file(self) -> None:
         """Salva um arquivo enviado para o diretório temporário especificado."""
         file_data = await request.files
-        path_temp = (await Path(__file__).cwd()).joinpath("temp", file_data.get("id_temp"))
+        path_temp = (await Path(__file__).cwd()).joinpath(
+            "temp", file_data.get("id_temp")
+        )
         for _, v in list(file_data.items()):
             value: FileStorage = v
             await value.save(path_temp)
 
     async def save_session(
-        self, server: Any, sid: str, session: dict[str, AnyStr], namespace: str | None = None
+        self,
+        server: Any,
+        sid: str,
+        session: dict[str, AnyStr],
+        namespace: str | None = None,
     ) -> None:
         """Armazena a sessão do usuário para um cliente na sessão do engineio."""
         namespace = namespace or "/"

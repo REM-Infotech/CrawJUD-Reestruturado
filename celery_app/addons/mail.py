@@ -109,7 +109,9 @@ class Mail:
         self.server = SMTP(self.MAIL_SERVER, self.MAIL_PORT)
 
         if self.MAIL_USE_SSL:
-            self.server = SMTP_SSL(self.MAIL_SERVER, self.MAIL_PORT, context=ssl.create_default_context())
+            self.server = SMTP_SSL(
+                self.MAIL_SERVER, self.MAIL_PORT, context=ssl.create_default_context()
+            )
 
         elif self.MAIL_USE_TLS:
             self.server = SMTP(self.MAIL_SERVER, self.MAIL_PORT)
@@ -131,7 +133,9 @@ class Mail:
             self.login()
 
             self.message["From"] = self.MAIL_DEFAULT_SENDER
-            self.server.sendmail(self.MAIL_DEFAULT_SENDER, to, self.message.as_string())
+            self.server.sendmail(
+                self.MAIL_DEFAULT_SENDER, to, self.message.as_string()
+            )
             self.server.quit()
 
             return "Message sent successfully"

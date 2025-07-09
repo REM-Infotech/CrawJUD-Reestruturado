@@ -69,11 +69,17 @@ class FileNamespaces(Namespace):
 
         """
         return {
-            "credentials": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
-            "other_info": [{"value": None, "text": "Selecione o Estado", "disabled": True}],
+            "credentials": [
+                {"value": None, "text": "Selecione o Estado", "disabled": True}
+            ],
+            "other_info": [
+                {"value": None, "text": "Selecione o Estado", "disabled": True}
+            ],
         }
 
-    async def save_session(self, sid: str, session: dict[str, AnyStr], namespace: str | None = None) -> None:
+    async def save_session(
+        self, sid: str, session: dict[str, AnyStr], namespace: str | None = None
+    ) -> None:
         """Delegate to FileService.save_session (deprecated)."""
         await self.file_service.save_session(self.server, sid, session, namespace)
 

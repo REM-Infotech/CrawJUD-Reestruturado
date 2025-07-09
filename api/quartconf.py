@@ -31,7 +31,9 @@ MAIL_PASSWORD = env.get("MAIL_PASSWORD", "")
 MAIL_DEFAULT_SENDER = env.get("MAIL_DEFAULT_SENDER", "")
 
 # SQLALCHEMY CONFIG
-SQLALCHEMY_POOL_SIZE = int(env.get("SQLALCHEMY_POOL_SIZE", 30))  # Número de conexões na pool
+SQLALCHEMY_POOL_SIZE = int(
+    env.get("SQLALCHEMY_POOL_SIZE", 30)
+)  # Número de conexões na pool
 
 # Número de conexões extras além da pool_size
 SQLALCHEMY_MAX_OVERFLOW = int(env.get("SQLALCHEMY_MAX_OVERFLOW", 10))
@@ -43,11 +45,15 @@ SQLALCHEMY_POOL_TIMEOUT = int(env.get("SQLALCHEMY_POOL_TIMEOUT", 30))
 SQLALCHEMY_POOL_RECYCLE = int(env.get("SQLALCHEMY_POOL_RECYCLE", 1800))
 
 # Verificar a saúde da conexão antes de usá-la
-SQLALCHEMY_POOL_PRE_PING = env.get("SQLALCHEMY_POOL_PRE_PING", "true").lower() == "true"
+SQLALCHEMY_POOL_PRE_PING = (
+    env.get("SQLALCHEMY_POOL_PRE_PING", "true").lower() == "true"
+)
 
 SQLALCHEMY_DATABASE_URI = env.get("SQLALCHEMY_DATABASE_URI", "sqlite:///local.db")
 
-SQLALCHEMY_ENGINE_OPTIONS = json.loads(env.get("SQLALCHEMY_ENGINE_OPTIONS", '{"pool_pre_ping": "True"}'))
+SQLALCHEMY_ENGINE_OPTIONS = json.loads(
+    env.get("SQLALCHEMY_ENGINE_OPTIONS", '{"pool_pre_ping": "True"}')
+)
 SQLALCHEMY_TRACK_MODIFICATIONS = env.get("WITH_REDIS", "false").lower() == "true"
 
 PERMANENT_SESSION_LIFETIME = timedelta(days=31).max.seconds
@@ -63,8 +69,9 @@ RESULT_BACKEND_DATABASE = 2
 # JWT CONFIG
 JWT_SECRET_KEY = env.get("JWT_APP_SECRET")
 JWT_TOKEN_LOCATION = ["cookies"]
-JWT_COOKIE_CSRF_PROTECT = True
 JWT_CSRF_IN_COOKIES = True
+JWT_COOKIE_CSRF_PROTECT = True
+JWT_ACCESS_TOKEN_EXPIRES = False
 JWT_ACCESS_CSRF_HEADER_NAME = "X-Xsrf-Token"
 JWT_ACCESS_CSRF_COOKIE_NAME = "X-Xsrf-Token"
 

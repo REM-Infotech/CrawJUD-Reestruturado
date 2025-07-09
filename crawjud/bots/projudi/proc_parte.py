@@ -7,7 +7,10 @@ import os
 from contextlib import suppress
 from typing import Self
 
-from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException  # noqa: F401
+from selenium.common.exceptions import (  # noqa: F401
+    NoSuchElementException,
+    NoSuchWindowException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from urllib3.exceptions import MaxRetryError  # noqa: F401
@@ -97,7 +100,9 @@ class ProcParte(CrawJUD):
                 self.use_list_process(list_processos)
 
                 with suppress(NoSuchElementException):
-                    next_page = self.driver.find_element(By.CLASS_NAME, "navRight").find_element(
+                    next_page = self.driver.find_element(
+                        By.CLASS_NAME, "navRight"
+                    ).find_element(
                         By.XPATH,
                         self.elements.exception_arrow,
                     )
@@ -135,7 +140,11 @@ class ProcParte(CrawJUD):
                 anoref = numero_processo.split(".")[1]
 
             try:
-                polo_ativo = processo.find_elements(By.TAG_NAME, "td")[2].find_elements(By.TAG_NAME, "td")[1].text
+                polo_ativo = (
+                    processo.find_elements(By.TAG_NAME, "td")[2]
+                    .find_elements(By.TAG_NAME, "td")[1]
+                    .text
+                )
             except Exception:
                 polo_ativo = "Não consta ou processo em sigilo"
 
@@ -162,4 +171,6 @@ class ProcParte(CrawJUD):
             self.row += 1
             message = f"Processo {numero_processo} salvo!"
             type_log = "success"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )

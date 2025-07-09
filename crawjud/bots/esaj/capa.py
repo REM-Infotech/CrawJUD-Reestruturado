@@ -95,7 +95,9 @@ class Capa(CrawJUD):
 
         message = f"Extraindo informações do processo nº{self.bot_data.get('NUMERO_PROCESSO')}"
         type_log = "log"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
         grau = self.bot_data.get("GRAU", 1)
 
@@ -113,31 +115,48 @@ class Capa(CrawJUD):
         data = {"NUMERO_PROCESSO": ""}
 
         sumary_1_esaj = self.wait.until(
-            ec.presence_of_all_elements_located((By.CSS_SELECTOR, self.elements.sumary_header_1)),
+            ec.presence_of_all_elements_located((
+                By.CSS_SELECTOR,
+                self.elements.sumary_header_1,
+            )),
         )
 
         sumary_2_esaj = self.wait.until(
-            ec.presence_of_all_elements_located((By.CSS_SELECTOR, self.elements.sumary_header_2)),
+            ec.presence_of_all_elements_located((
+                By.CSS_SELECTOR,
+                self.elements.sumary_header_2,
+            )),
         )
 
         list_sumary = [sumary_1_esaj, sumary_2_esaj]
 
         for pos_, sumary in enumerate(list_sumary):
             for pos, rows in enumerate(sumary):
-                subitems_sumary = rows.find_elements(By.CSS_SELECTOR, self.elements.rows_sumary_)
+                subitems_sumary = rows.find_elements(
+                    By.CSS_SELECTOR, self.elements.rows_sumary_
+                )
 
                 for item in subitems_sumary:
                     if pos == 0 and pos_ == 0:
-                        num_proc = item.find_element(By.CLASS_NAME, self.elements.numproc).text
+                        num_proc = item.find_element(
+                            By.CLASS_NAME, self.elements.numproc
+                        ).text
                         status_proc = "Em Andamento"
                         with suppress(NoSuchElementException):
-                            status_proc = item.find_element(By.CLASS_NAME, self.elements.statusproc).text
+                            status_proc = item.find_element(
+                                By.CLASS_NAME, self.elements.statusproc
+                            ).text
 
-                        data.update({"NUMERO_PROCESSO": num_proc, "STATUS": status_proc.upper()})
+                        data.update({
+                            "NUMERO_PROCESSO": num_proc,
+                            "STATUS": status_proc.upper(),
+                        })
                         continue
 
                     value = None
-                    title = item.find_element(By.CLASS_NAME, self.elements.nameitemsumary).text
+                    title = item.find_element(
+                        By.CLASS_NAME, self.elements.nameitemsumary
+                    ).text
 
                     if title:
                         title = title.upper()
@@ -146,17 +165,25 @@ class Capa(CrawJUD):
                         title = "_".join([ttl for ttl in title.split(" ") if ttl])
 
                     with suppress(NoSuchElementException):
-                        value = item.find_element(By.CSS_SELECTOR, self.elements.valueitemsumary).text
+                        value = item.find_element(
+                            By.CSS_SELECTOR, self.elements.valueitemsumary
+                        ).text
 
                     if not value:
                         with suppress(NoSuchElementException):
-                            element_search = self.elements.value2_itemsumary.get(title)
+                            element_search = self.elements.value2_itemsumary.get(
+                                title
+                            )
 
                             if element_search:
-                                value = item.find_element(By.CSS_SELECTOR, element_search).text
+                                value = item.find_element(
+                                    By.CSS_SELECTOR, element_search
+                                ).text
 
                                 if title == "OUTROS_ASSUNTOS":
-                                    value = " ".join([val for val in value.split(" ") if val])
+                                    value = " ".join([
+                                        val for val in value.split(" ") if val
+                                    ])
 
                     if value:
                         data.update({title: value.upper()})
@@ -164,7 +191,9 @@ class Capa(CrawJUD):
         table_partes = self.driver.find_element(By.ID, self.elements.area_selecao)
         for group_parte in table_partes.find_elements(By.TAG_NAME, "tr"):
             pos_repr = 0
-            type_parte = self.format_string(group_parte.find_elements(By.TAG_NAME, "td")[0].text.upper())
+            type_parte = self.format_string(
+                group_parte.find_elements(By.TAG_NAME, "td")[0].text.upper()
+            )
 
             info_parte = group_parte.find_elements(By.TAG_NAME, "td")[1]
             info_parte_text = info_parte.text.split("\n")
@@ -174,11 +203,15 @@ class Capa(CrawJUD):
                         representante = attr_parte.replace("  ", "").split(":")
                         tipo_representante = representante[0].upper()
                         nome_representante = representante[1].upper()
-                        key = {f"{tipo_representante}_{type_parte}": nome_representante}
+                        key = {
+                            f"{tipo_representante}_{type_parte}": nome_representante
+                        }
 
                         doc_ = "Não consta"
                         with suppress(NoSuchElementException, IndexError):
-                            doc_ = info_parte.find_elements(By.TAG_NAME, "input")[pos_repr]
+                            doc_ = info_parte.find_elements(By.TAG_NAME, "input")[
+                                pos_repr
+                            ]
                             doc_ = doc_.get_attribute("value")
 
                         key_doc = {f"DOC_{tipo_representante}_{type_parte}": doc_}

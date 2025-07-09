@@ -18,7 +18,11 @@ class ElawError(BaseCrawJUDError):
         message: str = "Erro ao executar operaçao: ",
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
-        self.message = message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+        self.message = (
+            message
+            + "\n Exception: "
+            + "\n".join(traceback.format_exception_only(exception))
+        )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -41,7 +45,11 @@ class AdvogadoError(BaseCrawJUDError):
         self.message = message + "\n Exception: "
 
         if exception:
-            self.message = self.message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message = (
+                self.message
+                + "\n Exception: "
+                + "\n".join(traceback.format_exception_only(exception))
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)

@@ -39,7 +39,9 @@ async def init_database() -> None:
         user = Users.query.filter(Users.login == env.get("ROOT_USERNAME")).first()
         if not user:
             user = Users(
-                login=env.get("ROOT_USERNAME"), email=env.get("ROOT_EMAIL"), nome_usuario=env.get("ROOT_USERNAME")
+                login=env.get("ROOT_USERNAME"),
+                email=env.get("ROOT_EMAIL"),
+                nome_usuario=env.get("ROOT_USERNAME"),
             )
 
             user.senhacrip = env.get("ROOT_PASSWORD")
@@ -52,7 +54,11 @@ async def init_database() -> None:
 
         bot_toadd = []
         for row in excel:
-            bot = db.session.query(BotsCrawJUD).filter(BotsCrawJUD.display_name == row["display_name"]).first()
+            bot = (
+                db.session.query(BotsCrawJUD)
+                .filter(BotsCrawJUD.display_name == row["display_name"])
+                .first()
+            )
 
             if not bot:
                 bot = BotsCrawJUD(**row)

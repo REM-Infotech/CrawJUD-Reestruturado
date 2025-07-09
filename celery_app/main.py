@@ -67,7 +67,11 @@ def main() -> None:
     calls = {"worker": start_worker, "beat": start_beat}
     args = argv[1:]
     parser = argparse.ArgumentParser("Celery App CrawJUD.")
-    parser.add_argument("--type", default="worker", help="Tipo de inicialização do celery (ex.: beat, worker, etc.)")
+    parser.add_argument(
+        "--type",
+        default="worker",
+        help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
+    )
     namespaces = parser.parse_args(args)
 
     callable_obj = calls[namespaces.type]

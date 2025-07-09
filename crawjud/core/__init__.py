@@ -53,7 +53,13 @@ class CrawJUD(Controller):
         df.columns = df.columns.str.upper()
 
         for col in df.columns:
-            df[col] = df[col].apply(lambda x: (x.strftime("%d/%m/%Y") if isinstance(x, (datetime, Timestamp)) else x))
+            df[col] = df[col].apply(
+                lambda x: (
+                    x.strftime("%d/%m/%Y")
+                    if isinstance(x, (datetime, Timestamp))
+                    else x
+                )
+            )
 
         for col in df.select_dtypes(include=["float"]).columns:
             df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
@@ -128,7 +134,9 @@ class CrawJUD(Controller):
 
         err_message = "\n".join(traceback.format_exception_only(exc))
         message = f"Erro de Operação: {err_message}"
-        self.prt.print_msg(message=message, type_log="error", pid=self.pid, row=self.row)
+        self.prt.print_msg(
+            message=message, type_log="error", pid=self.pid, row=self.row
+        )
 
         self.bot_data.update({"MOTIVO_ERRO": err_message})
         self.append_error(self.bot_data)
@@ -144,7 +152,11 @@ class CrawJUD(Controller):
 
         """
         return secure_filename(
-            "".join([c for c in unicodedata.normalize("NFKD", string) if not unicodedata.combining(c)]),
+            "".join([
+                c
+                for c in unicodedata.normalize("NFKD", string)
+                if not unicodedata.combining(c)
+            ]),
         )
 
     def finalize_execution(self) -> None:
@@ -168,7 +180,9 @@ class CrawJUD(Controller):
 
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
     def calc_time(self) -> list[int]:
         """Calculate and return elapsed time as minutes and seconds.
@@ -192,7 +206,9 @@ class CrawJUD(Controller):
         """
         if self.appends:
             for append in self.appends:
-                self.append_success(append, "Movimentação salva na planilha com sucesso!!")
+                self.append_success(
+                    append, "Movimentação salva na planilha com sucesso!!"
+                )
         else:
             raise ExecutionError(message="Nenhuma Movimentação encontrada")
 
@@ -221,7 +237,9 @@ class CrawJUD(Controller):
             output_success = self.planilha_sucesso
 
             if fileN or not output_success:
-                output_success = Path(self.planilha_sucesso).parent.resolve().joinpath(fileN)
+                output_success = (
+                    Path(self.planilha_sucesso).parent.resolve().joinpath(fileN)
+                )
 
             if not output_success.exists():
                 df = pd.DataFrame(data)
@@ -238,7 +256,12 @@ class CrawJUD(Controller):
         if not typed:
             data2 = dict.fromkeys(self.name_colunas, "")
             for item in data:
-                data2_itens = list(filter(lambda x: x[1] is None or str(x[1]).strip() == "", list(data2.items())))
+                data2_itens = list(
+                    filter(
+                        lambda x: x[1] is None or str(x[1]).strip() == "",
+                        list(data2.items()),
+                    )
+                )
                 for key, _ in data2_itens:
                     data2.update({key: item})
                     break
@@ -248,7 +271,9 @@ class CrawJUD(Controller):
 
         save_info(data)
 
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
     def append_error(self, data: dict[str, str] = None) -> None:
         """Append error information to the error spreadsheet file.
@@ -275,7 +300,9 @@ class CrawJUD(Controller):
 
         """
         nomeplanilha = f"CAMPOS VALIDADOS PID {self.pid}.xlsx"
-        planilha_validar = Path(self.planilha_sucesso).parent.resolve().joinpath(nomeplanilha)
+        planilha_validar = (
+            Path(self.planilha_sucesso).parent.resolve().joinpath(nomeplanilha)
+        )
         if not path.exists(planilha_validar):
             df = pd.DataFrame(data)
         else:
@@ -360,7 +387,9 @@ class CrawJUD(Controller):
         def CertIsInstall(crt_sbj_nm: str, store: str = "MY") -> bool:  # noqa: N802
             for cert, _, _ in ssl.enum_certificates(store):
                 try:
-                    x509_cert = x509.load_der_x509_certificate(cert, default_backend())
+                    x509_cert = x509.load_der_x509_certificate(
+                        cert, default_backend()
+                    )
                     subject_name = x509_cert.subject.rfc4514_string()
                     if crt_sbj_nm in subject_name:
                         return True
@@ -374,7 +403,16 @@ class CrawJUD(Controller):
 
         if not installed:
             path_cert = Path(self.output_dir_path).joinpath(self.name_cert)
-            comando = ["certutil", "-importpfx", "-user", "-f", "-p", self.token, "-silent", str(path_cert)]
+            comando = [
+                "certutil",
+                "-importpfx",
+                "-user",
+                "-f",
+                "-p",
+                self.token,
+                "-silent",
+                str(path_cert),
+            ]
             try:
                 resultado = subprocess.run(  # nosec: B603
                     comando,

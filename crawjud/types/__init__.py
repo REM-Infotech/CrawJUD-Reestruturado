@@ -17,7 +17,10 @@ datastores = Union[
     DictType,
 ]
 
-TypeData = Union[list[dict[str, Union[str, Numbers, datetime]]], dict[str, Union[str, Numbers, datetime]]]
+TypeData = Union[
+    list[dict[str, Union[str, Numbers, datetime]]],
+    dict[str, Union[str, Numbers, datetime]],
+]
 binds = Union[
     numbers,
     strings,

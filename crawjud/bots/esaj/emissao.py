@@ -167,23 +167,31 @@ class Emissao(CrawJUD):
 
         message = "Informando foro"
         type_log = "log"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
         set_foro: WebElement = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.ome_foro)),
         )
         set_foro.send_keys(self.bot_data.get("FORO"))
 
-        set_classe = self.driver.find_element(By.CSS_SELECTOR, self.elements.tree_selection)
+        set_classe = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.tree_selection
+        )
         set_classe.send_keys(self.bot_data.get("CLASSE"))
 
-        semprecível = self.driver.find_element(By.CSS_SELECTOR, self.elements.civil_selector)
+        semprecível = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.civil_selector
+        )
         semprecível.click()
 
         val_acao = self.driver.find_element(By.CSS_SELECTOR, self.elements.valor_acao)
         val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
-        nameinteressado = self.driver.find_element(By.CSS_SELECTOR, 'input[name="entity.nmInteressado"]')
+        nameinteressado = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[name="entity.nmInteressado"]'
+        )
         nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
         elements: list = type_docscss.get(self.bot_data.get("TIPO_GUIA")).get(
@@ -192,11 +200,15 @@ class Emissao(CrawJUD):
         set_doc = self.driver.find_element(By.CSS_SELECTOR, elements[0])
         set_doc.click()
         sleep(0.5)
-        setcpf_cnpj = self.driver.find_element(By.CSS_SELECTOR, elements[1]).find_element(By.CSS_SELECTOR, elements[2])
+        setcpf_cnpj = self.driver.find_element(
+            By.CSS_SELECTOR, elements[1]
+        ).find_element(By.CSS_SELECTOR, elements[2])
         sleep(0.5)
         setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
-        avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar)
+        avançar = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.botao_avancar
+        )
         avançar.click()
 
         self.valor_doc = ""
@@ -219,14 +231,21 @@ class Emissao(CrawJUD):
             self.driver.get(self.elements.url_preparo_projudi)
 
             set_foro: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.nome_foro)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.nome_foro,
+                )),
             )
             set_foro.send_keys(self.bot_data.get("FORO"))
 
-            val_acao = self.driver.find_element(By.CSS_SELECTOR, self.elements.valor_acao)
+            val_acao = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.valor_acao
+            )
             val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
-            nameinteressado = self.driver.find_element(By.CSS_SELECTOR, self.elements.interessado)
+            nameinteressado = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.interessado
+            )
             nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
             elements: list = type_docscss.get(self.bot_data.get("TIPO_GUIA")).get(
@@ -236,22 +255,30 @@ class Emissao(CrawJUD):
             set_doc = self.driver.find_element(By.CSS_SELECTOR, elements[0])
             set_doc.click()
             sleep(0.5)
-            setcpf_cnpj = self.driver.find_element(By.CSS_SELECTOR, elements[1]).find_element(
+            setcpf_cnpj = self.driver.find_element(
+                By.CSS_SELECTOR, elements[1]
+            ).find_element(
                 By.CSS_SELECTOR,
                 elements[2],
             )
             sleep(0.5)
             setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
-            avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar)
+            avançar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.botao_avancar
+            )
             avançar.click()
 
             sleep(1)
-            set_RI: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check)))  # noqa: N806
+            set_RI: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check))
+            )  # noqa: N806
             set_RI.click()
 
             sleep(1)
-            last_avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar_dois)
+            last_avançar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.botao_avancar_dois
+            )
             last_avançar.click()
 
             sleep(1)
@@ -262,7 +289,8 @@ class Emissao(CrawJUD):
 
         elif portal == "não informado":
             raise SaveError(
-                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)", bot_execution_id=self.pid
+                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)",
+                bot_execution_id=self.pid,
             )
 
     def renajud(self) -> None:
@@ -317,7 +345,12 @@ class Emissao(CrawJUD):
         with suppress(TimeoutException):
             check: WebElement = (
                 WebDriverWait(self.driver, 3)
-                .until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.mensagem_retorno)))
+                .until(
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        self.elements.mensagem_retorno,
+                    ))
+                )
                 .text
             )
 
@@ -325,7 +358,9 @@ class Emissao(CrawJUD):
             self.driver.close()
             sleep(0.7)
             self.driver.switch_to.window(original_window)
-            raise SaveError(message="Esaj não gerou a guia", bot_execution_id=self.pid)
+            raise SaveError(
+                message="Esaj não gerou a guia", bot_execution_id=self.pid
+            )
 
         if not check:
             return f"https://consultasaj.tjam.jus.br{url}"
@@ -342,9 +377,7 @@ class Emissao(CrawJUD):
         """
         response = requests.get(link_pdf, timeout=60)
 
-        self.nomearquivo = (
-            f"{self.tipodoc} - {self.bot_data.get('NUMERO_PROCESSO')} - {self.nomeparte} - {self.pid}.pdf"
-        )
+        self.nomearquivo = f"{self.tipodoc} - {self.bot_data.get('NUMERO_PROCESSO')} - {self.nomeparte} - {self.pid}.pdf"
 
         if platform.system() == "Windows":
             self.path_pdf = path_pdf = f"{self.output_dir_path}\\{self.nomearquivo}"
@@ -358,9 +391,13 @@ class Emissao(CrawJUD):
         self.driver.close()
         sleep(0.7)
         self.driver.switch_to.window(self.original_window)
-        message = f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
+        message = (
+            f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
+        )
         type_log = "log"
-        self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+        self.prt.print_msg(
+            message=message, pid=self.pid, row=self.row, type_log=type_log
+        )
 
     def get_barcode(self) -> None:
         """Extract and return the barcode from the downloaded PDF by matching a regex.
@@ -375,7 +412,9 @@ class Emissao(CrawJUD):
         try:
             message = "Extraindo código de barras"
             type_log = "log"
-            self.prt.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
+            self.prt.print_msg(
+                message=message, pid=self.pid, row=self.row, type_log=type_log
+            )
 
             sleep(2)
             # Inicialize uma lista para armazenar os números encontrados

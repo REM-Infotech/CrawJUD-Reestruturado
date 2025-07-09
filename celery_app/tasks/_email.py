@@ -13,7 +13,9 @@ if TYPE_CHECKING:
 
 
 @shared_task
-def send_email(subject: str, to: str, message: str, files_path: list[str] = None) -> TReturnMessageMail:
+def send_email(
+    subject: str, to: str, message: str, files_path: list[str] = None
+) -> TReturnMessageMail:
     """Send an email to the specified recipient."""
     mail = Mail.construct()
     mail.message["Subject"] = subject

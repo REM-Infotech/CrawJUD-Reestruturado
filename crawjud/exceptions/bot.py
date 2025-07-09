@@ -16,7 +16,11 @@ class StartError(Exception):
         message: str = "Erro ao executar operaçao: ",
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
-        self.message = message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+        self.message = (
+            message
+            + "\n Exception: "
+            + "\n".join(traceback.format_exception_only(exception))
+        )
 
         if not bot_execution_id:
             bot_execution_id = __name__
@@ -43,7 +47,9 @@ class ExecutionError(BaseCrawJUDError):
         self.message = message
 
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
@@ -64,7 +70,11 @@ class LoginSystemError(BaseCrawJUDError):
         message: str = "Erro ao executar operaçao: ",
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
-        self.message = message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+        self.message = (
+            message
+            + "\n Exception: "
+            + "\n".join(traceback.format_exception_only(exception))
+        )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -87,7 +97,9 @@ class ProcNotFoundError(BaseCrawJUDError):
         self.message = message
 
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
@@ -108,7 +120,11 @@ class GrauIncorretoError(BaseCrawJUDError):
         message: str = "Erro ao executar operaçao: ",
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
-        self.message = message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+        self.message = (
+            message
+            + "\n Exception: "
+            + "\n".join(traceback.format_exception_only(exception))
+        )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -131,7 +147,11 @@ class SaveError(BaseCrawJUDError):
         self.message = message
 
         if exception:
-            self.message = self.message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message = (
+                self.message
+                + "\n Exception: "
+                + "\n".join(traceback.format_exception_only(exception))
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
@@ -155,7 +175,11 @@ class FileError(BaseCrawJUDError):
         self.message = message
 
         if exception:
-            self.message = self.message + "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message = (
+                self.message
+                + "\n Exception: "
+                + "\n".join(traceback.format_exception_only(exception))
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
@@ -178,7 +202,9 @@ class CadastroParteError(BaseCrawJUDError):
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -200,7 +226,9 @@ class MoveNotFoundError(BaseCrawJUDError):
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -222,7 +250,9 @@ class PasswordError(BaseCrawJUDError):
         """Exception para erros de senha."""
         self.message = message
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)
         super().__init__(message)
@@ -245,7 +275,9 @@ class NotFoundError(BaseCrawJUDError):
         self.message = message
 
         if exception:
-            self.message += "\n Exception: " + "\n".join(traceback.format_exception_only(exception))
+            self.message += "\n Exception: " + "\n".join(
+                traceback.format_exception_only(exception)
+            )
 
         logger = logging.getLogger(bot_execution_id)
         logger.error(message)

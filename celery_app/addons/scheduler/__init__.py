@@ -38,7 +38,11 @@ class DatabaseScheduler(Scheduler):
             'Hello ® World'
 
         """
-        return re.sub(r"u00([0-9a-fA-F]{2})", r"\\u00\1", text).encode().decode("unicode_escape")
+        return (
+            re.sub(r"u00([0-9a-fA-F]{2})", r"\\u00\1", text)
+            .encode()
+            .decode("unicode_escape")
+        )
 
     def __init__(
         self,
