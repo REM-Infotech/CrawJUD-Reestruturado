@@ -2,13 +2,27 @@
 
 import json
 from pathlib import Path
+from typing import TypedDict
 
 import aiofiles
 from quart_socketio import Namespace
 
 from api import db
-from api.models.bots import BotsCrawJUD
+from api.models.bots import BotsCrawJUD, Credentials
 from api.types import ASyncServerType
+from api.wrapper import verify_jwt_websocket
+
+
+class CredendialDict(TypedDict):  # noqa: D101
+    value: int
+    text: str
+
+
+class CredendialsSystemDict(TypedDict):  # noqa: D101
+    elaw: list[CredendialDict]
+    projudi: list[CredendialDict]
+    esaj: list[CredendialDict]
+    pje: list[CredendialDict]
 
 
 class BotsNamespace(Namespace):
@@ -17,6 +31,7 @@ class BotsNamespace(Namespace):
     namespace: str
     server: ASyncServerType
 
+    @verify_jwt_websocket
     async def on_connect(self) -> None:
         """Handle client connection event for notifications.
 
@@ -36,6 +51,7 @@ class BotsNamespace(Namespace):
         """
         # Optionally, log the disconnection
 
+    @verify_jwt_websocket
     async def on_bots_list(self) -> None:
         """Handle request for the list of bots.
 
@@ -65,5 +81,13 @@ class BotsNamespace(Namespace):
 
         return bots
 
-    async def on_setup_form(self) -> None:  # noqa: D102
-        pass
+    @verify_jwt_websocket
+    async def on_bot_credentials(self) -> None:  # noqa: D102
+        query = db.session.query(Credentials).all()
+
+        credentials = CredendialsSystemDict(elaw=[], esaj=[], projudi=[], pje=[])
+
+        for item in query:
+            credentials.get(item.system.lower(), []).append(CredendialDict(value=item.id, text=item.nome_credencial))
+
+        return credentials

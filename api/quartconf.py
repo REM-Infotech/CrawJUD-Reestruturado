@@ -2,7 +2,6 @@
 
 import json
 import logging
-import secrets
 from datetime import timedelta
 from os import environ
 from pathlib import Path
@@ -19,7 +18,7 @@ LOG_LEVEL = logging.INFO
 DEBUG = env.get("DEBUG", "false").lower() == "true"
 TESTING = env.get("TESTING", "false").lower() == "true"
 
-SECRET_KEY = secrets.token_hex()
+SECRET_KEY = env.get("APP_SECRET")
 TEMPLATES_AUTO_RELOAD = env.get("TEMPLATES_AUTO_RELOAD", "false").lower() == "true"
 
 # FLASK-MAIL CONFIG
@@ -62,7 +61,7 @@ BROKER_DATABASE = 1
 RESULT_BACKEND_DATABASE = 2
 
 # JWT CONFIG
-JWT_SECRET_KEY = secrets.token_hex()
+JWT_SECRET_KEY = env.get("JWT_APP_SECRET")
 JWT_TOKEN_LOCATION = ["cookies"]
 JWT_COOKIE_CSRF_PROTECT = True
 JWT_CSRF_IN_COOKIES = True

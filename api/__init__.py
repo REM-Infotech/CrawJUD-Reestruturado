@@ -26,19 +26,6 @@ db = SQLAlchemy()
 io = SocketIO(async_mode="asgi", launch_mode="uvicorn", cookie="access")
 
 
-@io.on("connect", namespace="*")
-async def on_connect() -> None:
-    """Handle client connection event.
-
-    Creates and saves a session for the connected client.
-
-    Args:
-        sid: The session ID of the client.
-        environ: The WSGI environment dictionary for the connection.
-
-    """
-
-
 async def create_app() -> Quart:
     """
     Create and configure the Quart application instance.
