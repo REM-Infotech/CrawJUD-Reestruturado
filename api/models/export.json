@@ -6,7 +6,7 @@
     "state": "AM",
     "client": "EVERYONE",
     "type": "PROC_PARTE",
-    "form_cfg": "file_auth",
+    "form_cfg": "proc_parte",
     "classification": "JURIDICO",
     "text": "Busca processos por nome da parte e exporta em uma planilha"
   },
@@ -72,7 +72,7 @@
     "state": "AM",
     "client": "EVERYONE",
     "type": "PROC_PARTE",
-    "form_cfg": "file_auth",
+    "form_cfg": "proc_parte",
     "classification": "JURIDICO",
     "text": "Busca processos por nome da parte e exporta em uma planilha"
   },

@@ -1,9 +1,5 @@
 """Socket.IO namespace for notification events and management."""
 
-import json
-from pathlib import Path
-
-import aiofiles
 from quart_socketio import Namespace
 
 from api import db
@@ -52,10 +48,6 @@ class BotsNamespace(Namespace):
 
         bots = []
 
-        if Path("cache_bots.json").exists():
-            async with aiofiles.open("cache_bots.json", "r", encoding="utf-8") as f:
-                return json.loads(await f.read())
-
         def decode_str(v: str | bytes) -> str:
             if isinstance(v, bytes):
                 v = v.decode("utf-8")
@@ -69,10 +61,6 @@ class BotsNamespace(Namespace):
                 if not k.startswith("_")
             }
             bots.append(bot_data)
-
-        if not Path("cache_bots.json").exists():
-            async with aiofiles.open("cache_bots.json", "w", encoding="utf-8") as f:
-                await f.write(json.dumps(bots))
 
         return bots
 
