@@ -1,9 +1,11 @@
 """Socket.IO namespace for bot file operations and session management."""
 
 import asyncio
+import shutil
+from pathlib import Path
 from typing import AnyStr
 
-from anyio import Path
+from quart import session
 from quart_socketio import Namespace, SocketIO
 from tqdm import tqdm
 
@@ -56,6 +58,12 @@ class FileNamespaces(Namespace):
             reason: The reason for disconnection.
 
         """
+        sid: str | None = getattr(session, "sid", None)
+
+        if sid:
+            path_temp = Path(__file__).cwd().joinpath("temp", sid)
+            if path_temp.exists():
+                shutil.rmtree(path_temp)
 
     async def on_get_selectors_data(self) -> dict[str, list[dict[str, str]]]:
         """Provide selector data for the client (e.g., dropdown options).

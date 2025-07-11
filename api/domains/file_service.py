@@ -1,9 +1,9 @@
 """Serviço de domínio para manipulação de arquivos e sessões."""
 
 from asyncio import iscoroutinefunction
+from pathlib import Path
 from typing import Any, AnyStr
 
-from anyio import Path
 from quart import request, session
 from quart.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
@@ -18,11 +18,11 @@ class FileService:
         file_data: MultiDict[
             str, FileStorage | WerkZeugFileStorage
         ] = await request.files
-        path_temp = (await Path(__file__).cwd()).joinpath(
-            "temp", session["uuid_temp_files"]
-        )
 
-        await path_temp.mkdir(exist_ok=True, parents=True)
+        sid = getattr(session, "sid", None)
+        path_temp = Path(__file__).cwd().joinpath("temp", sid)
+
+        path_temp.mkdir(exist_ok=True, parents=True)
         for _, v in list(file_data.items()):
             is_coroutine = iscoroutinefunction(v.save)
             if is_coroutine:
