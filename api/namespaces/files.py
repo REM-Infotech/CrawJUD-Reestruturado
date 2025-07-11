@@ -65,26 +65,6 @@ class FileNamespaces(Namespace):
             if path_temp.exists():
                 shutil.rmtree(path_temp)
 
-    async def on_get_selectors_data(self) -> dict[str, list[dict[str, str]]]:
-        """Provide selector data for the client (e.g., dropdown options).
-
-        Args:
-            sid: The session ID of the client.
-            data: Additional data from the client (unused).
-
-        Returns:
-            A dictionary with selector options for credentials and other info.
-
-        """
-        return {
-            "credentials": [
-                {"value": None, "text": "Selecione o Estado", "disabled": True}
-            ],
-            "other_info": [
-                {"value": None, "text": "Selecione o Estado", "disabled": True}
-            ],
-        }
-
     async def save_session(
         self, sid: str, session: dict[str, AnyStr], namespace: str | None = None
     ) -> None:
