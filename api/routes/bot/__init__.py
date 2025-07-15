@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import traceback
 
+from celery import Celery
 from quart import (
     Blueprint,
     current_app,
@@ -26,7 +27,12 @@ bot = Blueprint("bot", __name__, url_prefix="/bot")
 async def start_bot() -> None:  # noqa: D103
     pid = generate_pid()
     try:
-        classDict = await LoadForm().loadform()  # noqa: F841, N806
+        args_task = await LoadForm(pid=pid).loadform()  # noqa: F841, N806
+
+        celery_app: Celery = current_app.extensions["celery"]
+
+        celery_app.send_task("start_bot", kwargs=args_task)
+
         return await make_response(jsonify(message="Execução iniciada!", pid=pid))
 
     except Exception as e:

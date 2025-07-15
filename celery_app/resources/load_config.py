@@ -53,16 +53,19 @@ class Config:
         """Load Config."""
         return cls(**kwrgs)
 
-    def __init__(self, **kwrgs: AnyStr) -> None:
+    def __init__(self, **kwargs: AnyStr) -> None:
         """Load Config."""
         self.celery_config = {}
-        if len(kwrgs) == 0:
-            load_dotenv(str(Path(__file__).cwd().joinpath("celery_app", ".env")))
-            kwrgs = environ
 
-        for key, val in list(kwrgs.items()):
+        arguments = kwargs.copy()
+
+        if len(kwargs) == 0:
+            load_dotenv()
+            arguments.update(environ)
+
+        for key, val in list(arguments.items()):
             if key in self.bool_attributes:
-                val = kwrgs.get(key, "false").lower() == "true"
+                val = arguments.get(key, "false").lower() == "true"
 
             self.celery_config[key] = val
 

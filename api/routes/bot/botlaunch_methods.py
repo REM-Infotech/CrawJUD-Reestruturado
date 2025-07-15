@@ -8,6 +8,7 @@ from pathlib import Path
 from traceback import format_exception  # noqa: F401
 from typing import TYPE_CHECKING, Any, List, Self, TypedDict
 
+import aiofiles
 import chardet
 from quart import (
     Response,  # noqa: F401
@@ -71,8 +72,9 @@ class LoadForm:  # noqa: D101
     license_user: LicensesUsers
     sid: str
     upload_folder: Path
+    pid: str
 
-    def __init__(self) -> None:  # noqa: D107
+    def __init__(self, pid: str) -> None:  # noqa: D107
         sess = SessionDict(**dict(list(session.items())))
 
         self.db = current_app.extensions["sqlalchemy"]
@@ -86,6 +88,7 @@ class LoadForm:  # noqa: D101
 
         self.license_user = license_user
         self.sid = sid
+        self.pid = pid
         self.bots = license_user.bots
         self.credentials = license_user.credentials
         self.upload_folder = Path(__file__).cwd().joinpath("temp", self.sid)
@@ -98,7 +101,18 @@ class LoadForm:  # noqa: D101
             self.bot = await self._query_bot(int(data["bot_id"]))
             form_data = await self._update_form_data(data)
             form = await FormDict.constructor(bot=self.bot, data=form_data)
-            return form
+            pid_path = self.upload_folder.joinpath(self.pid, f"{self.pid}.json")
+
+            async with aiofiles.open(pid_path, "w") as f:
+                await f.write(json.dumps(form))
+
+            self._upload_file(pid_path)
+
+            args_task = {
+                "name": self.bot.type.lower(),
+                "system": self.bot.system.lower(),
+            }
+            return args_task
 
         except Exception as e:
             current_app.logger.error("\n".join(traceback.format_exception(e)))
@@ -125,7 +139,7 @@ class LoadForm:  # noqa: D101
         for file in files:
             file_name = secure_filename(file)
             file_path = self.upload_folder.joinpath(file_name)
-            await storage.upload_file(file_name, file_path)
+            await storage.upload_file(f"{self.pid}/{file_name}", file_path)
 
     async def _update_form_data(self, _data: FormData) -> None:
         form_data = {}

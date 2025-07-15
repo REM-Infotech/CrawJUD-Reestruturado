@@ -13,6 +13,7 @@ from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
+from celery_app import make_celery
 
 
 def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
@@ -129,5 +130,8 @@ async def init_extensions(app: Quart) -> None:
     db.init_app(app)
     jwt.init_app(app)
     sess.init_app(app)
+
+    app.extensions["celery"] = make_celery()
+
     async with app.app_context():
         await database_start(app)
