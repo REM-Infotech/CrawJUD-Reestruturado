@@ -17,7 +17,7 @@ class GoogleBucket(Bucket):
     """Class for Google Storage Client."""
 
     @classmethod
-    def bucket(cls, storage_client: GoogleClient) -> Self:
+    def create_instance(cls, storage_client: GoogleClient) -> Self:
         """Retrieve the GCS bucket object.
 
         Args:

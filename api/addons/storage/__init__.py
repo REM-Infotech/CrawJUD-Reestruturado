@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from api.addons.storage.buckets import BucketStorage
 from api.addons.storage.client import StorageClient
 from api.addons.storage.types_storage import storages
@@ -10,9 +12,11 @@ from api.addons.storage.types_storage import storages
 class Storage:  # noqa: B903, D101
     storage: str
     client: StorageClient
-    bucket: BucketStorage
 
     def __init__(self, storage: storages) -> None:  # noqa: D107
         self.storage = storage
         self.client = StorageClient.constructor()
-        self.bucket = BucketStorage.constructor()
+        self.bucket = BucketStorage.create_instance(self.client)
+
+    def upload_file(self, file_name: str, file_path: Path) -> None:  # noqa: D102
+        self.bucket.blob(file_name).upload_from_filename(file_path)

@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from google.cloud.storage import Client
 from google.oauth2.service_account import Credentials
 
+from api.addons.storage.buckets.google import GoogleBucket
+
 load_dotenv()
 
 
@@ -40,3 +42,6 @@ class GoogleClient(Client):  # noqa: D101
             credentials=cls.scope_credentials(credentials),
             project=project_id,
         )
+
+    def bucket(self) -> GoogleBucket:  # noqa: D102
+        return GoogleBucket.create_instance(self)
