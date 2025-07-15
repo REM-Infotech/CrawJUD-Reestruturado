@@ -2,7 +2,7 @@
 
 import argparse
 import asyncio
-from multiprocessing import Process
+from multiprocessing import Process  # noqa: F401
 from os import environ
 from pathlib import Path
 from platform import node
@@ -75,7 +75,10 @@ def main() -> None:
     namespaces = parser.parse_args(args)
 
     callable_obj = calls[namespaces.type]
-    process_celery = Process(target=callable_obj, daemon=True)
-    process_celery.start()
-    input("Pressione Enter para encerrar")
-    process_celery.kill()
+    callable_obj()
+
+    # process_celery = Process(target=callable_obj, daemon=True)
+    # process_celery.start()
+    # process_celery.join()
+    # input("Pressione Enter para encerrar")
+    # process_celery.kill()

@@ -1,9 +1,9 @@
 # noqa: D104
 from typing import Self, Union
 
-from celery_app.addons.storage.client.google import GoogleClient
-from celery_app.addons.storage.client.minio_client import MinioClient
-from celery_app.addons.storage.types_storage import storages
+from addons.storage.client.google import GoogleClient
+from addons.storage.client.minio_client import MinioClient
+from addons.storage.types_storage import storages
 
 class_clients = Union[GoogleClient, MinioClient]
 classes: dict[str, class_clients] = {"google": GoogleClient, "minio": MinioClient}

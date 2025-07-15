@@ -25,8 +25,8 @@ from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
+from addons.storage import Storage
 from api.addons.make_models import MakeModels  # noqa: F401
-from api.addons.storage import Storage
 from api.interface.formbot import FormDict  # noqa: F401
 from api.interface.session import SessionDict
 from api.models import BotsCrawJUD  # noqa: F401
@@ -112,6 +112,7 @@ class LoadForm:  # noqa: D101
             form["email_subject"] = self.sess["current_user"]["email"]
             form["user_name"] = self.sess["current_user"]["nome_usuario"]
             form["user_id"] = self.sess["current_user"]["id"]
+            form["pid"] = self.pid
 
             async with aiofiles.open(path_pid, "w") as f:
                 await f.write(json.dumps(form))
@@ -121,6 +122,7 @@ class LoadForm:  # noqa: D101
             args_task = {
                 "name": self.bot.type.lower(),
                 "system": self.bot.system.lower(),
+                "pid": self.pid,
             }
             return args_task
 

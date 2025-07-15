@@ -3,25 +3,36 @@
 from __future__ import annotations
 
 from importlib import import_module
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from celery.app import shared_task
+
+from addons.storage import Storage
 
 if TYPE_CHECKING:
     from celery_app.types import TReturnMessageExecutBot
 
 
 @shared_task
-def initialize_bot(name: str, system: str) -> TReturnMessageExecutBot:
+async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExecutBot:
     """Inicializa uma execução do robô."""
-    from celery_app import app
+    # from celery_app import app
 
-    app.send_task("send_email")
+    # app.send_task("send_email", kwargs={})
 
     bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
 
+    storage = Storage("minio")
+    path_files = Path(__file__).cwd().joinpath("temp")
+    await storage.download_files(
+        dest=path_files,
+        prefix=pid,
+    )
+
+    path_config = path_files.joinpath(pid, f"{pid}.json")
     class_bot = getattr(bot, name.capitalize(), None)
-    class_bot.initialize(bot_name=name, bot_system=system)
+    class_bot.initialize(bot_name=name, bot_system=system, path_config=path_config)
     class_bot.execution()
     return "Execução encerrada com sucesso!"
 

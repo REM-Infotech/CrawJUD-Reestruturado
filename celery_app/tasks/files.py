@@ -8,7 +8,7 @@
 
 # from celery.app import shared_task
 
-# from celery_app.addons.storage import Storage
+# from addons.storage import Storage
 
 # if TYPE_CHECKING:
 #     from celery_app.types import StrPath, TReturnMessageUploadFile

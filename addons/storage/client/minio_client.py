@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
 
-from api.addons.storage.buckets.minio_bucket import MinioBucket
+from addons.storage.buckets import StorageBuckets
+from addons.storage.buckets.minio_bucket import MinioBucket
 
 load_dotenv()
 
@@ -33,7 +34,7 @@ class MinioClient(Client):  # noqa: D101
 
         return cls(server_url, credentials=cls.scope_credentials(), secure=False)
 
-    def bucket(self) -> MinioBucket:  # noqa: D102
+    def bucket(self) -> StorageBuckets:  # noqa: D102
         return MinioBucket.create_instance(self)
 
 

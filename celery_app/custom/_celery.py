@@ -1,14 +1,10 @@
 import asyncio
-from inspect import isawaitable
 from typing import AnyStr
 
 from celery import Celery
-from celery import Task as CeleryTask
 
 
 class AsyncCelery(Celery):
-    Task: CeleryTask
-
     def __init__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
         super().__init__(*args, **kwargs)
         self.patch_task()
@@ -23,9 +19,10 @@ class AsyncCelery(Celery):
             abstract = True
 
             async def _run(self, *args: AnyStr, **kwargs: AnyStr) -> None:
-                result = TaskBase.__call__(self, *args, **kwargs)
-                if isawaitable(result):
-                    await result
+                if asyncio.iscoroutinefunction(self.run):
+                    return await self.run(*args, **kwargs)
+
+                self.run(*args, **kwargs)
 
             def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
                 asyncio.run(self._run(*args, **kwargs))
