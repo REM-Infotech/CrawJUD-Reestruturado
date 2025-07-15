@@ -97,8 +97,11 @@ async def init_database() -> None:
                 if not bot:
                     bot = BotsCrawJUD(**row)
                     bot_toadd.append(bot)
+
             if bot_toadd:
                 db.session.add_all(bot_toadd)
+
+            license_user.bots.extend(bot_toadd)
 
             db.session.commit()
 

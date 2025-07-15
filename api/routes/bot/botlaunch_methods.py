@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json  # noqa: F401
 import traceback
+from pathlib import Path
 from traceback import format_exception  # noqa: F401
 from typing import TYPE_CHECKING, Union
 
+import aiofiles
+import chardet
 from quart import (
     Response,  # noqa: F401
     abort,
@@ -68,6 +71,11 @@ FORM_CONFIG: dict[str, dict[str, class_form_dict]] = {
 }
 
 
+async def detect_encoding(data: bytes) -> str:  # noqa: D103
+    get_encode = chardet.detect(data)
+    return get_encode.get("encoding", "utf-8")
+
+
 async def license_user(usr: int, db: SQLAlchemy) -> str:
     """
     Return license token.
@@ -98,13 +106,17 @@ async def loadform() -> class_form_dict:  # noqa: D103
                 data = json.loads(data)
 
         license_token = sess["license_object"]["license_token"]
+        sid = getattr(session, "sid", None)
+
+        if not sid:
+            abort(500)
 
         query = (
             db.session.query(BotsCrawJUD)
             .select_from(LicensesUsers)
-            .join(BotsCrawJUD.execution_bots)
+            .join(BotsCrawJUD.license)
             .filter(LicensesUsers.license_token == license_token)
-            .filter(BotsCrawJUD.id == data.get("bot_id"))
+            .filter(BotsCrawJUD.id == data["bot_id"])
             .first()
         )
         if not query:
@@ -122,8 +134,20 @@ async def loadform() -> class_form_dict:  # noqa: D103
         for item in list(class_bot_form.__annotations__.keys()):
             val = _data.get(item)
             if val:
+                if item == "xlsx":
+                    temp_folder = Path(__file__).cwd().joinpath("temp", sid, val)
+                    async with aiofiles.open(temp_folder, "rb") as f:
+                        blob_xlsx = await f.read()
+                        encoding = await detect_encoding(blob_xlsx)
+
+                        val = {
+                            "filename": val,
+                            "blob": blob_xlsx.decode(encoding),
+                            "encoding": encoding,
+                        }
+
                 if item == "creds":
-                    val = (
+                    query = (
                         db.session.query(Credentials)
                         .select_from(LicensesUsers)
                         .join(Credentials.license_usr)
@@ -131,8 +155,20 @@ async def loadform() -> class_form_dict:  # noqa: D103
                         .filter(Credentials.id == val)
                         .first()
                     )
-                    if not val:
+                    if not query:
                         abort(500)
+
+                    if query.login_method == "pw":
+                        val = {"login": query.login, "password": query.password}
+
+                    elif query.login_method == "cert":
+                        encoding = await detect_encoding(query.certficate_blob)
+                        val = {
+                            "cert": query.certficate,
+                            "cert_blob": query.certficate_blob.decode(encoding),
+                            "key_cert": query.key,
+                        }
+
                 form_data.update({item: val})
 
         return class_bot_form(**form_data)
