@@ -1,13 +1,14 @@
 # noqa: D100
+
+from __future__ import annotations
+
 import json
 from os import environ
 from typing import Self
 
 from dotenv import load_dotenv
-from google.cloud.storage import Client
+from google.cloud.storage import Bucket, Client
 from google.oauth2.service_account import Credentials
-
-from api.addons.storage.buckets.google import GoogleBucket
 
 load_dotenv()
 
@@ -43,5 +44,6 @@ class GoogleClient(Client):  # noqa: D101
             project=project_id,
         )
 
-    def bucket(self) -> GoogleBucket:  # noqa: D102
-        return GoogleBucket.create_instance(self)
+    def bucket(self) -> Bucket:  # noqa: D102
+        bucket_name = environ["GCS_BUCKET_NAME"]
+        return super().bucket(bucket_name)

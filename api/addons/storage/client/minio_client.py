@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
 
+from api.addons.storage.buckets.minio_bucket import MinioBucket
+
 load_dotenv()
 
 if TYPE_CHECKING:
@@ -23,13 +25,16 @@ class MinioClient(Client):  # noqa: D101
             Credentials: MinIO service account credentials.
 
         """
-        return EnvMinioProvider().retrieve()
+        return EnvMinioProvider()
 
     @classmethod
     def storage_client(cls) -> Self:  # noqa: D102
         server_url = environ["MINIO_URL_SERVER"]
 
-        return cls(server_url, credentials=cls.scope_credentials())
+        return cls(server_url, credentials=cls.scope_credentials(), secure=False)
+
+    def bucket(self) -> MinioBucket:  # noqa: D102
+        return MinioBucket.create_instance(self)
 
 
 # def main():

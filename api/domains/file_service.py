@@ -8,6 +8,7 @@ from quart import request, session
 from quart.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
 from werkzeug.datastructures.file_storage import FileStorage as WerkZeugFileStorage
+from werkzeug.utils import secure_filename
 
 
 class FileService:
@@ -24,11 +25,12 @@ class FileService:
 
         path_temp.mkdir(exist_ok=True, parents=True)
         for _, v in list(file_data.items()):
+            file_name = secure_filename(v.filename)
             is_coroutine = iscoroutinefunction(v.save)
             if is_coroutine:
-                await v.save(path_temp.joinpath(v.filename))
+                await v.save(path_temp.joinpath(file_name))
             elif not is_coroutine:
-                v.save(path_temp.joinpath(v.filename))
+                v.save(path_temp.joinpath(file_name))
 
     async def save_session(
         self,
