@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, List, Self, TypedDict
 
 import aiofiles
 import chardet
+from celery import Celery
 from quart import (
     Response,  # noqa: F401
     abort,
@@ -22,6 +23,7 @@ from quart import (
 )
 from quart import current_app as app  # noqa: F401
 from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
+from quart_socketio import SocketIO
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
@@ -124,7 +126,10 @@ class LoadForm:  # noqa: D101
                 "system": self.bot.system.lower(),
                 "pid": self.pid,
             }
-            return args_task
+            celery_app: Celery = current_app.extensions["celery"]
+
+            task = celery_app.gen_task_name("initialize_bot", "celery_app.tasks.bot")
+            celery_app.send_task(task, kwargs=args_task)
 
         except Exception as e:
             current_app.logger.error("\n".join(traceback.format_exception(e)))
@@ -146,17 +151,28 @@ class LoadForm:  # noqa: D101
 
     async def _upload_file(self, file: str | list[str] | Path) -> None:
         storage = Storage("minio")
-
+        io: SocketIO = current_app.extensions["socketio"]
         if isinstance(file, Path):
             file_name = secure_filename(file.name)
             await storage.upload_file(f"{self.pid}/{file_name}", file)
             return
 
+        await io.emit(
+            "log_execution",
+            data={"pid": self.pid, "message": "Enviando arquivos para o robô"},
+            room=self.pid,
+        )
         files = file if isinstance(file, list) else [file]
         for file in files:
             file_name = secure_filename(file)
             file_path = self.upload_folder.joinpath(file_name)
             await storage.upload_file(f"{self.pid}/{file_name}", file_path)
+
+            await io.emit(
+                "log_execution",
+                data={"pid": self.pid, "message": f"Arquivo '{file_name}' enviado!"},
+                room=self.pid,
+            )
 
     async def _update_form_data(self, _data: FormData) -> None:
         form_data = {}

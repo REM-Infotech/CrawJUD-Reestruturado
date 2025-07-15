@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import traceback
+from asyncio import create_task
 
-from celery import Celery
 from quart import (
     Blueprint,
     current_app,
@@ -27,12 +27,7 @@ bot = Blueprint("bot", __name__, url_prefix="/bot")
 async def start_bot() -> None:  # noqa: D103
     pid = generate_pid()
     try:
-        args_task = await LoadForm(pid=pid).loadform()  # noqa: F841, N806
-
-        celery_app: Celery = current_app.extensions["celery"]
-
-        task = celery_app.gen_task_name("initialize_bot", "celery_app.tasks.bot")
-        celery_app.send_task(task, kwargs=args_task)
+        create_task(LoadForm(pid=pid).loadform())  # noqa: F841, N806
 
         return await make_response(jsonify(message="Execução iniciada!", pid=pid))
 
