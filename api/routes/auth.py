@@ -49,7 +49,7 @@ from quart_jwt_extended import (  # noqa: F401
     unset_jwt_cookies,
 )
 
-from api.interface.session import LicenseUserDict
+from api.interface.session import CurrentUser, LicenseUserDict
 from api.models.users import TokenBlocklist as TokenBlocklist
 from api.models.users import Users
 
@@ -125,6 +125,12 @@ async def login() -> Response:
                 k: v
                 for k, v in list(usr.licenseusr.__dict__.items())
                 if not k.startswith("_") and not isinstance(v, list)
+            })
+
+            session["current_user"] = CurrentUser(**{
+                k: v
+                for k, v in usr.__dict__.items()
+                if k.lower() in CurrentUser.__annotations__.keys()
             })
 
             resp = await make_response(

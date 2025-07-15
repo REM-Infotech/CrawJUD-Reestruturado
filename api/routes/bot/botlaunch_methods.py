@@ -73,6 +73,7 @@ class LoadForm:  # noqa: D101
     sid: str
     upload_folder: Path
     pid: str
+    sess: SessionDict
 
     def __init__(self, pid: str) -> None:  # noqa: D107
         sess = SessionDict(**dict(list(session.items())))
@@ -86,6 +87,7 @@ class LoadForm:  # noqa: D101
         if not license_user:
             abort(500)
 
+        self.sess = sess
         self.license_user = license_user
         self.sid = sid
         self.pid = pid
@@ -102,6 +104,10 @@ class LoadForm:  # noqa: D101
             form_data = await self._update_form_data(data)
             form = await FormDict.constructor(bot=self.bot, data=form_data)
             pid_path = self.upload_folder.joinpath(self.pid, f"{self.pid}.json")
+
+            form["email_subject"] = self.sess["current_user"]["email"]
+            form["user_name"] = self.sess["current_user"]["nome_usuario"]
+            form["user_id"] = self.sess["current_user"]["id"]
 
             async with aiofiles.open(pid_path, "w") as f:
                 await f.write(json.dumps(form))

@@ -6,11 +6,11 @@ from os import getenv
 from pathlib import Path
 from typing import AnyStr
 
-from celery import Celery
 from celery.signals import after_setup_logger
 
 from celery_app.addons import worker_name_generator
 from celery_app.addons.logger import dict_config
+from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
 
 
@@ -71,15 +71,15 @@ def make_celery() -> Celery:
 
     celery.conf.update(config.celery_config)
 
-    class ContextTask(celery.Task):
-        def __call__(
-            self,
-            *args: tuple,
-            **kwargs: dict,
-        ) -> any:  # -> any:
-            return self.run(*args, **kwargs)
+    # class ContextTask(celery.Task):
+    #     def __call__(
+    #         self,
+    #         *args: tuple,
+    #         **kwargs: dict,
+    #     ) -> any:  # -> any:
+    #         return self.run(*args, **kwargs)
 
-    celery.Task = ContextTask
+    # celery.Task = ContextTask
 
     celery.conf.update(
         # task_queues=CELERY_QUEUES,

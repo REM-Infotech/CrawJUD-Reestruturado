@@ -14,6 +14,10 @@ if TYPE_CHECKING:
 @shared_task
 def initialize_bot(name: str, system: str) -> TReturnMessageExecutBot:
     """Inicializa uma execução do robô."""
+    from celery_app import app
+
+    app.send_task("send_email")
+
     bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
 
     class_bot = getattr(bot, name.capitalize(), None)
