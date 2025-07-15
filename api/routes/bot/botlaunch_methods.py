@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Union
 
 import aiofiles
 import chardet
+import pandas as pd
 from quart import (
     Response,  # noqa: F401
     abort,
@@ -73,7 +74,9 @@ FORM_CONFIG: dict[str, dict[str, class_form_dict]] = {
 
 async def detect_encoding(data: bytes) -> str:  # noqa: D103
     get_encode = chardet.detect(data)
-    return get_encode.get("encoding", "utf-8")
+    encode = get_encode.get("encoding", "utf-8")
+
+    return encode if encode else "ISO-8859-8"
 
 
 async def license_user(usr: int, db: SQLAlchemy) -> str:
@@ -136,15 +139,15 @@ async def loadform() -> class_form_dict:  # noqa: D103
             if val:
                 if item == "xlsx":
                     temp_folder = Path(__file__).cwd().joinpath("temp", sid, val)
-                    async with aiofiles.open(temp_folder, "rb") as f:
-                        blob_xlsx = await f.read()
-                        encoding = await detect_encoding(blob_xlsx)
+                    df = pd.read_excel(temp_folder)
 
-                        val = {
-                            "filename": val,
-                            "blob": blob_xlsx.decode(encoding),
-                            "encoding": encoding,
-                        }
+                    csv_path = temp_folder.with_suffix(".csv")
+                    df.to_csv(csv_path)
+
+                    async with aiofiles.open(csv_path, "r") as f:
+                        blob_csv = await f.read()
+
+                        val = {"filename": val, "blob": blob_csv}
 
                 if item == "creds":
                     query = (

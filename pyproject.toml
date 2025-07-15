@@ -37,6 +37,7 @@ dependencies = [
     "quart-socketio @ git+https://github.com/Robotz213/Quart-SocketIO.git",
     "flask-session[redis] (>=0.8.0,<0.9.0)",
     "python-magic (>=0.4.27,<0.5.0)",
+    "minio (>=7.2.15)",
     
 ]
 [tool.poetry]
