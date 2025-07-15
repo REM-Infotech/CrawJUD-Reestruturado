@@ -31,7 +31,8 @@ async def start_bot() -> None:  # noqa: D103
 
         celery_app: Celery = current_app.extensions["celery"]
 
-        celery_app.send_task("start_bot", kwargs=args_task)
+        task = celery_app.gen_task_name("initialize_bot", "celery_app.tasks.bot")
+        celery_app.send_task(task, kwargs=args_task)
 
         return await make_response(jsonify(message="Execução iniciada!", pid=pid))
 

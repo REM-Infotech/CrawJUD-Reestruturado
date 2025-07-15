@@ -1,5 +1,6 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
+import importlib
 import logging
 from logging.config import dictConfig
 from os import getenv
@@ -88,6 +89,8 @@ def make_celery() -> Celery:
         task_default_exchange="default",
         task_default_routing_key="default",
     )
+
+    importlib.import_module(".tasks", __package__)
 
     return celery
 

@@ -5,6 +5,7 @@ __pycache__/
 bandit.html
 # C extensions
 *.so
+results.db
 is_init.txt
 # Distribution / packaging
 .Python

@@ -103,16 +103,20 @@ class LoadForm:  # noqa: D101
             self.bot = await self._query_bot(int(data["bot_id"]))
             form_data = await self._update_form_data(data)
             form = await FormDict.constructor(bot=self.bot, data=form_data)
-            pid_path = self.upload_folder.joinpath(self.pid, f"{self.pid}.json")
+            pid_path = self.upload_folder.joinpath(self.pid)
+
+            pid_path.mkdir(exist_ok=True, parents=True)
+
+            path_pid = pid_path.joinpath(f"{self.pid}.json")
 
             form["email_subject"] = self.sess["current_user"]["email"]
             form["user_name"] = self.sess["current_user"]["nome_usuario"]
             form["user_id"] = self.sess["current_user"]["id"]
 
-            async with aiofiles.open(pid_path, "w") as f:
+            async with aiofiles.open(path_pid, "w") as f:
                 await f.write(json.dumps(form))
 
-            self._upload_file(pid_path)
+            await self._upload_file(path_pid)
 
             args_task = {
                 "name": self.bot.type.lower(),
@@ -138,8 +142,13 @@ class LoadForm:  # noqa: D101
             self.bot.classification.upper(), self.bot.form_cfg
         )
 
-    async def _upload_file(self, file: str | list[str]) -> None:
+    async def _upload_file(self, file: str | list[str] | Path) -> None:
         storage = Storage("minio")
+
+        if isinstance(file, Path):
+            file_name = secure_filename(file.name)
+            await storage.upload_file(f"{self.pid}/{file_name}", file)
+            return
 
         files = file if isinstance(file, list) else [file]
         for file in files:

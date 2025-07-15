@@ -3,12 +3,13 @@
 Provides functionality to load configuration from an object.
 """
 
-from ast import TypeVar
 from os import environ
 from pathlib import Path  # noqa: F401
-from typing import AnyStr, Self, Type
+from typing import AnyStr, Self, TypedDict
 
 from dotenv import load_dotenv
+
+load_dotenv()
 
 config_dict_model = {
     "broker_url": "",
@@ -19,25 +20,26 @@ config_dict_model = {
     "task_create_missing_queues": True,
 }
 
-type_config = Type[TypeVar("DictConfig", bound=config_dict_model)]
+
+class CeleryConfig(TypedDict):  # noqa: D101
+    broker_url: str
+    result_backend: str
+    task_ignore_result: bool
+    broker_connection_retry_on_startup: bool
+    timezone: str
+    task_create_missing_queues: bool
 
 
 class Config:
     """Class config para o celery app."""
 
-    celery_config: type_config
+    celery_config: CeleryConfig
     broker_url: str
     result_backend: str
     task_ignore_result: bool
     task_create_missing_queues: bool
     broker_connection_retry_on_startup: bool
     timezone: str
-
-    bool_attributes: list[str] = [
-        "task_ignore_result",
-        "task_create_missing_queues",
-        "broker_connection_retry_on_startup",
-    ]
     # CELERY_QUEUES = (  # noqa: N806
     #     Queue("default"),
     #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
@@ -53,20 +55,26 @@ class Config:
         """Load Config."""
         return cls(**kwrgs)
 
+    def convert_bool(self, v: str) -> bool:  # noqa: D102
+        return v.lower() == "true" or v == 1
+
     def __init__(self, **kwargs: AnyStr) -> None:
         """Load Config."""
-        self.celery_config = {}
-
         arguments = kwargs.copy()
+        arguments.update(environ)
+        self.celery_config = CeleryConfig(**{
+            k.lower(): v
+            for k, v in list(arguments.items())
+            if k.lower() in CeleryConfig.__annotations__.keys()
+        })
 
-        if len(kwargs) == 0:
-            load_dotenv()
-            arguments.update(environ)
+        call_convert = {bool: self.convert_bool}
 
-        for key, val in list(arguments.items()):
-            if key in self.bool_attributes:
-                val = arguments.get(key, "false").lower() == "true"
+        for k, v in self.celery_config.items():
+            type_key = CeleryConfig.__annotations__.get(k)
+            if not isinstance(v, type_key):
+                call_ = call_convert.get(type_key)
+                if call_:
+                    v = call_(v)
 
-            self.celery_config[key] = val
-
-            setattr(self, key, val)
+            setattr(self, k, v)
