@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from celery.app import shared_task
 
+from addons.printlogs import PrintMessage
 from addons.storage import Storage
 
 if TYPE_CHECKING:
@@ -30,11 +31,20 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         prefix=pid,
     )
 
-    path_config = path_files.joinpath(pid, f"{pid}.json")
-    class_bot = getattr(bot, name.capitalize(), None)
-    class_bot.initialize(bot_name=name, bot_system=system, path_config=path_config)
-    class_bot.execution()
-    return "Execução encerrada com sucesso!"
+    with PrintMessage() as prt:
+        path_config = path_files.joinpath(pid, f"{pid}.json")
+
+        class_bot = getattr(bot, name.capitalize(), None)
+        class_bot.initialize(
+            bot_name=name, bot_system=system, path_config=path_config, prt=prt
+        )
+
+        @prt.io.on("stop_bot")
+        def stop_bot() -> None:
+            class_bot.is_stopped = True
+
+        class_bot.execution()
+        return "Execução encerrada com sucesso!"
 
 
 @shared_task

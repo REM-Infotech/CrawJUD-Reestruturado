@@ -13,12 +13,12 @@ from pytz import timezone
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
+from addons.printlogs import PrintMessage
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
 from crawjud.addons.interator import Interact
 from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
-from crawjud.addons.printlogs import PrintMessage
 from crawjud.addons.search import search_engine, search_types
 from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions.bot import StartError
@@ -37,7 +37,7 @@ class Controller:
     # Variáveis de estado/posição/indice
     pid: str
     pos: int
-    is_stoped: bool
+    _is_stoped: bool
     start_time: float
 
     # Variáveis de verificações
@@ -68,6 +68,14 @@ class Controller:
     _search: search_types = None
     _data_bot: dict[str, str] = {}
     interact: Interact
+
+    @property
+    def is_stoped(self) -> bool:  # noqa: D102
+        return self._is_stoped
+
+    @is_stoped.setter
+    def is_stoped(self, new_value: bool) -> None:
+        self._is_stoped = new_value
 
     @property
     def bot_data(self) -> dict[str, str]:
@@ -197,9 +205,8 @@ class Controller:
         logging.config.dictConfig(config)
 
         self.logger = logging.getLogger(logger_name)
-        self.prt = PrintMessage.constructor(
-            logger=self.logger, total_rows=self.total_rows
-        )
+        self.prt.logger = self.logger
+        self.prt.total_rows = self.total_rows
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
