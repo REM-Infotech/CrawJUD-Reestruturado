@@ -11,6 +11,7 @@ from celery.app import shared_task
 
 from addons.printlogs import PrintMessage
 from addons.storage import Storage
+from common.bot import ClassBot
 
 if TYPE_CHECKING:
     from celery_app.types import TReturnMessageExecutBot
@@ -35,7 +36,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
     with PrintMessage(pid=pid) as prt:
         path_config = path_files.joinpath(pid, f"{pid}.json")
 
-        class_bot = getattr(bot, name.capitalize(), None)
+        class_bot: ClassBot = getattr(bot, name.capitalize(), None)
         class_bot.initialize(
             bot_name=name, bot_system=system, path_config=path_config, prt=prt
         )
@@ -44,7 +45,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
 
         @prt.on("stop_bot", namespace=namespace)
         def stop_bot(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
-            class_bot.is_stopped = True
+            ClassBot.is_stoped = True
 
         class_bot.execution()
         return "Execução encerrada com sucesso!"
