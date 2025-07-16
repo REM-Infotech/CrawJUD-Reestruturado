@@ -36,18 +36,18 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
     with PrintMessage(pid=pid) as prt:
         path_config = path_files.joinpath(pid, f"{pid}.json")
 
-        class_bot: ClassBot = getattr(bot, name.capitalize(), None)
-        class_bot.initialize(
+        class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
+        bot_instance = class_bot.initialize(
             bot_name=name, bot_system=system, path_config=path_config, prt=prt
         )
 
         namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
 
-        @prt.on("stop_bot", namespace=namespace)
-        def stop_bot(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
-            ClassBot.is_stoped = True
+        @prt.on("stop_signal", namespace=namespace)
+        def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
+            bot_instance.is_stoped = True
 
-        class_bot.execution()
+        bot_instance.execution()
         return "Execução encerrada com sucesso!"
 
 

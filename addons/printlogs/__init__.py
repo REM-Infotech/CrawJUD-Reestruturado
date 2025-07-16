@@ -110,12 +110,8 @@ class PrintMessage:
         self.message = prompt
 
         self.logger.info(prompt)
-        self.emit_message()
-
-    def emit_message(self) -> None:
-        """Envia a mensagem para o servidor SocketIO."""
         try:
-            self.io.emit("join_room", data={"pid": self.pid})
+            self.io.emit("join_room", data={"room": self.pid})
             sleep(1)
             self.io.emit(
                 "log_execution",
@@ -126,6 +122,7 @@ class PrintMessage:
                     "pos": self.row,
                     "total": self.total_rows,
                 },
+                namespace=self.namespace,
             )
             sleep(1)
 
