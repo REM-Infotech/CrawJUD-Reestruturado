@@ -28,7 +28,7 @@ class PrintLogs:  # noqa: D101
     pid: str
     message: str
     _io: Client
-    _logger: logging.Logger
+    _logger: logging.Logger = logging.getLogger(__name__)
     _total_rows: int = 0
     _start_time: datetime
     _bot_instance: ClassBot = None

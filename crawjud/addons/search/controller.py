@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
     from addons.printlogs import PrintMessage
     from crawjud.addons.interator import Interact
+    from crawjud.core._dictionary import BotData
     from crawjud.types.elements import type_elements
 
 
@@ -20,9 +21,11 @@ class SearchController:
     driver: WebDriver
     wait: WebDriverWait
     elements: type[type_elements]
-    bot_data: dict[str, str]
+    bot_data: BotData
     interact: Interact
     prt: PrintMessage
+
+    subclasses = {}
 
     def __init__(
         self,
@@ -42,6 +45,13 @@ class SearchController:
         self.bot_data = bot_data
         self.interact = interact
         self.prt = prt
+
+    def __init_subclass__(cls) -> None:  # noqa: D105
+        if not hasattr(cls, "search"):
+            raise NotImplementedError(
+                f"Subclasses of {cls.__name__} must implement the 'search' method."
+            )
+        cls.subclasses[cls.__name__.lower()] = cls
 
     def search(self, bot_data: dict[str, str]) -> bool:  # noqa: D102
         raise NotImplementedError("This method should be implemented by subclasses.")

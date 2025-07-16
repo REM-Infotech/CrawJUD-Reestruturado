@@ -146,12 +146,6 @@ class Controller:
             ):
                 self._cities_am = json.loads(f.read())
 
-            self.prt.bot_instance = self
-            self.status_log = "Inicializando"
-            pid = kwargs.get("pid")
-            self.prt.print_msg(
-                "Configurando o núcleo...", pid, 0, "log", self.status_log
-            )
             self.is_stoped = False
             self.start_time = perf_counter()
             self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
@@ -161,6 +155,13 @@ class Controller:
                     continue
 
                 setattr(self, k, v)
+
+            self.prt.bot_instance = self
+            self.status_log = "Inicializando"
+            pid = kwargs.get("pid")
+            self.prt.print_msg(
+                "Configurando o núcleo...", pid, 0, "log", self.status_log
+            )
 
             self.open_cfg()
 
