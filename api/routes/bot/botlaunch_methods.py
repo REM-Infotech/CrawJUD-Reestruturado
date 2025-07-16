@@ -182,11 +182,24 @@ class LoadForm:  # noqa: D101
             val = _data.get(item)
             if val:
                 if item == "xlsx" or item == "otherfiles":
-                    await self._upload_file(val)
+                    if item == "xlsx":
+                        await self._upload_file(val)
+                        val = secure_filename(val)
+
+                    elif item == "otherfiles":
+                        await self._upload_file(val)
+                        if isinstance(val, list):
+                            for pos, i in enumerate(list(val)):
+                                val[pos] = secure_filename(i)
+                            continue
+
+                        val = secure_filename(val)
+                    continue
 
                 if item == "creds":
                     credential = await self._query_credentials(int(val))
-                    val = await self._format_credential(credential)
+                    form_data.update(await self._format_credential(credential))
+                    continue
 
                 form_data.update({item: val})
 
@@ -211,7 +224,7 @@ class LoadForm:  # noqa: D101
     async def _format_credential(self, query: Credentials) -> dict[str, str]:
         val = {}
         if query.login_method == "pw":
-            val = {"login": query.login, "password": query.password}
+            val = {"username": query.login, "password": query.password}
 
         elif query.login_method == "cert":
             val = {

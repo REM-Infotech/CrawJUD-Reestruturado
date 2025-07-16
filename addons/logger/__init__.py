@@ -11,7 +11,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
 
     handlers_config = {
         "file_handler": {
-            "class": "crawjud.addons.logger.handlers.FileHandler",
+            "class": "addons.logger.handlers.FileHandler",
             "level": logging.INFO,
             "formatter": "json",
             "filename": "app.log",
@@ -42,7 +42,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
                 "format": "%(levelname)s:%(name)s:%(message)s",
             },
             "json": {
-                "()": "crawjud.addons.logger.handlers.JsonFormatter",
+                "()": "addons.logger.handlers.JsonFormatter",
             },
         },
         "loggers": {

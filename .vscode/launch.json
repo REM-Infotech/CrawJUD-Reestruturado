@@ -42,8 +42,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "celery_app",
-      "args": ["--type", "worker"],
-      "justMyCode": false
+      "args": ["--type", "worker"]
     },
     {
       "name": "Debug Celery-Beat CrawJUD",

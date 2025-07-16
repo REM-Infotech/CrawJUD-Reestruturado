@@ -13,11 +13,11 @@ from pytz import timezone
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
+from addons.logger import dict_config
 from addons.printlogs import PrintMessage
 from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
 from crawjud.addons.interator import Interact
-from crawjud.addons.logger import dict_config
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import search_engine, search_types
 from crawjud.addons.webdriver import DriverBot
@@ -68,6 +68,22 @@ class Controller:
     _search: search_types = None
     _data_bot: dict[str, str] = {}
     interact: Interact
+
+    @property
+    def max_rows(self) -> int:  # noqa: D102
+        return self.prt.total_rows
+
+    @max_rows.setter
+    def max_rows(self, new_value: int) -> None:
+        self.prt.total_rows = new_value
+
+    @property
+    def total_rows(self) -> int:  # noqa: D102
+        return self.prt.total_rows
+
+    @total_rows.setter
+    def total_rows(self, new_value: int) -> None:
+        self.prt.total_rows = new_value
 
     @property
     def is_stoped(self) -> bool:  # noqa: D102
@@ -206,7 +222,7 @@ class Controller:
 
         self.logger = logging.getLogger(logger_name)
         self.prt.logger = self.logger
-        self.prt.total_rows = self.total_rows
+        self.prt.total_rows = int(getattr(self, "total_rows", 0))
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""

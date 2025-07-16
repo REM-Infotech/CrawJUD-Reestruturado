@@ -19,9 +19,9 @@ class PrintMessage:
     row: int
     pid: str
     message: str
-    _total_rows: int
-    _logger: logging.Logger
     _io: Client
+    _logger: logging.Logger
+    _total_rows: int = 0
 
     def on(  # noqa: D102
         self,
