@@ -220,12 +220,11 @@ class Controller:
             status=self.status_log,
         )
         auth = AuthController.construct(
-            self.system,
+            system=self.system,
             username=self.username,
             password=self.password,
             driver=self.driver,
             wait=self.wait,
-            system=self.system,
             elements=self.elements,
             prt=self.prt,
         )

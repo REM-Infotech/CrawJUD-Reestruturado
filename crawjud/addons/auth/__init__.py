@@ -46,7 +46,7 @@ class AuthController:  # noqa: B903
     @classmethod
     def construct(cls, system: str, *args, **kwargs) -> Self:  # noqa: ANN002, ANN003
         """Método construtor para instanciar a classe."""
-        return cls.subclasses.get(system.lower())(*args, **kwargs)
+        return cls.subclasses.get(system.lower())(system=system, *args, **kwargs)  # noqa: B026
 
     def __init_subclass__(cls) -> None:  # noqa: D105
         if not hasattr(cls, "auth"):
