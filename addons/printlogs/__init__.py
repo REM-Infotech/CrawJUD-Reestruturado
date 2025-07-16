@@ -1,68 +1,53 @@
 """Módulo de gerenciamento de logs CrawJUD."""
 
+from __future__ import annotations
+
 import logging
 import traceback
 from datetime import datetime
 from os import environ
 from time import sleep
-from typing import Any, Callable, Self
+from typing import TYPE_CHECKING, Any, Callable, Self, TypedDict
 
+import pytz
 from pytz import timezone
 from socketio import Client
 
+if TYPE_CHECKING:
+    from common.bot import ClassBot
 
-class PrintMessage:
-    """Classe de gerenciamento de logs CrawJUD."""
+sio = Client()
 
+_namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+
+
+class PrintLogs:  # noqa: D101
+    namespace: str = _namespace
     url_server: str
-    namespace: str
     row: int
     pid: str
     message: str
     _io: Client
     _logger: logging.Logger
     _total_rows: int = 0
+    _start_time: datetime
+    _bot_instance: ClassBot = None
 
-    def on(  # noqa: D102
-        self,
-        event: str,
-        namespace: str = None,
-    ) -> Callable[..., Any] | None:
-        # def set_handler(handler: Callable[..., Any]) -> Callable[..., Any]:
-        #     if namespace not in self.handlers:
-        #         self.handlers[namespace] = {}
-        #     self.handlers[namespace][event] = handler
-        #     return handler
+    @property
+    def bot_instance(self) -> ClassBot:  # noqa: D102
+        return self._bot_instance
 
-        # if handler:
-        #     return set_handler
-        return self.io.on(event=event, namespace=namespace)
+    @bot_instance.setter
+    def bot_instance(self, inst: ClassBot) -> None:
+        self._bot_instance = inst
 
-    def __init__(self, *args: Any, **kwrgs: Any) -> None:
-        """Inicializa o PrintMessage."""
-        for k, v in list(kwrgs.items()):
-            setattr(self, k, v)
+    @property
+    def start_time(self) -> datetime:  # noqa: D102
+        return self._start_time
 
-        self.url_server = environ["SOCKETIO_SERVER_URL"]
-        self.namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
-
-        sio = Client()
-        sio.connect(
-            url=self.url_server,
-            headers={"Content-Type": "application/json"},
-            auth={"room": self.pid},
-            namespaces=[self.namespace],
-            transports=["websocket"],
-            retry=True,
-        )
-
-        self.io = sio
-
-    def __enter__(self) -> Self:  # noqa: D105
-        return self
-
-    def __exit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D105
-        self.io.disconnect()
+    @start_time.setter
+    def start_time(self, time_set: datetime) -> None:
+        self._start_time = time_set
 
     @property
     def logger(self) -> logging.Logger:  # noqa: D102
@@ -88,6 +73,76 @@ class PrintMessage:
     def total_rows(self, new_value: int) -> None:
         self._total_rows = new_value
 
+
+class MessageLog(TypedDict):  # noqa: D101
+    message: str
+    type: str
+    pid: str
+    status: str
+    start_time: str
+
+    # counts
+    row: int
+    total: int
+    errors: int
+    success: int
+    remaining: int
+
+
+class PrintMessage(PrintLogs):
+    """Classe de gerenciamento de logs CrawJUD."""
+
+    def on(  # noqa: D102
+        self,
+        event: str,
+        namespace: str = None,
+    ) -> Callable[..., Any] | None:
+        # def set_handler(handler: Callable[..., Any]) -> Callable[..., Any]:
+        #     if namespace not in self.handlers:
+        #         self.handlers[namespace] = {}
+        #     self.handlers[namespace][event] = handler
+        #     return handler
+
+        # if handler:
+        #     return set_handler
+        return self.io.on(event=event, namespace=namespace)
+
+    def __init__(self, *args: Any, **kwrgs: Any) -> None:
+        """Inicializa o PrintMessage."""
+        for k, v in list(kwrgs.items()):
+            setattr(self, k, v)
+
+        self.url_server = environ["SOCKETIO_SERVER_URL"]
+
+        sio.connect(
+            url=self.url_server,
+            headers={"Content-Type": "application/json"},
+            auth={"room": self.pid},
+            namespaces=[self.namespace],
+            transports=["websocket"],
+            retry=True,
+        )
+
+        join_data = {"data": {"room": self.pid}}
+        sio.emit("join_room", data=join_data, namespace=self.namespace)
+
+        self.start_time = datetime.now(pytz.timezone("America/Manaus"))
+        self.io = sio
+
+    def __enter__(self) -> Self:  # noqa: D105
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D105
+        self.io.disconnect()
+
+    def emit(  # noqa: D102
+        self,
+        event: str,
+        data: dict[str, str | dict[str, str | MessageLog]],
+        callback: Callable[..., Any | None] = None,
+    ) -> None:
+        self.io.emit(event, data, self.namespace, callback=callback)
+
     def print_msg(
         self,
         message: str,
@@ -103,27 +158,28 @@ class PrintMessage:
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid}, {type_log}, {row}, {time_exec})> {message}]"
 
-        self.type_log = type_log
-        self.row = row
         self.total = self.total_rows
-        self.pid = pid
-        self.message = prompt
 
         self.logger.info(prompt)
         try:
-            self.io.emit("join_room", data={"room": self.pid})
             sleep(1)
-            self.io.emit(
-                "log_execution",
-                data={
-                    "message": self.message,
-                    "pid": self.pid,
-                    "type": self.type_log,
-                    "pos": self.row,
-                    "total": self.total_rows,
-                },
-                namespace=self.namespace,
+
+            total_count = self.total_rows
+            remaining = total_count - row
+            time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
+            data = MessageLog(
+                message=prompt,
+                type=type_log,
+                pid=pid,
+                status="Em Execução",
+                start_time=time_start,
+                row=row,
+                total=self.total_rows,
+                errors=0,
+                success=0,
+                remaining=remaining,
             )
+            self.emit("log_execution", data={"data": data})
             sleep(1)
 
         except Exception as e:
