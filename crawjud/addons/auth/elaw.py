@@ -45,12 +45,6 @@ class ElawAuth(AuthController):
             url = self.driver.current_url
 
             is_logged = url != "https://amazonas.elaw.com.br/login"
-            if is_logged:
-                self.prt.print_msg(
-                    "Autenticação realizada com sucesso!",
-                    type_log="success",
-                    row=0,
-                )
             return is_logged
 
         except Exception as e:

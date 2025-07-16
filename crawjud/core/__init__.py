@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 from pandas import Timestamp
 from werkzeug.utils import secure_filename
 
+from crawjud.core._dictionary import BotData
 from crawjud.core.master import Controller
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types import TypeData
@@ -43,7 +44,7 @@ class CrawJUD(Controller):
     def execution(self) -> None:  # noqa: D102
         raise NotImplementedError("Subclasses must implement this method")
 
-    def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802
+    def dataFrame(self) -> list[BotData]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
 
         Reads an Excel file, processes the data by formatting dates and floats,
@@ -79,6 +80,7 @@ class CrawJUD(Controller):
             for key, value in item.items():
                 if str(value) == "nan":
                     item[key] = None
+
             vars_df.append(item)
 
         return vars_df

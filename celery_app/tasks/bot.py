@@ -24,35 +24,68 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
 
     # app.send_task("send_email", kwargs={})
 
+    # Import the bot module dynamically based on the system and name
     bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
 
-    storage = Storage("minio")
-    path_files = Path(__file__).cwd().joinpath("temp")
-    await storage.download_files(
-        dest=path_files,
-        prefix=pid,
-    )
-    path_config = path_files.joinpath(pid, f"{pid}.json")
-
+    # Get the ClassBot from the imported module
+    # Using getattr to handle cases where the class might not exist
+    # This allows for more flexible bot implementations
     class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
-
-    with PrintMessage(pid=pid) as prt:
-        bot_instance = class_bot.initialize(
-            bot_name=name, bot_system=system, path_config=path_config, prt=prt
+    if class_bot is None:
+        raise ImportError(
+            msg=f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
         )
 
-        prt.print_msg("Execução Iniciada!", pid, 0, "log")
+    try:
+        with PrintMessage(pid=pid) as prt:
+            storage = Storage("minio")
 
-        prt.bot_instance = bot_instance
+            # Print log message indicating bot initialization
+            prt.print_msg("Configurando o robô...", pid, 0, "log", "Inicializando")
+            path_files = Path(__file__).cwd().joinpath("temp")
 
-        namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+            # Print log message for downloading files
+            prt.print_msg(
+                "Baixando arquivos do robô...", pid, 0, "log", "Inicializando"
+            )
 
-        @prt.io.on("stop_signal", namespace=namespace)
-        def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
-            bot_instance.is_stoped = True
+            # Download files from storage
+            await storage.download_files(
+                dest=path_files,
+                prefix=pid,
+            )
 
-        bot_instance.execution()
-        return "Execução encerrada com sucesso!"
+            # Print log message indicating successful file download
+            prt.print_msg(
+                "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
+            )
+            path_config = path_files.joinpath(pid, f"{pid}.json")
+
+            # Initialize the bot instance
+            bot_instance = class_bot.initialize(
+                bot_name=name, bot_system=system, path_config=path_config, prt=prt
+            )
+
+            # Set the PrintMessage instance to the bot instance
+            prt.bot_instance = bot_instance
+            namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+
+            # Set up the handler for stop signal
+            @prt.io.on("stop_signal", namespace=namespace)
+            def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
+                bot_instance.is_stoped = True
+
+            # Print log message indicating bot execution start
+            prt.print_msg(
+                "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
+            )
+
+            # Start the bot execution
+            bot_instance.execution()
+            return "Execução encerrada com sucesso!"
+
+    except Exception:
+        return "Erro no robô. Verifique os logs para mais detalhes."
 
 
 @shared_task

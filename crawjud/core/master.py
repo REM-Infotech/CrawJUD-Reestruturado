@@ -23,12 +23,14 @@ from crawjud.addons.interator import Interact
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import search_engine
 from crawjud.addons.webdriver import DriverBot
+from crawjud.exceptions import AuthenticationError
 from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
 from crawjud.types.elements import type_elements
 
 if TYPE_CHECKING:
     from crawjud.addons.search.controller import SearchController
+    from crawjud.core._dictionary import BotData
 
 
 class Controller:
@@ -99,12 +101,12 @@ class Controller:
         self._is_stoped = new_value
 
     @property
-    def bot_data(self) -> dict[str, str]:
+    def bot_data(self) -> BotData:
         """Property bot data."""
         return self._data_bot
 
     @bot_data.setter
-    def bot_data(self, new_data: dict[str, str]) -> None:
+    def bot_data(self, new_data: BotData) -> None:
         """Property bot data."""
         self._data_bot = new_data
 
@@ -144,6 +146,12 @@ class Controller:
             ):
                 self._cities_am = json.loads(f.read())
 
+            self.prt.bot_instance = self
+            self.status_log = "Inicializando"
+            pid = kwargs.get("pid")
+            self.prt.print_msg(
+                "Configurando o núcleo...", pid, 0, "log", self.status_log
+            )
             self.is_stoped = False
             self.start_time = perf_counter()
             self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
@@ -182,6 +190,11 @@ class Controller:
 
             # Configura o search_bot
             self.configure_searchengine()
+
+            self.prt.print_msg(
+                "Núcleo configurado.", self.pid, 0, "success", self.status_log
+            )
+
         except Exception as e:
             raise StartError(exception=e) from e
 
@@ -199,6 +212,9 @@ class Controller:
 
     def portal_authentication(self) -> None:
         """Autenticação com os sistemas."""
+        self.prt.print_msg(
+            "Autenticando no sistema", self.pid, 0, "log", self.status_log
+        )
         auth = authenticator(self.system)(
             username=self.username,
             password=self.password,
@@ -208,15 +224,41 @@ class Controller:
             elements=self.elements,
             prt=self.prt,
         )
-        auth.auth()
+        is_logged = auth.auth()
+
+        if not is_logged:
+            self.prt.print_msg(
+                "Erro ao autenticar no sistema, verifique as credenciais.",
+                self.pid,
+                0,
+                "error",
+                self.status_log,
+            )
+            raise AuthenticationError(
+                "Erro ao autenticar no sistema, verifique as credenciais."
+            )
+
+        self.prt.print_msg(
+            "Autenticação realizada com sucesso",
+            self.pid,
+            0,
+            "success",
+            self.status_log,
+        )
 
     def configure_webdriver(self) -> None:
         """Instancia o WebDriver."""
+        self.prt.print_msg(
+            "Inicializando webdriver", self.pid, 0, "log", self.status_log
+        )
         driverbot = DriverBot(
             self.preferred_browser, execution_path=self.output_dir_path
         )()
         self.driver = driverbot[0]
         self.wait = driverbot[1]
+        self.prt.print_msg(
+            "Webdriver inicializado", self.pid, 0, "success", self.status_log
+        )
 
     def configure_logger(self) -> None:
         """Configura o logger."""
@@ -234,6 +276,9 @@ class Controller:
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
         time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
+        self.prt.print_msg(
+            "Criando planilhas de output", self.pid, 0, "log", self.status_log
+        )
         planilha_args = [
             {
                 "PATH_OUTPUT": self.output_dir_path,
@@ -248,6 +293,9 @@ class Controller:
                 "BOT_NAME": self.name,
             },
         ]
+        self.prt.print_msg(
+            "Planilhas criadas.", self.pid, 0, "success", self.status_log
+        )
 
         for item in planilha_args:
             attribute_name, attribute_val = MakeTemplates.constructor(**item).make()
@@ -255,6 +303,10 @@ class Controller:
 
     def open_cfg(self) -> None:
         """Abre as configurações de execução."""
+        self.prt.print_msg(
+            "Carregando configurações", self.pid, 0, "log", self.status_log
+        )
+
         with Path(self.path_config).resolve().open("r") as f:
             data: dict[str, AnyStr] = json.loads(f.read())
             self.config_bot = data
@@ -263,3 +315,7 @@ class Controller:
                     self.state_or_client = v
 
                 setattr(self, k, v)
+
+        self.prt.print_msg(
+            "Configurações carregadas", self.pid, 0, "success", self.status_log
+        )
