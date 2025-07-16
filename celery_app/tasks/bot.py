@@ -31,7 +31,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         prefix=pid,
     )
 
-    with PrintMessage() as prt:
+    with PrintMessage(pid=pid) as prt:
         path_config = path_files.joinpath(pid, f"{pid}.json")
 
         class_bot = getattr(bot, name.capitalize(), None)
