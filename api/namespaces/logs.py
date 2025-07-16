@@ -34,22 +34,15 @@ class LogsNamespace(Namespace):
         eio_session = await self.server.eio.get_session(eio_sid)
         eio_session[namespace] = session
 
-    async def on_connect(self, sid: str, environ: dict[str, str]) -> None:
+    async def on_connect(self) -> None:
         """Evento de conexão."""
-        session = {"sid": sid}
 
-        await self.save_session(sid, session, self.namespace)
-
-    async def on_disconnect(self, sid: str, reason: str) -> None:
+    async def on_disconnect(self) -> None:
         """Evento de desconexão."""
 
-    async def on_join_room(
-        self, sid: str, data: dict[str, str], environ: dict[str, str] | None = None
-    ) -> None:
+    async def on_join_room(self) -> None:
         """JOIN ROOM."""
-        room = data.get("pid")
-        await self.enter_room(sid=sid, room=room, namespace=self.namespace)
 
-    async def on_log_execution(self, sid: str, data: dict[str, str]) -> None:
+    async def on_log_execution(self) -> None:
         """Evento de recebimento de log."""
-        await self.emit("log_execution", data, room=data["pid"])
+        await self.emit("log_execution")

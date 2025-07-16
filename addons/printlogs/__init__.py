@@ -38,7 +38,7 @@ class PrintMessage:
         #     return set_handler
         return self.io.on(event=event, namespace=namespace)
 
-    def __init__(self, **kwrgs: str | object) -> None:
+    def __init__(self, *args: Any, **kwrgs: Any) -> None:
         """Inicializa o PrintMessage."""
         for k, v in list(kwrgs.items()):
             setattr(self, k, v)
