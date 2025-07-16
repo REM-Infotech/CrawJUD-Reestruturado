@@ -28,8 +28,7 @@
       "name": "Debug API CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "api",
-      "justMyCode": false
+      "module": "api"
     },
     {
       "name": "Debug SocketIO CrawJUD",

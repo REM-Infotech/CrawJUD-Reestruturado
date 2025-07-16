@@ -2,18 +2,26 @@
 
 import argparse
 import asyncio
+from contextlib import suppress
 from multiprocessing import Process  # noqa: F401
 from os import environ
 from pathlib import Path
 from platform import node
 from sys import argv
+from time import sleep
+from typing import Callable
 
-import tqdm
 from celery.apps.beat import Beat  # noqa: F401
 from celery.apps.worker import Worker
+from clear import clear
+from inquirer import List, prompt
+from inquirer.themes import GreenPassion
+from tqdm import tqdm
 
 from celery_app import make_celery
 from celery_app.addons import worker_name_generator
+
+clear()
 
 
 def start_worker() -> None:
@@ -62,23 +70,70 @@ def start_beat() -> None:
     beat.run()
 
 
+def start_service(call: Callable) -> Process:  # noqa: D103
+    proc = Process(target=call, daemon=True)
+    proc.start()
+    return proc
+
+
+def restart_service(call: Callable, proc: Process) -> Process:  # noqa: D103
+    stop_service(proc)
+    sleep(5)
+
+    return start_service(call)
+
+
+def stop_service(proc: Process) -> bool:  # noqa: D103
+    proc.kill()
+    return False
+
+
 def main() -> None:
     """Entrada main."""
-    calls = {"worker": start_worker, "beat": start_beat}
-    args = argv[1:]
-    parser = argparse.ArgumentParser("Celery App CrawJUD.")
-    parser.add_argument(
-        "--type",
-        default="worker",
-        help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
-    )
-    namespaces = parser.parse_args(args)
+    with suppress(KeyboardInterrupt, Exception):
+        calls = {"worker": start_worker, "beat": start_beat}
+        args = argv[1:]
 
-    callable_obj = calls[namespaces.type]
-    callable_obj()
+        parser = argparse.ArgumentParser("Celery App CrawJUD.")
+        parser.add_argument(
+            "--type",
+            default="worker",
+            help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
+        )
+        namespaces = parser.parse_args(args)
 
-    # process_celery = Process(target=callable_obj, daemon=True)
-    # process_celery.start()
-    # process_celery.join()
-    # input("Pressione Enter para encerrar")
-    # process_celery.kill()
+        callable_obj = calls[namespaces.type]
+        process_celery = start_service(callable_obj)
+
+        process_running = True
+
+        opt_1 = f"Reiniciar {str(namespaces.type).capitalize()}"
+        opt_2 = f"Encerrar {str(namespaces.type).capitalize()}"
+
+        while process_running:
+            clear()
+            questions = [
+                List(
+                    "option_server",
+                    "Selecione o que fazer",
+                    choices=[
+                        opt_1,
+                        opt_2,
+                    ],
+                    default=opt_1,
+                )
+            ]
+
+            result = prompt(questions, theme=GreenPassion())
+
+            if not result:
+                process_running = stop_service(process_celery)
+
+            if result.get("option_server") == opt_1:
+                process_celery = restart_service(callable_obj, process_celery)
+
+            elif result.get("option_server") == opt_2:
+                process_running = stop_service(process_celery)
+
+    clear()
+    tqdm.write("Serviço encerrado!")
