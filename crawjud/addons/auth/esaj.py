@@ -22,15 +22,7 @@ if TYPE_CHECKING:
 class EsajAuth(AuthController, name="esaj"):
     """Classe de autenticação Esaj."""
 
-    def auth(self) -> bool:
-        """Authenticate on ESAJ system using certificate or credentials.
-
-        Returns:
-            bool: True if authentication is successful; False otherwise.
-
-        Waits for page elements, selects certificate if needed, and verifies login.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             loginuser = "".join(
                 filter(lambda x: x not in string.punctuation, self.username)

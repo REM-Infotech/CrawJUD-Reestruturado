@@ -57,9 +57,18 @@ class AuthController:  # noqa: B903
         cls.subclasses[cls.__name__.lower()] = cls
 
     def auth(self) -> bool:  # noqa: D102
+        """Authenticate on system using certificate or credentials.
+
+        Returns:
+            bool: True if authentication is successful; False otherwise.
+
+        Waits for page elements, selects certificate if needed, and verifies login.
+
+        """
         raise NotImplementedError("Method 'auth' must be implemented in subclasses.")
 
     def accept_cert(self, accepted_dir: str) -> None:  # noqa: D102
+        """Accept a certificate if required."""
         raise NotImplementedError(
             "Method 'accept_cert' must be implemented in subclasses."
         )

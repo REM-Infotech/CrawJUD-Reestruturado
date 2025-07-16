@@ -17,13 +17,7 @@ from crawjud.exceptions.bot import LoginSystemError
 class ProjudiAuth(AuthController, name="projudi"):
     """Classe de autenticação PROJUDI."""
 
-    def auth(self) -> bool:
-        """Authenticate on PROJUDI platform using username and password.
-
-        Returns:
-            bool: True if the login process completes successfully; False otherwise.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             self.driver.get(self.elements.url_login)
 

@@ -14,15 +14,7 @@ from crawjud.addons.auth import AuthController
 class PjeAuth(AuthController, name="pje"):
     """Classe de autenticação PJE."""
 
-    def auth(self) -> bool:
-        """Authenticate on the PJE system by providing username and password.
-
-        Returns:
-            bool: True if login was successful; False otherwise.
-
-        Fills all required fields and checks the status by verifying the page URL.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             self.driver.get(self.elements.url_login)
 

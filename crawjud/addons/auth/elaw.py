@@ -12,15 +12,7 @@ from crawjud.addons.auth import AuthController
 class ElawAuth(AuthController, name="elaw"):
     """Classe de autenticação Elaw."""
 
-    def auth(self) -> bool:
-        """Authenticate on the eLAW platform using provided credentials.
-
-        Returns:
-            bool: True if authentication is successful; False otherwise.
-
-        Navigates to the login page, enters credentials, and verifies the URL after login.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             self.driver.get("https://amazonas.elaw.com.br/login")
 
