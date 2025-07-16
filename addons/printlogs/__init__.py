@@ -149,6 +149,7 @@ class PrintMessage(PrintLogs):
         pid: str = None,
         row: int = 0,
         type_log: str = "log",
+        status: str = "Em Execução",
     ) -> None:
         """Print current log message and emit it via the socket.
 
@@ -165,13 +166,13 @@ class PrintMessage(PrintLogs):
             sleep(1)
             pid = self.pid if pid is None else pid
             total_count = self.total_rows
-            remaining = total_count - row
+            remaining = total_count + 1 - row
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
                 message=prompt,
                 type=type_log,
                 pid=pid,
-                status="Em Execução",
+                status=status,
                 start_time=time_start,
                 row=row,
                 total=self.total_rows,

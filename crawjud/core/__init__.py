@@ -173,7 +173,6 @@ class CrawJUD(Controller):
         Performs cookie cleanup, quits the driver, and prints summary logs.
         """
         window_handles = self.driver.window_handles
-        self.row += 1
         if window_handles:
             self.driver.delete_all_cookies()
             self.driver.quit()
@@ -189,7 +188,11 @@ class CrawJUD(Controller):
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
         self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
+            message=message,
+            pid=self.pid,
+            row=self.row,
+            type_log=type_log,
+            status="Finalizado",
         )
 
     def calc_time(self) -> list[int]:
