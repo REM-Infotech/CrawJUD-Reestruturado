@@ -39,7 +39,7 @@ def config_loggers(
     log_file = log_path.joinpath(f"{logger_name}.log")
     log_file.touch(exist_ok=True)
 
-    log_level = logging.INFO
+    log_level = logging.DEBUG
     if getenv("DEBUG", "False").lower() == "true":
         log_level = logging.DEBUG
 

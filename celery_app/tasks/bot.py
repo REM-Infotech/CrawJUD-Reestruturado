@@ -41,6 +41,8 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
             bot_name=name, bot_system=system, path_config=path_config, prt=prt
         )
 
+        prt.print_msg("Execução Iniciada!", pid, 0, "log")
+
         prt.bot_instance = bot_instance
 
         namespace = environ["SOCKETIO_SERVER_NAMESPACE"]

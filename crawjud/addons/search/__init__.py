@@ -2,22 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Union
+from typing import TYPE_CHECKING
 
 from crawjud.addons.search.elaw import ElawSearch
 from crawjud.addons.search.esaj import EsajSearch
 from crawjud.addons.search.projudi import ProjudiSearch
 
-search_types = Union[ElawSearch, EsajSearch, ProjudiSearch]
-search_systems = {
+if TYPE_CHECKING:
+    from crawjud.addons.search.controller import SearchController
+
+search_systems: dict[str, type[SearchController]] = {
     "elaw": ElawSearch,
     "esaj": EsajSearch,
     "projudi": ProjudiSearch,
 }
 
 
-def search_engine(system: str) -> search_types:
+def search_engine(system: str) -> type[SearchController]:
     """Retorna o objeto do autenticador."""
-    search: search_types = search_systems[system]
+    search: type[SearchController] = search_systems[system]
 
     return search

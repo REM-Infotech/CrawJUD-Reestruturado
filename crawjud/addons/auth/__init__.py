@@ -1,24 +1,27 @@
 """Módulo de autenticação CrawJUD."""
 
-from typing import Type, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from crawjud.addons.auth.elaw import ElawAuth
 from crawjud.addons.auth.esaj import EsajAuth
 from crawjud.addons.auth.pje import PjeAuth
 from crawjud.addons.auth.projudi import ProjudiAuth
 
-auth_systems = {
+if TYPE_CHECKING:
+    from crawjud.addons.auth.controller import AuthController
+
+auth_systems: type[AuthController] = {
     "pje": PjeAuth,
     "esaj": EsajAuth,
     "elaw": ElawAuth,
     "projudi": ProjudiAuth,
 }
 
-auth_types = Union[Type[PjeAuth], Type[EsajAuth], Type[ElawAuth], Type[ProjudiAuth]]
 
-
-def authenticator(system: str) -> auth_types:
+def authenticator(system: str) -> type[AuthController]:
     """Retorna o objeto do autenticador."""
-    auth: auth_types = auth_systems[system]
+    auth: type[AuthController] = auth_systems[system]
 
     return auth

@@ -1,5 +1,7 @@
 """Módulo de controle de variáveis CrawJUD."""
 
+from __future__ import annotations
+
 import json
 import logging
 import logging.config
@@ -7,7 +9,7 @@ from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from time import perf_counter
-from typing import AnyStr
+from typing import TYPE_CHECKING, AnyStr
 
 from pytz import timezone
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -19,11 +21,14 @@ from crawjud.addons.auth import authenticator
 from crawjud.addons.elements import ElementsBot
 from crawjud.addons.interator import Interact
 from crawjud.addons.make_templates import MakeTemplates
-from crawjud.addons.search import search_engine, search_types
+from crawjud.addons.search import search_engine
 from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
 from crawjud.types.elements import type_elements
+
+if TYPE_CHECKING:
+    from crawjud.addons.search.controller import SearchController
 
 
 class Controller:
@@ -55,7 +60,7 @@ class Controller:
     # Classes Globais
     elements: type_elements
     driver: WebDriver
-    search: search_types
+    search: SearchController
     wait: WebDriverWait
     logger: Logger
     prt: PrintMessage
@@ -65,7 +70,7 @@ class Controller:
     input_file: StrPath
     output_dir_path: StrPath
     _cities_am: dict[str, str]
-    _search: search_types = None
+    _search: SearchController = None
     _data_bot: dict[str, str] = {}
     interact: Interact
 
@@ -104,12 +109,12 @@ class Controller:
         self._data_bot = new_data
 
     @property
-    def search_bot(self) -> search_types:
+    def search_bot(self) -> SearchController:
         """Property para o searchbot."""
         return self._search
 
     @search_bot.setter
-    def search_bot(self, instancia: search_types) -> None:
+    def search_bot(self, instancia: SearchController) -> None:
         """Define a instância do searchbot."""
         self._search = instancia
 
@@ -189,6 +194,7 @@ class Controller:
             elements=self.elements,
             bot_data=self.bot_data,
             interact=self.interact,
+            prt=self.prt,
         )
 
     def portal_authentication(self) -> None:
@@ -200,6 +206,7 @@ class Controller:
             wait=self.wait,
             system=self.system,
             elements=self.elements,
+            prt=self.prt,
         )
         auth.auth()
 
