@@ -11,10 +11,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.addons.search.controller import SearchController
+from crawjud.addons.search import SearchController
 
 
-class ElawSearch(SearchController):
+class ElawSearch(SearchController, name="elaw"):
     """Classe de pesquisa Elaw."""
 
     def search(self, bot_data: dict[str, str]) -> bool:

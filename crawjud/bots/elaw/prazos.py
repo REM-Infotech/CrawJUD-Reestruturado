@@ -17,10 +17,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.addons.auth.elaw import ElawAuth
 from crawjud.core import CrawJUD
 from crawjud.exceptions.bot import ProcNotFoundError, SaveError
 from crawjud.exceptions.elaw import ElawError
+
+from .elaw import ElawAuth
 
 
 class Prazos(CrawJUD):

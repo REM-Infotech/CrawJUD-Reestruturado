@@ -8,10 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from crawjud.addons.auth.controller import AuthController
+from crawjud.addons.auth import AuthController
 
 
-class PjeAuth(AuthController):
+class PjeAuth(AuthController, name="pje"):
     """Classe de autenticação PJE."""
 
     def auth(self) -> bool:

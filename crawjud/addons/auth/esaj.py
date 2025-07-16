@@ -13,13 +13,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from crawjud.addons.auth.controller import AuthController
+from crawjud.addons.auth import AuthController
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class EsajAuth(AuthController):
+class EsajAuth(AuthController, name="esaj"):
     """Classe de autenticação Esaj."""
 
     def auth(self) -> bool:

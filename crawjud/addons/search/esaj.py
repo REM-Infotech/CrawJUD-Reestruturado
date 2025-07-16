@@ -11,11 +11,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.addons.search.controller import SearchController
+from crawjud.addons.search import SearchController
 from crawjud.exceptions.bot import ExecutionError
 
 
-class EsajSearch(SearchController):
+class EsajSearch(SearchController, name="esaj"):
     """Classe de autenticação Esaj."""
 
     def search(self, bot_data: dict[str, str]) -> bool:
@@ -51,7 +51,7 @@ class EsajSearch(SearchController):
 
         sleep(1)
         # Coloca o campo em formato "Outros" para inserir o número do processo
-        ratioNumberOld: WebElement = self.wait.until(
+        ratioNumberOld: WebElement = self.wait.until(  # noqa: N806
             ec.presence_of_element_located((By.ID, "radioNumeroAntigo"))
         )  # noqa: N806
         self.interact.click(ratioNumberOld)
@@ -111,7 +111,7 @@ class EsajSearch(SearchController):
 
                 if check_process:
                     check_process.click()
-                    btEnviarIncidente = self.driver.find_element(
+                    btEnviarIncidente = self.driver.find_element(  # noqa: N806
                         By.CSS_SELECTOR, 'input[name="btEnviarIncidente"]'
                     )  # noqa: N806
                     btEnviarIncidente.click()

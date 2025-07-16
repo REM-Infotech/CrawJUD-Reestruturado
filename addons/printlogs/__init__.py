@@ -157,21 +157,22 @@ class PrintMessage(PrintLogs):
         and appends the output to the messages list.
         """
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
-        prompt = f"[({pid}, {type_log}, {row}, {time_exec})> {message}]"
+        _pid = self.pid if not pid else pid
+        prompt = f"[({_pid}, {type_log}, {row}, {time_exec})> {message}]"
 
         self.total = self.total_rows
 
         self.logger.info(prompt)
         try:
             sleep(1)
-            pid = self.pid if pid is None else pid
+
             total_count = self.total_rows
             remaining = total_count + 1 - row
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
                 message=prompt,
                 type=type_log,
-                pid=pid,
+                pid=_pid,
                 status=status,
                 start_time=time_start,
                 row=row,

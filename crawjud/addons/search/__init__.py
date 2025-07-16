@@ -1,25 +1,69 @@
-"""Módulo de pesquisa CrawJUD."""
+"""Módulo pesquisa de processos."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from crawjud.addons.search.elaw import ElawSearch
-from crawjud.addons.search.esaj import EsajSearch
-from crawjud.addons.search.projudi import ProjudiSearch
+from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
-    from crawjud.addons.search.controller import SearchController
+    from selenium.webdriver.remote.webdriver import WebDriver
+    from selenium.webdriver.support.wait import WebDriverWait
 
-search_systems: dict[str, type[SearchController]] = {
-    "elaw": ElawSearch,
-    "esaj": EsajSearch,
-    "projudi": ProjudiSearch,
-}
+    from addons.printlogs import PrintMessage
+    from crawjud.addons.interator import Interact
+    from crawjud.core._dictionary import BotData
+    from crawjud.types.elements import type_elements
 
 
-def search_engine(system: str) -> type[SearchController]:
-    """Retorna o objeto do autenticador."""
-    search: type[SearchController] = search_systems[system]
+class SearchController:
+    """Controller class for search operations."""
 
-    return search
+    typebot: str
+    driver: WebDriver
+    wait: WebDriverWait
+    elements: type[type_elements]
+    bot_data: BotData
+    interact: Interact
+    prt: PrintMessage
+
+    subclasses = {}
+
+    def __init__(
+        self,
+        typebot: str,
+        driver: WebDriver,
+        wait: WebDriverWait,
+        elements: type[type_elements],
+        bot_data: dict[str, str],
+        interact: Interact,
+        prt: PrintMessage,
+    ) -> None:
+        """Inicializador do SearchController."""
+        self.typebot = typebot
+        self.driver = driver
+        self.wait = wait
+        self.elements = elements
+        self.bot_data = bot_data
+        self.interact = interact
+        self.prt = prt
+
+    @classmethod
+    def construct(cls, system: str, *args, **kwargs) -> Self:  # noqa: ANN002, ANN003
+        """Método construtor para instanciar a classe."""
+        return cls.subclasses.get(system.lower())(*args, **kwargs)
+
+    def __init_subclass__(cls) -> None:  # noqa: D105
+        if not hasattr(cls, "search"):
+            raise NotImplementedError(
+                f"Subclasses of {cls.__name__} must implement the 'search' method."
+            )
+
+        cls.subclasses[cls.__name__.lower()] = cls
+
+    def search(self, bot_data: dict[str, str]) -> bool:  # noqa: D102
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    def search_proc(self) -> bool:  # noqa: D102
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    def search_proc_parte(self) -> bool:  # noqa: D102
+        raise NotImplementedError("This method should be implemented by subclasses.")

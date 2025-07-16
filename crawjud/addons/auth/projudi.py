@@ -10,11 +10,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from crawjud.addons.auth.controller import AuthController
+from crawjud.addons.auth import AuthController
 from crawjud.exceptions.bot import LoginSystemError
 
 
-class ProjudiAuth(AuthController):
+class ProjudiAuth(AuthController, name="projudi"):
     """Classe de autenticação PROJUDI."""
 
     def auth(self) -> bool:
