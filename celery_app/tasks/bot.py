@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from importlib import import_module
+from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -39,8 +40,10 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
             bot_name=name, bot_system=system, path_config=path_config, prt=prt
         )
 
-        @prt.io.on("stop_bot")
-        def stop_bot() -> None:
+        namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+
+        @prt.on("stop_bot", namespace=namespace)
+        def stop_bot(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
             class_bot.is_stopped = True
 
         class_bot.execution()

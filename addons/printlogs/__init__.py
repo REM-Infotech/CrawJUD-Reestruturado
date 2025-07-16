@@ -5,7 +5,7 @@ import traceback
 from datetime import datetime
 from os import environ
 from time import sleep
-from typing import Self
+from typing import Any, Callable, Self
 
 from pytz import timezone
 from socketio import Client
@@ -22,6 +22,21 @@ class PrintMessage:
     _total_rows: int
     _logger: logging.Logger
     _io: Client
+
+    def on(  # noqa: D102
+        self,
+        event: str,
+        namespace: str = None,
+    ) -> Callable[..., Any] | None:
+        # def set_handler(handler: Callable[..., Any]) -> Callable[..., Any]:
+        #     if namespace not in self.handlers:
+        #         self.handlers[namespace] = {}
+        #     self.handlers[namespace][event] = handler
+        #     return handler
+
+        # if handler:
+        #     return set_handler
+        return self.io.on(event=event, namespace=namespace)
 
     def __init__(self, **kwrgs: str | object) -> None:
         """Inicializa o PrintMessage."""
