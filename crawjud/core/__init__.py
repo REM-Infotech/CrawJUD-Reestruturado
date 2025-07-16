@@ -13,6 +13,7 @@ from difflib import SequenceMatcher
 from os import listdir, path
 from pathlib import Path
 from time import perf_counter, sleep
+from typing import Any, Self
 
 import pandas as pd
 from cryptography import x509
@@ -34,6 +35,13 @@ class CrawJUD(Controller):
     Manages the initialization, setup, and authentication processes
     of the CrawJUD bot.
     """
+
+    @classmethod
+    def initialize(cls, *args: Any, **kwargs: Any) -> Self:  # noqa: D102
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def execution(self) -> None:  # noqa: D102
+        raise NotImplementedError("Subclasses must implement this method")
 
     def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
