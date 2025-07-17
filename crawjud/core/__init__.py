@@ -26,6 +26,7 @@ from crawjud.core._dictionary import BotData
 from crawjud.core.master import Controller
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types import TypeData
+from models.logs import MessageLog
 
 load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
@@ -73,7 +74,7 @@ class CrawJUD(Controller):
         for col in df.select_dtypes(include=["float"]).columns:
             df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
 
-        vars_df = []
+        data_planilha = []
 
         df_dicted = df.to_dict(orient="records")
         for item in df_dicted:
@@ -81,10 +82,14 @@ class CrawJUD(Controller):
                 if str(value) == "nan":
                     item[key] = None
 
-            vars_df.append(item)
+            data_planilha.append(item)
 
-        return vars_df
-        # self.search = SearchBot.setup()
+        logs = MessageLog.query_logs(self.pid)
+
+        if logs and logs.row > 0:
+            data_planilha = data_planilha[: logs.row + 1]
+
+        return data_planilha
 
     def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
         """Format a legal case dictionary according to pre-defined rules.

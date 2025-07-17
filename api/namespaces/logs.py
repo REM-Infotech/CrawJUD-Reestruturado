@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from contextlib import suppress
-
 import engineio
 import socketio
 from quart import request, session
 from quart_socketio import Namespace
-from redis_om import NotFoundError
 
 from addons.printlogs._interface import MessageLog as MessageLogDict
-from api.models.logs import MessageLog
+from models.logs import MessageLog
 
 
 class ASyncServerType(socketio.AsyncServer):
@@ -56,35 +53,36 @@ class LogsNamespace(Namespace):
         message = await self.log_redis(pid=_data["pid"], message=_data)
         await self.emit("log_execution", data=message, room=_data["pid"])
 
-    async def _calc_success_errors(self, message: MessageLogDict) -> None:
+    async def _calc_success_errors(self, message: MessageLogDict) -> MessageLogDict:
         """Calcula os valores de sucesso e erros."""
         message["success"] = message.get("success", 0)
         message["errors"] = message.get("errors", 0)
         message["remaining"] = message.get("total", 0) - message["success"]
 
-        if message["type"] == "error":
-            message["errors"] += 1
-        elif message["type"] == "success":
-            message["success"] += 1
+        if message.get("type"):
+            if message.get("type") == "error":
+                message["errors"] += 1
+            elif message["type"] == "success":
+                message["success"] += 1
 
         return message
 
-    async def log_redis(self, pid: str, message: MessageLogDict = None) -> None:
+    async def log_redis(
+        self, pid: str, message: MessageLogDict = None
+    ) -> MessageLogDict:
         """Carrega/atualiza o log no Redis."""
-        log = await self._query_logs(pid)
-        if log:
-            if not message:
-                return log.model_dump()
+        log = MessageLog.query_logs(pid)
+        _message: MessageLogDict = dict(message) if message else {}
 
-            log.update(**message)
+        if log:
+            if not _message:
+                _message = log.model_dump()
 
         elif not log:
-            message = await self._calc_success_errors(message)
-            log = MessageLog(**message)
+            _message["pid"] = pid
+            log = MessageLog(**_message)
             log.save()
 
-    async def _query_logs(self, pid: str) -> MessageLog | None:
-        with suppress(NotFoundError, Exception):
-            log = MessageLog.get(pid)
+        log.update(**await self._calc_success_errors(_message))
 
-            return log
+        return _message
