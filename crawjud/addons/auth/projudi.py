@@ -14,7 +14,7 @@ from crawjud.addons.auth import AuthController
 from crawjud.exceptions.bot import LoginSystemError
 
 
-class ProjudiAuth(AuthController, name="projudi"):
+class ProjudiAuth(AuthController):
     """Classe de autenticação PROJUDI."""
 
     def auth(self) -> bool:  # noqa: D102

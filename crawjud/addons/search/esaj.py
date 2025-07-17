@@ -15,7 +15,7 @@ from crawjud.addons.search import SearchController
 from crawjud.exceptions.bot import ExecutionError
 
 
-class EsajSearch(SearchController, name="esaj"):
+class EsajSearch(SearchController):
     """Classe de autenticação Esaj."""
 
     def search(self, bot_data: dict[str, str]) -> bool:

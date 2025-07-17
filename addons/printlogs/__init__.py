@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import traceback
+from contextlib import suppress
 from datetime import datetime
 from os import environ
 from time import sleep
@@ -12,13 +13,14 @@ from typing import TYPE_CHECKING, Any, Callable, Self, TypedDict
 import pytz
 from pytz import timezone
 from socketio import Client
+from socketio.exceptions import BadNamespaceError
 
 if TYPE_CHECKING:
     from common.bot import ClassBot
 
-sio = Client()
-
 _namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+
+sio = Client()
 
 
 class PrintLogs:  # noqa: D101
@@ -73,6 +75,10 @@ class PrintLogs:  # noqa: D101
     def total_rows(self, new_value: int) -> None:
         self._total_rows = new_value
 
+    @property
+    def row(self) -> int:  # noqa: D102
+        return self._bot_instance.row if self._bot_instance else 0
+
 
 class MessageLog(TypedDict):  # noqa: D101
     message: str
@@ -107,13 +113,7 @@ class PrintMessage(PrintLogs):
         #     return set_handler
         return self.io.on(event=event, namespace=namespace)
 
-    def __init__(self, *args: Any, **kwrgs: Any) -> None:
-        """Inicializa o PrintMessage."""
-        for k, v in list(kwrgs.items()):
-            setattr(self, k, v)
-
-        self.url_server = environ["SOCKETIO_SERVER_URL"]
-
+    def connect(self) -> Client:  # noqa: D102
         sio.connect(
             url=self.url_server,
             headers={"Content-Type": "application/json"},
@@ -123,11 +123,21 @@ class PrintMessage(PrintLogs):
             retry=True,
         )
 
+        return sio
+
+    def __init__(self, *args: Any, **kwrgs: Any) -> None:
+        """Inicializa o PrintMessage."""
+        for k, v in list(kwrgs.items()):
+            setattr(self, k, v)
+
+        self.url_server = environ["SOCKETIO_SERVER_URL"]
+
+        self.connect()
+
         join_data = {"data": {"room": self.pid}}
         sio.emit("join_room", data=join_data, namespace=self.namespace)
 
         self.start_time = datetime.now(pytz.timezone("America/Manaus"))
-        self.io = sio
 
     def __enter__(self) -> Self:  # noqa: D105
         return self
@@ -141,7 +151,13 @@ class PrintMessage(PrintLogs):
         data: dict[str, str | dict[str, str | MessageLog]],
         callback: Callable[..., Any | None] = None,
     ) -> None:
-        self.io.emit(event, data, self.namespace, callback=callback)
+        try:
+            self.io.emit(event, data, self.namespace, callback=callback)
+
+        except BadNamespaceError:
+            with suppress(Exception):
+                self.connect()
+                self.io.emit(event, data, self.namespace, callback=callback)
 
     def print_msg(
         self,
@@ -158,7 +174,7 @@ class PrintMessage(PrintLogs):
         """
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         _pid = self.pid if not pid else pid
-        prompt = f"[({_pid}, {type_log}, {row}, {time_exec})> {message}]"
+        prompt = f"[({_pid}, {type_log}, {self.row}, {time_exec})> {message}]"
 
         self.total = self.total_rows
 
@@ -167,7 +183,7 @@ class PrintMessage(PrintLogs):
             sleep(1)
 
             total_count = self.total_rows
-            remaining = total_count + 1 - row
+            remaining = total_count + 1 - self.row
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
                 message=prompt,
@@ -175,7 +191,7 @@ class PrintMessage(PrintLogs):
                 pid=_pid,
                 status=status,
                 start_time=time_start,
-                row=row,
+                row=self.row,
                 total=self.total_rows,
                 errors=0,
                 success=0,

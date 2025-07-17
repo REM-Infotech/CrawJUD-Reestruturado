@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class EsajAuth(AuthController, name="esaj"):
+class EsajAuth(AuthController):
     """Classe de autenticação Esaj."""
 
     def auth(self) -> bool:  # noqa: D102

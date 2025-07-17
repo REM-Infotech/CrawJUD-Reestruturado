@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from crawjud.addons.search import SearchController
 
 
-class ElawSearch(SearchController, name="elaw"):
+class ElawSearch(SearchController):
     """Classe de pesquisa Elaw."""
 
     def search(self, bot_data: dict[str, str]) -> bool:

@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from crawjud.addons.auth import AuthController
 
 
-class ElawAuth(AuthController, name="elaw"):
+class ElawAuth(AuthController):
     """Classe de autenticação Elaw."""
 
     def auth(self) -> bool:  # noqa: D102

@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class Controller:
     """Classe de controle de variáveis CrawJUD."""
 
-    row: int
+    _row: int = 0
     # Variáveis de dados/configuraçoes
     bot_data: dict[str, str]
     config_bot: dict[str, AnyStr]
@@ -118,6 +118,15 @@ class Controller:
     def search_bot(self, instancia: SearchController) -> None:
         """Define a instância do searchbot."""
         self._search = instancia
+
+    @property
+    def row(self) -> int:  # noqa: D102
+        return self._row
+
+    @row.setter
+    def row(self, new_value: int) -> None:
+        """Define o valor da variável row."""
+        self._row = new_value
 
     @property
     def cities_amazonas(self) -> dict[str, str]:  # noqa: N802

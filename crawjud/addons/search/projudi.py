@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class ProjudiSearch(SearchController, name="projudi"):
+class ProjudiSearch(SearchController):
     """Classe de pesquisa PROJUDI."""
 
     def search(self, bot_data: dict[str, str]) -> bool:

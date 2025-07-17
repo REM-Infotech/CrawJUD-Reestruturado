@@ -11,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from crawjud.addons.auth import AuthController
 
 
-class PjeAuth(AuthController, name="pje"):
+class PjeAuth(AuthController):
     """Classe de autenticação PJE."""
 
     def auth(self) -> bool:  # noqa: D102
