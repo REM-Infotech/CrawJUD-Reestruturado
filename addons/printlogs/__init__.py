@@ -20,10 +20,9 @@ if TYPE_CHECKING:
 
 _namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
 
-sio = Client()
-
 
 class PrintLogs:  # noqa: D101
+    _sio: Client = None
     namespace: str = _namespace
     url_server: str
     row: int
@@ -36,7 +35,11 @@ class PrintLogs:  # noqa: D101
 
     @property
     def io(self) -> Client:  # noqa: D102
-        return sio
+        return self._sio
+
+    @io.setter
+    def io(self, new_io: Client) -> None:
+        self._sio = new_io
 
     @property
     def bot_instance(self) -> ClassBot:  # noqa: D102
@@ -109,6 +112,7 @@ class PrintMessage(PrintLogs):
         return self.io.on(event=event, namespace=namespace)
 
     def connect(self) -> Client:  # noqa: D102
+        sio = Client()
         sio.connect(
             url=self.url_server,
             headers={"Content-Type": "application/json"},
@@ -120,6 +124,15 @@ class PrintMessage(PrintLogs):
 
         return sio
 
+    def reconnect(self) -> None:
+        """Reestabelece a conexão com o servidor Socket.IO."""
+        handlers = self.io.handlers.copy()
+        with suppress(Exception):
+            self.io.disconnect()
+        self.io = self.connect()
+        for event, handler in handlers.items():
+            self.io.on(event, handler, namespace=self.namespace)
+
     def __init__(self, *args: Any, **kwrgs: Any) -> None:
         """Inicializa o PrintMessage."""
         for k, v in list(kwrgs.items()):
@@ -127,10 +140,10 @@ class PrintMessage(PrintLogs):
 
         self.url_server = environ["SOCKETIO_SERVER_URL"]
 
-        self.connect()
+        self.io = self.connect()
 
         join_data = {"data": {"room": self.pid}}
-        sio.emit("join_room", data=join_data, namespace=self.namespace)
+        self.io.emit("join_room", data=join_data, namespace=self.namespace)
 
         self.start_time = datetime.now(pytz.timezone("America/Manaus"))
 
@@ -151,7 +164,7 @@ class PrintMessage(PrintLogs):
 
         except BadNamespaceError:
             with suppress(Exception):
-                self.connect()
+                self.reconnect()
                 self.io.emit(event, data, self.namespace, callback=callback)
 
     def print_msg(
@@ -178,7 +191,10 @@ class PrintMessage(PrintLogs):
             sleep(1)
 
             total_count = self.total_rows
-            remaining = total_count + 1 - self.row
+            remaining = 0
+            if self.row > 0:
+                remaining = total_count + 1 - self.row
+
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
                 message=prompt,

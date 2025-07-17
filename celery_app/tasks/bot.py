@@ -84,7 +84,8 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
             bot_instance.execution()
             return "Execução encerrada com sucesso!"
 
-    except Exception:
+    except Exception as e:
+        print(e)
         return "Erro no robô. Verifique os logs para mais detalhes."
 
 
