@@ -7,12 +7,14 @@ import traceback
 from contextlib import suppress
 from datetime import datetime
 from os import environ
-from typing import TYPE_CHECKING, Any, Callable, Self, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Self
 
 import pytz
 from pytz import timezone
 from socketio import Client
 from socketio.exceptions import BadNamespaceError
+
+from addons.printlogs._interface import MessageLog
 
 if TYPE_CHECKING:
     from common.bot import ClassBot
@@ -75,21 +77,6 @@ class PrintLogs:  # noqa: D101
     @property
     def row(self) -> int:  # noqa: D102
         return self._bot_instance.row if self._bot_instance else 0
-
-
-class MessageLog(TypedDict):  # noqa: D101
-    message: str
-    type: str
-    pid: str
-    status: str
-    start_time: str
-
-    # counts
-    row: int
-    total: int
-    errors: int
-    success: int
-    remaining: int
 
 
 class PrintMessage(PrintLogs):
