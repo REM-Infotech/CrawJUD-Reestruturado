@@ -7,7 +7,6 @@ import traceback
 from contextlib import suppress
 from datetime import datetime
 from os import environ
-from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Self, TypedDict
 
 import pytz
@@ -188,8 +187,6 @@ class PrintMessage(PrintLogs):
 
         self.logger.info(prompt)
         try:
-            sleep(1)
-
             total_count = self.total_rows
             remaining = 0
             if self.row > 0:
@@ -209,8 +206,7 @@ class PrintMessage(PrintLogs):
                 remaining=remaining,
             )
             self.emit("log_execution", data={"data": data})
-            sleep(1)
-
+            self.logger.info(prompt)
         except Exception as e:
             self.logger.error(
                 "Erro ao emitir mensagem: Exception %s",
