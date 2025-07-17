@@ -29,11 +29,14 @@ class PrintLogs:  # noqa: D101
     row: int
     pid: str
     message: str
-    _io: Client
     _logger: logging.Logger = logging.getLogger(__name__)
     _total_rows: int = 0
     _start_time: datetime
     _bot_instance: ClassBot = None
+
+    @property
+    def io(self) -> Client:  # noqa: D102
+        return sio
 
     @property
     def bot_instance(self) -> ClassBot:  # noqa: D102
@@ -58,14 +61,6 @@ class PrintLogs:  # noqa: D101
     @logger.setter
     def logger(self, new_logger: logging.Logger) -> None:
         self._logger = new_logger
-
-    @property
-    def io(self) -> Client:  # noqa: D102
-        return self._io
-
-    @io.setter
-    def io(self, new_socket: Client) -> None:
-        self._io = new_socket
 
     @property
     def total_rows(self) -> int:  # noqa: D102

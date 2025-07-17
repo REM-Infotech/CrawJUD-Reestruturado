@@ -186,7 +186,7 @@ class CrawJUD(Controller):
         flag_path = Path(self.output_dir_path).joinpath(f"{self.pid}.flag")
         with flag_path.open("w") as f:
             f.write(self.pid)
-
+        self.row = self.total_rows
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
         self.prt.print_msg(
