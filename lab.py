@@ -16,25 +16,22 @@ jpype.startJVM(
         "--add-exports=jdk.crypto.mscapi/sun.security.mscapi=ALL-UNNAMED",
     ),
 )
-from java.util import HashSet, Set  # type: ignore  # noqa: E402, PGH003
+
 
 try:
     # with suppress(Exception):
     #     jpype.shutdownJVM()
     JavaPath = JClass("java.nio.file.Paths", initialize=True)
-    path = JavaPath.get("\\\\fmv.intranet\\NETLOGON\\CERTIFICADO\\44555059204.pfx")
-    DeviceManager = JClass("com.github.signer4j.imp.PKCS12DeviceManager")()
-    # DeviceManager = JClass("com.github.signer4j.imp.MSCAPIDeviceManager")()
+    # DeviceManager = JClass("com.github.signer4j.imp.PKCS12DeviceManager")()
+    DeviceManager = JClass("com.github.signer4j.imp.MSCAPIDeviceManager")()
     # Signer4JDeviceManager = JClass("com.github.signer4j.imp.Signer4JDeviceManager")
-    JavaDict: Set = HashSet()
-    is_loaded = DeviceManager.isLoaded()
-    DeviceManager = DeviceManager.install(path)
 
-    device = DeviceManager.getDevices()
+    DeviceManager.load()
+    device = DeviceManager.firstDevice()
     repository = DeviceManager.getRepository()
     is_empty = device.isEmpty()
-    list_devices = device.get().getCertificates()
-    for item in list_devices:
+    list_devices = device.get()
+    for item in list_devices.getCertificates():
         print(item)
 
 except Exception as e:
