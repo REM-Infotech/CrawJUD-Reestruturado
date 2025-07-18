@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
 
 
-class Pauta(CrawJUD):
+class Movimentacao(CrawJUD):
     """Initialize and execute pauta operations for retrieving court hearing data now.
 
     Inherit from CrawJUD and manage the process of fetching pautas.
