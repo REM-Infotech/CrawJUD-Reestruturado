@@ -1,58 +1,48 @@
 # CrawJUD-Reestruturado
 
-CrawJUD é uma plataforma de automação para rotinas jurídicas, integrando robôs, APIs, tarefas assíncronas e comunicação em tempo real. O projeto é modularizado para facilitar manutenção, escalabilidade e integração com diferentes sistemas judiciais.
+CrawJUD é uma plataforma modular para automação de rotinas jurídicas, integrando robôs, APIs, tarefas assíncronas e comunicação em tempo real. O projeto prioriza escalabilidade, manutenção e integração com sistemas judiciais diversos.
 
-## Visão Geral
+## Principais Módulos
 
-O projeto é composto por múltiplos módulos independentes, que se comunicam entre si para automatizar fluxos jurídicos:
+- **api/**: Backend principal (autenticação, rotas REST, dashboards, banco de dados)
+- **celery_app/**: Gerenciador de tarefas assíncronas (jobs, agendamento, integrações externas)
+- **crawjud/**: Núcleo dos robôs de automação (bots, utilitários, exceções)
+- **socketio_server/**: Comunicação em tempo real via Socket.IO (logs, notificações)
+- **tests/**: Testes automatizados
 
-- **API**: Backend principal, responsável por autenticação, rotas RESTful, dashboards e integração com banco de dados.
-- **Celery App**: Gerenciador de tarefas assíncronas, utilizado para execução de jobs, agendamento e integração com serviços externos (e-mail, upload, etc).
-- **CrawJUD**: Núcleo dos robôs de automação, com bots para diferentes sistemas judiciais, utilitários e tratamento de exceções.
-- **SocketIO Server**: Servidor de comunicação em tempo real via Socket.IO, para logs, notificações e integração com clientes.
-- **Tests**: Testes automatizados do projeto.
-
-## Estrutura Geral
-
-- **api/**: Backend principal da API, responsável por autenticação, rotas, modelos e integração com banco de dados.
-- **celery_app/**: Gerenciador de tarefas assíncronas (Celery), incluindo workers, agendamento e integração com serviços externos.
-- **crawjud/**: Núcleo dos robôs de automação, com bots para diferentes sistemas judiciais, utilitários e tratamento de exceções.
-- **socketio_server/**: Servidor de comunicação em tempo real via Socket.IO, para logs, notificações e integração com clientes.
-- **tests/**: Testes automatizados do projeto.
-- **requirements.txt / poetry.lock / pyproject.toml**: Gerenciamento de dependências Python.
-
-## Guia Rápido de Execução
+## Execução Rápida
 
 1. Instale as dependências:
    ```powershell
    poetry install
    ```
-2. Configure as variáveis de ambiente conforme `ENVIRONMENT-VARIABLES.md` nas pastas `crawjud/` e `resources/`.
-3. Inicie os serviços conforme a necessidade:
+2. Configure as variáveis de ambiente conforme os arquivos `ENVIRONMENT-VARIABLES.md` em `crawjud/` e `celery_app/resources/`.
+3. Inicie os serviços desejados:
    - API: `python -m api`
    - Celery: `python -m celery_app`
    - Robôs: `python -m crawjud --bot_system <sistema> --bot_name <bot> --path_config <config>`
    - SocketIO: `python -m socketio_server`
 
-Consulte os `readme.md` de cada pasta para detalhes específicos.
+Consulte os READMEs de cada módulo para instruções detalhadas.
 
-## Exemplos de Fluxo de Trabalho
+## Exemplos de Uso
 
-- **Execução de um robô**:
-  1. Configure o arquivo de configuração do robô.
-  2. Execute o comando do módulo `crawjud` com os parâmetros desejados.
-  3. Acompanhe logs e notificações em tempo real pelo SocketIO Server.
+- **Executar robô:**
 
-- **Envio de e-mail assíncrono**:
-  1. Dispare uma tarefa via API ou diretamente pelo Celery App.
-  2. O Celery processa a fila e utiliza os utilitários de e-mail.
+  1. Configure o arquivo JSON do robô (ver instruções em `crawjud/README.md`).
+  2. Execute o comando do módulo `crawjud` com os parâmetros necessários.
+  3. Acompanhe logs em tempo real pelo SocketIO Server.
 
-## Documentação
+- **Tarefa assíncrona (e-mail, upload):**
+  1. Dispare a tarefa via API ou Celery App.
+  2. O Celery processa a fila e executa a ação.
+
+## Documentação e Suporte
 
 - [Estrutura detalhada do projeto](PROJECT-STRUCTURE.md)
 - [Variáveis de ambiente](crawjud/ENVIRONMENT-VARIABLES.md)
-- [Documentação de cada módulo nas subpastas]
+- Documentação específica em cada subpasta
 
-## Contribuindo
+## Contribuição
 
-Contribuições são bem-vindas! Siga as instruções de cada módulo e mantenha o padrão de documentação para facilitar a manutenção e o uso do mkdocs.
+Contribuições são bem-vindas! Siga o padrão de documentação e consulte as instruções de cada módulo.
