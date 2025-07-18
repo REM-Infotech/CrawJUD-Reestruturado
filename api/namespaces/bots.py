@@ -5,7 +5,6 @@ from quart_socketio import Namespace
 from api import db
 from api.interface.credentials import (
     CredendialDictSelect,
-    CredendialsSystemDict,
 )
 from api.models.bots import BotsCrawJUD, Credentials
 from api.types import ASyncServerType
@@ -68,32 +67,23 @@ class BotsNamespace(Namespace):
     async def on_bot_credentials_select(self) -> None:  # noqa: D102
         query = db.session.query(Credentials).all()
 
-        credentials = CredendialsSystemDict(
-            elaw=[
+        # Inicializa o dicionário de credenciais com opções padrão para cada sistema
+        sistemas = ["elaw", "esaj", "projudi", "pje"]
+        credentials = {
+            sistema: [
                 CredendialDictSelect(
                     value=None, text="Selecione uma Credencial", disabled=True
                 )
-            ],
-            esaj=[
-                CredendialDictSelect(
-                    value=None, text="Selecione uma Credencial", disabled=True
-                )
-            ],
-            projudi=[
-                CredendialDictSelect(
-                    value=None, text="Selecione uma Credencial", disabled=True
-                )
-            ],
-            pje=[
-                CredendialDictSelect(
-                    value=None, text="Selecione uma Credencial", disabled=True
-                )
-            ],
-        )
+            ]
+            for sistema in sistemas
+        }
 
+        # Adiciona as credenciais consultadas ao dicionário correspondente
         for item in query:
-            credentials.get(item.system.lower(), []).append(
-                CredendialDictSelect(value=item.id, text=item.nome_credencial)
-            )
+            sistema = item.system.lower()
+            if sistema in credentials:
+                credentials[sistema].append(
+                    CredendialDictSelect(value=item.id, text=item.nome_credencial)
+                )
 
         return credentials
