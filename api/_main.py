@@ -24,7 +24,7 @@ async def main_app() -> None:
         await io.init_app(app, cors_allowed_origins=check_cors_allowed_origins)
         await register_namespaces(io)
         host = environ.get("host", "0.0.0.0")
-        port = environ.get("port", 8800)
+        port = environ.get("port", 5000)
 
         log_folder = Path(__file__).cwd().joinpath("temp", "logs")
         log_folder.mkdir(exist_ok=True, parents=True)

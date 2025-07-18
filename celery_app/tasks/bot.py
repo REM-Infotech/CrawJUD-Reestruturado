@@ -1,4 +1,21 @@
-"""Modulo de gerenciamento de tarefas do Celery."""
+"""
+Defines Celery tasks for initializing and executing bot instances dynamically.
+
+Tasks:
+    - initialize_bot: Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID (pid). Handles dynamic import of the bot module and class, downloads required files from storage, sets up logging, and manages stop signals via Socket.IO.
+    - scheduled_initialize_bot: Synchronously initializes and executes a bot instance for scheduled tasks, using the provided bot name, system, and configuration path.
+
+Dependencies:
+    - Dynamic import of bot modules and classes.
+    - Storage management for downloading required files.
+    - PrintMessage for logging and communication.
+    - Socket.IO for handling stop signals during bot execution.
+
+Raises:
+    - ImportError: If the specified bot class cannot be found in the dynamically imported module.
+    - Exception: Catches and logs any exceptions during bot initialization or execution.
+
+"""
 
 from __future__ import annotations
 
@@ -20,7 +37,26 @@ if TYPE_CHECKING:
 
 @shared_task
 async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExecutBot:
-    """Inicializa uma execução do robô."""
+    """
+    Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID.
+
+    This function dynamically imports the appropriate bot module and class, downloads necessary files from storage,
+    initializes the bot with its configuration, and starts its execution. It also sets up logging and a stop signal
+    handler for graceful termination.
+
+    Args:
+        name (str): The name of the bot to initialize.
+        system (str): The system under which the bot is categorized.
+        pid (str): The process ID associated with the bot execution.
+
+    Returns:
+        TReturnMessageExecutBot: A message indicating the result of the bot execution.
+
+    Raises:
+        ImportError: If the specified bot class cannot be found in the imported module.
+        Exception: For any other errors during initialization or execution, with details printed to logs.
+
+    """
     # from celery_app import app
 
     # app.send_task("send_email", kwargs={})
@@ -97,7 +133,26 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
 def scheduled_initialize_bot(
     bot_name: str, bot_system: str, path_config: str
 ) -> TReturnMessageExecutBot:
-    """Inicializa uma execução agendada do robô."""
+    """
+    Initialize and executes a bot based on the provided bot name, system, and configuration path.
+
+    This function dynamically imports the specified bot module, retrieves the corresponding bot class,
+    initializes it with the given parameters, and executes its main logic.
+
+    Args:
+        bot_name (str): The name of the bot to initialize and execute.
+        bot_system (str): The system or category under which the bot is organized.
+        path_config (str): The file path to the configuration required for the bot.
+
+    Returns:
+        TReturnMessageExecutBot: A message indicating the successful completion of the bot execution.
+
+    Raises:
+        ImportError: If the specified bot module cannot be imported.
+        AttributeError: If the bot class does not exist in the imported module.
+        Exception: Propagates any exception raised during bot initialization or execution.
+
+    """
     bot = import_module(
         f"crawjud.bots.{bot_system.lower()}.{bot_name.lower()}", __package__
     )
