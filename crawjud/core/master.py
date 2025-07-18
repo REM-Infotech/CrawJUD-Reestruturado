@@ -49,7 +49,7 @@ class Controller:
     # Variáveis de verificações
     system: str
     typebot: str
-    state_or_client: str
+    state_or_client: str = None
     preferred_browser: str = "chrome"
     total_rows: int
 
@@ -182,15 +182,16 @@ class Controller:
             # Instancia o WebDriver
             self.configure_webdriver()
 
-            # Instancia o elements
-            self.elements = ElementsBot.config(
-                system=self.system,
-                state_or_client=self.state_or_client,
-                **self.config_bot,
-            ).bot_elements
+            if self.system.lower() != "pje":
+                # Instancia o elements
+                self.elements = ElementsBot.config(
+                    system=self.system,
+                    state_or_client=self.state_or_client,
+                    **self.config_bot,
+                ).bot_elements
 
-            # Autenticação com os sistemas
-            self.portal_authentication()
+                # Autenticação com os sistemas
+                self.portal_authentication()
 
             # Criação de planilhas template
             self.make_templates()
@@ -198,7 +199,8 @@ class Controller:
             self.interact = Interact(driver=self.driver, wait=self.wait, pid=self.pid)
 
             # Configura o search_bot
-            self.configure_searchengine()
+            if self.system.lower() != "pje":
+                self.configure_searchengine()
 
             self.prt.print_msg(
                 "Núcleo configurado.", self.pid, 0, "success", self.status_log

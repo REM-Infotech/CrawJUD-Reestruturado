@@ -223,11 +223,8 @@ class JuridicoFormPJE(TypedDict):
 
     """
 
-    varas: list[str]
-    data_inicio: str | datetime
-    data_fim: str | datetime
-    creds: str
-    state: str
+    xlsx: str
+    confirm_fields: bool
     confirm_fields: bool
     periodic_task: bool
     task_name: str | None

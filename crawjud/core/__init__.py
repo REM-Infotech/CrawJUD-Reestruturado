@@ -63,16 +63,18 @@ class CrawJUD(Controller):
         df.columns = df.columns.str.upper()
 
         for col in df.columns:
-            df[col] = df[col].apply(
-                lambda x: (
-                    x.strftime("%d/%m/%Y")
-                    if isinstance(x, (datetime, Timestamp))
-                    else x
+            with suppress(Exception):
+                df[col] = df[col].apply(
+                    lambda x: (
+                        x.strftime("%d/%m/%Y")
+                        if isinstance(x, (datetime, Timestamp))
+                        else x
+                    )
                 )
-            )
 
         for col in df.select_dtypes(include=["float"]).columns:
-            df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
+            with suppress(Exception):
+                df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
 
         data_planilha = []
 

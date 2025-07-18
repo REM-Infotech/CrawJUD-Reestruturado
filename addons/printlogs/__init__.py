@@ -168,7 +168,8 @@ class PrintMessage(PrintLogs):
         """
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         _pid = self.pid if not pid else pid
-        prompt = f"[({_pid}, {type_log}, {self.row}, {time_exec})> {message}]"
+        _row = row if row != 0 else self.row
+        prompt = f"[({_pid}, {type_log}, {_row}, {time_exec})> {message}]"
 
         self.total = self.total_rows
 
@@ -176,8 +177,8 @@ class PrintMessage(PrintLogs):
         try:
             total_count = self.total_rows
             remaining = 0
-            if self.row > 0:
-                remaining = total_count + 1 - self.row
+            if _row > 0:
+                remaining = total_count + 1 - _row
 
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
@@ -186,7 +187,7 @@ class PrintMessage(PrintLogs):
                 pid=_pid,
                 status=status,
                 start_time=time_start,
-                row=self.row,
+                row=_row,
                 total=self.total_rows,
                 errors=0,
                 success=0,

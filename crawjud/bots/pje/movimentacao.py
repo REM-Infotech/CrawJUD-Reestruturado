@@ -6,8 +6,12 @@ This module fetches and processes court hearing schedules (pautas) for automated
 from __future__ import annotations
 
 import asyncio
+import re
+import secrets
+import traceback
 from typing import TYPE_CHECKING, Self
 
+from crawjud.addons.webdriver import DriverBot
 from crawjud.core import CrawJUD
 
 if TYPE_CHECKING:
@@ -50,7 +54,7 @@ class Movimentacao(CrawJUD):
         self.max_rows = len(frame)
 
         tasks = [
-            asyncio.create_task(self._test(semaphore, pos, value))
+            asyncio.create_task(self._test(semaphore, pos + 1, value))
             for pos, value in enumerate(frame)
         ]
         await asyncio.gather(*tasks)
@@ -59,5 +63,36 @@ class Movimentacao(CrawJUD):
         self, semaphore: asyncio.Semaphore, pos: int, data: BotData
     ) -> None:
         async with semaphore:
-            driver = self.driver
-            driver.switch_to.new_window("window")
+            driver, _ = DriverBot("gecko", execution_path=self.output_dir_path)()
+            driver.maximize_window()
+            try:
+                numero_processo = data["NUMERO_PROCESSO"]
+                trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+
+                if trt_id.startswith("0"):
+                    trt_id = trt_id.replace("0", "")
+
+                timeout = secrets.randbelow(60)
+                await asyncio.sleep(timeout)
+
+                url = f"https://pje.trt{trt_id}.jus.br/pjekz/painel/usuario-externo"
+
+                self.prt.print_msg(f"Buscando processo n{numero_processo}", row=pos)
+
+                timeout = secrets.randbelow(60)
+                await asyncio.sleep(timeout)
+
+                self.driver.get(url)
+                self.prt.print_msg(
+                    "Execução realizada com sucesso!", row=pos, type_log="success"
+                )
+
+                await asyncio.sleep(2)
+                driver.close()
+
+            except Exception as e:
+                self.prt.print_msg(
+                    "\n".join(traceback.format_exception(e)),
+                    row=pos,
+                    type_log="error",
+                )

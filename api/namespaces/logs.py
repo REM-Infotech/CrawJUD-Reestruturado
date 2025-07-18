@@ -158,7 +158,7 @@ class LogsNamespace(Namespace):
         message["remaining"] = message.get("total", 0) - message["success"]
 
         # Atualiza os contadores conforme o tipo de mensagem
-        if message.get("type"):
+        if message.get("type") and message.get("row") > 0:
             if message.get("type") == "error":
                 message["errors"] += 1
             elif message["type"] == "success":

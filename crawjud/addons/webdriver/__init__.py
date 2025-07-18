@@ -14,6 +14,7 @@ from selenium.webdriver.firefox.options import Options as GeckoOptions
 from selenium.webdriver.firefox.service import Service as GeckoService
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.driver_cache import DriverCacheManager  # noqa: F401
 from webdriver_manager.core.file_manager import FileManager  # noqa: F401
 from webdriver_manager.core.os_manager import OperationSystemManager  # noqa: F401
@@ -81,9 +82,16 @@ class DriverBot:
 
         """
         try:
-            # system_manager = OperationSystemManager()
-            # file_manager = FileManager(os_system_manager=system_manager)
-            # cache_manager = DriverCacheManager(file_manager=file_manager)
+            root_dir = Path(__file__).cwd().joinpath("temp")
+
+            root_dir.mkdir(exist_ok=True)
+
+            system_manager = OperationSystemManager()
+            file_manager = FileManager(os_system_manager=system_manager)
+            cache_manager = DriverCacheManager(
+                file_manager=file_manager, root_dir=root_dir
+            )
+            download_manager = WDMDownloadManager()
             if self.preferred_browser == "chrome":
                 options = self.configure_chrome()
                 # driver_path = ChromeDriverManager(cache_manager=cache_manager).install()
@@ -92,7 +100,11 @@ class DriverBot:
                 driver = webdriver.Chrome(options=options, service=service)
             elif self.preferred_browser == "gecko":
                 options = self.configure_gecko()
-                driver_path = GeckoDriverManager().install()
+                driver_path = GeckoDriverManager(
+                    download_manager=download_manager,
+                    cache_manager=cache_manager,
+                    os_system_manager=system_manager,
+                ).install()
                 service = GeckoService(driver_path)
                 driver = webdriver.Firefox(options=options, service=service)
 
