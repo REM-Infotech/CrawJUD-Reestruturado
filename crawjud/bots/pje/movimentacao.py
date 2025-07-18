@@ -9,13 +9,20 @@ import asyncio
 import re
 import secrets
 import traceback
+from os import environ
 from typing import TYPE_CHECKING, Self
+
+from dotenv import load_dotenv
+from socketio import AsyncSimpleClient as Client
 
 from crawjud.addons.webdriver import DriverBot
 from crawjud.core import CrawJUD
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
+
+
+load_dotenv()
 
 
 class Movimentacao(CrawJUD):
@@ -47,17 +54,29 @@ class Movimentacao(CrawJUD):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaphore = asyncio.Semaphore(27)
+        semaphore = asyncio.Semaphore(5)
         main_window = self.driver.current_window_handle  # noqa: F841
 
-        frame = self.dataFrame()
-        self.max_rows = len(frame)
+        async with Client() as sio:
+            namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+            url_server = environ["SOCKETIO_SERVER_URL"]
+            await sio.connect(
+                url=url_server,
+                headers={"Content-Type": "application/json"},
+                auth={"room": self.pid},
+                namespaces=[namespace],
+                transports=["websocket"],
+                retry=True,
+            )
 
-        tasks = [
-            asyncio.create_task(self._test(semaphore, pos + 1, value))
-            for pos, value in enumerate(frame)
-        ]
-        await asyncio.gather(*tasks)
+            frame = self.dataFrame()
+            self.max_rows = len(frame)
+
+            tasks = [
+                asyncio.create_task(self._test(semaphore, pos + 1, value))
+                for pos, value in enumerate(frame)
+            ]
+            await asyncio.gather(*tasks)
 
     async def _test(
         self, semaphore: asyncio.Semaphore, pos: int, data: BotData
