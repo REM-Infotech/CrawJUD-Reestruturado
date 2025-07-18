@@ -28,3 +28,4 @@ Exemplo de aplicação:
 - Adicione essa docstring acima de cada função, método ou módulo.
 - Use linguagem clara e técnica.
 - O texto summary não pode começar com "This" e precisa ser em modo imperativo
+- O texto da docstring precisa ser em português
