@@ -70,7 +70,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
     class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
     if class_bot is None:
         raise ImportError(
-            msg=f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
+            f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
         )
 
     try:
