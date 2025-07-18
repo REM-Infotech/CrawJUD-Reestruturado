@@ -17,8 +17,10 @@ Exemplo de aplicação:
 
 - Adicione essa docstring acima de cada função, método ou módulo.
 - Use linguagem clara e técnica.
-- O texto summary não pode começar com "This" e precisa ser em modo imperativo
+- O texto e a primeira palavra do sumário precisa ser em modo imperativo
 - O texto da docstring precisa ser em português
+- Inclua também comentários do tipo "#" para explicar o código sempre
+- Corrija erros do tipo "Missing type annotation"
 
 ---
 
