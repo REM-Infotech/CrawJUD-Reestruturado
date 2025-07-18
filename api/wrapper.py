@@ -1,3 +1,8 @@
+"""Fornece wrappers utilitários para autenticação JWT em endpoints WebSocket.
+
+Inclui decorador para validação de token JWT em conexões WebSocket.
+"""
+
 import functools  # noqa: D100
 from contextlib import suppress
 from typing import Any, Callable
@@ -10,6 +15,20 @@ from crawjud.types import WrappedFnReturnT
 
 
 def verify_jwt_websocket(func: Callable) -> WrappedFnReturnT:  # noqa: ANN001, D103
+    """
+    Valida o token JWT presente nos cookies da requisição WebSocket.
+
+    Args:
+        func (Callable): Função assíncrona a ser decorada.
+
+    Returns:
+        WrappedFnReturnT: Função decorada que verifica o JWT antes de executar a função original.
+
+    Observações:
+        Emite o evento "not_logged" no namespace "/main" caso o token seja inválido.
+
+    """
+
     @functools.wraps(func)
     async def decorated_function(*args, **kwargs) -> Any:  # noqa: ANN002, ANN003, ANN202
         valid = False
