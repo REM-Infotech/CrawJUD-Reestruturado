@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from asyncio import iscoroutinefunction
 from importlib import import_module
 from os import environ
 from pathlib import Path
@@ -81,7 +82,10 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
             )
 
             # Start the bot execution
-            bot_instance.execution()
+            if iscoroutinefunction(bot_instance.execution):
+                await bot_instance.execution()
+            else:
+                bot_instance.execution()
             return "Execução encerrada com sucesso!"
 
     except Exception as e:

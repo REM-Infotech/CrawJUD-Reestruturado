@@ -15,6 +15,21 @@ from quart import current_app as app
 from quart_jwt_extended import jwt_required, unset_jwt_cookies
 from werkzeug.exceptions import HTTPException
 
+# @app.route("/pjeOffice/requisicao/", methods=["GET", "POST"])
+# async def teste():
+#     with suppress(Exception):
+#         pje_data = app.json.loads(request.args.get("r"))
+#         pje_data.update({"u": request.args.get("u", "0")})
+
+#     with suppress(Exception):
+#         task = app.json.loads(pje_data.get("tarefa", "{}"))
+
+#     data = await request.data
+#     form = await request.form
+#     files = await request.files
+#     _json = await request.json
+#     return jsonify(ok="ok")
+
 
 @app.route("/", methods=["GET"], websocket=True)
 @jwt_required
