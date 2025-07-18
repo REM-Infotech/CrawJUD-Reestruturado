@@ -22,8 +22,8 @@ from api.routes.bot.botlaunch_methods import (
 bot = Blueprint("bot", __name__, url_prefix="/bot")
 
 
-@jwt_required
 @bot.post("/start_bot")
+@jwt_required
 async def start_bot() -> None:  # noqa: D103
     pid = generate_pid()
     try:

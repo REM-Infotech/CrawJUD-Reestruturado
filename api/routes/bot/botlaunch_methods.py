@@ -194,7 +194,6 @@ class LoadForm:  # noqa: D101
                             continue
 
                         val = secure_filename(val)
-                    continue
 
                 if item == "creds":
                     credential = await self._query_credentials(int(val))

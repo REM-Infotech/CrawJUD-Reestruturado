@@ -270,9 +270,9 @@ class Emissao(CrawJUD):
             avançar.click()
 
             sleep(1)
-            set_RI: WebElement = self.wait.until(
+            set_RI: WebElement = self.wait.until(  # noqa: N806
                 ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check))
-            )  # noqa: N806
+            )
             set_RI.click()
 
             sleep(1)

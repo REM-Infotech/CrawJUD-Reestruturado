@@ -1,24 +1,8 @@
-"""Módulo de autenticação CrawJUD."""
+# noqa: D104
+from .controller import AuthController
+from .elaw import ElawAuth
+from .esaj import EsajAuth
+from .pje import PjeAuth
+from .projudi import ProjudiAuth
 
-from typing import Type, Union
-
-from crawjud.addons.auth.elaw import ElawAuth
-from crawjud.addons.auth.esaj import EsajAuth
-from crawjud.addons.auth.pje import PjeAuth
-from crawjud.addons.auth.projudi import ProjudiAuth
-
-auth_systems = {
-    "pje": PjeAuth,
-    "esaj": EsajAuth,
-    "elaw": ElawAuth,
-    "projudi": ProjudiAuth,
-}
-
-auth_types = Union[Type[PjeAuth], Type[EsajAuth], Type[ElawAuth], Type[ProjudiAuth]]
-
-
-def authenticator(system: str) -> auth_types:
-    """Retorna o objeto do autenticador."""
-    auth: auth_types = auth_systems[system]
-
-    return auth
+__all__ = ["AuthController", "ElawAuth", "EsajAuth", "PjeAuth", "ProjudiAuth"]

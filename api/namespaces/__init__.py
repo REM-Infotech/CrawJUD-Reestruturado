@@ -62,7 +62,7 @@ async def register_namespaces(io: SocketIO) -> None:
         SystemNamespace("/system", io),
         MasterNamespace("/master", io),
         FileNamespaces("/files", io),
-        LogsNamespace("/logs", io),
+        LogsNamespace("/logsbot", io),
         BotsNamespace("/bots", io),
         NotificationNamespace("/notifications", io),
     ]

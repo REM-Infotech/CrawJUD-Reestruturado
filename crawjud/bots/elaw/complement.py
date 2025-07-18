@@ -361,9 +361,9 @@ class Complement(CrawJUD):
             message=message, pid=self.pid, row=self.row, type_log=type_log
         )
 
-        tb_Advs = self.driver.find_element(
+        tb_Advs = self.driver.find_element(  # noqa: N806
             By.CSS_SELECTOR, self.elements.tb_advs_resp
-        )  # noqa: N806
+        )
 
         not_adv = None
         with suppress(NoSuchElementException):

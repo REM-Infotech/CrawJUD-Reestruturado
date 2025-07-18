@@ -251,5 +251,16 @@
     "form_cfg": "file_auth",
     "classification": "ADMINISTRATIVO",
     "text": "Atualiza a fase processual em processos do ELAW"
+  },
+  {
+    "id": "24",
+    "display_name": "PJE - MOVIMENTAÇÕES",
+    "system": "PJE",
+    "state": "EVERYONE",
+    "client": "EVERYONE",
+    "type": "MOVIMENTACAO",
+    "form_cfg": "pje",
+    "classification": "JURIDICO",
+    "text": "Extrator de movimentações processuais."
   }
 ]

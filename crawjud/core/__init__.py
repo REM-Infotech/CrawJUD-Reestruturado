@@ -22,9 +22,11 @@ from dotenv import load_dotenv
 from pandas import Timestamp
 from werkzeug.utils import secure_filename
 
+from crawjud.core._dictionary import BotData
 from crawjud.core.master import Controller
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types import TypeData
+from models.logs import MessageLog
 
 load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
@@ -43,7 +45,7 @@ class CrawJUD(Controller):
     def execution(self) -> None:  # noqa: D102
         raise NotImplementedError("Subclasses must implement this method")
 
-    def dataFrame(self) -> list[dict[str, str]]:  # noqa: N802
+    def dataFrame(self) -> list[BotData]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
 
         Reads an Excel file, processes the data by formatting dates and floats,
@@ -61,28 +63,35 @@ class CrawJUD(Controller):
         df.columns = df.columns.str.upper()
 
         for col in df.columns:
-            df[col] = df[col].apply(
-                lambda x: (
-                    x.strftime("%d/%m/%Y")
-                    if isinstance(x, (datetime, Timestamp))
-                    else x
+            with suppress(Exception):
+                df[col] = df[col].apply(
+                    lambda x: (
+                        x.strftime("%d/%m/%Y")
+                        if isinstance(x, (datetime, Timestamp))
+                        else x
+                    )
                 )
-            )
 
         for col in df.select_dtypes(include=["float"]).columns:
-            df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
+            with suppress(Exception):
+                df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
 
-        vars_df = []
+        data_planilha = []
 
         df_dicted = df.to_dict(orient="records")
         for item in df_dicted:
             for key, value in item.items():
                 if str(value) == "nan":
                     item[key] = None
-            vars_df.append(item)
 
-        return vars_df
-        # self.search = SearchBot.setup()
+            data_planilha.append(item)
+
+        logs = MessageLog.query_logs(self.pid)
+
+        if logs and logs.row > 0:
+            data_planilha = data_planilha[: logs.row + 1]
+
+        return data_planilha
 
     def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
         """Format a legal case dictionary according to pre-defined rules.
@@ -173,7 +182,6 @@ class CrawJUD(Controller):
         Performs cookie cleanup, quits the driver, and prints summary logs.
         """
         window_handles = self.driver.window_handles
-        self.row += 1
         if window_handles:
             self.driver.delete_all_cookies()
             self.driver.quit()
@@ -185,11 +193,15 @@ class CrawJUD(Controller):
         flag_path = Path(self.output_dir_path).joinpath(f"{self.pid}.flag")
         with flag_path.open("w") as f:
             f.write(self.pid)
-
+        self.row = self.total_rows
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
         self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
+            message=message,
+            pid=self.pid,
+            row=self.row,
+            type_log=type_log,
+            status="Finalizado",
         )
 
     def calc_time(self) -> list[int]:

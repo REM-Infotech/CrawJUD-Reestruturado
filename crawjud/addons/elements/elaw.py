@@ -108,8 +108,8 @@ class ELAW_AME(Configuracao):  # noqa: N801
     css_data_distribuicao = 'input[id="j_id_3k_1:dataDistribuicao_input"]'
     css_adv_responsavel = 'input[id="j_id_3k_1:autoCompleteLawyer_input"]'
     css_div_select_Adv = 'div[id="j_id_3k_1:comboAdvogadoResponsavelProcesso"]'  # noqa: N815
-    css_input_select_Adv = (
-        'input[id="j_id_3k_1:comboAdvogadoResponsavelProcesso_filter"]'  # noqa: N815
+    css_input_select_Adv = (  # noqa: N815
+        'input[id="j_id_3k_1:comboAdvogadoResponsavelProcesso_filter"]'
     )
     css_input_adv = 'input[id="j_id_3k_1:autoCompleteLawyerOutraParte_input"]'
     css_check_adv = "".join(
