@@ -21,6 +21,7 @@ Exemplo de aplicação:
 - O texto da docstring precisa ser em português
 - Inclua também comentários do tipo "#" para explicar o código sempre
 - Corrija erros do tipo "Missing type annotation"
+- Você não precisa inserir docstrings em arquivos stub
 
 ---
 

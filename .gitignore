@@ -17,6 +17,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+*.pfx
+*.p12
 parts/
 sdist/
 signer4j/*

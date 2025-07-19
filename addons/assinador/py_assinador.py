@@ -1,21 +1,18 @@
-from pathlib import Path  # noqa: D100
-from typing import Self  # noqa: F401
+from typing import (
+    Protocol,
+    Self,  # noqa: F401
+)
 
-import jpype.imports
 from dotenv import load_dotenv
 from jpype import JClass
 
-load_dotenv()
 
-classpath = Path(r"C:\Program Files\PJeOffice Pro\pjeoffice-pro.jar").resolve()
-jvm_path = jpype.getDefaultJVMPath()
-jpype.startJVM(
-    classpath=[classpath],
-    *(  # noqa: B026
-        "--add-modules=jdk.crypto.mscapi",
-        "--add-exports=jdk.crypto.mscapi/sun.security.mscapi=ALL-UNNAMED",
-    ),
-)
+class MyClassInterface(Protocol):  # noqa: D101
+    def foo(self, x: int) -> str: ...  # noqa: D102
+    def bar(self) -> None: ...  # noqa: D102
+
+
+load_dotenv()
 
 
 try:

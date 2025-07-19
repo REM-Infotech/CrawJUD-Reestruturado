@@ -1,4 +1,12 @@
 {
+  "remote.autoForwardPorts": false,
+  "remote.restoreForwardedPorts": false,
+  "remote.portsAttributes": {
+    "1-65000": {
+      "label": "Application",
+      "onAutoForward": "ignore"
+    }
+  },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
