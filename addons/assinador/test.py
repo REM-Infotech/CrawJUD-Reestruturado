@@ -1,13 +1,20 @@
-# noqa: D100
+# type: ignore  # noqa:  PGH003, D100
 from pathlib import Path  # noqa:  I001
 
 import jpype.imports  # noqa: F401
 import load_jvm  # noqa: F401
 from dotenv import dotenv_values
 
-from java.io import FileInputStream  # type: ignore  # noqa:  PGH003
-from java.security import KeyStore  # type: ignore  # noqa:  PGH003
-
+from java.io import FileInputStream
+from java.security import KeyStore
+from org.bouncycastle.cms import CMSSignedDataGenerator, CMSProcessableByteArray  # noqa: F401
+from org.bouncycastle.cms.jcajce import (  # noqa: F401
+    JcaSignerInfoGeneratorBuilder,
+    JcaContentSignerBuilder,
+)
+from org.bouncycastle.operator.jcajce import JcaDigestCalculatorProviderBuilder  # noqa: F401
+from org.bouncycastle.cert.jcajce import JcaCertStore  # noqa: F401
+from org.bouncycastle.cert.jcajce import JcaX509CertificateHolder  # noqa: F401
 # Abrir o arquivo .p12
 
 environ = dotenv_values()
