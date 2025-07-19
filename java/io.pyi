@@ -1,6 +1,9 @@
-from typing import Protocol
+from typing import Protocol, Self
 
 from java.lang import Object
+
+class File(Protocol):
+    def __init__(self, *args: str | type[Self]) -> None: ...
 
 class FileDescriptor(Protocol): ...
 class FileChannel(Protocol): ...

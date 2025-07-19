@@ -1,6 +1,8 @@
-from typing import Any, Iterator, Protocol, Self
+from typing import Any, Iterator, Protocol, Self, TypeVar
 
 from java.io import FileInputStream
+
+_TProvider = TypeVar("Provider")
 
 class KeyStore(Protocol):
     def __init__(self) -> None: ...
@@ -39,3 +41,8 @@ class Signature(Protocol):
     def getProvider(self) -> Any: ...  # noqa: N803, N802
     def setParameter(self, param: str, value: Any) -> None: ...  # noqa: N803, N802
     def getParameter(self, param: str) -> Any: ...  # noqa: N803, N802
+
+class Security(Protocol):
+    def __init__(self) -> None: ...
+    @classmethod
+    def addProvider(cls, provider: _TProvider) -> _TProvider: ...  # noqa: N802
