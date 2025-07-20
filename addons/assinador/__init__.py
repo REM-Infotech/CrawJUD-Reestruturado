@@ -1,152 +1,191 @@
-# type: ignore  # noqa: PGH003
+# type: ignore  # noqa:  PGH003, D104
 """
-Assina arquivos utilizando certificados ICP-Brasil, incluindo atributos obrigatórios.
+Inicializa o módulo de assinatura digital utilizando certificado .p12.
 
-Este módulo realiza a assinatura digital de arquivos conforme as exigências da ICP-Brasil,
-inserindo atributos obrigatórios como OID de política, data/hora e identificadores específicos.
+Este módulo fornece a classe SignPy para realizar assinaturas digitais
+em arquivos PDF, utilizando certificados digitais no formato PKCS#12 (.p12).
 
 Args:
-    Nenhum argumento de linha de comando.
+    Nenhum argumento é necessário para o módulo.
 
 Returns:
-    None: O arquivo assinado é salvo no mesmo diretório do certificado.
+    None: Não retorna valor.
 
 Raises:
-    KeyError: Caso variáveis de ambiente não estejam definidas.
-    Exception: Para erros gerais de assinatura.
+    Nenhuma exceção específica é levantada pelo módulo.
 
 """
 
-from pathlib import Path  # noqa:  I001
+# type: ignore  # noqa:  PGH003, D104
+from os import PathLike
+from pathlib import Path
+from typing import (
+    Union,  # noqa:  I001
+)
 
 import jpype.imports  # noqa: F401
 import load_jvm  # noqa: F401
 from dotenv import dotenv_values
 
 from java.io import File, FileInputStream
-from java.security import KeyStore
-from java.security import Security
-from java.util import ArrayList, Date, Hashtable  # noqa: F401
-from org.bouncycastle.asn1 import ASN1ObjectIdentifier, ASN1Primitive
-from org.bouncycastle.asn1.cms import Attribute, AttributeTable
+from java.lang import Object
+from java.security import KeyStore, Security
+from java.util import ArrayList  # noqa: F401
+from org.bouncycastle.asn1 import ASN1Primitive
 from org.bouncycastle.asn1.x509 import Certificate
-from org.bouncycastle.cms import (  # noqa: F401
-    CMSSignedDataGenerator,
-    CMSProcessableFile,
-    DefaultSignedAttributeTableGenerator,
-)
-from org.bouncycastle.cms.jcajce import JcaSignerInfoGeneratorBuilder  # noqa: F403
-from org.bouncycastle.operator.jcajce import (
-    JcaDigestCalculatorProviderBuilder,
-    JcaContentSignerBuilder,
-)  # noqa: F401
-
 from org.bouncycastle.cert import X509CertificateHolder
 from org.bouncycastle.cert.jcajce import JcaCertStore  # noqa: F401
+from org.bouncycastle.cms import (  # noqa: F401
+    CMSProcessableByteArray,
+    CMSProcessableFile,
+    CMSSignedData,
+    CMSSignedDataGenerator,
+)
+from org.bouncycastle.cms.jcajce import JcaSignerInfoGeneratorBuilder  # noqa: F403
 from org.bouncycastle.jce.provider import BouncyCastleProvider
+from org.bouncycastle.operator.jcajce import (
+    JcaContentSignerBuilder,
+    JcaDigestCalculatorProviderBuilder,
+)  # noqa: F401
 
-# Carrega variáveis de ambiente
+# Abrir o arquivo .p12
+
 environ = dotenv_values()
 Security.addProvider(BouncyCastleProvider())
+StrPath = Union[str, PathLike]
+_cms = Union[CMSProcessableByteArray | CMSProcessableFile]
+_cont = Union[Path, bytes]
 
 
 class SignPy:
     """
-    Realiza assinatura digital CMS com atributos obrigatórios da ICP-Brasil.
+    Realiza a assinatura digital de um arquivo PDF utilizando certificado digital no formato .p12.
 
     Args:
-        cert_path (str | None): Caminho para o certificado PFX/P12.
-        password_cert (str | None): Senha do certificado.
+        cert_path (str | None): Caminho para o certificado digital (opcional).
+        password_cert (str | None): Senha do certificado digital (opcional).
 
     Returns:
-        None: Salva o arquivo assinado no disco.
+        None: Não retorna valor.
 
     Raises:
-        KeyError: Se variáveis de ambiente não forem encontradas.
-        Exception: Para falhas na assinatura.
+        Exception: Em caso de falha na assinatura ou carregamento do certificado.
 
     """
 
-    def __init__(  # noqa: D107
-        self,
-        cert_path: str | None = None,
-        password_cert: str | None = None,
-    ) -> None:
-        # Determina o caminho do certificado e senha
-        p12_path: str = str(Path(__file__).cwd().joinpath(environ["PFX_PATH"]))
-        p12_password: str = environ["PASSWORD_PFX"]
+    @classmethod
+    def assinador(cls, cert: str, pw: str, content: _cont, out: StrPath) -> None:
+        """
+        Executa o processo de assinatura digital de um conteúdo PDF.
 
-        # Carrega o KeyStore PKCS12
+        Args:
+            cert (str): Caminho para o certificado digital.
+            pw (str): Senha do certificado digital.
+            content (Path | bytes): Caminho do arquivo ou conteúdo em bytes.
+            out (StrPath): Caminho de saída para o arquivo assinado.
+
+        Returns:
+            None: Não retorna valor.
+
+        Raises:
+            TypeError: Caso o tipo de 'content' não seja Path ou bytes.
+
+        """
+        self = cls(cert, pw)
+
+        if not any([isinstance(content, Path), isinstance(content, bytes)]):
+            raise TypeError
+
+        if isinstance(content, Path):
+            file = File(str(content))
+            cms = CMSProcessableFile(file)
+
+        elif isinstance(content, bytes):
+            cms = CMSProcessableByteArray(content)
+
+        gen = self.prepare_signer()
+        return self.sign(gen, cms)
+
+    def __init__(self, cert_path: str = None, password_cert: str = None) -> None:
+        """
+        Inicializa a instância de assinatura com certificado e senha.
+
+        Args:
+            cert_path (str | None): Caminho para o certificado digital.
+            password_cert (str | None): Senha do certificado digital.
+
+        Returns:
+            None: Não retorna valor.
+
+        Raises:
+            Exception: Em caso de falha ao carregar o certificado.
+
+        """
         ks = KeyStore.getInstance("PKCS12")
-        fis = FileInputStream(p12_path)
-        ks.load(fis, list(p12_password))  # senha como lista de chars
+        fis = FileInputStream(cert_path)
+
+        ks.load(fis, list(password_cert))  # senha como lista de chars
         alias = ks.aliases().nextElement()
-        private_key = ks.getKey(alias, list(p12_password))
-        certificate = ks.getCertificate(alias)
+        self.private_key: Object = ks.getKey(alias, list(password_cert))
+        self.certificate: Object = ks.getCertificate(alias)
 
-        # Prepara lista de certificados
+    def prepare_signer(self) -> CMSSignedDataGenerator:
+        """
+        Prepara o gerador de assinatura digital com os certificados necessários.
+
+        Args:
+            Nenhum argumento.
+
+        Returns:
+            CMSSignedDataGenerator: Instância configurada para assinatura.
+
+        Raises:
+            Exception: Em caso de falha na preparação do gerador.
+
+        """
+        # Prepara a lista de certificados
         cert_list = ArrayList()
-        cert_list.add(certificate)
-        certs = JcaCertStore(cert_list)
+        cert_list.add(self.certificate)
 
-        # Instancia gerador de assinatura
+        certs = JcaCertStore(cert_list)
         gen = CMSSignedDataGenerator()
         cert = Certificate.getInstance(
-            ASN1Primitive.fromByteArray(certificate.getEncoded())
+            ASN1Primitive.fromByteArray(self.certificate.getEncoded())
         )
-        sha1_signer = JcaContentSignerBuilder("SHA256withRSA").build(private_key)
+        jcsb = JcaContentSignerBuilder("SHA256withRSA")
+        sha1_signer: Object = jcsb.build(self.private_key)
         dcp = JcaDigestCalculatorProviderBuilder().build()
-
-        # Monta atributos obrigatórios ICP-Brasil
-        # OID de política de assinatura (exemplo: 2.16.76.1.7.1.1.2.2.1)
-        policy_oid = ASN1ObjectIdentifier("2.16.76.1.7.1.1.2.2.1")
-        # OID para data/hora da assinatura (1.2.840.113549.1.9.5)
-        signing_time_oid = ASN1ObjectIdentifier("1.2.840.113549.1.9.5")
-        # OID ICP-Brasil obrigatório (exemplo: 2.16.76.1.3.1)
-        icpbr_attr_oid = ASN1ObjectIdentifier("2.16.76.1.3.1")
-
-        # Cria tabela de atributos assinados
-        signed_attrs = Hashtable()
-        # Adiciona política de assinatura
-        signed_attrs.put(policy_oid, Attribute(policy_oid, [policy_oid]))
-        # Adiciona data/hora da assinatura
-        signed_attrs.put(signing_time_oid, Attribute(signing_time_oid, [Date()]))
-        # Adiciona OID ICP-Brasil obrigatório para certificado A1 (2.16.76.1.3.1)
-        # O valor deve ser o CPF do titular codificado conforme a especificação da ICP-Brasil
-        signed_attrs.put(
-            icpbr_attr_oid,
-            Attribute(
-                icpbr_attr_oid, [ASN1ObjectIdentifier("1234567890")]
-            ),  # Substitua pelo valor ASN.1 correto do CPF
+        sig = JcaSignerInfoGeneratorBuilder(dcp).build(
+            sha1_signer, X509CertificateHolder(cert)
         )
-
-        # Gera tabela de atributos assinados
-        attr_table = AttributeTable(signed_attrs)
-        attr_gen = DefaultSignedAttributeTableGenerator(attr_table)
-
-        # Monta o SignerInfo com atributos obrigatórios
-        sig = (
-            JcaSignerInfoGeneratorBuilder(dcp)
-            .setSignedAttributeGenerator(attr_gen)
-            .build(sha1_signer, X509CertificateHolder(cert))
-        )
-
         gen.addSignerInfoGenerator(sig)
         gen.addCertificates(certs)
+        return gen
 
-        # Prepara arquivo a ser assinado
-        file = File(str(Path(p12_path).parent.joinpath("index.html")))
-        msg = CMSProcessableFile(file)
+    def sign(self, gen: CMSSignedDataGenerator, cms: _cms) -> CMSSignedData:
+        """
+        Realiza a assinatura digital do conteúdo informado.
 
-        # Gera assinatura CMS
-        signed_data = gen.generate(msg, False)
+        Args:
+            gen (CMSSignedDataGenerator): Gerador de assinatura configurado.
+            cms (_cms): Conteúdo a ser assinado (arquivo ou bytes).
 
-        # Salva assinatura no disco
-        with open(str(Path(p12_path).parent.joinpath("index.html.p7s")), "wb") as f:
-            f.write(signed_data.getEncoded())
+        Returns:
+            CMSSignedData: Dados assinados no formato CMS.
 
-        # Mensagem de sucesso
-        print("Assinatura gerada em 'index.html.p7s'")
+        Raises:
+            Exception: Em caso de falha na assinatura.
+
+        """
+        # Gera os dados assinados incluindo o conteúdo (gera o atributo MessageDigest)
+        return gen.generate(cms, True)  # <--- alterado para True
+        # print("Assinatura gerada em 'assinatura.p7s'")
 
 
-SignPy()
+p12_path = str(Path(__file__).cwd().joinpath(environ["PFX_PATH"]))
+p12_password = environ["PASSWORD_PFX"]
+file = Path(p12_path).parent.joinpath("documento.pdf")
+
+data = SignPy.assinador(
+    p12_path, p12_password, file, file.parent.joinpath("documento.pdf.p7s")
+)

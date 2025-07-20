@@ -22,6 +22,7 @@ Exemplo de aplicação:
 - Inclua também comentários do tipo "#" para explicar o código sempre
 - Corrija erros do tipo "Missing type annotation"
 - Você não precisa inserir docstrings em arquivos stub
+- As docstrings precisam respeitar o limite de linhas de 88 caracteres
 
 ---
 
