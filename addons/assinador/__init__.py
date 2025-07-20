@@ -74,7 +74,7 @@ class SignPy:
     """
 
     @classmethod
-    def assinador(cls, cert: str, pw: str, content: _cont, out: StrPath) -> None:
+    def assinador(cls, cert: str, pw: str, content: _cont, out: StrPath) -> bytes:
         """
         Executa o processo de assinatura digital de um conteúdo PDF.
 
@@ -85,7 +85,7 @@ class SignPy:
             out (StrPath): Caminho de saída para o arquivo assinado.
 
         Returns:
-            None: Não retorna valor.
+            bytes: Dados assinados no formato CMS.
 
         Raises:
             TypeError: Caso o tipo de 'content' não seja Path ou bytes.
@@ -94,7 +94,7 @@ class SignPy:
         self = cls(cert, pw)
 
         if not any([isinstance(content, Path), isinstance(content, bytes)]):
-            raise TypeError
+            raise TypeError("O tipo de 'content' deve ser Path ou bytes.")
 
         if isinstance(content, Path):
             file = File(str(content))
@@ -104,7 +104,7 @@ class SignPy:
             cms = CMSProcessableByteArray(content)
 
         gen = self.prepare_signer()
-        return self.sign(gen, cms)
+        return self.sign(gen, cms).getEncoded()
 
     def __init__(self, cert_path: str = None, password_cert: str = None) -> None:
         """
@@ -179,13 +179,3 @@ class SignPy:
         """
         # Gera os dados assinados incluindo o conteúdo (gera o atributo MessageDigest)
         return gen.generate(cms, True)  # <--- alterado para True
-        # print("Assinatura gerada em 'assinatura.p7s'")
-
-
-p12_path = str(Path(__file__).cwd().joinpath(environ["PFX_PATH"]))
-p12_password = environ["PASSWORD_PFX"]
-file = Path(p12_path).parent.joinpath("documento.pdf")
-
-data = SignPy.assinador(
-    p12_path, p12_password, file, file.parent.joinpath("documento.pdf.p7s")
-)
