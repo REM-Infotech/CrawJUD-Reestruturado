@@ -8,21 +8,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from crawjud.addons.auth.controller import AuthController
+from crawjud.addons.auth import AuthController
 
 
 class PjeAuth(AuthController):
     """Classe de autenticação PJE."""
 
-    def auth(self) -> bool:
-        """Authenticate on the PJE system by providing username and password.
-
-        Returns:
-            bool: True if login was successful; False otherwise.
-
-        Fills all required fields and checks the status by verifying the page URL.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             self.driver.get(self.elements.url_login)
 

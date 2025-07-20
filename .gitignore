@@ -17,8 +17,12 @@ eggs/
 .eggs/
 lib/
 lib64/
+*.pfx
+*.p7s
+*.p12
 parts/
 sdist/
+signer4j/*
 var/
 wheels/
 share/python-wheels/

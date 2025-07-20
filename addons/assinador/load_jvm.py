@@ -1,0 +1,22 @@
+from os import environ  # noqa: D100
+from pathlib import Path
+from platform import system
+
+import jpype as jp
+
+jpype_config = tuple(environ["JPYPE_CONFIG"].split(","))
+jar_pjeoffice = "/root/.local/bin/pjeoffice-pro/pjeoffice-pro.jar"
+if system() == "windows":
+    jar_pjeoffice = r"C:\Program Files\PJeOffice Pro\pjeoffice-pro.jar"
+
+parent_path = Path(__file__).parent.resolve()
+class_list = [
+    str(Path(jar_pjeoffice).resolve()),
+    str(parent_path.joinpath("lib", "bcprov.jar")),
+    str(parent_path.joinpath("lib", "lib/bcpkix.jar")),
+]
+
+
+jp.startJVM(
+    classpath=class_list,
+)

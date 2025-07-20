@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.addons.search.controller import SearchController
+from crawjud.addons.search import SearchController
 from crawjud.exceptions.bot import ExecutionError
 
 if TYPE_CHECKING:

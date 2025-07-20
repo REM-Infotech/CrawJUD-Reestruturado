@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from crawjud.addons.auth.controller import AuthController
+from crawjud.addons.auth import AuthController
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
@@ -22,15 +22,7 @@ if TYPE_CHECKING:
 class EsajAuth(AuthController):
     """Classe de autenticação Esaj."""
 
-    def auth(self) -> bool:
-        """Authenticate on ESAJ system using certificate or credentials.
-
-        Returns:
-            bool: True if authentication is successful; False otherwise.
-
-        Waits for page elements, selects certificate if needed, and verifies login.
-
-        """
+    def auth(self) -> bool:  # noqa: D102
         try:
             loginuser = "".join(
                 filter(lambda x: x not in string.punctuation, self.username)
