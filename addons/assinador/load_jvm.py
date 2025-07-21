@@ -13,7 +13,7 @@ parent_path = Path(__file__).parent.resolve()
 class_list = [
     str(Path(jar_pjeoffice).resolve()),
     str(parent_path.joinpath("lib", "bcprov.jar")),
-    str(parent_path.joinpath("lib", "lib/bcpkix.jar")),
+    str(parent_path.joinpath("lib", "bcpkix.jar")),
 ]
 
 
