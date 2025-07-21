@@ -1,4 +1,4 @@
-"""Módulo de gerenciamento de logs do CrawJUD."""
+"""Módulo de gerenciamento de logs da api."""
 
 import logging
 from typing import Any
@@ -12,17 +12,22 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     handlers_config = {
         "file_handler": {
             "class": "addons.logger.handlers.FileHandler",
-            "level": logging.INFO,
+            "level": log_level,
             "formatter": "json",
             "filename": "app.log",
             "maxBytes": 1024,
             "backupCount": 1,
         },
-        # "redis_handler": {
-        #     "class": "crawjud.addons.logger.handlers.RedisHandler",
-        #     "level": logging.INFO,
-        #     "formatter": "json",
-        # },
+        "stream_handler": {
+            "class": "logging.StreamHandler",
+            "level": log_level,
+            "formatter": "color",  # Usa o novo formatter colorido
+        },
+        "redis_handler": {
+            "class": "addons.logger.handlers.RedisHandler",
+            "level": logging.INFO,
+            "formatter": "json",
+        },
     }
     handlers_config["file_handler"]["level"] = log_level
     handlers_config["file_handler"]["maxBytes"] = 40960
@@ -39,10 +44,15 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "handlers": handlers_config,
         "formatters": {
             "default": {
-                "format": "%(levelname)s:%(name)s:%(message)s",
+                "format": "%(message)s",
             },
             "json": {
                 "()": "addons.logger.handlers.JsonFormatter",
+            },
+            "color": {
+                "()": "addons.logger.handlers._ColorFormatter",
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },
         "loggers": {

@@ -5,9 +5,9 @@ import logging
 import logging.handlers
 import time
 from os import environ
-from pathlib import Path
 from typing import AnyStr
 
+import click
 import redis
 from dotenv import load_dotenv
 
@@ -23,12 +23,14 @@ class RedisHandler(logging.Handler):
         """Initialize the RedisHandler."""
         super().__init__()
 
-        load_dotenv(str(Path(__file__).cwd().joinpath("crawjud", ".env")))
+        load_dotenv()
         kwrgs = environ
 
-        self.LIST_LOGS_REDIS = kwrgs["LIST_LOGS_REDIS"]
-        self.URI_REDIS = kwrgs["URI_REDIS"]
-        self.DATABASE = int(kwrgs["DATABASE"])
+        self.LIST_LOGS_REDIS = kwrgs.get(
+            "LIST_LOGS_REDIS", __package__.replace(".", "_")
+        )
+        self.URI_REDIS = kwrgs["REDIS_URI"]
+        self.DATABASE = int(kwrgs["REDIS_DB"])
 
         self.client = redis.Redis.from_url(
             url=self.URI_REDIS, db=self.DATABASE
@@ -88,6 +90,36 @@ class FileHandler(logging.handlers.RotatingFileHandler):
             if self.default_msec_format:
                 s = self.default_msec_format % (s, record.msecs)
         return s
+
+
+class _ColorFormatter(logging.Formatter):
+    grey = click.style("%(message)s", fg=(1, 66, 66), reset=True)
+    green = click.style("%(message)s", fg="green", reset=True)
+    yellow = click.style("%(message)s", fg="yellow", reset=True)
+    red = click.style("%(message)s", fg="red")
+    bold_red = click.style("%(message)s", fg="red", bold=True, reset=True)
+    reset = click.style("%(message)s", fg="reset", reset=True)
+
+    FORMATS = {
+        logging.DEBUG: grey,
+        logging.INFO: grey,
+        logging.WARNING: yellow,
+        logging.ERROR: red,
+        logging.CRITICAL: bold_red,
+        "uvicorn": green,
+    }
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_fmt = self.FORMATS.get(record.levelno)
+
+        if hasattr(record, "color_message"):
+            # codes = re.findall(r"\x1b\[(\d+)m", record.color_message)
+            # color = codes[0] or self.green
+            # log_fmt = f"\x1b[{color}m" + self.format_msg + self.reset
+            record.msg = record.color_message
+
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 
 class JsonFormatter(logging.Formatter):
