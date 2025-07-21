@@ -61,7 +61,7 @@ def image_to_text(img: Path) -> str:
 
     # Aplica OCR
     text = str(pytesseract.image_to_string(thresh, config=custom_config))
-    return text.replace("\n")
+    return text.replace("\n", "").strip()
 
 
 # def test2():
