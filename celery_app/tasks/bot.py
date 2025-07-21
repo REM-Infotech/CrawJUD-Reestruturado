@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING
 from celery.app import shared_task
 
 from addons.printlogs import PrintMessage
+from addons.printlogs._async import AsyncPrintMessage
 from addons.storage import Storage
 from common.bot import ClassBot
 
@@ -72,6 +73,62 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         raise ImportError(
             f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
         )
+
+    if iscoroutinefunction(class_bot.initialize):
+        try:
+            prt_class = await AsyncPrintMessage.constructor(pid=pid)
+            async with prt_class as prt:
+                storage = Storage("minio")
+
+                # Print log message indicating bot initialization
+                await prt.print_msg(
+                    "Configurando o robô...", pid, 0, "log", "Inicializando"
+                )
+                path_files = Path(__file__).cwd().joinpath("temp")
+
+                # Print log message for downloading files
+                await prt.print_msg(
+                    "Baixando arquivos do robô...", pid, 0, "log", "Inicializando"
+                )
+
+                # Download files from storage
+                await storage.download_files(
+                    dest=path_files,
+                    prefix=pid,
+                )
+
+                # Print log message indicating successful file download
+                await prt.print_msg(
+                    "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
+                )
+                path_config = path_files.joinpath(pid, f"{pid}.json")
+
+                # Initialize the bot instance
+                bot_instance = await class_bot.initialize(
+                    bot_name=name, bot_system=system, path_config=path_config, prt=prt
+                )
+
+                # Set the PrintMessage instance to the bot instance
+                prt.bot_instance = bot_instance
+                namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+
+                # Set up the handler for stop signal
+                @prt.io.on("stop_signal", namespace=namespace)
+                async def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
+                    bot_instance.is_stoped = True
+
+                # Print log message indicating bot execution start
+                await prt.print_msg(
+                    "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
+                )
+
+                # Start the bot execution
+                await bot_instance.execution()
+                return "Execução encerrada com sucesso!"
+
+        except Exception as e:
+            print(e)
+            return "Erro no robô. Verifique os logs para mais detalhes."
 
     try:
         with PrintMessage(pid=pid) as prt:

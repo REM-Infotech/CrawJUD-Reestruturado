@@ -39,10 +39,10 @@ class CrawJUD(Controller):
     """
 
     @classmethod
-    def initialize(cls, *args: Any, **kwargs: Any) -> Self:  # noqa: D102
+    async def initialize(cls, *args: Any, **kwargs: Any) -> Self:  # noqa: D102
         raise NotImplementedError("Subclasses must implement this method")
 
-    def execution(self) -> None:  # noqa: D102
+    async def execution(self) -> None:  # noqa: D102
         raise NotImplementedError("Subclasses must implement this method")
 
     def dataFrame(self) -> list[BotData]:  # noqa: N802
