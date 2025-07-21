@@ -9,8 +9,8 @@ from typing import Protocol, cast
 
 from jpype import JClass
 
-from java.io import File
-from org.bouncycastle.asn1 import ASN1ObjectIdentifier
+from addons.assinador.java.io import File
+from addons.assinador.org.bouncycastle.asn1 import ASN1ObjectIdentifier
 
 
 class CMSSignedData(Protocol):  # noqa: D101

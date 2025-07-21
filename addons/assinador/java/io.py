@@ -3,7 +3,7 @@ from typing import Protocol, Self, cast
 
 from jpype import JClass
 
-from java.lang import Object
+from addons.assinador.java.lang import Object
 
 
 class File(Protocol):  # noqa: D101

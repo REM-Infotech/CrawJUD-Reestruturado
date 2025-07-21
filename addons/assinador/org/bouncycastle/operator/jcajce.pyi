@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from java.lang import Object
+from addons.assinador.java.lang import Object
 
 class JcaDigestCalculatorProviderBuilder(Protocol):
     def __init__(self) -> None: ...

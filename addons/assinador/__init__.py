@@ -27,26 +27,28 @@ import jpype.imports  # noqa: F401
 import load_jvm  # noqa: F401
 from dotenv import dotenv_values
 
-from java.io import File, FileInputStream
-from java.lang import Object
-from java.security import KeyStore, Security
-from java.util import ArrayList  # noqa: F401
-from org.bouncycastle.asn1 import ASN1Primitive
-from org.bouncycastle.asn1.x509 import Certificate
-from org.bouncycastle.cert import X509CertificateHolder
-from org.bouncycastle.cert.jcajce import JcaCertStore  # noqa: F401
-from org.bouncycastle.cms import (  # noqa: F401
+from addons.assinador.java.io import File, FileInputStream
+from addons.assinador.java.lang import Object
+from addons.assinador.java.security import KeyStore, Security
+from addons.assinador.java.util import ArrayList
+from addons.assinador.org.bouncycastle.asn1 import ASN1Primitive
+from addons.assinador.org.bouncycastle.asn1.x509 import Certificate
+from addons.assinador.org.bouncycastle.cert import X509CertificateHolder
+from addons.assinador.org.bouncycastle.cert.jcajce import JcaCertStore
+from addons.assinador.org.bouncycastle.cms import (
     CMSProcessableByteArray,
     CMSProcessableFile,
     CMSSignedData,
     CMSSignedDataGenerator,
 )
-from org.bouncycastle.cms.jcajce import JcaSignerInfoGeneratorBuilder  # noqa: F403
-from org.bouncycastle.jce.provider import BouncyCastleProvider
-from org.bouncycastle.operator.jcajce import (
+from addons.assinador.org.bouncycastle.cms.jcajce import (
+    JcaSignerInfoGeneratorBuilder,
+)
+from addons.assinador.org.bouncycastle.jce.provider import BouncyCastleProvider
+from addons.assinador.org.bouncycastle.operator.jcajce import (
     JcaContentSignerBuilder,
     JcaDigestCalculatorProviderBuilder,
-)  # noqa: F401
+)
 
 # Abrir o arquivo .p12
 
