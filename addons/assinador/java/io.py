@@ -3,8 +3,6 @@ from typing import Protocol, Self, cast
 
 from jpype import JClass
 
-from addons.assinador.java.lang import Object
-
 
 class File(Protocol):  # noqa: D101
     def __init__(self, *args: str | type[Self]) -> None: ...  # noqa: D107
@@ -22,7 +20,7 @@ class Provider(Protocol):  # noqa: D101
     def __init__(self, *args: str | type[Self]) -> None: ...  # noqa: D107
 
 
-class FileInputStream(Protocol, Object):  # noqa: D101
+class FileInputStream(Protocol):  # noqa: D101
     @classmethod
     def nullInputStream(cls) -> Self: ...  # noqa: N802, D102
     def available(self) -> int: ...  # noqa: D102

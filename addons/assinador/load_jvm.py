@@ -4,7 +4,7 @@ from platform import system
 
 import jpype as jp
 
-jpype_config = tuple(environ["JPYPE_CONFIG"].split(","))
+jpype_config = tuple(environ.get("JPYPE_CONFIG", "").split(","))
 jar_pjeoffice = "/root/.local/bin/pjeoffice-pro/pjeoffice-pro.jar"
 if system() == "windows":
     jar_pjeoffice = r"C:\Program Files\PJeOffice Pro\pjeoffice-pro.jar"
@@ -12,8 +12,9 @@ if system() == "windows":
 parent_path = Path(__file__).parent.resolve()
 class_list = [
     str(Path(jar_pjeoffice).resolve()),
-    str(parent_path.joinpath("lib", "bcprov.jar")),
-    str(parent_path.joinpath("lib", "bcpkix.jar")),
+    str(parent_path.joinpath("_lib", "bcprov.jar")),
+    str(parent_path.joinpath("_lib", "bcpkix.jar")),
+    str(parent_path.joinpath("_lib", "bcutil.jar")),
 ]
 
 

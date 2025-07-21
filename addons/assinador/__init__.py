@@ -24,9 +24,9 @@ from typing import (
 )
 
 import jpype.imports  # noqa: F401
-import load_jvm  # noqa: F401
 from dotenv import dotenv_values
 
+from addons.assinador import load_jvm  # noqa: F401
 from addons.assinador.java.io import File, FileInputStream
 from addons.assinador.java.lang import Object
 from addons.assinador.java.security import KeyStore, Security
@@ -76,7 +76,9 @@ class SignPy:
     """
 
     @classmethod
-    def assinador(cls, cert: str, pw: str, content: _cont, out: StrPath) -> bytes:
+    def assinador(
+        cls, cert: str, pw: str, content: _cont, out: StrPath = None
+    ) -> bytes:
         """
         Executa o processo de assinatura digital de um conteúdo PDF.
 

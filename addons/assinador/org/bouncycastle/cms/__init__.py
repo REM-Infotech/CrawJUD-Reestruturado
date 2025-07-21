@@ -30,12 +30,12 @@ class CMSProcessableFile:  # noqa: D101
     def __init__(self, *args: ASN1ObjectIdentifier | File | int) -> None: ...  # noqa: D107
 
 
+from org.bouncycastle import cms  # noqa: E402, F403
+
 CMSProcessableFile = cast(
     CMSProcessableFile, JClass("org.bouncycastle.cms.CMSProcessableFile")
 )
-CMSSignedDataGenerator = cast(
-    CMSSignedDataGenerator, JClass("org.bouncycastle.cms.CMSSignedDataGenerator")
-)
+CMSSignedDataGenerator = cast(CMSSignedDataGenerator, cms.CMSSignedDataGenerator)
 CMSProcessableByteArray = cast(
     CMSProcessableByteArray, JClass("org.bouncycastle.cms.CMSProcessableByteArray")
 )
