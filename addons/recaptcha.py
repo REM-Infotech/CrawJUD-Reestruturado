@@ -41,16 +41,19 @@ def image_to_text(img: Path) -> str:
 
     """
     # Converte para escala de cinza
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    cv2_img = cv2.imread(str(img))
+
+    gray = cv2.cvtColor(cv2_img, cv2.COLOR_RGBA2GRAY)
 
     # Aplica binarização com Otsu
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
+    # Suaviza ruído com mediana (sem borrar letras)
+    thresh = cv2.medianBlur(thresh, 1)
+
     # Inverte a imagem se necessário (letras brancas em fundo preto)
     # thresh = cv2.bitwise_not(thresh)
-
-    # Suaviza ruído com mediana (sem borrar letras)
-    thresh = cv2.medianBlur(thresh, 3)
 
     # (Opcional) Dilatar para reforçar letras quebradas
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
@@ -60,9 +63,25 @@ def image_to_text(img: Path) -> str:
     cv2.imwrite("processed1.png", thresh)
 
     # Aplica OCR
-    text = str(pytesseract.image_to_string(thresh, config=custom_config))
-    return text.replace("\n", "").strip()
+    text = (
+        str(pytesseract.image_to_string(thresh, config=custom_config))
+        .replace("\n", "")
+        .strip()
+        .replace(" ", "")
+    )
 
+    text_list = ",".join(text).split(",")
+    text = ""
+    for w in text_list:
+        if w not in text:
+            text += w
+
+    return text
+
+
+image_to_text(
+    Path(r"C:\Users\nicholas.silva\OneDrive - Robotz Info\Desktop\download.png")
+)
 
 # def test2():
 #     """
