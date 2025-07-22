@@ -14,11 +14,13 @@ Raises:
 
 """
 
-from os import environ
 from pathlib import Path
 
 import cv2
 import pytesseract
+from dotenv import dotenv_values
+
+environ = dotenv_values()
 
 # Configura o caminho do executável do Tesseract a partir das variáveis de ambiente
 pytesseract.pytesseract.tesseract_cmd = environ["PATH_TESSERACT"]
