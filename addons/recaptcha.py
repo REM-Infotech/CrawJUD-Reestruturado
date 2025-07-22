@@ -79,10 +79,6 @@ def image_to_text(img: Path) -> str:
     return text
 
 
-image_to_text(
-    Path(r"C:\Users\nicholas.silva\OneDrive - Robotz Info\Desktop\download.png")
-)
-
 # def test2():
 #     """
 #     (Exemplo comentado) Processa uma imagem de captcha e extrai texto usando configuração alternativa.
