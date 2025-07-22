@@ -18,6 +18,14 @@
   ],
   "configurations": [
     {
+      "name": "Python Debugger: Remote Attach",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": { "host": "localhost", "port": 5115 },
+      "pathMappings": [{ "localRoot": "${workspaceFolder}", "remoteRoot": "." }],
+      "justMyCode": false
+    },
+    {
       "name": "Debug CrawJUD Bot",
       "type": "debugpy",
       "request": "launch",

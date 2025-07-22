@@ -33,6 +33,13 @@ async def main_app() -> None:
             LOG_LEVEL=logging.INFO, LOGGER_NAME=__package__, FILELOG_PATH=log_file
         )
 
+        # Executa o servidor sem SSL para evitar erros de requisição HTTP inválida
         await io.run(
-            app, host=host, port=port, log_config=cfg, log_level=logging.INFO
+            app,
+            host=host,
+            port=port,
+            log_config=cfg,
+            log_level=logging.INFO,
+            ssl_keyfile=None,
+            ssl_certfile=None,
         )

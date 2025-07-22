@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import traceback
 from contextlib import suppress
 from datetime import datetime
@@ -62,7 +63,7 @@ class AsyncPrintMessage(PrintLogs):
             transports=["websocket"],
             retry=True,
         )
-
+        asyncio.create_task(sio.wait())
         return sio
 
     async def reconnect(self) -> None:

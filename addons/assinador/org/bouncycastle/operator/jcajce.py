@@ -22,5 +22,5 @@ JcaContentSignerBuilder = cast(
 
 JcaDigestCalculatorProviderBuilder = cast(
     JcaDigestCalculatorProviderBuilder,
-    JClass("org.bouncycastle.operator.jcajce.JcaContentSignerBuilder"),
+    JClass("org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder"),
 )

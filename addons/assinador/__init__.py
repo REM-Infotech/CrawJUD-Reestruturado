@@ -16,15 +16,20 @@ Raises:
 
 """
 
+from __future__ import annotations
+
 # type: ignore  # noqa:  PGH003, D104
+import base64
 from os import PathLike
 from pathlib import Path
 from typing import (
     Union,  # noqa:  I001
 )
 
+import asn1
 import jpype.imports  # noqa: F401
 from dotenv import dotenv_values
+from jpype import JArray
 
 from addons.assinador import load_jvm  # noqa: F401
 from addons.assinador.java.io import File, FileInputStream
@@ -78,7 +83,7 @@ class SignPy:
     @classmethod
     def assinador(
         cls, cert: str, pw: str, content: _cont, out: StrPath = None
-    ) -> bytes:
+    ) -> SignResult:
         """
         Executa o processo de assinatura digital de um conteúdo PDF.
 
@@ -97,18 +102,24 @@ class SignPy:
         """
         self = cls(cert, pw)
 
-        if not any([isinstance(content, Path), isinstance(content, bytes)]):
+        if not any([
+            isinstance(content, Path),
+            isinstance(content, (bytes, bytearray)),
+            isinstance(content, JArray),
+        ]):
             raise TypeError("O tipo de 'content' deve ser Path ou bytes.")
 
         if isinstance(content, Path):
             file = File(str(content))
             cms = CMSProcessableFile(file)
 
-        elif isinstance(content, bytes):
+        elif isinstance(content, (bytes, bytearray, JArray)):
             cms = CMSProcessableByteArray(content)
 
-        gen = self.prepare_signer()
-        return self.sign(gen, cms).getEncoded()
+        print(cms.toString())
+        gen, _cert = self.prepare_signer()
+        signed_content = self.sign(gen, cms)
+        return SignResult(_cert, signed_content)
 
     def __init__(self, cert_path: str = None, password_cert: str = None) -> None:
         """
@@ -127,13 +138,12 @@ class SignPy:
         """
         ks = KeyStore.getInstance("PKCS12")
         fis = FileInputStream(cert_path)
-
         ks.load(fis, list(password_cert))  # senha como lista de chars
         alias = ks.aliases().nextElement()
         self.private_key: Object = ks.getKey(alias, list(password_cert))
         self.certificate: Object = ks.getCertificate(alias)
 
-    def prepare_signer(self) -> CMSSignedDataGenerator:
+    def prepare_signer(self) -> tuple[CMSSignedDataGenerator, Certificate]:
         """
         Prepara o gerador de assinatura digital com os certificados necessários.
 
@@ -156,7 +166,7 @@ class SignPy:
         cert = Certificate.getInstance(
             ASN1Primitive.fromByteArray(self.certificate.getEncoded())
         )
-        jcsb = JcaContentSignerBuilder("SHA256withRSA")
+        jcsb = JcaContentSignerBuilder("MD5withRSA")
         sha1_signer: Object = jcsb.build(self.private_key)
         dcp = JcaDigestCalculatorProviderBuilder().build()
         sig = JcaSignerInfoGeneratorBuilder(dcp).build(
@@ -164,7 +174,7 @@ class SignPy:
         )
         gen.addSignerInfoGenerator(sig)
         gen.addCertificates(certs)
-        return gen
+        return gen, cert
 
     def sign(self, gen: CMSSignedDataGenerator, cms: _cms) -> CMSSignedData:
         """
@@ -182,4 +192,65 @@ class SignPy:
 
         """
         # Gera os dados assinados incluindo o conteúdo (gera o atributo MessageDigest)
-        return gen.generate(cms, True)  # <--- alterado para True
+        signed = gen.generate(cms, True)
+        return signed  # <--- alterado para True
+
+
+class SignResult:
+    """
+    Encapsula o resultado da assinatura digital, permitindo obter o certificado e a assinatura em formato base64.
+
+    Args:
+        certificate (Object): Certificado digital utilizado.
+        signed_data (CMSSignedData): Dados assinados no formato CMS.
+
+    Returns:
+        None: Não retorna valor diretamente.
+
+    Raises:
+        Exception: Em caso de erro ao codificar os dados.
+
+    """
+
+    def __init__(self, certificate: Object, signed_data: CMSSignedData) -> None:  # noqa: D107
+        self.certificate = certificate
+        self.signed_data = signed_data
+
+    def getCertificateChain64(self) -> str:  # noqa: N802
+        """
+        Retorna o certificado digital codificado em base64.
+
+        Args:
+            Nenhum argumento.
+
+        Returns:
+            str: Certificado em base64.
+
+        Raises:
+            Exception: Em caso de erro na codificação.
+
+        """
+        cert_bytes = bytes(self.certificate.toASN1Primitive())
+        # Codifica o certificado em base64 utilizando altchars para maior compatibilidade
+
+        decoder = asn1.Decoder()
+        decoder.start()
+
+        return base64.b64encode(cert_bytes, altchars=b"-_")
+
+    def getSignature64(self) -> str:  # noqa: N802
+        """
+        Retorna a assinatura digital codificada em base64.
+
+        Args:
+            Nenhum argumento.
+
+        Returns:
+            str: Assinatura em base64.
+
+        Raises:
+            Exception: Em caso de erro na codificação.
+
+        """
+        sig_bytes = bytes(self.signed_data.getEncoded())
+        return base64.b64encode(sig_bytes)
