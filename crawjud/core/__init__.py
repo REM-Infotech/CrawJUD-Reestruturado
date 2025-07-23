@@ -91,7 +91,7 @@ class CrawJUD(Controller):
         if logs and logs.row > 0:
             data_planilha = data_planilha[: logs.row + 1]
 
-        return data_planilha[:1]
+        return data_planilha
 
     def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
         """Format a legal case dictionary according to pre-defined rules.

@@ -115,20 +115,20 @@ def captcha_to_image(im_b: bytes) -> str:
         thresh = cv2.medianBlur(thresh, i)
         thresh = cv2.erode(thresh, item, iterations=1)
 
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     # Sequência de dilatações e erosões para refinar caracteres
     kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
     thresh = cv2.dilate(thresh, kernel1, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_DILATE, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
@@ -136,7 +136,7 @@ def captcha_to_image(im_b: bytes) -> str:
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR usando pytesseract
     text_pytesseract = str(pytesseract.image_to_string(thresh))
