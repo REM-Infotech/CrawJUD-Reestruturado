@@ -141,6 +141,7 @@ class Movimentacao(CrawJUD):
                 )
 
             await gather(*tasks)
+            driver.quit()
 
     async def _queue(
         self,
