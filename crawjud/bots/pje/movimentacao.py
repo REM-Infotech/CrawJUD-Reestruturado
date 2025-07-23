@@ -71,7 +71,7 @@ class Movimentacao(CrawJUD):
         for item in frame:
             regiao = await self.format_trt(item["NUMERO_PROCESSO"])
             if not regioes_dict.get(regiao):
-                regioes_dict.update({str(regiao): [item]})
+                regioes_dict[regiao] = [item]
                 continue
 
             regioes_dict[regiao].append(item)
