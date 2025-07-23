@@ -17,7 +17,6 @@ Raises:
 import base64
 import io
 import re
-from pathlib import Path
 from typing import Any
 
 import cv2
@@ -32,7 +31,21 @@ pytesseract.pytesseract.tesseract_cmd = environ["PATH_TESSERACT"]
 custom_config = environ["CONFIG_TESSERACT"]
 
 
-def load_img_blur_apply(im_b: bytes):  # noqa: ANN201, D103
+def load_img_blur_apply(im_b: bytes) -> np.ndarray:
+    """
+    Realiza o pré-processamento de uma imagem de captcha aplicando conversão para escala de cinza, binarização e suavização.
+
+    Args:
+        im_b (bytes): Imagem em bytes a ser processada.
+
+    Returns:
+        np.ndarray: Imagem processada em escala de cinza e binarizada.
+
+    Raises:
+        Nenhuma exceção específica.
+
+    """
+    # Converte os bytes em um array numpy
     image_np = np.frombuffer(im_b, np.uint8)
     img_np = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
 
@@ -47,7 +60,21 @@ def load_img_blur_apply(im_b: bytes):  # noqa: ANN201, D103
     return thresh
 
 
-def reabre_imagem(f: Any) -> Any:  # noqa: D103
+def reabre_imagem(f: Any) -> np.ndarray:
+    """
+    Reabra e processe uma imagem a partir de um arquivo, aplicando conversão para escala de cinza e binarização.
+
+    Args:
+        f (Any): Arquivo de imagem aberto em modo binário.
+
+    Returns:
+        np.ndarray: Imagem processada em escala de cinza e binarizada.
+
+    Raises:
+        Nenhuma exceção específica.
+
+    """
+    # Lê o conteúdo do arquivo e converte em array numpy
     image_np2 = np.frombuffer(f.read(), np.uint8)
     img_np2 = cv2.imdecode(image_np2, cv2.IMREAD_COLOR)
     color2 = cv2.COLOR_RGB2GRAY
@@ -56,12 +83,12 @@ def reabre_imagem(f: Any) -> Any:  # noqa: D103
     return threshold
 
 
-def image_to_text(im_b: Path) -> str:  # noqa: D417
+def image_to_text(im_b: bytes) -> str:
     """
-    Processa uma imagem de captcha e extrai o texto utilizando OCR.
+    Processa uma imagem de captcha e extraia o texto utilizando OCR.
 
     Args:
-        img (Path): Caminho para a imagem a ser processada.
+        im_b (bytes): Imagem em bytes a ser processada.
 
     Returns:
         str: Texto extraído da imagem após o processamento.
@@ -71,18 +98,20 @@ def image_to_text(im_b: Path) -> str:  # noqa: D417
         cv2.error: Se ocorrer erro ao processar a imagem.
 
     """
-    # Converte para escala de cinza
+    # Define nome do arquivo para debug do processamento
     process_dbg = "process_dbg.png"
 
-    # cv2_img = cv2.imread(str(img))
+    # Pré-processa a imagem
     thresh = load_img_blur_apply(im_b=im_b)
     thresh = cv2.bitwise_not(thresh)
 
+    # Define kernels para operações morfológicas
     kernel2_dilate = cv2.getStructuringElement(cv2.MORPH_DILATE, (1, 1))
     kernel_circle = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
     kernel_ellipse = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 2))
     kernel_open = cv2.getStructuringElement(cv2.MORPH_CLOSE, (2, 1))
 
+    # Aplica operações morfológicas para melhorar a imagem
     i = 1
     for item in [kernel_circle, kernel_ellipse, kernel_open, kernel2_dilate]:
         thresh = cv2.medianBlur(thresh, i)
@@ -90,46 +119,34 @@ def image_to_text(im_b: Path) -> str:  # noqa: D417
 
     cv2.imwrite(process_dbg, thresh)
 
-    # 1
+    # Sequência de dilatações e erosões para refinar caracteres
     kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
     thresh = cv2.dilate(thresh, kernel1, iterations=1)
     cv2.imwrite(process_dbg, thresh)
 
-    # 2
     kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
     cv2.imwrite(process_dbg, thresh)
 
-    # 3
     kernel2 = cv2.getStructuringElement(cv2.MORPH_DILATE, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
     cv2.imwrite(process_dbg, thresh)
 
-    # 4
-    # kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
-    # thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
-
-    # 5
-    kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-
     cv2.imwrite(process_dbg, thresh)
 
-    # Aplica OCR
-    text = (
-        str(pytesseract.image_to_string(thresh))
-        .replace("\n", "")
-        .strip()
-        .replace(" ", "")
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
+    thresh = cv2.erode(thresh, kernel2, iterations=1)
+    cv2.imwrite(process_dbg, thresh)
+
+    # Aplica OCR usando pytesseract
+    text_pytesseract = str(pytesseract.image_to_string(thresh))
+    text = re.sub(
+        r"[^a-z0-9]",
+        "",
+        text_pytesseract.lower().replace("\n", "").strip().replace(" ", ""),
     )
-
-    # Remove caracteres especiais e pontuações, mantendo apenas letras e números
-
-    # Converte para minúsculas
-    text = text.lower()
-    # Remove tudo que não for letra ou número
-    text = re.sub(r"[^a-z0-9]", "", text)
 
     return text
 
@@ -146,37 +163,3 @@ for pos, img in enumerate([img1, img2, img3]):
     readable_buffer = io.BytesIO(bytes_img)
 
     print(image_to_text(readable_buffer.read()))
-
-
-# def test2():
-#     """
-#     (Exemplo comentado) Processa uma imagem de captcha e extrai texto usando configuração alternativa.
-#
-#     Args:
-#         img (Path): Caminho para a imagem a ser processada.
-#
-#     Returns:
-#         str: Texto extraído da imagem.
-#     """
-#     # Converter para escala de cinza
-#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#
-#     # Aplicar binarização
-#     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-#
-#     # Remover ruídos (opcional)
-#     thresh = cv2.medianBlur(thresh, 3)
-#
-#     # Salvar temporariamente a imagem processada
-#     cv2.imwrite("processed2.png", thresh)
-#
-#     # Configurações do Tesseract
-#     custom_config = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-#
-#     # Extrair texto
-#     text = pytesseract.image_to_string(thresh, config=custom_config)
-#     print(text)
-
-
-# test1()
-# test2()
