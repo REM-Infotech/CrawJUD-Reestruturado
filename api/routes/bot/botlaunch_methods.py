@@ -136,13 +136,17 @@ class LoadForm:  # noqa: D101
             abort(500)
 
     def _license_user(self, sess: SessionDict) -> LicensesUsers | None:
-        return (
-            self.db.session.query(LicensesUsers)
-            .filter(
-                LicensesUsers.license_token == sess["license_object"]["license_token"]
+        try:
+            return (
+                self.db.session.query(LicensesUsers)
+                .filter(
+                    LicensesUsers.license_token
+                    == sess["license_object"]["license_token"]
+                )
+                .first()
             )
-            .first()
-        )
+        except KeyError:
+            abort(401)
 
     async def _get_annotations(self) -> dict[str, Any]:
         return FormDict.get_annotations(

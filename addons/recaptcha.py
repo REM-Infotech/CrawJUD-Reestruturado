@@ -16,8 +16,9 @@ Raises:
 
 import base64
 import io
-import shutil
+import re
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -40,10 +41,19 @@ def load_img_blur_apply(im_b: bytes):  # noqa: ANN201, D103
     gray = cv2.cvtColor(img_np, color)
 
     # Aplicar binarização com Otsu
-    _, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(gray, 5, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     # Suavizar ruído com mediana (sem borrar letras)
-    return cv2.medianBlur(thresh, 3)
+    return thresh
+
+
+def reabre_imagem(f: Any) -> Any:  # noqa: D103
+    image_np2 = np.frombuffer(f.read(), np.uint8)
+    img_np2 = cv2.imdecode(image_np2, cv2.IMREAD_COLOR)
+    color2 = cv2.COLOR_RGB2GRAY
+    gray2 = cv2.cvtColor(img_np2, color2)
+    _, threshold = cv2.threshold(gray2, 2, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return threshold
 
 
 def image_to_text(im_b: Path) -> str:  # noqa: D417
@@ -63,55 +73,63 @@ def image_to_text(im_b: Path) -> str:  # noqa: D417
     """
     # Converte para escala de cinza
     process_dbg = "process_dbg.png"
-    reprocess_dbg = "reprocess_dbg.png"
 
     # cv2_img = cv2.imread(str(img))
     thresh = load_img_blur_apply(im_b=im_b)
     thresh = cv2.bitwise_not(thresh)
-    # Afinar linhas circulares usando erosão
-    # Kernel circular pequeno para afinar círculos sem afetar letras
-    kernel_circle = cv2.getStructuringElement(cv2.MORPH_OPEN, (1, 2))
-    thresh = cv2.erode(thresh, kernel_circle, iterations=2)
+
+    kernel2_dilate = cv2.getStructuringElement(cv2.MORPH_DILATE, (1, 1))
+    kernel_circle = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
+    kernel_ellipse = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 2))
+    kernel_open = cv2.getStructuringElement(cv2.MORPH_CLOSE, (2, 1))
+
+    i = 1
+    for item in [kernel_circle, kernel_ellipse, kernel_open, kernel2_dilate]:
+        thresh = cv2.medianBlur(thresh, i)
+        thresh = cv2.erode(thresh, item, iterations=1)
 
     cv2.imwrite(process_dbg, thresh)
-    shutil.copy(process_dbg, reprocess_dbg)
 
-    with open(reprocess_dbg, "rb") as f:
-        image_np2 = np.frombuffer(f.read(), np.uint8)
-        img_np2 = cv2.imdecode(image_np2, cv2.IMREAD_COLOR)
+    # 1
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    thresh = cv2.dilate(thresh, kernel1, iterations=1)
+    cv2.imwrite(process_dbg, thresh)
 
-        # Converter para escala de cinza
-        color2 = cv2.COLOR_RGB2GRAY
-        gray2 = cv2.cvtColor(img_np2, color2)
+    # 2
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
+    thresh = cv2.erode(thresh, kernel2, iterations=1)
+    cv2.imwrite(process_dbg, thresh)
 
-        # Aplicar binarização com Otsu
-        _, threshold = cv2.threshold(
-            gray2, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        )
+    # 3
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_DILATE, (2, 1))
+    thresh = cv2.erode(thresh, kernel2, iterations=1)
+    cv2.imwrite(process_dbg, thresh)
 
-        # Suavizar ruído com mediana (sem borrar letras)
-        threshold = cv2.medianBlur(threshold, 1)
+    # 4
+    # kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
+    # thresh = cv2.erode(thresh, kernel2, iterations=1)
+    # cv2.imwrite(process_dbg, thresh)
 
-    # # Engrossar letras com cantos arredondados usando dilatação elíptica
-    # # Kernel elíptico reforça letras preservando cantos arredondados
-    kernel_ellipse = cv2.getStructuringElement(cv2.MORPH_CROSS, (1, 2))
-    threshold = cv2.dilate(threshold, kernel_ellipse, iterations=2)
+    # 5
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
+    thresh = cv2.erode(thresh, kernel2, iterations=1)
 
-    cv2.imwrite(reprocess_dbg, threshold)
-    # (Opcional) Inverter imagem se necessário
+    cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR
     text = (
-        str(pytesseract.image_to_string(threshold, config=custom_config))
+        str(pytesseract.image_to_string(thresh))
         .replace("\n", "")
         .strip()
         .replace(" ", "")
     )
 
-    text_list = ",".join(text).split(",")
-    text = ""
-    for w in text_list:
-        text += w
+    # Remove caracteres especiais e pontuações, mantendo apenas letras e números
+
+    # Converte para minúsculas
+    text = text.lower()
+    # Remove tudo que não for letra ou número
+    text = re.sub(r"[^a-z0-9]", "", text)
 
     return text
 

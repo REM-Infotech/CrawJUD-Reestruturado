@@ -16,7 +16,7 @@ Raises:
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 # type: ignore  # noqa:  PGH003, D104
 import base64
@@ -29,7 +29,7 @@ from typing import (
 import asn1
 import jpype.imports  # noqa: F401
 from dotenv import dotenv_values
-from jpype import JArray
+from jpype import JArray, JBoolean, JClass, JPackage
 
 from addons.assinador import load_jvm  # noqa: F401
 from addons.assinador.java.io import File, FileInputStream
@@ -47,14 +47,15 @@ from addons.assinador.org.bouncycastle.cms import (
     CMSSignedDataGenerator,
 )
 from addons.assinador.org.bouncycastle.cms.jcajce import (
-    JcaSignerInfoGeneratorBuilder,
+    JcaSimpleSignerInfoGeneratorBuilder as SignerGenerator,
 )
 from addons.assinador.org.bouncycastle.jce.provider import BouncyCastleProvider
 from addons.assinador.org.bouncycastle.operator.jcajce import (
-    JcaContentSignerBuilder,
-    JcaDigestCalculatorProviderBuilder,
+    JcaContentSignerBuilder as JcaContentSignerBuilder,
+    JcaDigestCalculatorProviderBuilder as JcaDigestCalculatorProviderBuilder,
 )
-
+from org.bouncycastle.asn1 import ASN1Encoding
+from com.github.signer4j import *  # noqa: F403
 # Abrir o arquivo .p12
 
 environ = dotenv_values()
@@ -161,20 +162,25 @@ class SignPy:
         cert_list = ArrayList()
         cert_list.add(self.certificate)
 
-        certs = JcaCertStore(cert_list)
-        gen = CMSSignedDataGenerator()
-        cert = Certificate.getInstance(
+        certificados = JcaCertStore(cert_list)
+        cmsgenerator = CMSSignedDataGenerator()
+        certificado = Certificate.getInstance(
             ASN1Primitive.fromByteArray(self.certificate.getEncoded())
         )
-        jcsb = JcaContentSignerBuilder("MD5withRSA")
-        sha1_signer: Object = jcsb.build(self.private_key)
-        dcp = JcaDigestCalculatorProviderBuilder().build()
-        sig = JcaSignerInfoGeneratorBuilder(dcp).build(
-            sha1_signer, X509CertificateHolder(cert)
+
+        kf = JClass("java.security.KeyFactory").getInstance("RSA")
+        pkcs8 = JClass("java.security.spec.PKCS8EncodedKeySpec")
+        spec = pkcs8(self.private_key.getEncoded())
+        priv_key = kf.generatePrivate(spec)
+        x509_cert = X509CertificateHolder(certificado)
+        builder = (
+            SignerGenerator()
+            .setDirectSignature(JBoolean(True))
+            .build("MD5withRSA", priv_key, x509_cert)
         )
-        gen.addSignerInfoGenerator(sig)
-        gen.addCertificates(certs)
-        return gen, cert
+        cmsgenerator.addSignerInfoGenerator(builder)
+        cmsgenerator.addCertificates(certificados)
+        return cmsgenerator, certificado
 
     def sign(self, gen: CMSSignedDataGenerator, cms: _cms) -> CMSSignedData:
         """
@@ -211,6 +217,25 @@ class SignResult:
         Exception: Em caso de erro ao codificar os dados.
 
     """
+
+    _signed_data: CMSSignedData = None
+    _certificate = Certificate = None
+
+    @property
+    def signed_data(self) -> CMSSignedData:  # noqa: D102
+        return self._signed_data
+
+    @signed_data.setter
+    def signed_data(self, new_data: CMSSignedData) -> None:
+        self._signed_data = new_data
+
+    @property
+    def certificate(self) -> Certificate:  # noqa: D102
+        return self._certificate
+
+    @certificate.setter
+    def certificate(self, new_data: Certificate) -> None:
+        self._certificate = new_data
 
     def __init__(self, certificate: Object, signed_data: CMSSignedData) -> None:  # noqa: D107
         self.certificate = certificate
@@ -252,5 +277,8 @@ class SignResult:
             Exception: Em caso de erro na codificação.
 
         """
-        sig_bytes = bytes(self.signed_data.getEncoded())
-        return base64.b64encode(sig_bytes)
+        # Converte os dados assinados para o formato PKCS#7 antes de codificar em base64
+        pkcs7_bytes = self.signed_data.getEncoded(ASN1Encoding.DER)
+        # Codifica o PKCS#7 em base64
+        base_64 = base64.b64encode(pkcs7_bytes).decode()
+        return base_64

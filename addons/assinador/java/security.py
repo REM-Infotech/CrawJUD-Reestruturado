@@ -59,6 +59,8 @@ class Security(Protocol):  # noqa: D101
     def addProvider(cls, provider: _TProvider) -> _TProvider: ...  # noqa: N802, D102
 
 
+Certificate = JClass("java.security.cert.Certificate")
+X509Certificate = JClass("java.security.cert.X509Certificate")
 Security = cast(Security, JClass("java.security.Security"))
 KeyStore = cast(KeyStore, JClass("java.security.KeyStore"))
 Signature = cast(Signature, JClass("java.security.Signature"))
