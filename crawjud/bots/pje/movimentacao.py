@@ -39,6 +39,7 @@ class Movimentacao(CrawJUD):
     """
 
     driver_trt: dict[str, dict[str, WebDriver | WebDriverWait | Interact]] = {}
+    position_process: dict[str, int] = {}
 
     @classmethod
     async def initialize(
@@ -69,12 +70,14 @@ class Movimentacao(CrawJUD):
         regioes_dict: dict[str, list[BotData]] = {}
 
         for item in frame:
-            regiao = await self.format_trt(item["NUMERO_PROCESSO"])
+            numero_processo = item["NUMERO_PROCESSO"]
+            regiao = await self.format_trt(numero_processo)
             if not regioes_dict.get(regiao):
                 regioes_dict[regiao] = [item]
                 continue
 
             regioes_dict[regiao].append(item)
+            self.position_process[numero_processo] = len(self.position_process)
 
         return regioes_dict
 
@@ -124,13 +127,11 @@ class Movimentacao(CrawJUD):
 
             await self.autenticar(driver, wait, regiao)
 
-            for pos, value in enumerate(data):
-                row = pos + 1
+            for value in data:
                 tasks.append(
                     create_task(
                         self._queue(
                             semaforo_processo=semaforo_processo,
-                            pos=row,
                             data=value,
                             driver=driver,
                             wait=wait,
@@ -146,7 +147,6 @@ class Movimentacao(CrawJUD):
     async def _queue(
         self,
         semaforo_processo: Semaphore,
-        pos: int,
         data: BotData,
         driver: WebDriver,
         wait: WebDriverWait,
@@ -154,6 +154,7 @@ class Movimentacao(CrawJUD):
         regiao: str,
     ) -> None:
         async with semaforo_processo:
+            row = self.position_process.get(str(data["NUMERO_PROCESSO"]))
             try:
                 await self.buscar_processo(
                     driver=driver,
@@ -164,7 +165,7 @@ class Movimentacao(CrawJUD):
                 )
                 await self.prt.print_msg(
                     "Execução realizada com sucesso!",
-                    row=pos,
+                    row=row,
                     type_log="success",
                 )
 
@@ -174,7 +175,7 @@ class Movimentacao(CrawJUD):
             except Exception as e:
                 await self.prt.print_msg(
                     "\n".join(traceback.format_exception(e)),
-                    row=pos,
+                    row=row,
                     type_log="error",
                 )
 
