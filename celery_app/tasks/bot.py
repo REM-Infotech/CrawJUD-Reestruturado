@@ -26,14 +26,35 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from celery.app import shared_task
+from socketio import AsyncSimpleClient
 
-from addons.printlogs import PrintMessage
-from addons.printlogs._async import AsyncPrintMessage
 from addons.storage import Storage
-from common.bot import ClassBot
 
 if TYPE_CHECKING:
+    from addons.printlogs._interface import MessageLog
     from celery_app.types import TReturnMessageExecutBot
+    from common.bot import ClassBot
+
+
+@shared_task
+async def print_message(  # noqa: D103
+    data: MessageLog,
+    server: str,
+    namespace: str,
+    headers: dict[str, str],
+    transports: list[str],
+) -> None:
+    async with AsyncSimpleClient(
+        logger=True,
+        reconnection_attempts=20,
+        reconnection_delay=5,
+    ) as sio:
+        await sio.connect(
+            url=server, namespace=namespace, headers=headers, transports=transports
+        )
+        join_data = {"data": {"room": data["pid"]}}
+        await sio.emit("join_room", data=join_data)
+        await sio.emit("log_execution", data={"data": data})
 
 
 @shared_task
@@ -58,11 +79,9 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         Exception: For any other errors during initialization or execution, with details printed to logs.
 
     """
-    # from celery_app import app
+    from addons.printlogs import PrintMessage
+    from addons.printlogs._async import AsyncPrintMessage
 
-    # app.send_task("send_email", kwargs={})
-
-    # Import the bot module dynamically based on the system and name
     bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
 
     # Get the ClassBot from the imported module
@@ -78,6 +97,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         try:
             prt_class = await AsyncPrintMessage.constructor(pid=pid)
             async with prt_class as prt:
+                prt: AsyncPrintMessage
                 storage = Storage("minio")
 
                 # Print log message indicating bot initialization

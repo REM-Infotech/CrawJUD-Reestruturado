@@ -20,6 +20,7 @@ lib64/
 *.pfx
 *.p7s
 *.p12
+process_dbg.png
 parts/
 sdist/
 signer4j/*

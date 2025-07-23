@@ -5,23 +5,26 @@ This module fetches and processes court hearing schedules (pautas) for automated
 
 from __future__ import annotations
 
-import base64
-import io
+import asyncio
 import re
 import traceback
-from asyncio import Semaphore, create_task, gather, sleep
+from asyncio import create_task, gather
 from contextlib import suppress
+from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Self
 
+import pandas as pd
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from addons.recaptcha import captcha_to_image
 from crawjud.addons.interator import Interact
 from crawjud.addons.webdriver import DriverBot
+from crawjud.bots.pje.res.autenticador import autenticar
+from crawjud.bots.pje.res.buscador import buscar_processo
 from crawjud.core import CrawJUD
 from crawjud.core._dictionary import BotData
 
@@ -60,9 +63,11 @@ class Movimentacao(CrawJUD):
         return cls(*args, **kwargs)
 
     async def format_trt(self, numero_processo: str) -> str:  # noqa: D102
-        trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
-        if trt_id.startswith("0"):
-            trt_id = trt_id.replace("0", "")
+        trt_id = None
+        with suppress(Exception):
+            trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+            if trt_id.startswith("0"):
+                trt_id = trt_id.replace("0", "")
 
         return trt_id
 
@@ -72,12 +77,16 @@ class Movimentacao(CrawJUD):
         for item in frame:
             numero_processo = item["NUMERO_PROCESSO"]
             regiao = await self.format_trt(numero_processo)
+
+            if not regiao:
+                continue
+
+            self.position_process[numero_processo] = len(self.position_process)
             if not regioes_dict.get(regiao):
                 regioes_dict[regiao] = [item]
                 continue
 
             regioes_dict[regiao].append(item)
-            self.position_process[numero_processo] = len(self.position_process)
 
         return regioes_dict
 
@@ -86,10 +95,10 @@ class Movimentacao(CrawJUD):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaforo_regiao = Semaphore(5)
+        semaforo_regiao = asyncio.Semaphore(1)
         self.driver.quit()
         frame = await self._separar_regiao(self.dataFrame())
-        self.max_rows = len(frame)
+        self.max_rows = len(self.position_process)
 
         tasks = [
             create_task(self._queue_regiao(key, value, semaforo_regiao))
@@ -101,11 +110,14 @@ class Movimentacao(CrawJUD):
         self,
         regiao: str,
         data: list[BotData],
-        semaforo_regiao: Semaphore,
+        semaforo_regiao: asyncio.Semaphore,
     ) -> None:
         pid = self.pid
-        with semaforo_regiao:
-            semaforo_processo = Semaphore(1)
+        async with semaforo_regiao:
+            if self.is_stoped:
+                asyncio.current_task().cancel()
+
+            semaforo_processo = asyncio.Semaphore(1)
             tasks = []
 
             if not self.driver_trt.get(regiao):
@@ -125,7 +137,7 @@ class Movimentacao(CrawJUD):
             wait: WebDriverWait = self.driver_trt[regiao]["wait"]
             interator: Interact = self.driver_trt[regiao]["interact"]
 
-            await self.autenticar(driver, wait, regiao)
+            await autenticar(driver, wait, regiao)
 
             for value in data:
                 tasks.append(
@@ -146,7 +158,7 @@ class Movimentacao(CrawJUD):
 
     async def _queue(
         self,
-        semaforo_processo: Semaphore,
+        semaforo_processo: asyncio.Semaphore,
         data: BotData,
         driver: WebDriver,
         wait: WebDriverWait,
@@ -154,14 +166,22 @@ class Movimentacao(CrawJUD):
         regiao: str,
     ) -> None:
         async with semaforo_processo:
-            row = self.position_process.get(str(data["NUMERO_PROCESSO"]))
+            if self.is_stoped:
+                asyncio.current_task().cancel()
+
             try:
-                await self.buscar_processo(
+                row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
+                await buscar_processo(
+                    row=row,
                     driver=driver,
                     wait=wait,
                     data=data,
                     interact=interator,
                     regiao=regiao,
+                    prt=self.prt,
+                )
+                await self.extrair_movimentacao(
+                    driver=driver, wait=wait, data=data, row=row
                 )
                 await self.prt.print_msg(
                     "Execução realizada com sucesso!",
@@ -169,12 +189,10 @@ class Movimentacao(CrawJUD):
                     type_log="success",
                 )
 
-                await sleep(2)
-                driver.quit()
-
             except Exception as e:
+                print("\n".join(traceback.format_exception(e)))
                 await self.prt.print_msg(
-                    "\n".join(traceback.format_exception(e)),
+                    "Erro de operação",
                     row=row,
                     type_log="error",
                 )
@@ -182,6 +200,7 @@ class Movimentacao(CrawJUD):
     async def extrair_movimentacao(  # noqa: D102
         self,
         driver: WebDriver,
+        row: int,
         wait: WebDriverWait,
         data: BotData,
     ) -> None:
@@ -193,117 +212,51 @@ class Movimentacao(CrawJUD):
         )
         btn_modo_tabela.click()
 
-        data = wait.until(
+        data_row = wait.until(
             ec.presence_of_all_elements_located((
                 By.XPATH,
                 "//tr[contains(@class, 'row-odd') or contains(@class, 'row-even')]",
             ))
         )
 
-        for item in data:
-            print(item)
+        movimentacoes = []
 
-    async def formata_url_pje(self, regiao: str, type_format: str = "login") -> str:  # noqa: D102
-        formats = {
-            "login": f"https://pje.trt{regiao}.jus.br/primeirograu/login.seam",
-            "validate_login": f"https://pje.trt{regiao}.jus.br/pjekz/",
-            "search": f"https://pje.trt{regiao}.jus.br/consultaprocessual/",
-        }
+        for item in data_row:
+            try:
+                data_td = item.find_elements(By.TAG_NAME, "td")
+                split_time = data_td[1].text.split(" ")
+                data_movimentacao = datetime.strptime(
+                    f"{split_time[0]}/{split_time[1]} {split_time[2]}",
+                    "%d/%m/%Y %H:%M",
+                )
+                if len(data_td) == 5:
+                    id_movimentacao = "Sem ID"
+                    descricao_movimentacao = data_td[3]
 
-        return formats[type_format]
+                elif len(data_td) == 6:
+                    id_movimentacao = data_td[3].text
+                    descricao_movimentacao = data_td[4].text
 
-    async def autenticar(  # noqa: D102
-        self, driver: WebDriver, wait: WebDriverWait, regiao: str
-    ) -> None:
-        url = await self.formata_url_pje(regiao)
-        driver.get(url)
-        btn_sso = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'button[id="btnSsoPdpj"]',
-            ))
+                to_save = {
+                    "PROCESSO": data["NUMERO_PROCESSO"],
+                    "DATA": data_movimentacao,
+                    "TIPO": data_td[2],
+                    "ID": id_movimentacao,
+                    "DESCRIÇÃO": descricao_movimentacao,
+                }
+
+                movimentacoes.append(to_save)
+
+            except Exception as e:
+                print(e)
+                continue
+
+        _downloadable_files = driver.get_downloadable_files()
+        driver.download_file()
+        path_planilha = Path(self.output_dir_path).joinpath(
+            data["NUMERO_PROCESSO"],
+            f"EXECUÇÃO {self.pid} - {data['NUMERO_PROCESSO']}.xlsx",
         )
-        btn_sso.click()
+        path_planilha.parent.mkdir(exist_ok=True, parents=True)
 
-        await sleep(5)
-
-        btn_certificado = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                ('div[class="certificado"] > a'),
-            ))
-        )
-        event_cert = btn_certificado.get_attribute("onclick")
-        driver.execute_script(event_cert)
-
-        WebDriverWait(driver, 60).until(
-            ec.url_to_be(await self.formata_url_pje(regiao, "validate_login"))
-        )
-
-    async def buscar_processo(  # noqa: D102
-        self,
-        driver: WebDriver,
-        wait: WebDriverWait,
-        data: BotData,
-        interact: Interact,
-        regiao: str,
-    ) -> None:
-        url = await self.formata_url_pje(regiao, "search")
-        driver.get(url)
-
-        campo_processo = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'input[id="nrProcessoInput"]',
-            ))
-        )
-
-        campo_processo.click()
-        interact.send_key(campo_processo, data["NUMERO_PROCESSO"])
-
-        btn_pesquisar = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'button[id="btnPesquisar"]',
-            ))
-        )
-        btn_pesquisar.click()
-        await self.desafio_captcha(driver, wait, interact)
-
-    async def desafio_captcha(  # noqa: D102
-        self,
-        driver: WebDriver,
-        wait: WebDriverWait,
-        interact: Interact,
-    ) -> None:
-        tries = 0
-        while tries < 5:
-            img = wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    'img[id="imagemCaptcha"]',
-                ))
-            ).get_attribute("src")
-            await sleep(2)
-            bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
-            readable_buffer = io.BytesIO(bytes_img)
-            text = captcha_to_image(readable_buffer.read())
-            await sleep(2)
-            input_captcha = driver.find_element(
-                By.CSS_SELECTOR, 'input[id="captchaInput"]'
-            )
-            interact.send_key(input_captcha, text)
-            await sleep(2)
-
-            btn_enviar = driver.find_element(
-                By.CSS_SELECTOR, 'button[id="btnEnviar"]'
-            )
-            btn_enviar.click()
-
-            pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+$"
-            with suppress(Exception):
-                WebDriverWait(driver, 10).until(ec.url_matches(pattern_url))
-                break
-
-            await sleep(2)
-            tries += 1
+        pd.DataFrame(to_save).to_excel(path_planilha)

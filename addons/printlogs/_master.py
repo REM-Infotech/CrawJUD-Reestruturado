@@ -28,14 +28,6 @@ class PrintLogs:  # noqa: D101
     _bot_instance: ClassBot = None
 
     @property
-    def io(self) -> Client | AsyncClient:  # noqa: D102
-        return self._sio
-
-    @io.setter
-    def io(self, new_io: Client | AsyncClient) -> None:
-        self._sio = new_io
-
-    @property
     def bot_instance(self) -> ClassBot:  # noqa: D102
         return self._bot_instance
 

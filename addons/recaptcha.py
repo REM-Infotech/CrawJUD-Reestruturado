@@ -132,11 +132,11 @@ def captcha_to_image(im_b: bytes) -> str:
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
+    cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR usando pytesseract
     text_pytesseract = str(pytesseract.image_to_string(thresh))

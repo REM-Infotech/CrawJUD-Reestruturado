@@ -20,6 +20,14 @@ from addons.printlogs._master import PrintLogs
 class PrintMessage(PrintLogs):
     """Classe de gerenciamento de logs CrawJUD."""
 
+    @property
+    def io(self) -> Client:  # noqa: D102
+        return self._sio
+
+    @io.setter
+    def io(self, new_io: Client) -> None:
+        self._sio = new_io
+
     def on(  # noqa: D102
         self,
         event: str,

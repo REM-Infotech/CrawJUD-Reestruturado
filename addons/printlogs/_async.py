@@ -16,18 +16,29 @@ from socketio.exceptions import BadNamespaceError
 
 from addons.printlogs._interface import MessageLog
 from addons.printlogs._master import PrintLogs
+from celery_app import app
 
 
 class AsyncPrintMessage(PrintLogs):
     """Classe de gerenciamento de logs CrawJUD."""
+
+    transports = ["websocket"]
+    headers = {"Content-Type": "application/json"}
+    url_server = environ["SOCKETIO_SERVER_URL"]
+
+    @property
+    def io(self) -> AsyncClient:  # noqa: D102
+        return self._sio
+
+    @io.setter
+    def io(self, new_io: AsyncClient) -> None:
+        self._sio = new_io
 
     @classmethod
     async def constructor(cls, *args: Any, **kwargs: Any) -> Self:
         self = cls()
         for k, v in list(kwargs.items()):
             setattr(self, k, v)
-
-        self.url_server = environ["SOCKETIO_SERVER_URL"]
 
         self.io = await self.connect()
 
@@ -54,16 +65,14 @@ class AsyncPrintMessage(PrintLogs):
         return self.io.on(event=event, namespace=namespace)
 
     async def connect(self) -> AsyncClient:  # noqa: D102
-        sio = AsyncClient()
+        sio = AsyncClient(logger=True, reconnection_attempts=20, reconnection_delay=5)
         await sio.connect(
             url=self.url_server,
-            headers={"Content-Type": "application/json"},
-            auth={"room": self.pid},
+            headers=self.headers,
             namespaces=[self.namespace],
-            transports=["websocket"],
+            transports=self.transports,
             retry=True,
         )
-        asyncio.create_task(sio.wait())
         return sio
 
     async def reconnect(self) -> None:
@@ -116,32 +125,52 @@ class AsyncPrintMessage(PrintLogs):
         _row = row if row != 0 else self.row
         prompt = f"[({_pid}, {type_log}, {_row}, {time_exec})> {message}]"
 
+        data = await self.message_format(_pid, _row, prompt, type_log, status)
         self.total = self.total_rows
-
         self.logger.info(prompt)
-        try:
-            total_count = self.total_rows
-            remaining = 0
-            if _row > 0:
-                remaining = total_count + 1 - _row
 
-            time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
-            data = MessageLog(
-                message=prompt,
-                type=type_log,
-                pid=_pid,
-                status=status,
-                start_time=time_start,
-                row=_row,
-                total=self.total_rows,
-                errors=0,
-                success=0,
-                remaining=remaining,
-            )
-            await self.emit("log_execution", data={"data": data})
+        app.send_task(
+            "celery_app.tasks.bot.print_message",
+            kwargs={
+                "data": data,
+                "server": self.url_server,
+                "namespace": self.namespace,
+                "headers": self.headers,
+                "transports": self.transports,
+            },
+        )
+
+        try:
             self.logger.info(prompt)
         except Exception as e:
             self.logger.error(
                 "Erro ao emitir mensagem: Exception %s",
                 "\n".join(traceback.format_exception_only(e)),
             )
+
+    async def message_format(
+        self,
+        pid: str = None,
+        row: int = 0,
+        prompt: str = None,
+        type_log: str = None,
+        status: str = None,
+    ) -> MessageLog:
+        total_count = self.total_rows
+        remaining = 0
+        if row > 0:
+            remaining = total_count + 1 - row
+
+        time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
+        return MessageLog(
+            message=prompt,
+            type=type_log,
+            pid=pid,
+            status=status,
+            start_time=time_start,
+            row=row,
+            total=self.total_rows,
+            errors=0,
+            success=0,
+            remaining=remaining,
+        )

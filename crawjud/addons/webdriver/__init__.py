@@ -59,6 +59,12 @@ class DriverBot:
         "version": 2,
     }
 
+    def get_downloadable_files(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201, D102
+        arg = args
+        kwarg = kwargs
+
+        print(arg, kwarg)
+
     def __init__(self, preferred_browser: str, execution_path: str) -> None:
         """
         Initialize DriverBot with default settings for WebDriver operations in CrawJUD promptly.
@@ -91,6 +97,7 @@ class DriverBot:
             cache_manager = DriverCacheManager(
                 file_manager=file_manager, root_dir=root_dir
             )
+            driver = None
             download_manager = WDMDownloadManager()
             if self.preferred_browser == "chrome":
                 options = self.configure_chrome()
@@ -98,6 +105,8 @@ class DriverBot:
                 driver_path = ChromeDriverManager().install()
                 service = ChromeService(driver_path)
                 driver = webdriver.Chrome(options=options, service=service)
+                driver.get_downloadable_files = DriverBot.get_downloadable_files
+
             elif self.preferred_browser == "gecko":
                 options = self.configure_gecko()
                 driver_path = GeckoDriverManager(
@@ -107,7 +116,7 @@ class DriverBot:
                 ).install()
                 service = GeckoService(driver_path)
                 driver = webdriver.Firefox(options=options, service=service)
-
+                driver.get_downloadable_files = DriverBot.get_downloadable_files
             wait = WebDriverWait(driver, timeout=10)
             return driver, wait
 
