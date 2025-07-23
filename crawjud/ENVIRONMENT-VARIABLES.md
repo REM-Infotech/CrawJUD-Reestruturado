@@ -51,7 +51,7 @@ BROKER_URL="redis://localhost:6379/0"       # URL do broker Celery (Redis)
 RESULT_BACKEND="db+sqlite:///results.db"    # Backend de resultados Celery
 TASK_IGNORE_RESULT=True                      # Ignora resultados das tasks
 BROKER_CONNECTION_RETRY_ON_STARTUP=True      # Tenta reconectar broker ao iniciar
-TIMEZONE="America\Manaus"                   # Fuso horário padrão
+TIMEZONE="America/Manaus"                   # Fuso horário padrão
 TASK_CREATE_MISSING_QUEUES=True              # Cria filas ausentes automaticamente
 REDIS_OM_URL="redis://localhost:6379/0"     # URL Redis OM
 ```

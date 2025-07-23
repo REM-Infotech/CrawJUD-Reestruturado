@@ -1,7 +1,6 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
 import argparse
-import asyncio
 from contextlib import suppress
 from multiprocessing import Process  # noqa: F401
 from os import environ
@@ -23,11 +22,13 @@ from celery_app.addons import worker_name_generator
 
 clear()
 
+environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
+
 
 def start_worker() -> None:
     """Start the Celery Worker."""
     environ.update({"APPLICATION_APP": "worker"})
-    worker_name = f"{worker_name_generator()}@{node()}"
+    worker_name = environ["WORKER_NAME"]
 
     celery = make_celery()
     worker = Worker(
@@ -35,8 +36,8 @@ def start_worker() -> None:
         hostname=worker_name,
         task_events=True,
         loglevel="DEBUG",
-        concurrency=1,
-        pool="solo",
+        concurrency=8,
+        pool="prefork",
     )
     worker = worker
 
@@ -49,8 +50,6 @@ def start_worker() -> None:
 
         else:
             tqdm.write("[bold red]Error starting worker.")
-
-    asyncio.run(start_worker())
 
 
 def start_beat() -> None:
@@ -128,6 +127,7 @@ def main() -> None:
 
             if not result:
                 process_running = stop_service(process_celery)
+                break
 
             if result.get("option_server") == opt_1:
                 process_celery = restart_service(callable_obj, process_celery)

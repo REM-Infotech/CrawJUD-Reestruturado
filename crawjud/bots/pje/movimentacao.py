@@ -11,10 +11,9 @@ import traceback
 from asyncio import create_task, gather
 from contextlib import suppress
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Self
 
-import pandas as pd
+from celery import Celery, current_app
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -181,7 +180,7 @@ class Movimentacao(CrawJUD):
                     prt=self.prt,
                 )
                 await self.extrair_movimentacao(
-                    driver=driver, wait=wait, data=data, row=row
+                    regiao=regiao, driver=driver, wait=wait, data=data, row=row
                 )
                 await self.prt.print_msg(
                     "Execução realizada com sucesso!",
@@ -201,6 +200,7 @@ class Movimentacao(CrawJUD):
         self,
         driver: WebDriver,
         row: int,
+        regiao: str,
         wait: WebDriverWait,
         data: BotData,
     ) -> None:
@@ -219,7 +219,7 @@ class Movimentacao(CrawJUD):
             ))
         )
 
-        movimentacoes = []
+        movimentacoes: list[dict[str, str | datetime]] = []
 
         for item in data_row:
             try:
@@ -231,7 +231,7 @@ class Movimentacao(CrawJUD):
                 )
                 if len(data_td) == 5:
                     id_movimentacao = "Sem ID"
-                    descricao_movimentacao = data_td[3]
+                    descricao_movimentacao = data_td[3].text
 
                 elif len(data_td) == 6:
                     id_movimentacao = data_td[3].text
@@ -240,8 +240,8 @@ class Movimentacao(CrawJUD):
                 to_save = {
                     "PROCESSO": data["NUMERO_PROCESSO"],
                     "DATA": data_movimentacao,
-                    "TIPO": data_td[2],
-                    "ID": id_movimentacao,
+                    "TIPO": data_td[2].text,
+                    "MOVIMENTACAO_ID": id_movimentacao,
                     "DESCRIÇÃO": descricao_movimentacao,
                 }
 
@@ -251,10 +251,14 @@ class Movimentacao(CrawJUD):
                 print(e)
                 continue
 
-        path_planilha = Path(self.output_dir_path).joinpath(
-            data["NUMERO_PROCESSO"],
-            f"EXECUÇÃO {self.pid} - {data['NUMERO_PROCESSO']}.xlsx",
-        )
-        path_planilha.parent.mkdir(exist_ok=True, parents=True)
+        app: Celery = current_app
 
-        pd.DataFrame(to_save).to_excel(path_planilha, index=False)
+        args_task = {
+            "pid": self.pid,
+            "data": movimentacoes,
+            "filename": f"EXECUÇÃO {self.pid}.xlsx",
+            "sheet_name": f"TRT{regiao.zfill(2)}",
+        }
+
+        task = app.gen_task_name("save_success", "celery_app.tasks.bot")
+        app.send_task(task, kwargs=args_task)

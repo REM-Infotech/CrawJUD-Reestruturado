@@ -49,16 +49,16 @@ class DriverBot:
     list_args: list[str] = [
         "--ignore-ssl-errors=yes",
         "--ignore-certificate-errors",
-        "--display=:99",
+        "--display=:0",
         "--window-size=1600,900",
-        # "--no-sandbox",
+        "--no-sandbox",
         "--kiosk-printing",
         # disable Render and GPU
-        # "--disable-gpu",
-        # "--disable-dev-shm-usage",
-        # "--disable-software-rasterizer",
-        # "--disable-renderer-backgrounding",
-        # "--disable-backgrounding-occluded-windows",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-software-rasterizer",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
         "--disable-blink-features=AutomationControlled",
         # "--disable-features=MediaFoundationVideoCapture",
         # disable network prediction

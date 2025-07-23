@@ -25,7 +25,9 @@ from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pandas as pd
 from socketio import AsyncSimpleClient
+from werkzeug.utils import secure_filename
 
 from addons.storage import Storage
 from celery_app.wrapper import SharedTask
@@ -34,6 +36,7 @@ if TYPE_CHECKING:
     from addons.printlogs._interface import MessageLog
     from celery_app.types import TReturnMessageExecutBot
     from common.bot import ClassBot
+    from crawjud.core._dictionary import BotData
 
 
 @SharedTask()
@@ -55,6 +58,42 @@ async def print_message(  # noqa: D103
         join_data = {"data": {"room": data["pid"]}}
         await sio.emit("join_room", data=join_data)
         await sio.emit("log_execution", data={"data": data})
+
+
+@SharedTask()
+async def save_success(  # noqa: D103
+    pid: str,
+    data: list[BotData],
+    filename: str,
+    sheet_name: str = "Resultados",
+) -> None:
+    storage = Storage("minio")
+    path_planilha = (
+        Path(__file__)
+        .cwd()
+        .joinpath(
+            "temp",
+            pid,
+            filename,
+        )
+    )
+
+    blobs = storage.bucket.list_blobs(prefix=f"{pid}/")
+
+    _blob = list(filter(lambda x: x, blobs))
+
+    path_planilha.parent.mkdir(exist_ok=True, parents=True)
+    df = pd.DataFrame(data)
+
+    with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
+        df.to_excel(
+            excel_writer=writter,
+            index=False,
+            sheet_name=sheet_name,
+        )
+    for file in [path_planilha]:
+        file_name = secure_filename(file.name)
+        await storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
 
 @SharedTask()

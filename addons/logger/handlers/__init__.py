@@ -101,7 +101,7 @@ class _ColorFormatter(logging.Formatter):
     reset = click.style("%(message)s", fg="reset", reset=True)
 
     FORMATS = {
-        logging.DEBUG: grey,
+        logging.INFO: grey,
         logging.INFO: grey,
         logging.WARNING: yellow,
         logging.ERROR: red,

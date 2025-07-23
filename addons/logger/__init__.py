@@ -12,7 +12,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     handlers_config = {
         "file_handler": {
             "class": "addons.logger.handlers.FileHandler",
-            "level": logging.DEBUG,
+            "level": logging.INFO,
             "formatter": "json",
             "filename": "app.log",
             "maxBytes": 1024,
@@ -20,16 +20,16 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         },
         "stream_handler": {
             "class": "logging.StreamHandler",
-            "level": logging.DEBUG,
+            "level": logging.INFO,
             "formatter": "color",  # Usa o novo formatter colorido
         },
         "redis_handler": {
             "class": "addons.logger.handlers.RedisHandler",
-            "level": logging.DEBUG,
+            "level": logging.INFO,
             "formatter": "json",
         },
     }
-    handlers_config["file_handler"]["level"] = logging.DEBUG
+    handlers_config["file_handler"]["level"] = logging.INFO
     handlers_config["file_handler"]["maxBytes"] = 40960
     handlers_config["file_handler"]["backupCount"] = 5
     handlers_config["file_handler"]["filename"] = kwargs["FILELOG_PATH"]
@@ -38,7 +38,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "version": 1,
         "disable_existing_loggers": False,
         "root": {
-            "level": logging.DEBUG,
+            "level": logging.INFO,
             "handlers": list(handlers_config.keys()),
         },
         "handlers": handlers_config,
@@ -57,7 +57,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         },
         "loggers": {
             logger_name: {
-                "level": logging.DEBUG,
+                "level": logging.INFO,
                 "handlers": list(handlers_config.keys()),
                 "propagate": False,
             },

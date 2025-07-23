@@ -26,10 +26,9 @@ from typing import (
     Union,  # noqa:  I001
 )
 
-import asn1
 import jpype.imports  # noqa: F401
 from dotenv import dotenv_values
-from jpype import JArray, JBoolean, JClass, JPackage
+from jpype import JArray, JBoolean, JClass, JPackage  # noqa: F401
 
 from addons.assinador import load_jvm  # noqa: F401
 from addons.assinador.java.io import File, FileInputStream
@@ -256,11 +255,6 @@ class SignResult:
 
         """
         cert_bytes = bytes(self.certificate.toASN1Primitive())
-        # Codifica o certificado em base64 utilizando altchars para maior compatibilidade
-
-        decoder = asn1.Decoder()
-        decoder.start()
-
         return base64.b64encode(cert_bytes, altchars=b"-_")
 
     def getSignature64(self) -> str:  # noqa: N802

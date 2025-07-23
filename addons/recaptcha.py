@@ -139,7 +139,7 @@ def captcha_to_image(im_b: bytes) -> str:
     # cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR usando pytesseract
-    text_pytesseract = str(pytesseract.image_to_string(thresh))
+    text_pytesseract = str(pytesseract.image_to_string(thresh, config=custom_config))
     text = re.sub(
         r"[^a-z0-9]",
         "",

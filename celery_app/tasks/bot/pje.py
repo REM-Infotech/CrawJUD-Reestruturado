@@ -97,7 +97,7 @@ class PJeTask:  # noqa: D101
             namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
 
             # Set up the handler for stop signal
-            @prt.io.on("stop_signal", namespace=namespace)
+            @prt.on("stop_signal", namespace=namespace)
             async def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
                 bot_instance.is_stoped = True
 
