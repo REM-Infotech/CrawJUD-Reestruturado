@@ -88,12 +88,15 @@ class AsyncPrintMessage(PrintLogs):
         callback: Callable[..., Any | None] = None,
     ) -> None:
         try:
-            await self.io.emit(event, data, self.namespace, callback=callback)
-
+            asyncio.create_task(
+                self.io.emit(event, data, self.namespace, callback=callback)
+            )
         except BadNamespaceError:
             with suppress(Exception):
                 self.reconnect()
-                await self.io.emit(event, data, self.namespace, callback=callback)
+                asyncio.create_task(
+                    self.io.emit(event, data, self.namespace, callback=callback)
+                )
 
     async def print_msg(
         self,
