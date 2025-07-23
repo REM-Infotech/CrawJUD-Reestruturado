@@ -25,10 +25,10 @@ from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from celery.app import shared_task
 from socketio import AsyncSimpleClient
 
 from addons.storage import Storage
+from celery_app.wrapper import SharedTask
 
 if TYPE_CHECKING:
     from addons.printlogs._interface import MessageLog
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from common.bot import ClassBot
 
 
-@shared_task
+@SharedTask()
 async def print_message(  # noqa: D103
     data: MessageLog,
     server: str,
@@ -57,7 +57,7 @@ async def print_message(  # noqa: D103
         await sio.emit("log_execution", data={"data": data})
 
 
-@shared_task
+@SharedTask()
 async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExecutBot:
     """
     Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID.
@@ -80,7 +80,6 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
 
     """
     from addons.printlogs import PrintMessage
-    from addons.printlogs._async import AsyncPrintMessage
 
     bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
 
@@ -92,63 +91,6 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         raise ImportError(
             f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
         )
-
-    if iscoroutinefunction(class_bot.initialize):
-        try:
-            prt_class = await AsyncPrintMessage.constructor(pid=pid)
-            async with prt_class as prt:
-                prt: AsyncPrintMessage
-                storage = Storage("minio")
-
-                # Print log message indicating bot initialization
-                await prt.print_msg(
-                    "Configurando o robô...", pid, 0, "log", "Inicializando"
-                )
-                path_files = Path(__file__).cwd().joinpath("temp")
-
-                # Print log message for downloading files
-                await prt.print_msg(
-                    "Baixando arquivos do robô...", pid, 0, "log", "Inicializando"
-                )
-
-                # Download files from storage
-                await storage.download_files(
-                    dest=path_files,
-                    prefix=pid,
-                )
-
-                # Print log message indicating successful file download
-                await prt.print_msg(
-                    "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
-                )
-                path_config = path_files.joinpath(pid, f"{pid}.json")
-
-                # Initialize the bot instance
-                bot_instance = await class_bot.initialize(
-                    bot_name=name, bot_system=system, path_config=path_config, prt=prt
-                )
-
-                # Set the PrintMessage instance to the bot instance
-                prt.bot_instance = bot_instance
-                namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
-
-                # Set up the handler for stop signal
-                @prt.io.on("stop_signal", namespace=namespace)
-                async def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
-                    bot_instance.is_stoped = True
-
-                # Print log message indicating bot execution start
-                await prt.print_msg(
-                    "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
-                )
-
-                # Start the bot execution
-                await bot_instance.execution()
-                return "Execução encerrada com sucesso!"
-
-        except Exception as e:
-            print(e)
-            return "Erro no robô. Verifique os logs para mais detalhes."
 
     try:
         with PrintMessage(pid=pid) as prt:
@@ -206,7 +148,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         return "Erro no robô. Verifique os logs para mais detalhes."
 
 
-@shared_task
+@SharedTask()
 def scheduled_initialize_bot(
     bot_name: str, bot_system: str, path_config: str
 ) -> TReturnMessageExecutBot:

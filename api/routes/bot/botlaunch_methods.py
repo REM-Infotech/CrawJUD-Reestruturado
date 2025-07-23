@@ -128,6 +128,13 @@ class LoadForm:  # noqa: D101
             }
             celery_app: Celery = current_app.extensions["celery"]
 
+            if self.bot.system.lower() == "pje":
+                task_name = celery_app.gen_task_name(
+                    "initialize", "celery_app.tasks.bot.pje"
+                )
+                celery_app.send_task(task_name, kwargs=args_task)
+                return
+
             task = celery_app.gen_task_name("initialize_bot", "celery_app.tasks.bot")
             celery_app.send_task(task, kwargs=args_task)
 

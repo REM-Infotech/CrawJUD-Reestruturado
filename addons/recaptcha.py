@@ -97,7 +97,7 @@ def captcha_to_image(im_b: bytes) -> str:
 
     """
     # Define nome do arquivo para debug do processamento
-    process_dbg = "process_dbg.png"
+    _process_dbg = "process_dbg.png"
 
     # Pré-processa a imagem
     thresh = load_img_blur_apply(im_b=im_b)
@@ -134,9 +134,9 @@ def captcha_to_image(im_b: bytes) -> str:
     thresh = cv2.erode(thresh, kernel2, iterations=1)
     # cv2.imwrite(process_dbg, thresh)
 
-    kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
-    thresh = cv2.erode(thresh, kernel2, iterations=1)
-    cv2.imwrite(process_dbg, thresh)
+    # kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
+    # thresh = cv2.erode(thresh, kernel2, iterations=1)
+    # cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR usando pytesseract
     text_pytesseract = str(pytesseract.image_to_string(thresh))

@@ -6,13 +6,13 @@ from typing import Any
 
 def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     """Gerador de configurações do logging."""
-    log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
+    _log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
     logger_name: str = kwargs.get("LOGGER_NAME", __name__)
 
     handlers_config = {
         "file_handler": {
             "class": "addons.logger.handlers.FileHandler",
-            "level": log_level,
+            "level": logging.DEBUG,
             "formatter": "json",
             "filename": "app.log",
             "maxBytes": 1024,
@@ -20,16 +20,16 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         },
         "stream_handler": {
             "class": "logging.StreamHandler",
-            "level": log_level,
+            "level": logging.DEBUG,
             "formatter": "color",  # Usa o novo formatter colorido
         },
         "redis_handler": {
             "class": "addons.logger.handlers.RedisHandler",
-            "level": logging.INFO,
+            "level": logging.DEBUG,
             "formatter": "json",
         },
     }
-    handlers_config["file_handler"]["level"] = log_level
+    handlers_config["file_handler"]["level"] = logging.DEBUG
     handlers_config["file_handler"]["maxBytes"] = 40960
     handlers_config["file_handler"]["backupCount"] = 5
     handlers_config["file_handler"]["filename"] = kwargs["FILELOG_PATH"]
@@ -38,7 +38,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "version": 1,
         "disable_existing_loggers": False,
         "root": {
-            "level": log_level,
+            "level": logging.DEBUG,
             "handlers": list(handlers_config.keys()),
         },
         "handlers": handlers_config,
@@ -57,7 +57,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         },
         "loggers": {
             logger_name: {
-                "level": log_level,
+                "level": logging.DEBUG,
                 "handlers": list(handlers_config.keys()),
                 "propagate": False,
             },

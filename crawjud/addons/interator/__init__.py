@@ -64,7 +64,7 @@ class Interact:
             element.click()
             sleep(0.05)
             for c in str(word):
-                sleep(0.001)
+                sleep(0.003)
                 element.send_keys(c)
 
     def click(self, element: WebElement) -> None:

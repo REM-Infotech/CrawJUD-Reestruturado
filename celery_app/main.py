@@ -34,9 +34,9 @@ def start_worker() -> None:
         app=celery,
         hostname=worker_name,
         task_events=True,
-        loglevel="INFO",
-        concurrency=50.0,
-        pool="threads",
+        loglevel="DEBUG",
+        concurrency=1,
+        pool="solo",
     )
     worker = worker
 

@@ -9,8 +9,8 @@ from typing import AnyStr
 
 from celery.signals import after_setup_logger
 
+from addons.logger import dict_config
 from celery_app.addons import worker_name_generator
-from celery_app.addons.logger import dict_config
 from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
 

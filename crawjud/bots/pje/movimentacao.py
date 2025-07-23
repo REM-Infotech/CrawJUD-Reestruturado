@@ -251,12 +251,10 @@ class Movimentacao(CrawJUD):
                 print(e)
                 continue
 
-        _downloadable_files = driver.get_downloadable_files()
-        driver.download_file()
         path_planilha = Path(self.output_dir_path).joinpath(
             data["NUMERO_PROCESSO"],
             f"EXECUÇÃO {self.pid} - {data['NUMERO_PROCESSO']}.xlsx",
         )
         path_planilha.parent.mkdir(exist_ok=True, parents=True)
 
-        pd.DataFrame(to_save).to_excel(path_planilha)
+        pd.DataFrame(to_save).to_excel(path_planilha, index=False)

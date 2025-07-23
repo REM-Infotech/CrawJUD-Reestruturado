@@ -82,32 +82,25 @@ async def desafio_captcha(  # noqa: D102, D103
                 'img[id="imagemCaptcha"]',
             ))
         ).get_attribute("src")
-        await sleep(1)
         bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
         readable_buffer = io.BytesIO(bytes_img)
-        text = captcha_to_image(readable_buffer.read())
-        if not text:
-            driver.refresh()
-            continue
-        await sleep(1)
+        text = captcha_to_image(readable_buffer.read()).zfill(6)
+
         input_captcha = driver.find_element(
             By.CSS_SELECTOR, 'input[id="captchaInput"]'
         )
         interact.send_key(input_captcha, text)
-        await sleep(1)
 
         btn_enviar = driver.find_element(By.CSS_SELECTOR, 'button[id="btnEnviar"]')
         btn_enviar.click()
 
         with suppress(Exception):
-            WebDriverWait(driver, 5).until(ec.url_matches(pattern_url))
-
-            await sleep(5)
-
+            await sleep(2)
             full_match = re.fullmatch(pattern_url, driver.current_url)
 
             if full_match:
                 break
 
         await sleep(1)
+        driver.refresh()
         tries += 1

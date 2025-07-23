@@ -26,6 +26,21 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
 
 
+class ChromeDriver(webdriver.Chrome):  # noqa: D101
+    def get_downloadable_files(self, *args, **kwargs):  # noqa: ANN002, ANN003, ANN201, D102
+        arg = args
+        kwarg = kwargs
+        print(arg, kwarg)
+
+
+class GeckoDriver(webdriver.Firefox):  # noqa: D101
+    def get_downloadable_files(self, *args, **kwargs):  # noqa: ANN002, ANN003, ANN201, D102
+        arg = args
+        kwarg = kwargs
+
+        print(arg, kwarg)
+
+
 class DriverBot:
     """Bot for handling WebDriver operations within CrawJUD framework."""
 
@@ -58,12 +73,6 @@ class DriverBot:
         "selectedDestinationId": "Save as PDF",
         "version": 2,
     }
-
-    def get_downloadable_files(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201, D102
-        arg = args
-        kwarg = kwargs
-
-        print(arg, kwarg)
 
     def __init__(self, preferred_browser: str, execution_path: str) -> None:
         """
@@ -104,8 +113,7 @@ class DriverBot:
                 # driver_path = ChromeDriverManager(cache_manager=cache_manager).install()
                 driver_path = ChromeDriverManager().install()
                 service = ChromeService(driver_path)
-                driver = webdriver.Chrome(options=options, service=service)
-                driver.get_downloadable_files = DriverBot.get_downloadable_files
+                driver = ChromeDriver(options=options, service=service)
 
             elif self.preferred_browser == "gecko":
                 options = self.configure_gecko()
@@ -115,8 +123,7 @@ class DriverBot:
                     os_system_manager=system_manager,
                 ).install()
                 service = GeckoService(driver_path)
-                driver = webdriver.Firefox(options=options, service=service)
-                driver.get_downloadable_files = DriverBot.get_downloadable_files
+                driver = GeckoDriver(options=options, service=service)
             wait = WebDriverWait(driver, timeout=10)
             return driver, wait
 
