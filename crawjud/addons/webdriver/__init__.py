@@ -2,28 +2,77 @@
 
 from __future__ import annotations
 
-import json
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.firefox.options import Options as GeckoOptions
+from selenium.webdriver.common.options import ArgOptions as Options
+from selenium.webdriver.common.service import Service
 from selenium.webdriver.firefox.service import Service as GeckoService
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.driver_cache import DriverCacheManager  # noqa: F401
 from webdriver_manager.core.file_manager import FileManager  # noqa: F401
+from webdriver_manager.core.manager import DriverManager
 from webdriver_manager.core.os_manager import OperationSystemManager  # noqa: F401
 from webdriver_manager.firefox import GeckoDriverManager
 
+from crawjud.addons.webdriver.configure import configure_chrome, configure_gecko
 from crawjud.exceptions import DriverNotCreatedError
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
+
+BrowserOptions = Literal["chrome", "gecko", "firefox"]
+
+
+class BotDriver(webdriver.Remote):  # noqa: D101
+    dict_services: dict[str, type[Service]] = {
+        "chrome": ChromeService,
+        "firefox": GeckoService,
+        "gecko": GeckoService,
+    }
+
+    dict_options: dict[str, type[Options]] = {
+        "chrome": configure_chrome,
+        "firefox": configure_gecko,
+        "gecko": configure_gecko,
+    }
+
+    dict_driver_manager: dict[str, type[DriverManager]] = {
+        "chrome": ChromeDriverManager,
+        "firefox": GeckoDriverManager,
+        "gecko": GeckoDriverManager,
+    }
+
+    def __init__(self, selected_browser: BrowserOptions) -> None:  # noqa: D107
+        root_dir = Path(__file__).cwd().joinpath("temp")
+        root_dir.mkdir(exist_ok=True)
+
+        system_manager = OperationSystemManager()
+        file_manager = FileManager(os_system_manager=system_manager)
+        cache_manager = DriverCacheManager(
+            file_manager=file_manager, root_dir=root_dir
+        )
+        download_manager = WDMDownloadManager()
+        _manager = self.dict_driver_manager[selected_browser](
+            download_manager=download_manager,
+            cache_manager=cache_manager,
+            os_system_manager=system_manager,
+        )
+
+        _options = self.dict_options[selected_browser]()
+        _service = self.dict_services[selected_browser](_manager)
+
+        super().__init__(_service.service_url, options=_options)
+
+    def get_downloadable_files(self, *args, **kwargs):  # noqa: ANN002, ANN003, ANN201, D102
+        arg = args
+        kwarg = kwargs
+        print(arg, kwarg)
 
 
 class ChromeDriver(webdriver.Chrome):  # noqa: D101
@@ -130,53 +179,3 @@ class DriverBot:
         except Exception as e:
             exc = "\n".join(traceback.format_exception_only(e))
             raise DriverNotCreatedError(message=exc) from e
-
-    def configure_chrome(self) -> ChromeOptions:
-        """Configurações do Options do Chrome.
-
-        Returns:
-            ChromeOptions: Instância do Options Chrome
-
-        """
-        chrome_options = ChromeOptions()
-
-        list_args = self.list_args
-        for argument in list_args:
-            chrome_options.add_argument(argument)
-
-        this_path = Path(__file__).parent.resolve().joinpath("extensions")
-        for root, _, files in this_path.walk():
-            for file_ in files:
-                if ".crx" in file_:
-                    path_plugin = str(root.joinpath(file_).resolve())
-                    chrome_options.add_extension(path_plugin)
-
-        chrome_prefs = {
-            "download.prompt_for_download": False,
-            "plugins.always_open_pdf_externally": True,
-            "profile.default_content_settings.popups": 0,
-            "printing.print_preview_sticky_settings.appState": json.dumps(
-                self.settings
-            ),
-            "download.default_directory": f"{self.execution_path}",
-            "credentials_enable_service": False,
-            "profile.password_manager_enabled": False,
-        }
-
-        chrome_options.add_argument("--incognito")
-        chrome_options.add_experimental_option("prefs", chrome_prefs)
-
-        return chrome_options
-
-    def configure_gecko(self) -> GeckoOptions:
-        """Configurações do Options do Gecko.
-
-        Returns:
-            GeckoOptions: Instância do Options Gecko
-
-        """
-        gecko_options = GeckoOptions()
-        gecko_options.add_argument("--no-sandbox")
-        gecko_options.add_argument("--disable-dev-shm-usage")
-
-        return gecko_options
