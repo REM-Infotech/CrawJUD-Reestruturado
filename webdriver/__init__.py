@@ -73,7 +73,7 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         _executor = driver_config["executor"](**driver_config["args_executor"])
 
         self._options = driver_config.get("options")()
-
+        self._options.enable_downloads = True
         super().__init__(
             command_executor=_executor,
             options=self._options,
