@@ -22,11 +22,11 @@ from crawjud.addons.elements import ElementsBot
 from crawjud.addons.interator import Interact
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
-from crawjud.addons.webdriver import DriverBot
 from crawjud.exceptions import AuthenticationError
 from crawjud.exceptions.bot import StartError
 from crawjud.types import StrPath
 from crawjud.types.elements import type_elements
+from webdriver import DriverBot
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData

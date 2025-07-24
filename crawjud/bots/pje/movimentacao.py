@@ -21,11 +21,11 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.addons.interator import Interact
-from crawjud.addons.webdriver import DriverBot
 from crawjud.bots.pje.res.autenticador import autenticar
 from crawjud.bots.pje.res.buscador import buscar_processo
 from crawjud.core import CrawJUD
 from crawjud.core._dictionary import BotData
+from webdriver import DriverBot
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
