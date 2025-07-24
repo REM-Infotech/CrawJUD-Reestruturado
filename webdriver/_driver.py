@@ -1,0 +1,53 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from selenium.webdriver.chrome.remote_connection import ChromeRemoteConnection
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.remote_connection import FirefoxRemoteConnection
+from selenium.webdriver.firefox.service import Service as GeckoService
+from webdriver_manager.chrome import ChromeDriverManager
+
+from webdriver.configure import configure_chrome, configure_gecko
+
+if TYPE_CHECKING:
+    from ._types import OptionsConfig
+
+
+config: OptionsConfig = {
+    "chrome": {
+        "service": ChromeService,
+        "executor": ChromeRemoteConnection,
+        "options": configure_chrome,
+        "manager": ChromeDriverManager,
+        "args_executor": {
+            "remote_server_addr": "",
+            "browser_name": "chrome",
+            "vendor_prefix": "goog",
+            "keep_alive": True,
+            "ignore_proxy": False,
+        },
+    },
+    "firefox": {
+        "service": GeckoService,
+        "executor": FirefoxRemoteConnection,
+        "options": configure_gecko,
+        "manager": ChromeDriverManager,
+        "args_executor": {
+            "remote_server_addr": "",
+            "keep_alive": True,
+            "ignore_proxy": False,
+        },
+    },
+    "gecko": {
+        "service": GeckoService,
+        "executor": FirefoxRemoteConnection,
+        "options": configure_gecko,
+        "manager": ChromeDriverManager,
+        "args_executor": {
+            "remote_server_addr": "",
+            "keep_alive": True,
+            "ignore_proxy": False,
+        },
+    },
+}

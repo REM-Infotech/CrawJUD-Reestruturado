@@ -12,28 +12,17 @@ from selenium.common.exceptions import (  # noqa: F401
     NoSuchElementException,
 )
 from selenium.webdriver import Keys  # noqa: F401
-from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains  # noqa: F401
 from selenium.webdriver.common.by import By  # noqa: F401
-from selenium.webdriver.firefox.service import Service as GeckoService
 from selenium.webdriver.remote.webelement import WebElement  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
-from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.driver_cache import DriverCacheManager  # noqa: F401
 from webdriver_manager.core.file_manager import FileManager  # noqa: F401
-from webdriver_manager.core.manager import DriverManager
 from webdriver_manager.core.os_manager import OperationSystemManager  # noqa: F401
-from webdriver_manager.firefox import GeckoDriverManager
 
-from webdriver.configure import configure_chrome, configure_gecko
-
-if TYPE_CHECKING:
-    from selenium.webdriver.common.options import ArgOptions as Options
-    from selenium.webdriver.common.service import Service
-from webdriver._presets import (
-    BrowserOptions,
-)
+from webdriver._driver import config
+from webdriver._types import BrowserOptions
 from webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
@@ -41,25 +30,6 @@ if TYPE_CHECKING:
     from selenium.webdriver.common.service import Service
     from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
     from selenium.webdriver.remote.webelement import WebElement  # noqa: F401
-
-
-dict_services: dict[str, type[Service]] = {
-    "chrome": ChromeService,
-    "firefox": GeckoService,
-    "gecko": GeckoService,
-}
-
-dict_options: dict[str, type[Options]] = {
-    "chrome": configure_chrome,
-    "firefox": configure_gecko,
-    "gecko": configure_gecko,
-}
-
-dict_driver_manager: dict[str, type[DriverManager]] = {
-    "chrome": ChromeDriverManager,
-    "firefox": GeckoDriverManager,
-    "gecko": GeckoDriverManager,
-}
 
 
 class DriverBot(webdriver.Remote):  # noqa: D101
@@ -70,29 +40,42 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         *args: str,
         **kwargs: str,
     ) -> None:
-        root_dir = Path(execution_path) or Path(__file__).home().joinpath("temp")
+        root_dir = (
+            Path(execution_path)
+            if execution_path
+            else Path(__file__).home().joinpath("temp")
+        )
         root_dir.mkdir(exist_ok=True)
+        driver_config = config[selected_browser]
 
+        # Configura o Manager
         system_manager = OperationSystemManager()
         file_manager = FileManager(os_system_manager=system_manager)
-        cache_manager = DriverCacheManager(
-            file_manager=file_manager, root_dir=root_dir
-        )
-        download_manager = WDMDownloadManager()
-        _manager = dict_driver_manager[selected_browser](
-            download_manager=download_manager,
-            cache_manager=cache_manager,
+        _manager = driver_config["manager"](
+            download_manager=WDMDownloadManager(),
+            cache_manager=DriverCacheManager(
+                file_manager=file_manager, root_dir=root_dir
+            ),
             os_system_manager=system_manager,
         ).install()
-        self._service = dict_services[selected_browser](
+
+        # Configura o service
+        self._service = driver_config["service"](
             executable_path=_manager,
             port=kwargs.get("PORT", 0),
         )
         self._service.start()
-        self._options = dict_options[selected_browser]()
+
+        # Configura o executor
+        driver_config["args_executor"].update({
+            "remote_server_addr": self.service.service_url
+        })
+        _executor = driver_config["executor"](**driver_config["args_executor"])
+
+        self._options = driver_config.get("options")()
 
         super().__init__(
-            command_executor=self._service.service_url,
+            command_executor=_executor,
             options=self._options,
             web_element_cls=WebElementBot,
         )

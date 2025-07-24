@@ -6,7 +6,7 @@ from typing import TypedDict
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as GeckoOptions
 
-from webdriver._presets import (
+from webdriver._types import (
     TExtensionsPath,
 )
 
