@@ -68,39 +68,39 @@ async def desafio_captcha(  # noqa: D102, D103
     tries = 0
     while tries < 15:
         with suppress(Exception):
-            btn_proc = WebDriverWait(driver, 5).until(
-                ec.presence_of_all_elements_located((
+            with suppress(Exception):
+                btn_proc = WebDriverWait(driver, 5).until(
+                    ec.presence_of_all_elements_located((
+                        By.CSS_SELECTOR,
+                        'button[class="selecao-processo ng-star-inserted"]',
+                    ))
+                )[0]
+                btn_proc.click()
+
+            img = wait.until(
+                ec.presence_of_element_located((
                     By.CSS_SELECTOR,
-                    'button[class="selecao-processo ng-star-inserted"]',
+                    'img[id="imagemCaptcha"]',
                 ))
-            )[0]
-            btn_proc.click()
+            ).get_attribute("src")
+            bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
+            readable_buffer = io.BytesIO(bytes_img)
+            text = captcha_to_image(readable_buffer.read()).zfill(6)
 
-        img = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'img[id="imagemCaptcha"]',
-            ))
-        ).get_attribute("src")
-        bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
-        readable_buffer = io.BytesIO(bytes_img)
-        text = captcha_to_image(readable_buffer.read()).zfill(6)
+            input_captcha = driver.find_element(
+                By.CSS_SELECTOR, 'input[id="captchaInput"]'
+            )
+            interact.send_key(input_captcha, text)
 
-        input_captcha = driver.find_element(
-            By.CSS_SELECTOR, 'input[id="captchaInput"]'
-        )
-        interact.send_key(input_captcha, text)
+            btn_enviar = driver.find_element(
+                By.CSS_SELECTOR, 'button[id="btnEnviar"]'
+            )
+            btn_enviar.click()
 
-        btn_enviar = driver.find_element(By.CSS_SELECTOR, 'button[id="btnEnviar"]')
-        btn_enviar.click()
+        await sleep(3)
+        full_match = re.fullmatch(pattern_url, driver.current_url)
 
-        with suppress(Exception):
-            await sleep(2)
-            full_match = re.fullmatch(pattern_url, driver.current_url)
+        if full_match:
+            break
 
-            if full_match:
-                break
-
-        await sleep(1)
-        driver.refresh()
         tries += 1

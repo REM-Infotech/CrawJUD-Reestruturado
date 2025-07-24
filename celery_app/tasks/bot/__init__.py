@@ -48,7 +48,6 @@ async def print_message(  # noqa: D103
     transports: list[str],
 ) -> None:
     async with AsyncSimpleClient(
-        logger=True,
         reconnection_attempts=20,
         reconnection_delay=5,
     ) as sio:
@@ -79,8 +78,7 @@ async def save_success(  # noqa: D103
     )
 
     blobs = storage.bucket.list_blobs(prefix=f"{pid}/")
-
-    _blob = list(filter(lambda x: x, blobs))
+    _blob = list(filter(lambda x: secure_filename(path_planilha.name) in x, blobs))
 
     path_planilha.parent.mkdir(exist_ok=True, parents=True)
     df = pd.DataFrame(data)

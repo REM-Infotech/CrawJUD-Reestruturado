@@ -65,7 +65,7 @@ class AsyncPrintMessage(PrintLogs):
         return self.io.on(event=event, namespace=namespace)
 
     async def connect(self) -> AsyncClient:  # noqa: D102
-        sio = AsyncClient(logger=True, reconnection_attempts=20, reconnection_delay=5)
+        sio = AsyncClient(reconnection_attempts=20, reconnection_delay=5)
         await sio.connect(
             url=self.url_server,
             headers=self.headers,
