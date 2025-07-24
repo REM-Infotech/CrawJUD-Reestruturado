@@ -111,7 +111,6 @@ class Movimentacao(CrawJUD):
         data: list[BotData],
         semaforo_regiao: asyncio.Semaphore,
     ) -> None:
-        pid = self.pid
         async with semaforo_regiao:
             if self.is_stoped:
                 asyncio.current_task().cancel()
@@ -127,14 +126,12 @@ class Movimentacao(CrawJUD):
                 self.driver_trt[regiao] = {
                     "driver": driver,
                     "wait": wait,
-                    "interact": Interact(driver, wait, pid),
                 }
 
                 driver.maximize_window()
 
             driver: WebDriver = self.driver_trt[regiao]["driver"]
             wait: WebDriverWait = self.driver_trt[regiao]["wait"]
-            interator: Interact = self.driver_trt[regiao]["interact"]
 
             await autenticar(driver, wait, regiao)
 
@@ -146,7 +143,6 @@ class Movimentacao(CrawJUD):
                             data=value,
                             driver=driver,
                             wait=wait,
-                            interator=interator,
                             regiao=regiao,
                         )
                     )
@@ -161,7 +157,6 @@ class Movimentacao(CrawJUD):
         data: BotData,
         driver: WebDriver,
         wait: WebDriverWait,
-        interator: Interact,
         regiao: str,
     ) -> None:
         async with semaforo_processo:
@@ -175,7 +170,6 @@ class Movimentacao(CrawJUD):
                     driver=driver,
                     wait=wait,
                     data=data,
-                    interact=interator,
                     regiao=regiao,
                     prt=self.prt,
                 )

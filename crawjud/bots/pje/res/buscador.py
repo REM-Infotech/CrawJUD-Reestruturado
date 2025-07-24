@@ -13,7 +13,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from addons.printlogs._async import AsyncPrintMessage
 from addons.recaptcha import captcha_to_image
-from crawjud.addons.interator import Interact
 from crawjud.bots.pje.res.formatador import formata_url_pje
 from crawjud.core._dictionary import BotData
 
@@ -29,7 +28,6 @@ async def buscar_processo(  # noqa: D102, D103
     driver: WebDriver,
     wait: WebDriverWait,
     data: BotData,
-    interact: Interact,
     regiao: str,
     prt: AsyncPrintMessage,
 ) -> None:
@@ -47,7 +45,7 @@ async def buscar_processo(  # noqa: D102, D103
     )
 
     campo_processo.click()
-    interact.send_key(campo_processo, data["NUMERO_PROCESSO"])
+    campo_processo.send_keys(data["NUMERO_PROCESSO"])
 
     btn_pesquisar = wait.until(
         ec.presence_of_element_located((
@@ -56,14 +54,13 @@ async def buscar_processo(  # noqa: D102, D103
         ))
     )
     btn_pesquisar.click()
-    await desafio_captcha(driver, wait, interact)
+    await desafio_captcha(driver, wait)
     await prt.print_msg("Processo encontrado!", row=row, type_log="info")
 
 
 async def desafio_captcha(  # noqa: D102, D103
     driver: WebDriver,
     wait: WebDriverWait,
-    interact: Interact,
 ) -> None:
     tries = 0
     while tries < 15:
@@ -90,7 +87,7 @@ async def desafio_captcha(  # noqa: D102, D103
             input_captcha = driver.find_element(
                 By.CSS_SELECTOR, 'input[id="captchaInput"]'
             )
-            interact.send_key(input_captcha, text)
+            input_captcha.send_keys(text)
 
             btn_enviar = driver.find_element(
                 By.CSS_SELECTOR, 'button[id="btnEnviar"]'

@@ -214,7 +214,6 @@ class Controller:
             wait=self.wait,
             elements=self.elements,
             bot_data=self.bot_data,
-            interact=self.interact,
             prt=self.prt,
         )
 

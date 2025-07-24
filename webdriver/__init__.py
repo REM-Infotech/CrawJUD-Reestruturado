@@ -83,7 +83,7 @@ class DriverBot(webdriver.Remote):  # noqa: D101
             download_manager=download_manager,
             cache_manager=cache_manager,
             os_system_manager=system_manager,
-        )
+        ).install()
         self._service = dict_services[selected_browser](
             executable_path=_manager,
             port=kwargs.get("PORT", 0),
