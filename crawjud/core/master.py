@@ -19,7 +19,6 @@ from addons.logger import dict_config
 from addons.printlogs import PrintMessage
 from crawjud.addons.auth import AuthController
 from crawjud.addons.elements import ElementsBot
-from crawjud.addons.interator import Interact
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
 from crawjud.exceptions import AuthenticationError
@@ -73,7 +72,6 @@ class Controller:
     _cities_am: dict[str, str]
     _search: SearchController = None
     _data_bot: dict[str, str] = {}
-    interact: Interact
 
     @property
     def max_rows(self) -> int:  # noqa: D102
@@ -196,8 +194,6 @@ class Controller:
             # Criação de planilhas template
             self.make_templates()
 
-            self.interact = Interact(driver=self.driver, wait=self.wait, pid=self.pid)
-
             # Configura o search_bot
             if self.system.lower() != "pje":
                 self.configure_searchengine()
@@ -267,11 +263,10 @@ class Controller:
             type_log="log",
             status=self.status_log,
         )
-        driverbot = DriverBot(
+        self.driver = DriverBot(
             self.preferred_browser, execution_path=self.output_dir_path
-        )()
-        self.driver = driverbot[0]
-        self.wait = driverbot[1]
+        )
+        self.wait = self.driver.wait
         self.prt.print_msg(
             "Webdriver inicializado",
             row=0,
