@@ -97,7 +97,7 @@ async def desafio_captcha(  # noqa: D102, D103
             )
             btn_enviar.click()
 
-        await sleep(3)
+        await sleep(4)
         full_match = re.fullmatch(pattern_url, driver.current_url)
 
         if full_match:
