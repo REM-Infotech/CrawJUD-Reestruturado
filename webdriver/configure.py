@@ -1,7 +1,7 @@
 # noqa: D100
 import json
 from pathlib import Path
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as GeckoOptions
@@ -87,7 +87,7 @@ def configure_chrome(
     return chrome_options
 
 
-def configure_gecko() -> GeckoOptions:
+def configure_gecko(*args: Any, **kwargs: Any) -> GeckoOptions:
     """Configurações do Options do Gecko.
 
     Returns:

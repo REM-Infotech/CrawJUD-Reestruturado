@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from contextlib import suppress  # noqa: F401
 from pathlib import Path
 from time import sleep  # noqa: F401
@@ -37,6 +38,7 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         self,
         selected_browser: BrowserOptions,
         execution_path: str | Path = None,
+        dir_extensions: str | Path = None,
         *args: str,
         **kwargs: str,
     ) -> None:
@@ -72,7 +74,24 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         })
         _executor = driver_config["executor"](**driver_config["args_executor"])
 
-        self._options = driver_config.get("options")()
+        self._options = driver_config.get("options")(
+            dir_extensions=dir_extensions,
+            chrome_prefs={
+                "download.prompt_for_download": False,
+                "plugins.always_open_pdf_externally": True,
+                "profile.default_content_settings.popups": 0,
+                "printing.print_preview_sticky_settings.appState": json.dumps({
+                    "recentDestinations": [
+                        {"id": "Save as PDF", "origin": "local", "account": ""}
+                    ],
+                    "selectedDestinationId": "Save as PDF",
+                    "version": 2,
+                }),
+                "download.default_directory": str(execution_path),
+                "credentials_enable_service": True,
+                "profile.password_manager_enabled": True,
+            },
+        )
         self._options.enable_downloads = True
         super().__init__(
             command_executor=_executor,
