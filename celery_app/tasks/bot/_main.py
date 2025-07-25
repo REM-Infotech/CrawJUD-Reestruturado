@@ -23,7 +23,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING, AnyStr, Literal, cast
 
-from celery import Task, current_task
+from celery import Task, current_task, shared_task
 
 from addons.storage import Storage
 from celery_app import app
@@ -71,13 +71,13 @@ class BotTask:  # noqa: D101
         )
         return path_files.joinpath(pid, f"{pid}.json")
 
-    @classmethod
-    async def run_task(  # noqa: D102
-        cls,
+    @staticmethod
+    @shared_task(name="run_bot")
+    async def run_bot(  # noqa: D102
         *args: AnyStr,
         **kwargs: AnyStr,
     ) -> str:
-        return cls(*args, **kwargs)
+        return await BotTask(*args, **kwargs)
 
     async def __init__(
         self, name: str, system: str, *args: AnyStr, **kw: AnyStr

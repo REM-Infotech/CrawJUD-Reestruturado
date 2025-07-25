@@ -2,9 +2,6 @@
 
 from celery_app import app
 from celery_app.tasks import _email, bot, files
-from celery_app.tasks.bot import message
-from celery_app.tasks.bot._main import BotTask
+from celery_app.tasks.bot import _main, message
 
-app.register_task(BotTask.run_task)
-
-__all__ = ["bot", "_email", "files", "message"]
+__all__ = ["bot", "_email", "files", "message", "_main", "app"]

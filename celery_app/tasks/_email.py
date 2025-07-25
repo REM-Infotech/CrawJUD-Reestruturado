@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from celery_app.types import TReturnMessageMail
 
 
-@shared_task
+@shared_task(name="send_email")
 def send_email(
     subject: str, to: str, message: str, files_path: list[str] = None
 ) -> TReturnMessageMail:
