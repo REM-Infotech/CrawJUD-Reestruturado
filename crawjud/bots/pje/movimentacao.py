@@ -119,10 +119,13 @@ class Movimentacao(CrawJUD):
             tasks = []
 
             if not self.driver_trt.get(regiao):
-                driver, wait = DriverBot(
-                    "chrome",
+                driver = DriverBot(
+                    selected_browser="chrome",
                     execution_path=self.output_dir_path,
-                )()
+                )
+
+                wait = driver.wait
+
                 self.driver_trt[regiao] = {
                     "driver": driver,
                     "wait": wait,
