@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
 
 from dotenv import load_dotenv
 
@@ -20,9 +20,8 @@ load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
 
 class ClassBot(ABC):  # noqa: D101
-    @classmethod
     @abstractmethod
-    async def initialize(cls, *args: Any, **kwargs: Any) -> Self: ...  # noqa: D102
+    async def print_msg(self, *args: Any, **kwargs: Any) -> None: ...  # noqa: D102
 
     @abstractmethod
     async def execution(self) -> None: ...  # noqa: D102

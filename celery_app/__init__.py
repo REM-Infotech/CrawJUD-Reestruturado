@@ -14,6 +14,8 @@ from celery_app.addons import worker_name_generator as worker_name_generator
 from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
 
+app = Celery(__name__)
+
 
 @after_setup_logger.connect
 def config_loggers(
@@ -66,10 +68,9 @@ def make_celery() -> Celery:
         Celery: Configured Celery instance.
 
     """
-    celery = Celery(__name__)
     config = Config.load_config()
 
-    celery.conf.update(config.celery_config)
+    app.conf.update(config.celery_config)
 
     # class ContextTask(celery.Task):
     #     def __call__(
@@ -81,7 +82,7 @@ def make_celery() -> Celery:
 
     # celery.Task = ContextTask
 
-    celery.conf.update(
+    app.conf.update(
         # task_queues=CELERY_QUEUES,
         # task_routes=CELERY_ROUTES,
         task_default_queue="default",
@@ -91,8 +92,4 @@ def make_celery() -> Celery:
 
     importlib.import_module(".tasks", __package__)
 
-    return celery
-
-
-app = make_celery()
-application = app
+    return app

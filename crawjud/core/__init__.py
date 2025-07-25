@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+import logging
+import logging.config
 import re
 import ssl
 import subprocess
@@ -10,40 +13,373 @@ import unicodedata
 from contextlib import suppress
 from datetime import datetime
 from difflib import SequenceMatcher
+from logging import Logger
 from os import listdir, path
 from pathlib import Path
 from time import perf_counter, sleep
-from typing import Any, Self
+from typing import TYPE_CHECKING, AnyStr, Self
 
 import pandas as pd
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from dotenv import load_dotenv
 from pandas import Timestamp
+from pytz import timezone
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
 from werkzeug.utils import secure_filename
 
+from addons.logger import dict_config
+from addons.printlogs import PrintMessage
+from crawjud.addons.auth import AuthController
+from crawjud.addons.elements import ElementsBot
+from crawjud.addons.make_templates import MakeTemplates
+from crawjud.addons.search import SearchController
 from crawjud.core._dictionary import BotData
-from crawjud.core.master import Controller
-from crawjud.exceptions.bot import ExecutionError
-from crawjud.types import TypeData
+from crawjud.exceptions import AuthenticationError
+from crawjud.exceptions.bot import ExecutionError, StartError
+from crawjud.types import StrPath, TypeData
+from crawjud.types.elements import type_elements
 from models.logs import MessageLog
+from webdriver import DriverBot
+
+if TYPE_CHECKING:
+    from crawjud.core._dictionary import BotData
 
 load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
 
-class CrawJUD(Controller):
-    """CrawJUD bot core class.
-
-    Manages the initialization, setup, and authentication processes
-    of the CrawJUD bot.
-    """
+class CrawJUD:
+    """Classe de controle de variáveis CrawJUD."""
 
     @classmethod
-    async def initialize(cls, *args: Any, **kwargs: Any) -> Self:  # noqa: D102
-        raise NotImplementedError("Subclasses must implement this method")
+    def initialize(
+        cls,
+        *args: str | int,
+        **kwargs: str | int,
+    ) -> Self:
+        """Initialize a new Pauta instance with provided arguments now.
 
-    async def execution(self) -> None:  # noqa: D102
-        raise NotImplementedError("Subclasses must implement this method")
+        Args:
+            *args (str|int): Positional arguments.
+            **kwargs (str|int): Keyword arguments.
+
+        Returns:
+            Self: A new instance of Pauta.
+
+        """
+        return cls(*args, **kwargs)
+
+    def __init__(self, *args: str, **kwargs: str) -> None:
+        """Inicializador do núcleo.
+
+        Raises:
+            StartError: Exception de erro de inicialização.
+
+        """
+        try:
+            with (
+                Path(__file__)
+                .parent.resolve()
+                .joinpath("data_formatters", "cities_amazonas.json")
+                .open("r") as f
+            ):
+                self._cities_am = json.loads(f.read())
+
+            self.is_stoped = False
+            self.start_time = perf_counter()
+            self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
+            for k, v in list(kwargs.items()):
+                if "bot" in k:
+                    setattr(self, k.split("_")[1], v)
+                    continue
+
+                setattr(self, k, v)
+
+            self.prt.bot_instance = self
+            self.status_log = "Inicializando"
+            pid = kwargs.get("pid")
+            self.prt.print_msg(
+                "Configurando o núcleo...", pid, 0, "log", self.status_log
+            )
+
+            self.open_cfg()
+
+            # Configuração do logger
+            self.configure_logger()
+
+            # Define o InputFile
+            self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
+
+            # Instancia o WebDriver
+            self.configure_webdriver()
+
+            if self.system.lower() != "pje":
+                # Instancia o elements
+                self.elements = ElementsBot.config(
+                    system=self.system,
+                    state_or_client=self.state_or_client,
+                    **self.config_bot,
+                ).bot_elements
+
+                # Autenticação com os sistemas
+                self.portal_authentication()
+
+            # Criação de planilhas template
+            self.make_templates()
+
+            # Configura o search_bot
+            if self.system.lower() != "pje":
+                self.configure_searchengine()
+
+            self.prt.print_msg(
+                "Núcleo configurado.", self.pid, 0, "success", self.status_log
+            )
+
+        except Exception as e:
+            raise StartError(exception=e) from e
+
+    _row: int = 0
+    # Variáveis de dados/configuraçoes
+    bot_data: dict[str, str]
+    config_bot: dict[str, AnyStr]
+    planilha_sucesso: StrPath
+    # Variáveis de estado/posição/indice
+    pid: str
+    pos: int
+    _is_stoped: bool
+    start_time: float
+
+    # Variáveis de verificações
+    system: str
+    typebot: str
+    state_or_client: str = None
+    preferred_browser: str = "chrome"
+    total_rows: int
+
+    # Variáveis de autenticação/protocolo
+    username: str
+    password: str
+    senhatoken: str
+
+    # Classes Globais
+    elements: type_elements
+    driver: WebDriver
+    search: SearchController
+    wait: WebDriverWait
+    logger: Logger
+    prt: PrintMessage
+
+    # Variáveis de nome/caminho de arquivos/pastas
+    xlsx: str
+    input_file: StrPath
+    output_dir_path: StrPath
+    _cities_am: dict[str, str]
+    _search: SearchController = None
+    _data_bot: dict[str, str] = {}
+
+    @property
+    def max_rows(self) -> int:  # noqa: D102
+        return self.prt.total_rows
+
+    @max_rows.setter
+    def max_rows(self, new_value: int) -> None:
+        self.prt.total_rows = new_value
+
+    @property
+    def total_rows(self) -> int:  # noqa: D102
+        return self.prt.total_rows
+
+    @total_rows.setter
+    def total_rows(self, new_value: int) -> None:
+        self.prt.total_rows = new_value
+
+    @property
+    def is_stoped(self) -> bool:  # noqa: D102
+        return self._is_stoped
+
+    @is_stoped.setter
+    def is_stoped(self, new_value: bool) -> None:
+        self._is_stoped = new_value
+
+    @property
+    def bot_data(self) -> BotData:
+        """Property bot data."""
+        return self._data_bot
+
+    @bot_data.setter
+    def bot_data(self, new_data: BotData) -> None:
+        """Property bot data."""
+        self._data_bot = new_data
+
+    @property
+    def search_bot(self) -> SearchController:
+        """Property para o searchbot."""
+        return self._search
+
+    @search_bot.setter
+    def search_bot(self, instancia: SearchController) -> None:
+        """Define a instância do searchbot."""
+        self._search = instancia
+
+    @property
+    def row(self) -> int:  # noqa: D102
+        return self._row
+
+    @row.setter
+    def row(self, new_value: int) -> None:
+        """Define o valor da variável row."""
+        self._row = new_value
+
+    @property
+    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
+        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+
+        Returns:
+            dict[str, str]: City names with associated regional classification.
+
+        """
+        return self._cities_am
+
+    def configure_searchengine(self) -> None:
+        """Configura a instância do search engine."""
+        self.search_bot = SearchController.construct(
+            system=self.system,
+            typebot=self.name,
+            driver=self.driver,
+            wait=self.wait,
+            elements=self.elements,
+            bot_data=self.bot_data,
+            prt=self.prt,
+        )
+
+    def portal_authentication(self) -> None:
+        """Autenticação com os sistemas."""
+        self.prt.print_msg(
+            "Autenticando no sistema",
+            row=0,
+            type_log="log",
+            status=self.status_log,
+        )
+        auth = AuthController.construct(
+            system=self.system,
+            username=self.username,
+            password=self.password,
+            driver=self.driver,
+            wait=self.wait,
+            elements=self.elements,
+            prt=self.prt,
+        )
+        is_logged = auth.auth()
+
+        if not is_logged:
+            self.prt.print_msg(
+                "Erro ao autenticar no sistema, verifique as credenciais.",
+                row=0,
+                type_log="error",
+                status=self.status_log,
+            )
+            raise AuthenticationError(
+                "Erro ao autenticar no sistema, verifique as credenciais."
+            )
+
+        self.prt.print_msg(
+            "Autenticação realizada com sucesso",
+            row=0,
+            type_log="success",
+            status=self.status_log,
+        )
+
+    def configure_webdriver(self) -> None:
+        """Instancia o WebDriver."""
+        self.prt.print_msg(
+            "Inicializando webdriver",
+            row=0,
+            type_log="log",
+            status=self.status_log,
+        )
+        self.driver = DriverBot(
+            self.preferred_browser, execution_path=self.output_dir_path
+        )
+        self.wait = self.driver.wait
+        self.prt.print_msg(
+            "Webdriver inicializado",
+            row=0,
+            type_log="success",
+            status=self.status_log,
+        )
+
+    def configure_logger(self) -> None:
+        """Configura o logger."""
+        log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
+
+        config, logger_name = dict_config(
+            LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path
+        )
+        logging.config.dictConfig(config)
+
+        self.logger = logging.getLogger(logger_name)
+        self.prt.logger = self.logger
+        self.prt.total_rows = int(getattr(self, "total_rows", 0))
+
+    def make_templates(self) -> None:
+        """Criação de planilhas de output do robô."""
+        time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
+        self.prt.print_msg(
+            "Criando planilhas de output",
+            row=0,
+            type_log="log",
+            status=self.status_log,
+        )
+        planilha_args = [
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Sucessos - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "sucesso",
+                "BOT_NAME": self.name,
+            },
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Erros - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "erro",
+                "BOT_NAME": self.name,
+            },
+        ]
+        self.prt.print_msg(
+            "Planilhas criadas.",
+            row=0,
+            type_log="success",
+            status=self.status_log,
+        )
+
+        for item in planilha_args:
+            attribute_name, attribute_val = MakeTemplates.constructor(**item).make()
+            setattr(self, attribute_name, attribute_val)
+
+    def open_cfg(self) -> None:
+        """Abre as configurações de execução."""
+        self.prt.print_msg(
+            "Carregando configurações",
+            row=0,
+            type_log="log",
+            status=self.status_log,
+        )
+
+        with Path(self.path_config).resolve().open("r") as f:
+            data: dict[str, AnyStr] = json.loads(f.read())
+            self.config_bot = data
+            for k, v in list(data.items()):
+                if k == "state" or k == "client":
+                    self.state_or_client = v
+
+                setattr(self, k, v)
+
+        self.prt.print_msg(
+            "Configurações carregadas",
+            row=0,
+            type_log="success",
+            status=self.status_log,
+        )
 
     def dataFrame(self) -> list[BotData]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.

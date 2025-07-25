@@ -17,11 +17,11 @@ from inquirer import List, prompt
 from inquirer.themes import GreenPassion
 from tqdm import tqdm
 
+from celery_app import app as app
 from celery_app import make_celery
 from celery_app.addons import worker_name_generator
 
 clear()
-
 environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
 
 

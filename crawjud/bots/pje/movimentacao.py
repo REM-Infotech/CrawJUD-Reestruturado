@@ -11,7 +11,7 @@ import traceback
 from asyncio import create_task, gather
 from contextlib import suppress
 from datetime import datetime
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 from celery import Celery, current_app
 from dotenv import load_dotenv
@@ -20,10 +20,11 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
+from common.bot import ClassBot
+from crawjud._wrapper import wrap_init
 from crawjud.addons.interator import Interact
 from crawjud.bots.pje.res.autenticador import autenticar
 from crawjud.bots.pje.res.buscador import buscar_processo
-from crawjud.core import CrawJUD
 from crawjud.core._dictionary import BotData
 from webdriver import DriverBot
 
@@ -34,7 +35,8 @@ if TYPE_CHECKING:
 load_dotenv()
 
 
-class Movimentacao(CrawJUD):
+@wrap_init
+class Movimentacao(ClassBot):
     """Initialize and execute pauta operations for retrieving court hearing data now.
 
     Inherit from CrawJUD and manage the process of fetching pautas.
@@ -42,24 +44,6 @@ class Movimentacao(CrawJUD):
 
     driver_trt: dict[str, dict[str, WebDriver | WebDriverWait | Interact]] = {}
     position_process: dict[str, int] = {}
-
-    @classmethod
-    async def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize a new Pauta instance with provided arguments now.
-
-        Args:
-            *args (str|int): Positional arguments.
-            **kwargs (str|int): Keyword arguments.
-
-        Returns:
-            Self: A new instance of Pauta.
-
-        """
-        return cls(*args, **kwargs)
 
     async def format_trt(self, numero_processo: str) -> str:  # noqa: D102
         trt_id = None
@@ -168,7 +152,7 @@ class Movimentacao(CrawJUD):
             await self.extrair_movimentacao(
                 regiao=regiao, driver=driver, wait=wait, data=data, row=row
             )
-            await self.prt.print_msg(
+            await self.print_msg(
                 "Execução realizada com sucesso!",
                 row=row,
                 type_log="success",
@@ -176,7 +160,7 @@ class Movimentacao(CrawJUD):
 
         except Exception as e:
             print("\n".join(traceback.format_exception(e)))
-            await self.prt.print_msg(
+            await self.print_msg(
                 "Erro de operação",
                 row=row,
                 type_log="error",
