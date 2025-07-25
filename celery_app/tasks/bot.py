@@ -77,9 +77,9 @@ class BotTask:  # noqa: D101
         *args: AnyStr,
         **kwargs: AnyStr,
     ) -> str:
-        return await BotTask(*args, **kwargs)
+        return await BotTask().start_bot(*args, **kwargs)
 
-    async def __init__(  # noqa: D107
+    async def start_bot(  # noqa: D102
         self, name: str, system: str, *args: AnyStr, **kw: AnyStr
     ) -> None:
         pid = cast(Task, current_task()).request
