@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from celery.app import shared_task
 from werkzeug.utils import secure_filename
 
 from addons.storage import Storage
+from celery_app._wrapper import shared_task
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData

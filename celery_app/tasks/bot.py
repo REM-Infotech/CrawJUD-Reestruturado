@@ -23,10 +23,11 @@ from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING, AnyStr, Literal, cast
 
-from celery import Task, current_task, shared_task
+from celery import Task, current_task
 
 from addons.storage import Storage
 from celery_app import app
+from celery_app._wrapper import shared_task
 from crawjud.core import CrawJUD
 
 if TYPE_CHECKING:

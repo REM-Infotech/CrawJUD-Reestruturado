@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from celery.app import shared_task
-
+from celery_app._wrapper import shared_task
 from celery_app.addons.mail import Mail
 
 if TYPE_CHECKING:

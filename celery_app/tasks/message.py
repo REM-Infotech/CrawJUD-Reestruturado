@@ -23,8 +23,9 @@ from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from celery.app import shared_task
 from socketio import AsyncSimpleClient
+
+from celery_app._wrapper import shared_task
 
 if TYPE_CHECKING:
     pass
