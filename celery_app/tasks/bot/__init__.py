@@ -26,11 +26,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
+from celery.app import shared_task
 from socketio import AsyncSimpleClient
 from werkzeug.utils import secure_filename
 
 from addons.storage import Storage
-from celery_app.wrapper import SharedTask
 
 if TYPE_CHECKING:
     from addons.printlogs._interface import MessageLog
@@ -38,8 +38,29 @@ if TYPE_CHECKING:
     from common.bot import ClassBot
     from crawjud.core._dictionary import BotData
 
+workdir_path = Path(__file__).cwd()
 
-@SharedTask()
+server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
+namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
+
+transports = ["websocket"]
+headers = {"Content-Type": "application/json"}
+url_server = environ["SOCKETIO_SERVER_URL"]
+
+
+@shared_task
+async def upload_files(pid: str, files: list[dict[str, str]]) -> None:  # noqa: D103
+    storage = Storage("minio")
+    upload_folder = workdir_path.joinpath("temp", pid[:6])
+    upload_folder.mkdir(parents=True, exist_ok=True)
+
+    for file in files:
+        file_name = secure_filename(file)
+        file_path = upload_folder.joinpath(file_name)
+        await storage.upload_file(f"{pid}/{file_name}", file_path)
+
+
+@shared_task
 async def print_message(  # noqa: D103
     data: MessageLog,
     server: str,
@@ -59,7 +80,7 @@ async def print_message(  # noqa: D103
         await sio.emit("log_execution", data={"data": data})
 
 
-@SharedTask()
+@shared_task
 async def save_success(  # noqa: D103
     pid: str,
     data: list[BotData],
@@ -77,8 +98,36 @@ async def save_success(  # noqa: D103
         )
     )
 
-    blobs = storage.bucket.list_blobs(prefix=f"{pid}/")
-    _blob = list(filter(lambda x: secure_filename(path_planilha.name) in x, blobs))
+    path_planilha.parent.mkdir(exist_ok=True, parents=True)
+    df = pd.DataFrame(data)
+
+    with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
+        df.to_excel(
+            excel_writer=writter,
+            index=False,
+            sheet_name=sheet_name,
+        )
+    file_name = secure_filename(path_planilha.name)
+    await storage.upload_file(f"{pid}/{file_name}", path_planilha)
+
+
+@shared_task
+async def save_cache(  # noqa: D103
+    pid: str,
+    data: list[BotData],
+    filename: str,
+    sheet_name: str = "Resultados",
+) -> None:
+    storage = Storage("minio")
+    path_planilha = (
+        Path(__file__)
+        .cwd()
+        .joinpath(
+            "temp",
+            pid,
+            filename,
+        )
+    )
 
     path_planilha.parent.mkdir(exist_ok=True, parents=True)
     df = pd.DataFrame(data)
@@ -89,12 +138,11 @@ async def save_success(  # noqa: D103
             index=False,
             sheet_name=sheet_name,
         )
-    for file in [path_planilha]:
-        file_name = secure_filename(file.name)
-        await storage.upload_file(f"{pid}/{file_name}", path_planilha)
+    file_name = secure_filename(path_planilha.name)
+    await storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
 
-@SharedTask()
+@shared_task
 async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExecutBot:
     """
     Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID.
@@ -185,7 +233,7 @@ async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExec
         return "Erro no robô. Verifique os logs para mais detalhes."
 
 
-@SharedTask()
+@shared_task
 def scheduled_initialize_bot(
     bot_name: str, bot_system: str, path_config: str
 ) -> TReturnMessageExecutBot:

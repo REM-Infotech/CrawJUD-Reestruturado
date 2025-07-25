@@ -18,7 +18,7 @@ Classes:
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Self
+from typing import Any, Self
 
 from redis_om import Field, JsonModel, NotFoundError
 
@@ -91,3 +91,12 @@ class MessageLog(JsonModel):
             for pk in log_pks:
                 if pk == pid:
                     return cls.get(pk)
+
+
+class CachedExecution(JsonModel):  # noqa: D101
+    pid: str = Field(
+        default="desconhecido",
+        description="e.g. 'C3K7H5' (identificador do processo)",
+        primary_key=True,
+    )
+    data: list[dict[str, Any]] = Field()

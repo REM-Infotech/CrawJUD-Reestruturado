@@ -115,9 +115,6 @@ class Movimentacao(CrawJUD):
             if self.is_stoped:
                 asyncio.current_task().cancel()
 
-            semaforo_processo = asyncio.Semaphore(1)
-            tasks = []
-
             if not self.driver_trt.get(regiao):
                 driver = DriverBot(
                     selected_browser="chrome",
@@ -139,59 +136,51 @@ class Movimentacao(CrawJUD):
             await autenticar(driver, wait, regiao)
 
             for value in data:
-                tasks.append(
-                    create_task(
-                        self._queue(
-                            semaforo_processo=semaforo_processo,
-                            data=value,
-                            driver=driver,
-                            wait=wait,
-                            regiao=regiao,
-                        )
-                    )
+                await self._queue(
+                    data=value,
+                    driver=driver,
+                    wait=wait,
+                    regiao=regiao,
                 )
 
-            await gather(*tasks)
             driver.quit()
 
     async def _queue(
         self,
-        semaforo_processo: asyncio.Semaphore,
         data: BotData,
         driver: WebDriver,
         wait: WebDriverWait,
         regiao: str,
     ) -> None:
-        async with semaforo_processo:
-            if self.is_stoped:
-                asyncio.current_task().cancel()
+        if self.is_stoped:
+            asyncio.current_task().cancel()
 
-            try:
-                row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
-                await buscar_processo(
-                    row=row,
-                    driver=driver,
-                    wait=wait,
-                    data=data,
-                    regiao=regiao,
-                    prt=self.prt,
-                )
-                await self.extrair_movimentacao(
-                    regiao=regiao, driver=driver, wait=wait, data=data, row=row
-                )
-                await self.prt.print_msg(
-                    "Execução realizada com sucesso!",
-                    row=row,
-                    type_log="success",
-                )
+        try:
+            row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
+            await buscar_processo(
+                row=row,
+                driver=driver,
+                wait=wait,
+                data=data,
+                regiao=regiao,
+                prt=self.prt,
+            )
+            await self.extrair_movimentacao(
+                regiao=regiao, driver=driver, wait=wait, data=data, row=row
+            )
+            await self.prt.print_msg(
+                "Execução realizada com sucesso!",
+                row=row,
+                type_log="success",
+            )
 
-            except Exception as e:
-                print("\n".join(traceback.format_exception(e)))
-                await self.prt.print_msg(
-                    "Erro de operação",
-                    row=row,
-                    type_log="error",
-                )
+        except Exception as e:
+            print("\n".join(traceback.format_exception(e)))
+            await self.prt.print_msg(
+                "Erro de operação",
+                row=row,
+                type_log="error",
+            )
 
     async def extrair_movimentacao(  # noqa: D102
         self,

@@ -22,10 +22,12 @@ from __future__ import annotations
 from importlib import import_module
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
+
+from celery import Task
+from celery.app import shared_task
 
 from addons.storage import Storage
-from celery_app.wrapper import SharedTask
 
 if TYPE_CHECKING:
     from celery_app.types import TReturnMessageExecutBot
@@ -112,4 +114,4 @@ class PJeTask:  # noqa: D101
             return "Execução encerrada com sucesso!"
 
 
-initialize_pje: PJeTask = SharedTask()(PJeTask().initialize)
+initialize_pje = cast(Task, shared_task(PJeTask().initialize))
