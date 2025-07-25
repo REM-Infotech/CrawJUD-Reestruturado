@@ -53,8 +53,7 @@ class BotTask:  # noqa: D101
     ) -> None:
         app.send_task()
 
-    @classmethod
-    async def download_files(cls, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:  # noqa: D102
+    async def download_files(self, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:  # noqa: D102
         storage = Storage("minio")
         # Download files from storage
 
@@ -66,7 +65,7 @@ class BotTask:  # noqa: D101
         )
 
         # Print log message indicating successful file download
-        await cls.print_msg(
+        await self.print_msg(
             "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
         )
         return path_files.joinpath(pid, f"{pid}.json")
