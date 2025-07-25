@@ -25,7 +25,7 @@ class AsyncCelery(Celery):
                 return self.run(*args, **kwargs)
 
             def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
-                asyncio.run(self._run(*args, **kwargs))
+                return asyncio.run(self._run(*args, **kwargs))
 
         self.Task = ContextTask
 
