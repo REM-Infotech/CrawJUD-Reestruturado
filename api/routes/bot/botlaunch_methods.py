@@ -25,7 +25,6 @@ from quart import (
 from quart import current_app as app  # noqa: F401
 from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
 from werkzeug.datastructures import MultiDict
-from werkzeug.utils import secure_filename
 
 from api.addons.make_models import MakeModels  # noqa: F401
 from api.interface.formbot import FormDict  # noqa: F401
@@ -79,7 +78,7 @@ class LoadForm:  # noqa: D101
     pid: str
     sess: SessionDict
 
-    def __init__(self, pid: str) -> None:  # noqa: D107
+    def __init__(self) -> None:  # noqa: D107
         sess = SessionDict(**dict(list(session.items())))
 
         self.db = current_app.extensions["sqlalchemy"]
@@ -94,7 +93,6 @@ class LoadForm:  # noqa: D101
         self.sess = sess
         self.license_user = license_user
         self.sid = sid
-        self.pid = pid
         self.bots = license_user.bots
         self.credentials = license_user.credentials
         self.upload_folder = workdir.joinpath("temp", self.sid)
@@ -114,17 +112,21 @@ class LoadForm:  # noqa: D101
 
             files_to_kw, name_file_config = await self._files_task_kwargs(form)
 
+            celery_app: Celery = current_app.extensions["celery"]
+            files_to_kw.update({"config_folder_name": name_file_config})
+            _taskfiles = celery_app.send_task("upload_files", kwargs=files_to_kw)
+
             args_task = {
                 "name": self.bot.type.lower(),
                 "system": self.bot.system.lower(),
                 "file_config": name_file_config,
+                "config_folder_name": name_file_config,
+                "task_upload_files": _taskfiles.task_id,
             }
 
-            celery_app: Celery = current_app.extensions["celery"]
             _task = celery_app.send_task("run_bot", kwargs=args_task, countdown=5)
 
-            files_to_kw.update({"pid": _task.task_id})
-            _taskfiles = celery_app.send_task("upload_files", kwargs=files_to_kw)
+            return _task.task_id
 
         except Exception as e:
             current_app.logger.error("\n".join(traceback.format_exception(e)))
@@ -157,13 +159,13 @@ class LoadForm:  # noqa: D101
         data.update({json_file.name: json_file.name})
 
         async with aiofiles.open(json_file, "wb") as f:
-            f.write(bytes(json.dumps(json_file), encoding="utf-8"))
+            await f.write(bytes(json.dumps(data), encoding="utf-8"))
 
         for root, _, files in self.upload_folder.walk():
             for file in files:
-                if file in data:
+                if file in data and file not in files_task:
                     async with aiofiles.open(root.joinpath(file), "rb") as f:
-                        to_string = base64.b64encode(f.read()).decode()
+                        to_string = base64.b64encode(await f.read()).decode()
                         files_task.update({file: to_string})
 
         return files_task, json_file.name
@@ -175,20 +177,6 @@ class LoadForm:  # noqa: D101
         for item in list(class_items.keys()):
             val = _data.get(item)
             if val:
-                if item == "xlsx" or item == "otherfiles":
-                    if item == "xlsx":
-                        await self._upload_file(val)
-                        val = secure_filename(val)
-
-                    elif item == "otherfiles":
-                        await self._upload_file(val)
-                        if isinstance(val, list):
-                            for pos, i in enumerate(list(val)):
-                                val[pos] = secure_filename(i)
-                            continue
-
-                        val = secure_filename(val)
-
                 if item == "creds":
                     credential = await self._query_credentials(int(val))
                     form_data.update(await self._format_credential(credential))

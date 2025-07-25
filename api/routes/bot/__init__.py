@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import traceback
-from asyncio import create_task
 
 from quart import (
     Blueprint,
@@ -15,7 +14,6 @@ from quart import (
 from quart_jwt_extended import jwt_required
 from werkzeug.exceptions import HTTPException
 
-from api.addons import generate_pid
 from api.addons.make_models import MakeModels  # noqa: F401
 from api.routes.bot.botlaunch_methods import (
     LoadForm,
@@ -29,9 +27,8 @@ bot = Blueprint("bot", __name__, url_prefix="/bot")
 @crossdomain(origin="*", methods=["get", "post"])
 @jwt_required
 async def start_bot() -> None:  # noqa: D103
-    pid = generate_pid()
     try:
-        create_task(LoadForm(pid=pid).loadform())  # noqa: F841, N806
+        pid = await LoadForm().loadform()
 
         return await make_response(jsonify(message="Execução iniciada!", pid=pid))
 
