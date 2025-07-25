@@ -27,7 +27,7 @@ from celery.app import shared_task
 from socketio import AsyncSimpleClient
 
 if TYPE_CHECKING:
-    from addons.printlogs._interface import MessageLog
+    pass
 
 workdir_path = Path(__file__).cwd()
 
@@ -41,11 +41,9 @@ url_server = environ["SOCKETIO_SERVER_URL"]
 
 @shared_task(name="print_message")
 async def print_message(  # noqa: D103
-    data: MessageLog,
-    server: str,
-    namespace: str,
-    headers: dict[str, str],
-    transports: list[str],
+    event: str,
+    data: dict[str, str] | str,
+    room: str = None,
 ) -> None:
     async with AsyncSimpleClient(
         reconnection_attempts=20,
@@ -54,6 +52,9 @@ async def print_message(  # noqa: D103
         await sio.connect(
             url=server, namespace=namespace, headers=headers, transports=transports
         )
-        join_data = {"data": {"room": data["pid"]}}
-        await sio.emit("join_room", data=join_data)
-        await sio.emit("log_execution", data={"data": data})
+
+        if room:
+            join_data = {"data": {"room": room}}
+            await sio.emit("join_room", data=join_data)
+
+        await sio.emit(event, data={"data": data})

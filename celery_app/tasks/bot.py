@@ -44,7 +44,7 @@ class BotTask:  # noqa: D101
     __name__ = "BotTask"
     __annotations__ = {"name": str, "system": str}
 
-    async def print_msg(
+    async def print_msg(  # noqa: D102
         self,
         message: str,
         row: int = 0,
@@ -54,7 +54,7 @@ class BotTask:  # noqa: D101
         app.send_task()
 
     @classmethod
-    async def download_files(cls, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:
+    async def download_files(cls, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:  # noqa: D102
         storage = Storage("minio")
         # Download files from storage
 
@@ -79,7 +79,7 @@ class BotTask:  # noqa: D101
     ) -> str:
         return await BotTask(*args, **kwargs)
 
-    async def __init__(
+    async def __init__(  # noqa: D107
         self, name: str, system: str, *args: AnyStr, **kw: AnyStr
     ) -> None:
         pid = cast(Task, current_task()).request
