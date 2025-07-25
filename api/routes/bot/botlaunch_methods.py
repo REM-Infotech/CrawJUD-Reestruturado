@@ -99,7 +99,7 @@ class LoadForm:  # noqa: D101
 
     async def loadform(  # noqa: D102, D103
         self,
-    ) -> FormDict:
+    ) -> str:
         try:
             data = await FormData.constructor()
             self.bot = await self._query_bot(int(data["bot_id"]))
