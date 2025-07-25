@@ -1,30 +1,32 @@
 {
-  "compounds": [
-    {
-      "configurations": [
-        "Debug API CrawJUD",
-        "Debug SocketIO CrawJUD",
-        "Debug Celery-Beat CrawJUD",
-        "Debug Celery-Worker CrawJUD"
-      ],
-      "name": "Test Backend",
-      "presentation": {
-        "group": "Test Backend",
-        "hidden": false,
-        "order": 1
-      },
-      "stopAll": true
-    }
-  ],
+  // "compounds": [
+  //   {
+  //     "configurations": [
+  //       "Debug API CrawJUD",
+  //       "Debug SocketIO CrawJUD",
+  //       "Debug Celery-Beat CrawJUD",
+  //       "Debug Celery-Worker CrawJUD"
+  //     ],
+  //     "name": "Test Backend",
+  //     "presentation": {
+  //       "group": "Test Backend",
+  //       "hidden": false,
+  //       "order": 1
+  //     },
+  //     "stopAll": true
+  //   }
+  // ],
   "configurations": [
-    {
-      "name": "Python Debugger: Remote Attach",
-      "type": "debugpy",
-      "request": "attach",
-      "connect": { "host": "localhost", "port": 5115 },
-      "pathMappings": [{ "localRoot": "${workspaceFolder}", "remoteRoot": "." }],
-      "justMyCode": false
-    },
+    // {
+    //   "name": "Python Debugger: Remote Attach",
+    //   "type": "debugpy",
+    //   "request": "attach",
+    //   "connect": { "host": "localhost", "port": 5115 },
+    //   "pathMappings": [
+    //     { "localRoot": "${workspaceFolder}", "remoteRoot": "." }
+    //   ],
+    //   "justMyCode": false
+    // },
     {
       "name": "Debug CrawJUD Bot",
       "type": "debugpy",
@@ -36,7 +38,8 @@
       "name": "Debug API CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "api"
+      "module": "api",
+      "justMyCode": false
     },
     {
       "name": "Debug SocketIO CrawJUD",
