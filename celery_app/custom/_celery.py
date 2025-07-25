@@ -22,8 +22,10 @@ class AsyncCelery(Celery):
                 if asyncio.iscoroutinefunction(self.run):
                     return await self.run(*args, **kwargs)
 
+                return self.run(*args, **kwargs)
+
             def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
-                asyncio.run(self._run(*args, **kwargs))
+                return asyncio.run(self._run(*args, **kwargs))
 
         self.Task = ContextTask
 

@@ -1,4 +1,4 @@
-"""Módulo de gerenciamento de logs do CrawJUD."""
+"""Módulo de gerenciamento de logs da api."""
 
 import logging
 from typing import Any
@@ -6,7 +6,7 @@ from typing import Any
 
 def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
     """Gerador de configurações do logging."""
-    log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
+    _log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
     logger_name: str = kwargs.get("LOGGER_NAME", __name__)
 
     handlers_config = {
@@ -18,13 +18,18 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
             "maxBytes": 1024,
             "backupCount": 1,
         },
-        # "redis_handler": {
-        #     "class": "crawjud.addons.logger.handlers.RedisHandler",
-        #     "level": logging.INFO,
-        #     "formatter": "json",
-        # },
+        "stream_handler": {
+            "class": "logging.StreamHandler",
+            "level": logging.INFO,
+            "formatter": "color",  # Usa o novo formatter colorido
+        },
+        "redis_handler": {
+            "class": "addons.logger.handlers.RedisHandler",
+            "level": logging.INFO,
+            "formatter": "json",
+        },
     }
-    handlers_config["file_handler"]["level"] = log_level
+    handlers_config["file_handler"]["level"] = logging.INFO
     handlers_config["file_handler"]["maxBytes"] = 40960
     handlers_config["file_handler"]["backupCount"] = 5
     handlers_config["file_handler"]["filename"] = kwargs["FILELOG_PATH"]
@@ -33,21 +38,26 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
         "version": 1,
         "disable_existing_loggers": False,
         "root": {
-            "level": log_level,
+            "level": logging.INFO,
             "handlers": list(handlers_config.keys()),
         },
         "handlers": handlers_config,
         "formatters": {
             "default": {
-                "format": "%(levelname)s:%(name)s:%(message)s",
+                "format": "%(message)s",
             },
             "json": {
                 "()": "addons.logger.handlers.JsonFormatter",
             },
+            "color": {
+                "()": "addons.logger.handlers._ColorFormatter",
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
         },
         "loggers": {
             logger_name: {
-                "level": log_level,
+                "level": logging.INFO,
                 "handlers": list(handlers_config.keys()),
                 "propagate": False,
             },

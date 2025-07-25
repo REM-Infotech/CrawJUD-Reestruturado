@@ -1,6 +1,6 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
-from celery_app.main import main as main_entry
+from celery_app.main import main as _main
 
 if __name__ == "__main__":
-    main_entry()
+    _main()

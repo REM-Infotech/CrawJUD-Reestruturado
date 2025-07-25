@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json  # noqa: F401
 import traceback
 from pathlib import Path
@@ -23,11 +24,8 @@ from quart import (
 )
 from quart import current_app as app  # noqa: F401
 from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
-from quart_socketio import SocketIO
 from werkzeug.datastructures import MultiDict
-from werkzeug.utils import secure_filename
 
-from addons.storage import Storage
 from api.addons.make_models import MakeModels  # noqa: F401
 from api.interface.formbot import FormDict  # noqa: F401
 from api.interface.session import SessionDict
@@ -37,6 +35,9 @@ from api.models.users import LicensesUsers, Users  # noqa: F401
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
+
+
+workdir = Path(__file__).cwd()
 
 
 class FormData(TypedDict):  # noqa: D101
@@ -77,7 +78,7 @@ class LoadForm:  # noqa: D101
     pid: str
     sess: SessionDict
 
-    def __init__(self, pid: str) -> None:  # noqa: D107
+    def __init__(self) -> None:  # noqa: D107
         sess = SessionDict(**dict(list(session.items())))
 
         self.db = current_app.extensions["sqlalchemy"]
@@ -92,87 +93,82 @@ class LoadForm:  # noqa: D101
         self.sess = sess
         self.license_user = license_user
         self.sid = sid
-        self.pid = pid
         self.bots = license_user.bots
         self.credentials = license_user.credentials
-        self.upload_folder = Path(__file__).cwd().joinpath("temp", self.sid)
+        self.upload_folder = workdir.joinpath("temp", self.sid)
 
     async def loadform(  # noqa: D102, D103
         self,
-    ) -> FormDict:
+    ) -> str:
         try:
             data = await FormData.constructor()
             self.bot = await self._query_bot(int(data["bot_id"]))
             form_data = await self._update_form_data(data)
             form = await FormDict.constructor(bot=self.bot, data=form_data)
-            pid_path = self.upload_folder.joinpath(self.pid)
-
-            pid_path.mkdir(exist_ok=True, parents=True)
-
-            path_pid = pid_path.joinpath(f"{self.pid}.json")
 
             form["email_subject"] = self.sess["current_user"]["email"]
             form["user_name"] = self.sess["current_user"]["nome_usuario"]
             form["user_id"] = self.sess["current_user"]["id"]
-            form["pid"] = self.pid
 
-            async with aiofiles.open(path_pid, "w") as f:
-                await f.write(json.dumps(form))
+            files_to_kw, name_file_config = await self._files_task_kwargs(form)
 
-            await self._upload_file(path_pid)
+            celery_app: Celery = current_app.extensions["celery"]
+            files_to_kw.update({"config_folder_name": name_file_config})
+            _taskfiles = celery_app.send_task("upload_files", kwargs=files_to_kw)
 
             args_task = {
                 "name": self.bot.type.lower(),
                 "system": self.bot.system.lower(),
-                "pid": self.pid,
+                "file_config": name_file_config,
+                "config_folder_name": name_file_config,
+                "task_upload_files": _taskfiles.task_id,
             }
-            celery_app: Celery = current_app.extensions["celery"]
 
-            task = celery_app.gen_task_name("initialize_bot", "celery_app.tasks.bot")
-            celery_app.send_task(task, kwargs=args_task)
+            _task = celery_app.send_task("run_bot", kwargs=args_task, countdown=5)
+
+            return _task.task_id
 
         except Exception as e:
             current_app.logger.error("\n".join(traceback.format_exception(e)))
             abort(500)
 
     def _license_user(self, sess: SessionDict) -> LicensesUsers | None:
-        return (
-            self.db.session.query(LicensesUsers)
-            .filter(
-                LicensesUsers.license_token == sess["license_object"]["license_token"]
+        try:
+            return (
+                self.db.session.query(LicensesUsers)
+                .filter(
+                    LicensesUsers.license_token
+                    == sess["license_object"]["license_token"]
+                )
+                .first()
             )
-            .first()
-        )
+        except KeyError:
+            abort(401)
 
     async def _get_annotations(self) -> dict[str, Any]:
         return FormDict.get_annotations(
             self.bot.classification.upper(), self.bot.form_cfg
         )
 
-    async def _upload_file(self, file: str | list[str] | Path) -> None:
-        storage = Storage("minio")
-        io: SocketIO = current_app.extensions["socketio"]
-        if isinstance(file, Path):
-            file_name = secure_filename(file.name)
-            await storage.upload_file(f"{self.pid}/{file_name}", file)
-            return
+    async def _files_task_kwargs(self, data: FormDict) -> tuple[dict[str, str], str]:
+        files_task = {}
 
-        await io.emit(
-            "log_execution",
-            data={"pid": self.pid, "message": "Enviando arquivos para o robô"},
-            room=self.pid,
-        )
-        files = file if isinstance(file, list) else [file]
-        for file in files:
-            file_name = secure_filename(file)
-            file_path = self.upload_folder.joinpath(file_name)
-            await storage.upload_file(f"{self.pid}/{file_name}", file_path)
+        name_file_config = self.sid[:8].upper()
+        json_file = self.upload_folder.joinpath(name_file_config).with_suffix(".json")
 
-            await io.emit(
-                "log_execution",
-                data={"pid": self.pid, "message": f"Arquivo '{file_name}' enviado!"},
-                room=self.pid,
-            )
+        data.update({json_file.name: json_file.name})
+
+        async with aiofiles.open(json_file, "wb") as f:
+            await f.write(bytes(json.dumps(data), encoding="utf-8"))
+
+        for root, _, files in self.upload_folder.walk():
+            for file in files:
+                if file in data and file not in files_task:
+                    async with aiofiles.open(root.joinpath(file), "rb") as f:
+                        to_string = base64.b64encode(await f.read()).decode()
+                        files_task.update({file: to_string})
+
+        return files_task, json_file.name
 
     async def _update_form_data(self, _data: FormData) -> None:
         form_data = {}
@@ -181,20 +177,6 @@ class LoadForm:  # noqa: D101
         for item in list(class_items.keys()):
             val = _data.get(item)
             if val:
-                if item == "xlsx" or item == "otherfiles":
-                    if item == "xlsx":
-                        await self._upload_file(val)
-                        val = secure_filename(val)
-
-                    elif item == "otherfiles":
-                        await self._upload_file(val)
-                        if isinstance(val, list):
-                            for pos, i in enumerate(list(val)):
-                                val[pos] = secure_filename(i)
-                            continue
-
-                        val = secure_filename(val)
-
                 if item == "creds":
                     credential = await self._query_credentials(int(val))
                     form_data.update(await self._format_credential(credential))

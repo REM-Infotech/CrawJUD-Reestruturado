@@ -7,16 +7,26 @@ from __future__ import annotations
 
 import asyncio
 import re
-import secrets
 import traceback
-from os import environ
-from typing import TYPE_CHECKING, Self
+from asyncio import create_task, gather
+from contextlib import suppress
+from datetime import datetime
+from typing import TYPE_CHECKING
 
+from celery import Celery, current_app
 from dotenv import load_dotenv
-from socketio import AsyncSimpleClient as Client
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.addons.webdriver import DriverBot
-from crawjud.core import CrawJUD
+from common.bot import ClassBot
+from crawjud._wrapper import wrap_init
+from crawjud.addons.interator import Interact
+from crawjud.bots.pje.res.autenticador import autenticar
+from crawjud.bots.pje.res.buscador import buscar_processo
+from crawjud.core._dictionary import BotData
+from webdriver import DriverBot
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
@@ -25,93 +35,200 @@ if TYPE_CHECKING:
 load_dotenv()
 
 
-class Movimentacao(CrawJUD):
+@wrap_init
+class Movimentacao(ClassBot):
     """Initialize and execute pauta operations for retrieving court hearing data now.
 
     Inherit from CrawJUD and manage the process of fetching pautas.
     """
 
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize a new Pauta instance with provided arguments now.
+    driver_trt: dict[str, dict[str, WebDriver | WebDriverWait | Interact]] = {}
+    position_process: dict[str, int] = {}
 
-        Args:
-            *args (str|int): Positional arguments.
-            **kwargs (str|int): Keyword arguments.
+    async def format_trt(self, numero_processo: str) -> str:  # noqa: D102
+        trt_id = None
+        with suppress(Exception):
+            trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+            if trt_id.startswith("0"):
+                trt_id = trt_id.replace("0", "")
 
-        Returns:
-            Self: A new instance of Pauta.
+        return trt_id
 
-        """
-        return cls(*args, **kwargs)
+    async def _separar_regiao(self, frame: list[BotData]) -> dict[str, list[BotData]]:
+        regioes_dict: dict[str, list[BotData]] = {}
+
+        for item in frame:
+            numero_processo = item["NUMERO_PROCESSO"]
+            regiao = await self.format_trt(numero_processo)
+
+            if not regiao:
+                continue
+
+            self.position_process[numero_processo] = len(self.position_process)
+            if not regioes_dict.get(regiao):
+                regioes_dict[regiao] = [item]
+                continue
+
+            regioes_dict[regiao].append(item)
+
+        return regioes_dict
 
     async def execution(self) -> None:
         """Execute the main process loop to retrieve pautas until data range is covered now.
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaphore = asyncio.Semaphore(5)
-        main_window = self.driver.current_window_handle  # noqa: F841
+        semaforo_regiao = asyncio.Semaphore(1)
+        self.driver.quit()
+        frame = await self._separar_regiao(self.dataFrame())
+        self.max_rows = len(self.position_process)
 
-        async with Client() as sio:
-            namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
-            url_server = environ["SOCKETIO_SERVER_URL"]
-            await sio.connect(
-                url=url_server,
-                headers={"Content-Type": "application/json"},
-                auth={"room": self.pid},
-                namespaces=[namespace],
-                transports=["websocket"],
-                retry=True,
+        tasks = [
+            create_task(self._queue_regiao(key, value, semaforo_regiao))
+            for key, value in list(frame.items())
+        ]
+        await gather(*tasks)
+
+    async def _queue_regiao(
+        self,
+        regiao: str,
+        data: list[BotData],
+        semaforo_regiao: asyncio.Semaphore,
+    ) -> None:
+        async with semaforo_regiao:
+            if self.is_stoped:
+                asyncio.current_task().cancel()
+
+            if not self.driver_trt.get(regiao):
+                driver = DriverBot(
+                    selected_browser="chrome",
+                    execution_path=self.output_dir_path,
+                )
+
+                wait = driver.wait
+
+                self.driver_trt[regiao] = {
+                    "driver": driver,
+                    "wait": wait,
+                }
+
+                driver.maximize_window()
+
+            driver: WebDriver = self.driver_trt[regiao]["driver"]
+            wait: WebDriverWait = self.driver_trt[regiao]["wait"]
+
+            await autenticar(driver, wait, regiao)
+
+            for value in data:
+                await self._queue(
+                    data=value,
+                    driver=driver,
+                    wait=wait,
+                    regiao=regiao,
+                )
+
+            driver.quit()
+
+    async def _queue(
+        self,
+        data: BotData,
+        driver: WebDriver,
+        wait: WebDriverWait,
+        regiao: str,
+    ) -> None:
+        if self.is_stoped:
+            asyncio.current_task().cancel()
+
+        try:
+            row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
+            await buscar_processo(
+                row=row,
+                driver=driver,
+                wait=wait,
+                data=data,
+                regiao=regiao,
+                prt=self.prt,
+            )
+            await self.extrair_movimentacao(
+                regiao=regiao, driver=driver, wait=wait, data=data, row=row
+            )
+            await self.print_msg(
+                "Execução realizada com sucesso!",
+                row=row,
+                type_log="success",
             )
 
-            frame = self.dataFrame()
-            self.max_rows = len(frame)
+        except Exception as e:
+            print("\n".join(traceback.format_exception(e)))
+            await self.print_msg(
+                "Erro de operação",
+                row=row,
+                type_log="error",
+            )
 
-            tasks = [
-                asyncio.create_task(self._test(semaphore, pos + 1, value))
-                for pos, value in enumerate(frame)
-            ]
-            await asyncio.gather(*tasks)
-
-    async def _test(
-        self, semaphore: asyncio.Semaphore, pos: int, data: BotData
+    async def extrair_movimentacao(  # noqa: D102
+        self,
+        driver: WebDriver,
+        row: int,
+        regiao: str,
+        wait: WebDriverWait,
+        data: BotData,
     ) -> None:
-        async with semaphore:
-            driver, _ = DriverBot("gecko", execution_path=self.output_dir_path)()
-            driver.maximize_window()
+        btn_modo_tabela = wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'button[aria-label="Visualizar em Tabela"]',
+            ))
+        )
+        btn_modo_tabela.click()
+
+        data_row = wait.until(
+            ec.presence_of_all_elements_located((
+                By.XPATH,
+                "//tr[contains(@class, 'row-odd') or contains(@class, 'row-even')]",
+            ))
+        )
+
+        movimentacoes: list[dict[str, str | datetime]] = []
+
+        for item in data_row:
             try:
-                numero_processo = data["NUMERO_PROCESSO"]
-                trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
-
-                if trt_id.startswith("0"):
-                    trt_id = trt_id.replace("0", "")
-
-                timeout = secrets.randbelow(60)
-                await asyncio.sleep(timeout)
-
-                url = f"https://pje.trt{trt_id}.jus.br/pjekz/painel/usuario-externo"
-
-                self.prt.print_msg(f"Buscando processo n{numero_processo}", row=pos)
-
-                timeout = secrets.randbelow(60)
-                await asyncio.sleep(timeout)
-
-                self.driver.get(url)
-                self.prt.print_msg(
-                    "Execução realizada com sucesso!", row=pos, type_log="success"
+                data_td = item.find_elements(By.TAG_NAME, "td")
+                split_time = data_td[1].text.split(" ")
+                data_movimentacao = datetime.strptime(
+                    f"{split_time[0]}/{split_time[1]} {split_time[2]}",
+                    "%d/%m/%Y %H:%M",
                 )
+                if len(data_td) == 5:
+                    id_movimentacao = "Sem ID"
+                    descricao_movimentacao = data_td[3].text
 
-                await asyncio.sleep(2)
-                driver.close()
+                elif len(data_td) == 6:
+                    id_movimentacao = data_td[3].text
+                    descricao_movimentacao = data_td[4].text
+
+                to_save = {
+                    "PROCESSO": data["NUMERO_PROCESSO"],
+                    "DATA": data_movimentacao,
+                    "TIPO": data_td[2].text,
+                    "MOVIMENTACAO_ID": id_movimentacao,
+                    "DESCRIÇÃO": descricao_movimentacao,
+                }
+
+                movimentacoes.append(to_save)
 
             except Exception as e:
-                self.prt.print_msg(
-                    "\n".join(traceback.format_exception(e)),
-                    row=pos,
-                    type_log="error",
-                )
+                print(e)
+                continue
+
+        app: Celery = current_app
+
+        args_task = {
+            "pid": self.pid,
+            "data": movimentacoes,
+            "filename": f"EXECUÇÃO {self.pid}.xlsx",
+            "sheet_name": f"TRT{regiao.zfill(2)}",
+        }
+
+        task = app.gen_task_name("save_success", "celery_app.tasks.bot")
+        app.send_task(task, kwargs=args_task)

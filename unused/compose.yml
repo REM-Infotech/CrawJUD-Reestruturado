@@ -1,0 +1,29 @@
+name: "CrawJUD-Bots"
+services:
+  hockenheimring_rest:
+    shm_size: "2gb"
+    environment:
+      IN_PRODUCTION: "True"
+      DOTENV_KEY: "${DOTENV_KEY_BACK:-default_value}"
+    build:
+      context: "."
+    volumes:
+      - ".:C:\\crawjudbot_app"
+    ports:
+      - "8000:8000"
+
+    hostname: "hockenheimring"
+    command: "poetry run python -m app.asgi"
+
+  hungaroring_beat:
+    shm_size: "2gb"
+    environment:
+      CONTAINER_DOCKER_APP: "True"
+      DOTENV_KEY: "${DOTENV_KEY_BACK:-default_value}"
+      IN_PRODUCTION: "${IN_PRODUCTION:-default_value}"
+    build:
+      context: "."
+    volumes:
+      - ".:C:\\crawjudbot_app"
+    hostname: "hungaroring"
+    command: "poetry run python -m app.beat"

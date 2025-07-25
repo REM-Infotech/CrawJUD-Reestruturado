@@ -72,16 +72,8 @@ class MinioBucket:  # noqa: D101
 
         return []
 
-    def blob(self, name: str):  # noqa: ANN201, D102
-        blob = None
-        try:
-            blob = BlobMinIO(
-                self, name=name, data=self._client.get_object(self._name, name)
-            )
-
-        except Exception:
-            blob = BlobMinIO(self, name)
-
+    def blob(self, name: str) -> BlobMinIO:  # noqa: ANN201, D102
+        blob = BlobMinIO(self, name)
         return blob
 
 
