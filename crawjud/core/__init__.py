@@ -17,12 +17,11 @@ from logging import Logger
 from os import listdir, path
 from pathlib import Path
 from time import perf_counter, sleep
-from typing import TYPE_CHECKING, AnyStr, Self
+from typing import TYPE_CHECKING, Any, AnyStr, Self
 
 import pandas as pd
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from dotenv import load_dotenv
 from pandas import Timestamp
 from pytz import timezone
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -46,35 +45,20 @@ from webdriver import DriverBot
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
 
-load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
-
 
 class CrawJUD:
     """Classe de controle de variáveis CrawJUD."""
 
-    @classmethod
     def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
+        self,
+        *args: Any,
+        **kwargs: Any,
     ) -> Self:
         """Initialize a new Pauta instance with provided arguments now.
 
         Args:
             *args (str|int): Positional arguments.
             **kwargs (str|int): Keyword arguments.
-
-        Returns:
-            Self: A new instance of Pauta.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(self, *args: str, **kwargs: str) -> None:
-        """Inicializador do núcleo.
-
-        Raises:
-            StartError: Exception de erro de inicialização.
 
         """
         try:
@@ -99,9 +83,7 @@ class CrawJUD:
             self.prt.bot_instance = self
             self.status_log = "Inicializando"
             pid = kwargs.get("pid")
-            self.prt.print_msg(
-                "Configurando o núcleo...", pid, 0, "log", self.status_log
-            )
+            self.print_msg("Configurando o núcleo...", pid, 0, "log", self.status_log)
 
             self.open_cfg()
 
@@ -132,9 +114,11 @@ class CrawJUD:
             if self.system.lower() != "pje":
                 self.configure_searchengine()
 
-            self.prt.print_msg(
+            self.print_msg(
                 "Núcleo configurado.", self.pid, 0, "success", self.status_log
             )
+
+            return self
 
         except Exception as e:
             raise StartError(exception=e) from e
@@ -255,7 +239,7 @@ class CrawJUD:
 
     def portal_authentication(self) -> None:
         """Autenticação com os sistemas."""
-        self.prt.print_msg(
+        self.print_msg(
             "Autenticando no sistema",
             row=0,
             type_log="log",
@@ -273,7 +257,7 @@ class CrawJUD:
         is_logged = auth.auth()
 
         if not is_logged:
-            self.prt.print_msg(
+            self.print_msg(
                 "Erro ao autenticar no sistema, verifique as credenciais.",
                 row=0,
                 type_log="error",
@@ -283,7 +267,7 @@ class CrawJUD:
                 "Erro ao autenticar no sistema, verifique as credenciais."
             )
 
-        self.prt.print_msg(
+        self.print_msg(
             "Autenticação realizada com sucesso",
             row=0,
             type_log="success",
@@ -292,7 +276,7 @@ class CrawJUD:
 
     def configure_webdriver(self) -> None:
         """Instancia o WebDriver."""
-        self.prt.print_msg(
+        self.print_msg(
             "Inicializando webdriver",
             row=0,
             type_log="log",
@@ -302,7 +286,7 @@ class CrawJUD:
             self.preferred_browser, execution_path=self.output_dir_path
         )
         self.wait = self.driver.wait
-        self.prt.print_msg(
+        self.print_msg(
             "Webdriver inicializado",
             row=0,
             type_log="success",
@@ -325,7 +309,7 @@ class CrawJUD:
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""
         time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
-        self.prt.print_msg(
+        self.print_msg(
             "Criando planilhas de output",
             row=0,
             type_log="log",
@@ -345,7 +329,7 @@ class CrawJUD:
                 "BOT_NAME": self.name,
             },
         ]
-        self.prt.print_msg(
+        self.print_msg(
             "Planilhas criadas.",
             row=0,
             type_log="success",
@@ -358,7 +342,7 @@ class CrawJUD:
 
     def open_cfg(self) -> None:
         """Abre as configurações de execução."""
-        self.prt.print_msg(
+        self.print_msg(
             "Carregando configurações",
             row=0,
             type_log="log",
@@ -374,7 +358,7 @@ class CrawJUD:
 
                 setattr(self, k, v)
 
-        self.prt.print_msg(
+        self.print_msg(
             "Configurações carregadas",
             row=0,
             type_log="success",
@@ -487,9 +471,7 @@ class CrawJUD:
 
         err_message = "\n".join(traceback.format_exception_only(exc))
         message = f"Erro de Operação: {err_message}"
-        self.prt.print_msg(
-            message=message, type_log="error", pid=self.pid, row=self.row
-        )
+        self.print_msg(message=message, type_log="error", pid=self.pid, row=self.row)
 
         self.bot_data.update({"MOTIVO_ERRO": err_message})
         self.append_error(self.bot_data)
@@ -532,7 +514,7 @@ class CrawJUD:
         self.row = self.total_rows
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
-        self.prt.print_msg(
+        self.print_msg(
             message=message,
             pid=self.pid,
             row=self.row,
@@ -627,9 +609,7 @@ class CrawJUD:
 
         save_info(data)
 
-        self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
-        )
+        self.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def append_error(self, data: dict[str, str] = None) -> None:
         """Append error information to the error spreadsheet file.

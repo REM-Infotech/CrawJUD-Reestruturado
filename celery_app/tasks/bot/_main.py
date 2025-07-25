@@ -21,15 +21,21 @@ from __future__ import annotations
 
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, AnyStr, cast
+from typing import TYPE_CHECKING, AnyStr, Literal, cast
 
 from celery import Task, current_task
 
 from addons.storage import Storage
+from celery_app import app
 from crawjud.core import CrawJUD
 
 if TYPE_CHECKING:
     from common.bot import ClassBot
+
+workdir = Path(__file__).cwd()
+
+TypeLog = Literal["log", "success", "warning", "info", "error"]
+StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]
 
 
 class BotTask:  # noqa: D101
@@ -38,28 +44,22 @@ class BotTask:  # noqa: D101
     __name__ = "BotTask"
     __annotations__ = {"name": str, "system": str}
 
+    async def print_msg(
+        self,
+        message: str,
+        row: int = 0,
+        _type: TypeLog = "log",
+        status: StatusType = "Inicializando",
+    ) -> None:
+        app.send_task()
+
     @classmethod
-    async def run_task(  # noqa: D102
-        cls, name: str, system: str, *args: AnyStr, **kw: AnyStr
-    ) -> str:
-        pid = cast(Task, current_task()).request
-
-        module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
-        bot = import_module(module_name, __package__)
-        class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
-
+    async def download_files(cls, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:
         storage = Storage("minio")
-
-        # Print log message indicating bot initialization
-        await cls.print_msg("Configurando o robô...", pid, 0, "log", "Inicializando")
-        path_files = Path(__file__).cwd().joinpath("temp")
-
-        # Print log message for downloading files
-        await cls.print_msg(
-            "Baixando arquivos do robô...", pid, 0, "log", "Inicializando"
-        )
-
         # Download files from storage
+
+        path_files = workdir.joinpath("temp", pid)
+
         await storage.download_files(
             dest=path_files,
             prefix=pid,
@@ -69,14 +69,32 @@ class BotTask:  # noqa: D101
         await cls.print_msg(
             "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
         )
-        path_config = path_files.joinpath(pid, f"{pid}.json")
+        return path_files.joinpath(pid, f"{pid}.json")
+
+    @classmethod
+    async def run_task(  # noqa: D102
+        cls,
+        *args: AnyStr,
+        **kwargs: AnyStr,
+    ) -> str:
+        return cls(*args, **kwargs)
+
+    async def __init__(
+        self, name: str, system: str, *args: AnyStr, **kw: AnyStr
+    ) -> None:
+        pid = cast(Task, current_task()).request
+        module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
+        bot = import_module(module_name, __package__)
+        class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
+        path_config = await self.download_files(pid)
 
         master = CrawJUD.initialize(
+            self,
             bot_name=name,
             bot_system=system,
             path_config=path_config,
         )
-        await cls.print_msg(
+        await self.print_msg(
             "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
         )
 

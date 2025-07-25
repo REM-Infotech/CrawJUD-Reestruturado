@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 from crawjud.addons.search import SearchController
 from crawjud.core._dictionary import BotData
 from crawjud.core.master import Controller as Controller
-from crawjud.types import TypeData
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
@@ -90,26 +89,6 @@ class ClassBot(ABC):  # noqa: D101
         """
 
     @abstractmethod
-    def configure_searchengine(self) -> None:
-        """Configura a instância do search engine."""
-
-    @abstractmethod
-    def portal_authentication(self) -> None:
-        """Autenticação com os sistemas."""
-
-    @abstractmethod
-    def configure_webdriver(self) -> None:
-        """Instancia o WebDriver."""
-
-    @abstractmethod
-    def configure_logger(self) -> None:
-        """Configura o logger."""
-
-    @abstractmethod
-    def make_templates(self) -> None:
-        """Criação de planilhas de output do robô."""
-
-    @abstractmethod
     def open_cfg(self) -> None:
         """Abre as configurações de execução."""
 
@@ -149,10 +128,6 @@ class ClassBot(ABC):  # noqa: D101
         """
 
     @abstractmethod
-    def tratamento_erros(self, exc: Exception, last_message: str = None) -> None:
-        """Tratamento de erros dos robôs."""
-
-    @abstractmethod
     def format_string(self, string: str) -> str:
         """Return a secure, normalized filename based on the input string.
 
@@ -165,61 +140,11 @@ class ClassBot(ABC):  # noqa: D101
         """
 
     @abstractmethod
-    def finalize_execution(self) -> None:
-        """Finalize bot execution by closing browsers and logging total time.
-
-        Performs cookie cleanup, quits the driver, and prints summary logs.
-        """
-
-    @abstractmethod
     def calc_time(self) -> list[int]:
         """Calculate and return elapsed time as minutes and seconds.
 
         Returns:
             list[int]: A two-item list: [minutes, seconds] elapsed.
-
-        """
-
-    @abstractmethod
-    def append_moves(self) -> None:
-        """Append legal movement records to the spreadsheet if any exist.
-
-        Raises:
-            ExecutionError: If no movements are available to append.
-
-        """
-
-    @abstractmethod
-    def append_success(
-        self,
-        data: TypeData,
-        message: str = None,
-        fileN: str = None,  # noqa: N803
-    ) -> None:
-        """Append successful execution data to the success spreadsheet.
-
-        Args:
-            data (TypeData): The data to be appended.
-            message (str, optional): A success message to log.
-            fileN (str, optional): Filename override for saving data.
-
-        """
-
-    @abstractmethod
-    def append_error(self, data: dict[str, str] = None) -> None:
-        """Append error information to the error spreadsheet file.
-
-        Args:
-            data (dict[str, str], optional): The error record to log.
-
-        """
-
-    @abstractmethod
-    def append_validarcampos(self, data: list[dict[str, str]]) -> None:
-        """Append validated field records to the validation spreadsheet.
-
-        Args:
-            data (list[dict[str, str]]): The list of validated data dictionaries.
 
         """
 
@@ -274,13 +199,6 @@ class ClassBot(ABC):  # noqa: D101
         Returns:
             float: A ratio where 1.0 denotes an identical match.
 
-        """
-
-    @abstractmethod
-    def install_cert(self) -> None:
-        """Install a certificate if it is not already installed.
-
-        Uses certutil to import the certificate and logs the operation.
         """
 
     @abstractmethod
