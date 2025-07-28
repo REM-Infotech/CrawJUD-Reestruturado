@@ -37,7 +37,7 @@ T = TypeVar("AnyValue", bound=str)
 class CrawJUD(PropertiesCrawJUD):
     """Classe de controle de variáveis CrawJUD."""
 
-    def initialize(
+    async def initialize(
         self,
         *args: Any,
         **kwargs: Any,
@@ -102,8 +102,7 @@ class CrawJUD(PropertiesCrawJUD):
         logging.config.dictConfig(config)
 
         self.logger = logging.getLogger(logger_name)
-        self.prt.logger = self.logger
-        self.prt.total_rows = int(getattr(self, "total_rows", 0))
+        self.total_rows = int(getattr(self, "total_rows", 0))
 
     def make_templates(self) -> None:
         """Criação de planilhas de output do robô."""

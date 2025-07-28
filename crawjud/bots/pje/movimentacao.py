@@ -79,12 +79,12 @@ class Movimentacao(ClassBot):
         This method continuously processes each court hearing date and handles errors.
         """
         semaforo_regiao = asyncio.Semaphore(1)
-        self.driver.quit()
-        frame = await self._separar_regiao(self.dataFrame())
+        dataframe = self.dataFrame()
+        frame = await self._separar_regiao(dataframe)
         self.max_rows = len(self.position_process)
 
         tasks = [
-            create_task(self._queue_regiao(key, value, semaforo_regiao))
+            create_task(self.self.print_msg_regiao(key, value, semaforo_regiao))
             for key, value in list(frame.items())
         ]
         await gather(*tasks)
@@ -120,7 +120,7 @@ class Movimentacao(ClassBot):
             await autenticar(driver, wait, regiao)
 
             for value in data:
-                await self._queue(
+                await self.queue(
                     data=value,
                     driver=driver,
                     wait=wait,
@@ -129,7 +129,7 @@ class Movimentacao(ClassBot):
 
             driver.quit()
 
-    async def _queue(
+    async def queue(  # noqa: D102
         self,
         data: BotData,
         driver: WebDriver,
@@ -147,12 +147,11 @@ class Movimentacao(ClassBot):
                 wait=wait,
                 data=data,
                 regiao=regiao,
-                prt=self.prt,
             )
             await self.extrair_movimentacao(
                 regiao=regiao, driver=driver, wait=wait, data=data, row=row
             )
-            await self.print_msg(
+            self.print_msg(
                 "Execução realizada com sucesso!",
                 row=row,
                 type_log="success",
@@ -160,7 +159,7 @@ class Movimentacao(ClassBot):
 
         except Exception as e:
             print("\n".join(traceback.format_exception(e)))
-            await self.print_msg(
+            self.print_msg(
                 "Erro de operação",
                 row=row,
                 type_log="error",

@@ -36,8 +36,8 @@ class PropertiesCrawJUD:
     typebot: str
     state_or_client: str = None
     preferred_browser: str = "chrome"
-    total_rows: int
-    _print_msg: Callable[PrintParamSpec, PrintTReturn]
+    _total_rows: int = 0
+    _print_msg: Callable[PrintParamSpec, PrintTReturn] = None
 
     # Variáveis de autenticação/protocolo
     username: str
@@ -61,20 +61,12 @@ class PropertiesCrawJUD:
     _data_bot: dict[str, str] = {}
 
     @property
-    def max_rows(self) -> int:  # noqa: D102
-        return self.prt.total_rows
-
-    @max_rows.setter
-    def max_rows(self, new_value: int) -> None:
-        self.prt.total_rows = new_value
-
-    @property
     def total_rows(self) -> int:  # noqa: D102
-        return self.prt.total_rows
+        return self._total_rows
 
     @total_rows.setter
     def total_rows(self, new_value: int) -> None:
-        self.prt.total_rows = new_value
+        self._total_rows = new_value
 
     @property
     def is_stoped(self) -> bool:  # noqa: D102

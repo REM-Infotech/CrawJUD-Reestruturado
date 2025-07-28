@@ -17,68 +17,66 @@ if TYPE_CHECKING:
 load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 
 
-class ClassBot(ABC):  # noqa: D101
-    @abstractmethod
-    async def print_msg(self, *args: Any, **kwargs: Any) -> None: ...  # noqa: D102
+class ClassBot(ABC):  # noqa:  D101
+    async def print_msg(  # noqa: B027, D102
+        self,
+        message: str = "Carregando",
+        pid: str = None,
+        row: int = 0,
+        type_log: str = "log",
+        status: str = "Inicializando",
+        *args: Any,
+        **kwargs: Any,
+    ) -> None: ...  # noqa: D102, E303, N802, B027
 
     @abstractmethod
     async def execution(self) -> None: ...  # noqa: D102
 
-    @property
     @abstractmethod
+    async def queue(self) -> None: ...  # noqa: D102
+
+    @property  # noqa: B027
     def max_rows(self) -> int: ...  # noqa: D102
 
-    @max_rows.setter
-    @abstractmethod
+    @max_rows.setter  # noqa: B027
     def max_rows(self, new_value: int) -> None: ...
 
-    @property
-    @abstractmethod
+    @property  # noqa: B027
     def total_rows(self) -> int: ...  # noqa: D102
 
-    @total_rows.setter
-    @abstractmethod
+    @total_rows.setter  # noqa: B027
     def total_rows(self, new_value: int) -> None: ...
 
-    @property
-    @abstractmethod
+    @property  # noqa: B027
     def is_stoped(self) -> bool: ...  # noqa: D102
 
-    @is_stoped.setter
-    @abstractmethod
+    @is_stoped.setter  # noqa: B027
     def is_stoped(self, new_value: bool) -> None: ...
 
-    @property
-    @abstractmethod
+    @property  # noqa: B027
     def bot_data(self) -> BotData:
         """Property bot data."""
 
-    @bot_data.setter
-    @abstractmethod
+    @bot_data.setter  # noqa: N802, B027
     def bot_data(self, new_data: BotData) -> None:
         """Property bot data."""
 
-    @property
-    @abstractmethod
+    @property  # noqa: N802, B027
     def search_bot(self) -> SearchController:
         """Property para o searchbot."""
 
-    @search_bot.setter
-    @abstractmethod
+    @search_bot.setter  # noqa: B027
     def search_bot(self, instancia: SearchController) -> None:
         """Define a instância do searchbot."""
 
-    @property
-    @abstractmethod
+    @property  # noqa: B027
     def row(self) -> int: ...  # noqa: D102
 
-    @row.setter
-    @abstractmethod
+    @row.setter  # noqa: B027
     def row(self, new_value: int) -> None:
         """Define o valor da variável row."""
 
-    @property
-    @abstractmethod
+    @property  # noqa: B027
     def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
         """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
 
@@ -87,12 +85,10 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def open_cfg(self) -> None:
+    def open_cfg(self) -> None:  # noqa: B027
         """Abre as configurações de execução."""
 
-    @abstractmethod
-    def dataFrame(self) -> list[BotData]:  # noqa: N802
+    def dataFrame(self) -> list[BotData]:  # noqa: N802, B027
         """Convert an Excel file to a list of dictionaries with formatted data.
 
         Reads an Excel file, processes the data by formatting dates and floats,
@@ -107,8 +103,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
+    def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802, B027
         """Format a legal case dictionary according to pre-defined rules.
 
         Args:
@@ -126,8 +121,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def format_string(self, string: str) -> str:
+    def format_string(self, string: str) -> str:  # noqa: N802, B027
         """Return a secure, normalized filename based on the input string.
 
         Args:
@@ -138,8 +132,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def calc_time(self) -> list[int]:
+    def calc_time(self) -> list[int]:  # noqa: N802, B027
         """Calculate and return elapsed time as minutes and seconds.
 
         Returns:
@@ -147,8 +140,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def count_doc(self, doc: str) -> str | None:
+    def count_doc(self, doc: str) -> str | None:  # noqa: N802, B027
         """Determine whether a document number is CPF or CNPJ based on character length.
 
         Args:
@@ -159,8 +151,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def get_recent(self, folder: str) -> str | None:
+    def get_recent(self, folder: str) -> str | None:  # noqa: N802, B027
         """Return the most recent PDF file path from a folder.
 
         Args:
@@ -171,8 +162,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def normalizar_nome(self, word: str) -> str:
+    def normalizar_nome(self, word: str) -> str:  # noqa: N802, B027
         """Normalize a word by removing spaces and special separators.
 
         Args:
@@ -183,8 +173,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def similaridade(
+    def similaridade(  # noqa: N802, B027
         self,
         word1: str,
         word2: str,
@@ -200,8 +189,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def group_date_all(
+    def group_date_all(  # noqa: N802, B027
         self,
         data: dict[str, dict[str, str]],
     ) -> list[dict[str, str]]:
@@ -215,8 +203,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def group_keys(
+    def group_keys(  # noqa: N802, B027
         self,
         data: list[dict[str, str]],
     ) -> dict[str, dict[str, str]]:
@@ -230,8 +217,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def gpt_chat(self, text_mov: str) -> str:
+    def gpt_chat(self, text_mov: str) -> str:  # noqa: N802, B027
         """Obtain an adjusted description via GPT chat based on the legal document text.
 
         Args:
@@ -242,8 +228,7 @@ class ClassBot(ABC):  # noqa: D101
 
         """
 
-    @abstractmethod
-    def text_is_a_date(self, text: str) -> bool:
+    def text_is_a_date(self, text: str) -> bool:  # noqa: N802, B027
         """Determine if the provided text matches a date-like pattern.
 
         Args:
