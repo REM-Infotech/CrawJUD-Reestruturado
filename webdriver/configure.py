@@ -66,6 +66,7 @@ def configure_chrome(
     dir_extensions: TExtensionsPath = None,
     argument: list[str] = arguments_list,
     chrome_prefs: ChromePreferences = chrome_preferences,
+    **kwargs: Any,
 ) -> ChromeOptions:
     """Configurações do Options do Chrome.
 
@@ -84,6 +85,10 @@ def configure_chrome(
 
     chrome_options.add_experimental_option("prefs", chrome_prefs)
 
+    if kwargs.get("proxy"):
+        proxy = kwargs.get("proxy")
+        chrome_options.add_argument(f"--proxy-server={proxy.proxy}")
+
     return chrome_options
 
 
@@ -95,6 +100,7 @@ def configure_gecko(*args: Any, **kwargs: Any) -> GeckoOptions:
 
     """
     gecko_options = GeckoOptions()
+    gecko_options.add_argument("acceptInsecureCerts")
     gecko_options.add_argument("--no-sandbox")
     gecko_options.add_argument("--disable-dev-shm-usage")
 

@@ -8,6 +8,8 @@ from pathlib import Path
 from time import sleep  # noqa: F401
 from typing import TYPE_CHECKING
 
+from browsermobproxy import Client as ProxyClient
+from browsermobproxy import Server
 from selenium import webdriver
 from selenium.common.exceptions import (  # noqa: F401
     NoSuchElementException,
@@ -32,8 +34,20 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
     from selenium.webdriver.remote.webelement import WebElement  # noqa: F401
 
+BROWSERMOB_PATH = "/opt/browsermob-proxy/bin/browsermob-proxy/bin"
+
 
 class DriverBot(webdriver.Remote):  # noqa: D101
+    _proxy: ProxyClient = None
+
+    @property
+    def proxy(self) -> ProxyClient:  # noqa: D102
+        return self._proxy
+
+    @proxy.setter
+    def proxy(self, new_value: ProxyClient) -> None:
+        self._proxy = new_value
+
     def __init__(  # noqa: D107
         self,
         selected_browser: BrowserOptions,
@@ -49,7 +63,9 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         )
         root_dir.mkdir(exist_ok=True)
         driver_config = config[selected_browser]
-
+        server = Server(BROWSERMOB_PATH)
+        server.start()
+        proxy = server.create_proxy()
         # Configura o Manager
         system_manager = OperationSystemManager()
         file_manager = FileManager(os_system_manager=system_manager)
@@ -75,6 +91,7 @@ class DriverBot(webdriver.Remote):  # noqa: D101
         _executor = driver_config["executor"](**driver_config["args_executor"])
 
         self._options = driver_config.get("options")(
+            proxy=proxy,
             dir_extensions=dir_extensions,
             chrome_prefs={
                 "download.prompt_for_download": False,
@@ -92,6 +109,7 @@ class DriverBot(webdriver.Remote):  # noqa: D101
                 "profile.password_manager_enabled": True,
             },
         )
+        self.proxy = proxy
         self._options.enable_downloads = True
         super().__init__(
             command_executor=_executor,

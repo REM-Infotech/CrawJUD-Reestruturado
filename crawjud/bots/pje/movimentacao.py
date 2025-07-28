@@ -14,10 +14,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import aiofiles
+import requests
 from celery import Celery, current_app
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -43,7 +44,7 @@ class Movimentacao(ClassBot):
     Inherit from CrawJUD and manage the process of fetching pautas.
     """
 
-    driver_trt: dict[str, dict[str, WebDriver | WebDriverWait | Interact]] = {}
+    driver_trt: dict[str, dict[str, DriverBot | WebDriverWait | Interact]] = {}
     position_process: dict[str, int] = {}
     app: Celery = current_app
 
@@ -102,43 +103,50 @@ class Movimentacao(ClassBot):
         semaforo_regiao: asyncio.Semaphore,
     ) -> None:
         async with semaforo_regiao:
-            if self.is_stoped:
-                asyncio.current_task().cancel()
+            try:
+                if self.is_stoped:
+                    asyncio.current_task().cancel()
 
-            if not self.driver_trt.get(regiao):
-                driver = DriverBot(
-                    selected_browser="chrome",
-                    execution_path=self.output_dir_path,
+                if not self.driver_trt.get(regiao):
+                    driver = DriverBot(
+                        selected_browser="chrome",
+                        execution_path=self.output_dir_path,
+                    )
+
+                    wait = driver.wait
+
+                    self.driver_trt[regiao] = {
+                        "driver": driver,
+                        "wait": wait,
+                    }
+
+                    driver.maximize_window()
+
+                driver: DriverBot = self.driver_trt[regiao]["driver"]
+                wait: WebDriverWait = self.driver_trt[regiao]["wait"]
+
+                await autenticar(driver, wait, regiao)
+
+                for value in data:
+                    await self.queue(
+                        data=value,
+                        driver=driver,
+                        wait=wait,
+                        regiao=regiao,
+                    )
+
+                driver.quit()
+            except Exception as e:
+                print("\n".join(traceback.format_exception(e)))
+                self.print_msg(
+                    "Erro de operação",
+                    type_log="error",
                 )
-
-                wait = driver.wait
-
-                self.driver_trt[regiao] = {
-                    "driver": driver,
-                    "wait": wait,
-                }
-
-                driver.maximize_window()
-
-            driver: WebDriver = self.driver_trt[regiao]["driver"]
-            wait: WebDriverWait = self.driver_trt[regiao]["wait"]
-
-            await autenticar(driver, wait, regiao)
-
-            for value in data:
-                await self.queue(
-                    data=value,
-                    driver=driver,
-                    wait=wait,
-                    regiao=regiao,
-                )
-
-            driver.quit()
 
     async def queue(  # noqa: D102
         self,
         data: BotData,
-        driver: WebDriver,
+        driver: DriverBot,
         wait: WebDriverWait,
         regiao: str,
     ) -> None:
@@ -174,7 +182,7 @@ class Movimentacao(ClassBot):
 
     async def extrair_movimentacao(  # noqa: D102
         self,
-        driver: WebDriver,
+        driver: DriverBot,
         row: int,
         regiao: str,
         wait: WebDriverWait,
@@ -197,6 +205,8 @@ class Movimentacao(ClassBot):
 
         movimentacoes: list[dict[str, str | datetime]] = []
 
+        arquivos: list[tuple[str, str]] = []
+
         for item in data_row:
             try:
                 data_td = item.find_elements(By.TAG_NAME, "td")
@@ -209,9 +219,12 @@ class Movimentacao(ClassBot):
                     id_movimentacao = "Sem ID"
                     descricao_movimentacao = data_td[3].text
 
-                elif len(data_td) == 6:
+                elif len(data_td) >= 6:
                     id_movimentacao = data_td[3].text
                     descricao_movimentacao = data_td[4].text
+                    file_name = data_td[4].find_elements(By.TAG_NAME, "a")[0].text
+                    link_arquivo = data_td[4].find_elements(By.TAG_NAME, "a")[-1]
+                    arquivos.append((file_name, link_arquivo.get_attribute("href")))
 
                 to_save = {
                     "PROCESSO": data["NUMERO_PROCESSO"],
@@ -227,12 +240,22 @@ class Movimentacao(ClassBot):
                 print(e)
                 continue
 
-        args_task = {
-            "pid": self.pid,
-            "data": movimentacoes,
-            "filename": f"EXECUÇÃO {self.pid}.xlsx",
-            "sheet_name": f"TRT{regiao.zfill(2)}",
-        }
+        cookies = {}
+
+        for cookie in driver.get_cookies():
+            cookies.update({cookie["name"]: cookie["value"]})
+
+        driver.proxy.new_har("teste_tls", options={"captureContent": True})
+        _har_data = (
+            driver.proxy.har
+        )  # HAR: HTTP Archive (todos os requests/responses)
+        for file, link in arquivos:
+            response = requests.get(link, cookies=cookies, timeout=15)  # noqa: ASYNC210
+            _data = response.content  # noqa: B018
+            async with aiofiles.open(
+                Path(self.output_dir_path).joinpath(file), "wb"
+            ) as f:
+                await f.write(_data)
 
         args_task = {
             "pid": self.pid,
