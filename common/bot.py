@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from dotenv import load_dotenv
 
 from crawjud.addons.search import SearchController  # noqa: F401
+from crawjud.core import CrawJUD
 from crawjud.core._dictionary import BotData
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 TReturn = TypeVar("TReturn")
 
 
-class ClassBot(ABC):  # noqa:  D101
+class ClassBot(CrawJUD):  # noqa:  D101
     async def print_msg(  # noqa: B027, D102
         self,
         message: str = "Carregando",

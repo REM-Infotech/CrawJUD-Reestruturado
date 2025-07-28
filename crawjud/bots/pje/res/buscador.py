@@ -81,7 +81,7 @@ async def desafio_captcha(  # noqa: D102, D103
             ).get_attribute("src")
             bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
             readable_buffer = io.BytesIO(bytes_img)
-            text = captcha_to_image(readable_buffer.read()).zfill(6)
+            text = captcha_to_image(readable_buffer.read()).zfill(6)[:6]
 
             input_captcha = driver.find_element(
                 By.CSS_SELECTOR, 'input[id="captchaInput"]'

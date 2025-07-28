@@ -10,6 +10,7 @@ import ssl
 import subprocess
 import traceback
 import unicodedata
+from abc import ABC
 from datetime import datetime
 from difflib import SequenceMatcher
 from logging import Logger
@@ -40,7 +41,6 @@ from addons.logger import dict_config
 from addons.printlogs import PrintMessage
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
-from crawjud.core._dictionary import BotData
 from crawjud.exceptions.bot import ExecutionError, StartError
 from crawjud.types import StrPath, TypeData
 from crawjud.types.elements import type_elements
@@ -52,7 +52,7 @@ PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
 PrintTReturn = TypeVar("PrintTReturn", bound=Any)
 
 
-class CrawJUD:
+class CrawJUD(ABC):
     """Classe de controle de variáveis CrawJUD."""
 
     _row: int = 0

@@ -34,11 +34,10 @@ from addons.printlogs._interface import MessageLog
 from addons.storage import Storage
 from celery_app import app
 from celery_app._wrapper import shared_task
-from common.bot import ClassBot
-from crawjud.core import CrawJUD
 
 if TYPE_CHECKING:
     from common.bot import ClassBot
+    from crawjud.core import CrawJUD
 
 workdir = Path(__file__).cwd()
 
@@ -165,11 +164,13 @@ class BotTask:  # noqa: D101
             module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
             bot = import_module(module_name, __package__)
             class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
+            self.master_instance = class_bot()
+            self.master_instance.print_msg = self.print_msg
 
             # Aguarda a finalização da task de upload antes de continuar
             path_config = await self.download_files(pid, config_folder_name)
 
-            self.master_instance = await CrawJUD().initialize(
+            await self.master_instance.initialize(
                 pid=pid,
                 task_bot=self,
                 bot_name=name,
@@ -177,7 +178,7 @@ class BotTask:  # noqa: D101
                 path_config=path_config,
             )
 
-            return await class_bot(master=self.master_instance).execution()
+            return await self.master_instance.execution()
 
         except Exception as e:
             _msg = "\n".join(traceback.format_exception(e))
