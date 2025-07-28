@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 from crawjud.addons.search import SearchController
 from crawjud.core._dictionary import BotData
-from crawjud.core.master import Controller as Controller
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
