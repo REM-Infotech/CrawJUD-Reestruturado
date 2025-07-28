@@ -54,6 +54,56 @@ class BotTask:  # noqa: D101
     __name__ = "BotTask"
     __annotations__ = {"name": str, "system": str}
 
+    @staticmethod
+    @shared_task(name="run_bot")
+    async def run_bot(  # noqa: D102
+        *args: AnyStr,
+        **kwargs: AnyStr,
+    ) -> str:
+        return await BotTask().start_bot(*args, **kwargs)
+
+    async def start_bot(  # noqa: D102
+        self,
+        name: str,
+        system: str,
+        file_config: str,
+        config_folder_name: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        try:
+            current_task: Task = kwargs.get("task")
+            self.current_task = current_task
+            self.start_time = datetime.strptime(
+                current_task.request.eta, "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+            pid = str(current_task.request.id)
+            self.pid = pid
+
+            module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
+            bot = import_module(module_name, __package__)
+            class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
+            self.master_instance = class_bot()
+            self.master_instance.print_msg = self.print_msg
+
+            # Aguarda a finalização da task de upload antes de continuar
+            path_config = await self.download_files(pid, config_folder_name)
+
+            await self.master_instance.initialize(
+                pid=pid,
+                task_bot=self,
+                bot_name=name,
+                bot_system=system,
+                path_config=path_config,
+            )
+
+            return await self.master_instance.execution()
+
+        except Exception as e:
+            _msg = "\n".join(traceback.format_exception(e))
+            print(_msg)
+            raise e
+
     @property
     def pid(self) -> str:  # noqa: D102
         return self._pid
@@ -73,7 +123,7 @@ class BotTask:  # noqa: D101
         **kwargs: Any,
     ) -> None:
         pid = pid if pid else str(self.pid)
-        total_count = self._total_rows
+        total_count = self.master_instance.total_rows
         remaining = 0
         if row > 0:
             # Calcula o número restante de linhas
@@ -131,53 +181,3 @@ class BotTask:  # noqa: D101
         shutil.rmtree(path_files.joinpath(config_folder_name))
 
         return path_files.joinpath(f"{config_folder_name}.json")
-
-    @staticmethod
-    @shared_task(name="run_bot")
-    async def run_bot(  # noqa: D102
-        *args: AnyStr,
-        **kwargs: AnyStr,
-    ) -> str:
-        return await BotTask().start_bot(*args, **kwargs)
-
-    async def start_bot(  # noqa: D102
-        self,
-        name: str,
-        system: str,
-        file_config: str,
-        config_folder_name: str,
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        try:
-            current_task: Task = kwargs.get("task")
-            self.current_task = current_task
-            self.start_time = datetime.strptime(
-                current_task.request.eta, "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
-            pid = str(current_task.request.id)
-            self.pid = pid
-
-            module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
-            bot = import_module(module_name, __package__)
-            class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
-            self.master_instance = class_bot()
-            self.master_instance.print_msg = self.print_msg
-
-            # Aguarda a finalização da task de upload antes de continuar
-            path_config = await self.download_files(pid, config_folder_name)
-
-            await self.master_instance.initialize(
-                pid=pid,
-                task_bot=self,
-                bot_name=name,
-                bot_system=system,
-                path_config=path_config,
-            )
-
-            return await self.master_instance.execution()
-
-        except Exception as e:
-            _msg = "\n".join(traceback.format_exception(e))
-            print(_msg)
-            raise e

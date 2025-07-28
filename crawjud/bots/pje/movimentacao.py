@@ -83,7 +83,7 @@ class Movimentacao(ClassBot):
         semaforo_regiao = asyncio.Semaphore(1)
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
-        self.max_rows = len(self.position_process)
+        self.total_rows = len(self.position_process)
 
         tasks = [
             create_task(self._queue_regiao(key, value, semaforo_regiao))
@@ -153,6 +153,7 @@ class Movimentacao(ClassBot):
                 wait=wait,
                 data=data,
                 regiao=regiao,
+                print_msg=self.print_msg,
             )
             await self.extrair_movimentacao(
                 regiao=regiao, driver=driver, wait=wait, data=data, row=row
