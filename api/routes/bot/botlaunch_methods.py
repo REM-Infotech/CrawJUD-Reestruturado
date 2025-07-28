@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import json  # noqa: F401
 import traceback
 from pathlib import Path
@@ -95,7 +94,7 @@ class LoadForm:  # noqa: D101
         self.sid = sid
         self.bots = license_user.bots
         self.credentials = license_user.credentials
-        self.upload_folder = workdir.joinpath("temp", self.sid)
+        self.upload_folder = workdir.joinpath("temp", self.sid.upper())
 
     async def loadform(  # noqa: D102, D103
         self,
@@ -110,18 +109,15 @@ class LoadForm:  # noqa: D101
             form["user_name"] = self.sess["current_user"]["nome_usuario"]
             form["user_id"] = self.sess["current_user"]["id"]
 
-            files_to_kw, name_file_config = await self._files_task_kwargs(form)
+            name_file_config, json_config = await self._files_task_kwargs(form)
 
             celery_app: Celery = current_app.extensions["celery"]
-            files_to_kw.update({"config_folder_name": name_file_config})
-            _taskfiles = celery_app.send_task("upload_files", kwargs=files_to_kw)
 
             args_task = {
                 "name": self.bot.type.lower(),
                 "system": self.bot.system.lower(),
-                "file_config": name_file_config,
+                "file_config": json_config,
                 "config_folder_name": name_file_config,
-                "task_upload_files": _taskfiles.task_id,
             }
 
             _task = celery_app.send_task("run_bot", kwargs=args_task, countdown=5)
@@ -150,10 +146,8 @@ class LoadForm:  # noqa: D101
             self.bot.classification.upper(), self.bot.form_cfg
         )
 
-    async def _files_task_kwargs(self, data: FormDict) -> tuple[dict[str, str], str]:
-        files_task = {}
-
-        name_file_config = self.sid[:8].upper()
+    async def _files_task_kwargs(self, data: FormDict) -> tuple[str, str]:
+        name_file_config = self.sid.upper()
         json_file = self.upload_folder.joinpath(name_file_config).with_suffix(".json")
 
         data.update({json_file.name: json_file.name})
@@ -161,14 +155,7 @@ class LoadForm:  # noqa: D101
         async with aiofiles.open(json_file, "wb") as f:
             await f.write(bytes(json.dumps(data), encoding="utf-8"))
 
-        for root, _, files in self.upload_folder.walk():
-            for file in files:
-                if file in data and file not in files_task:
-                    async with aiofiles.open(root.joinpath(file), "rb") as f:
-                        to_string = base64.b64encode(await f.read()).decode()
-                        files_task.update({file: to_string})
-
-        return files_task, json_file.name
+        return name_file_config, json_file.name
 
     async def _update_form_data(self, _data: FormData) -> None:
         form_data = {}

@@ -25,18 +25,6 @@ headers = {"Content-Type": "application/json"}
 url_server = environ["SOCKETIO_SERVER_URL"]
 
 
-@shared_task(name="upload_files")
-async def upload_files(pid: str, files: list[dict[str, str]]) -> None:  # noqa: D103
-    storage = Storage("minio")
-    upload_folder = workdir_path.joinpath("temp", pid[:6])
-    upload_folder.mkdir(parents=True, exist_ok=True)
-
-    for file in files:
-        file_name = secure_filename(file)
-        file_path = upload_folder.joinpath(file_name)
-        await storage.upload_file(f"{pid}/{file_name}", file_path)
-
-
 @shared_task(name="save_success")
 async def save_success(  # noqa: D103
     pid: str,
