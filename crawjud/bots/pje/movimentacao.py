@@ -11,6 +11,7 @@ import traceback
 from asyncio import create_task, gather
 from contextlib import suppress
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from celery import Celery, current_app
@@ -44,6 +45,7 @@ class Movimentacao(ClassBot):
 
     driver_trt: dict[str, dict[str, WebDriver | WebDriverWait | Interact]] = {}
     position_process: dict[str, int] = {}
+    app: Celery = current_app
 
     async def format_trt(self, numero_processo: str) -> str:  # noqa: D102
         trt_id = None
@@ -78,7 +80,7 @@ class Movimentacao(ClassBot):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaforo_regiao = asyncio.Semaphore(5)
+        semaforo_regiao = asyncio.Semaphore(1)
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
         self.max_rows = len(self.position_process)
@@ -88,6 +90,10 @@ class Movimentacao(ClassBot):
             for key, value in list(frame.items())
         ]
         await gather(*tasks)
+        self.app.send_task(
+            "save_succes",
+            kwargs={"pid": self.pid, "filename": Path(self.planilha_sucesso).name},
+        )
 
     async def _queue_regiao(
         self,
@@ -220,8 +226,6 @@ class Movimentacao(ClassBot):
                 print(e)
                 continue
 
-        app: Celery = current_app
-
         args_task = {
             "pid": self.pid,
             "data": movimentacoes,
@@ -229,10 +233,9 @@ class Movimentacao(ClassBot):
             "sheet_name": f"TRT{regiao.zfill(2)}",
         }
 
-        app: Celery = current_app
         args_task = {
             "pid": self.pid,
             "data": movimentacoes,
             "processo": data["NUMERO_PROCESSO"],
         }
-        app.send_task("save_cache", kwargs=args_task)
+        self.app.send_task("save_cache", kwargs=args_task)
