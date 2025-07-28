@@ -189,7 +189,7 @@ class BotTask:  # noqa: D101
         except Exception as e:
             _msg = "\n".join(traceback.format_exception(e))
             print(_msg)
-            return "ok"
+            raise e
 
     def transfer_attributes(self, source: CrawJUD, target: ClassBot) -> ClassBot:  # noqa: D102
         target = target.__new__(target)  # cria instância sem chamar __init__

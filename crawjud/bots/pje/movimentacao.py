@@ -84,7 +84,7 @@ class Movimentacao(ClassBot):
         self.max_rows = len(self.position_process)
 
         tasks = [
-            create_task(self.self.print_msg_regiao(key, value, semaforo_regiao))
+            create_task(self._queue_regiao(key, value, semaforo_regiao))
             for key, value in list(frame.items())
         ]
         await gather(*tasks)

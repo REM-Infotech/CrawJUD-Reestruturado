@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, AnyStr
+from typing import AnyStr
 
 from celery import Celery
 
@@ -19,19 +19,10 @@ class AsyncCelery(Celery):
             abstract = True
 
             async def _run(self, *args: AnyStr, **kwargs: AnyStr) -> None:
-                async def _call(*a: Any, **kwa: Any) -> Any:
-                    if asyncio.iscoroutinefunction(self.run):
-                        return await self.run(task=self, *a, **kwa)  # noqa: B026
+                if asyncio.iscoroutinefunction(self.run):
+                    return await self.run(task=self, *args, **kwargs)  # noqa: B026
 
-                    return self.run(task=self, *a, **kwa)  # noqa: B026
-
-                try:
-                    kw = kwargs.copy()
-                    kw.update({"pid": self.request.id})
-                    await _call(*args, **kw)
-
-                except Exception:
-                    await _call(*args, **kwargs)
+                return self.run(task=self, *args, **kwargs)  # noqa: B026
 
             def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
                 return asyncio.run(self._run(*args, **kwargs))
