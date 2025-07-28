@@ -19,13 +19,16 @@ Raises:
 
 from __future__ import annotations
 
+from datetime import datetime
 from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, AnyStr, Literal, Self
 
 from celery import Task
 
+from addons.printlogs._interface import MessageLog
 from addons.storage import Storage
+from celery_app import app
 from celery_app._wrapper import shared_task
 from crawjud.core import CrawJUD
 
@@ -40,20 +43,53 @@ StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]
 
 class BotTask:  # noqa: D101
     _total_rows: int
+    _master_instance: CrawJUD
+    count_id_log: int = 0
+    current_task: Task
+    start_time: datetime
 
     __name__ = "BotTask"
     __annotations__ = {"name": str, "system": str}
 
     async def print_msg(  # noqa: D102
         self,
-        message: str,
+        message: str = "Carregando",
+        pid: str = None,
         row: int = 0,
-        _type: TypeLog = "log",
-        status: StatusType = "Inicializando",
-        *args,  # noqa: ANN002
-        **kwargs,  # noqa: ANN003
+        type_log: str = "log",
+        status: str = "Em Execução",
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        print(message)
+        total_count = self.master_instance.total_rows
+        remaining = 0
+        if row > 0:
+            # Calcula o número restante de linhas
+            remaining = (total_count + 1) - row
+
+        self.count_id_log += 1
+        data = MessageLog(
+            id_log=self.count_id_log,
+            message=message,
+            pid=pid,
+            row=row,
+            type=type_log,
+            status=status,
+            total=total_count,
+            success=0,
+            errors=0,
+            remaining=remaining,
+            start_time=self.start_time,
+        )
+        app.send_task("print_message", data, row)
+
+    @property
+    def master_instance(self) -> CrawJUD:  # noqa: D102
+        return self._master_instance
+
+    @master_instance.setter
+    def master_instance(self, new_val: CrawJUD) -> None:
+        self._master_instance = new_val
 
     @property
     def prt(self) -> Self:  # noqa: D102
@@ -95,6 +131,11 @@ class BotTask:  # noqa: D101
     ) -> None:
         try:
             current_task: Task = kwargs.get("task")
+            self.current_task = current_task
+            self.start_time = datetime.strptime(
+                current_task.request.eta, "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+
             pid = str(current_task.request.id)
             module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
             bot = import_module(module_name, __package__)
@@ -103,8 +144,11 @@ class BotTask:  # noqa: D101
             # Aguarda a finalização da task de upload antes de continuar
             path_config = await self.download_files(pid, config_folder_name)
 
-            master = CrawJUD().initialize(
-                self,
+            instance_crawjud = CrawJUD()
+
+            master = instance_crawjud.initialize(
+                pid=pid,
+                task_bot=self,
                 bot_name=name,
                 bot_system=system,
                 path_config=path_config,

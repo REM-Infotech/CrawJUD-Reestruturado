@@ -10,13 +10,12 @@ import ssl
 import subprocess
 import traceback
 import unicodedata
-from contextlib import suppress
 from datetime import datetime
 from difflib import SequenceMatcher
 from os import listdir, path
 from pathlib import Path
 from time import perf_counter, sleep
-from typing import TYPE_CHECKING, Any, AnyStr, Self
+from typing import Any, AnyStr, Generic, Self, TypeVar
 
 import pandas as pd
 from cryptography import x509
@@ -31,10 +30,8 @@ from crawjud.core._dictionary import BotData
 from crawjud.core._properties import PropertiesCrawJUD
 from crawjud.exceptions.bot import ExecutionError, StartError
 from crawjud.types import TypeData
-from models.logs import MessageLog
 
-if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+T = TypeVar("AnyValue", bound=str)
 
 
 class CrawJUD(PropertiesCrawJUD):
@@ -53,6 +50,7 @@ class CrawJUD(PropertiesCrawJUD):
 
         """
         try:
+            self.print_msg = kwargs.get("task_bot").print_msg
             with (
                 Path(__file__)
                 .parent.resolve()
@@ -71,10 +69,8 @@ class CrawJUD(PropertiesCrawJUD):
 
                 setattr(self, k, v)
 
-            self.prt.bot_instance = self
-            self.status_log = "Inicializando"
             pid = kwargs.get("pid")
-            self.print_msg("Configurando o núcleo...", pid, 0, "log", self.status_log)
+            self.print_msg("Configurando o núcleo...", pid, 0, "log", "Inicializando")
 
             self.open_cfg()
 
@@ -88,7 +84,7 @@ class CrawJUD(PropertiesCrawJUD):
             self.make_templates()
 
             self.print_msg(
-                "Núcleo configurado.", self.pid, 0, "success", self.status_log
+                "Núcleo configurado.", self.pid, 0, "success", "Inicializando"
             )
 
             return self
@@ -116,7 +112,7 @@ class CrawJUD(PropertiesCrawJUD):
             "Criando planilhas de output",
             row=0,
             type_log="log",
-            status=self.status_log,
+            status="Inicializando",
         )
         planilha_args = [
             {
@@ -136,7 +132,7 @@ class CrawJUD(PropertiesCrawJUD):
             "Planilhas criadas.",
             row=0,
             type_log="success",
-            status=self.status_log,
+            status="Inicializando",
         )
 
         for item in planilha_args:
@@ -149,7 +145,7 @@ class CrawJUD(PropertiesCrawJUD):
             "Carregando configurações",
             row=0,
             type_log="log",
-            status=self.status_log,
+            status="Inicializando",
         )
 
         with Path(self.path_config).resolve().open("r") as f:
@@ -165,7 +161,7 @@ class CrawJUD(PropertiesCrawJUD):
             "Configurações carregadas",
             row=0,
             type_log="success",
-            status=self.status_log,
+            status="Inicializando",
         )
 
     def dataFrame(self) -> list[BotData]:  # noqa: N802
@@ -175,46 +171,39 @@ class CrawJUD(PropertiesCrawJUD):
         and returns the data as a list of dictionaries.
 
         Returns:
-            List(list[dict[str, str]]): A record list from the processed Excel file.
+            list[BotData]: A record list from the processed Excel file.
 
         Raises:
             FileNotFoundError: If the target file does not exist.
             ValueError: For problems reading the file.
 
         """
-        df = pd.read_excel(self.input_file)
+        input_file = Path(self.output_dir_path).joinpath(self.xlsx).resolve()
+
+        df = pd.read_excel(input_file)
         df.columns = df.columns.str.upper()
 
+        def format_data(x: Generic[T]) -> str:
+            if str(x) == "NaT" or str(x) == "nan":
+                return ""
+
+            if isinstance(x, (datetime, Timestamp)):
+                return x.strftime("%d/%m/%Y")
+
+            return x
+
+        def format_float(x: Generic[T]) -> str:
+            return f"{x:.2f}".replace(".", ",")
+
         for col in df.columns:
-            with suppress(Exception):
-                df[col] = df[col].apply(
-                    lambda x: (
-                        x.strftime("%d/%m/%Y")
-                        if isinstance(x, (datetime, Timestamp))
-                        else x
-                    )
-                )
+            df[col] = df[col].apply(format_data)
 
         for col in df.select_dtypes(include=["float"]).columns:
-            with suppress(Exception):
-                df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
+            df[col] = df[col].apply(format_float)
 
-        data_planilha = []
+        to_list = [dict(list(item.items())) for item in df.to_dict(orient="records")]
 
-        df_dicted = df.to_dict(orient="records")
-        for item in df_dicted:
-            for key, value in item.items():
-                if str(value) == "nan":
-                    item[key] = None
-
-            data_planilha.append(item)
-
-        logs = MessageLog.query_logs(self.pid)
-
-        if logs and logs.row > 0:
-            data_planilha = data_planilha[: logs.row + 1]
-
-        return data_planilha
+        return to_list
 
     def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
         """Format a legal case dictionary according to pre-defined rules.

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from socketio import AsyncSimpleClient
 
@@ -42,9 +42,11 @@ url_server = environ["SOCKETIO_SERVER_URL"]
 
 @shared_task(name="print_message")
 async def print_message(  # noqa: D103
-    event: str,
-    data: dict[str, str] | str,
+    event: str = "log_execution",
+    data: dict[str, str] | str = None,
     room: str = None,
+    *args: Any,
+    **kwargs: Any,
 ) -> None:
     async with AsyncSimpleClient(
         reconnection_attempts=20,

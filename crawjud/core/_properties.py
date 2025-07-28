@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from logging import Logger
-from typing import TYPE_CHECKING, AnyStr
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, ParamSpec, TypeVar
 
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
@@ -14,6 +14,9 @@ from crawjud.types.elements import type_elements
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
+
+PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
+PrintTReturn = TypeVar("PrintTReturn", bound=Any)
 
 
 class PropertiesCrawJUD:
@@ -34,6 +37,7 @@ class PropertiesCrawJUD:
     state_or_client: str = None
     preferred_browser: str = "chrome"
     total_rows: int
+    _print_msg: Callable[PrintParamSpec, PrintTReturn]
 
     # Variáveis de autenticação/protocolo
     username: str
@@ -118,3 +122,15 @@ class PropertiesCrawJUD:
 
         """
         return self._cities_am
+
+    @property
+    def print_msg(self) -> Callable[PrintParamSpec, PrintTReturn]:
+        return self._print_msg
+
+    @print_msg.setter
+    def print_msg(self, new_value: Callable[PrintParamSpec, PrintTReturn]) -> None:
+        self._print_msg = new_value
+
+    @property
+    def prt(self) -> Callable[PrintParamSpec, PrintTReturn]:
+        return self._print_msg
