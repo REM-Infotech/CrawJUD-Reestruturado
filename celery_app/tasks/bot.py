@@ -21,12 +21,11 @@ from __future__ import annotations
 
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, AnyStr, Literal, cast
+from typing import TYPE_CHECKING, Any, AnyStr, Literal, Self
 
-from celery import Task, current_task
+from celery import Task
 
 from addons.storage import Storage
-from celery_app import app
 from celery_app._wrapper import shared_task
 from crawjud.core import CrawJUD
 
@@ -51,10 +50,16 @@ class BotTask:  # noqa: D101
         row: int = 0,
         _type: TypeLog = "log",
         status: StatusType = "Inicializando",
+        *args,  # noqa: ANN002
+        **kwargs,  # noqa: ANN003
     ) -> None:
-        app.send_task()
+        print(message)
 
-    async def download_files(self, pid: str, *args: AnyStr, **kw: AnyStr) -> Path:  # noqa: D102
+    @property
+    def prt(self) -> Self:  # noqa: D102
+        return self
+
+    async def download_files(self, pid: str, config_folder_name: str) -> Path:  # noqa: D102
         storage = Storage("minio")
         # Download files from storage
 
@@ -62,14 +67,14 @@ class BotTask:  # noqa: D101
 
         await storage.download_files(
             dest=path_files,
-            prefix=pid,
+            prefix=config_folder_name,
         )
 
         # Print log message indicating successful file download
         await self.print_msg(
             "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
         )
-        return path_files.joinpath(pid, f"{pid}.json")
+        return path_files.joinpath(pid, f"{config_folder_name}.json")
 
     @staticmethod
     @shared_task(name="run_bot")
@@ -80,22 +85,40 @@ class BotTask:  # noqa: D101
         return await BotTask().start_bot(*args, **kwargs)
 
     async def start_bot(  # noqa: D102
-        self, name: str, system: str, *args: AnyStr, **kw: AnyStr
+        self,
+        name: str,
+        system: str,
+        file_config: str,
+        config_folder_name: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        pid = cast(Task, current_task()).request
-        module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
-        bot = import_module(module_name, __package__)
-        class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
-        path_config = await self.download_files(pid)
+        try:
+            current_task: Task = kwargs.get("task")
+            pid = str(current_task.request.id)
+            module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
+            bot = import_module(module_name, __package__)
+            class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
 
-        master = CrawJUD.initialize(
-            self,
-            bot_name=name,
-            bot_system=system,
-            path_config=path_config,
-        )
-        await self.print_msg(
-            "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
-        )
+            # Aguarda a finalização da task de upload antes de continuar
+            path_config = await self.download_files(pid, config_folder_name)
 
-        return await class_bot.execution(master)
+            master = CrawJUD().initialize(
+                self,
+                bot_name=name,
+                bot_system=system,
+                path_config=path_config,
+            )
+            await self.print_msg(
+                "Iniciando execução do robô...",
+                pid,
+                0,
+                "log",
+                "Inicializando",
+            )
+
+            return await class_bot.execution(master)
+
+        except Exception as e:
+            print(e)
+            return "ok"
