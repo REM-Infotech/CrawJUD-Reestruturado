@@ -26,6 +26,7 @@ from quart import (
 from quart import current_app as app  # noqa: F401
 from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
 from werkzeug.datastructures import MultiDict
+from werkzeug.utils import secure_filename
 
 from addons.storage import Storage
 from api.addons.make_models import MakeModels  # noqa: F401
@@ -179,7 +180,7 @@ class LoadForm:  # noqa: D101
                     form_data.update(await self._format_credential(credential))
                     continue
 
-                form_data.update({item: val})
+                form_data.update({item: secure_filename(val)})
 
         return form_data
 
