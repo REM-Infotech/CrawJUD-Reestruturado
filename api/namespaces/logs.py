@@ -166,6 +166,11 @@ class LogsNamespace(Namespace):
                 elif message["type"] == "success":
                     message["success"] += 1
 
+        else:
+            message["success"] = 0
+            message["errors"] = 0
+            message["remaining"] = 0
+
         return message
 
     async def log_redis(
@@ -197,11 +202,11 @@ class LogsNamespace(Namespace):
                 type="LOG",
                 pid=pid,
                 status="Em Execução",
-                row=1,
-                total=1,
-                errors=1,
-                success=1,
-                remaining=1,
+                row=0,
+                total=0,
+                errors=0,
+                success=0,
+                remaining=0,
                 start_time="01/01/2023 - 00:00:00",
             )
         )
