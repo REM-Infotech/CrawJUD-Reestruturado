@@ -24,6 +24,8 @@ from celery_app.addons import worker_name_generator
 clear()
 environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
 
+work_dir = Path(__file__).cwd()
+
 
 def start_worker() -> None:
     """Start the Celery Worker."""
@@ -37,7 +39,7 @@ def start_worker() -> None:
         task_events=True,
         loglevel="DEBUG",
         concurrency=8,
-        pool="prefork",
+        pool="solo",
     )
     worker = worker
 
@@ -57,13 +59,14 @@ def start_beat() -> None:
     celery = make_celery()
     environ.update({"APPLICATION_APP": "beat"})
     scheduler = "celery_app.addons.scheduler:DatabaseScheduler"
-    worker_name = f"{worker_name_generator()}_celery"
     beat = Beat(
         app=celery,
         scheduler=scheduler,
         max_interval=5,
         loglevel="INFO",
-        logfile=Path().cwd().joinpath("temp", "logs", f"{worker_name}.log"),
+        logfile=work_dir.joinpath(
+            "temp", "logs", f"{environ['WORKER_NAME']}_beat.log"
+        ),
         no_color=False,
     )
     beat.run()

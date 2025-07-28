@@ -5,10 +5,8 @@ This module fetches and processes court hearing schedules (pautas) for automated
 
 from __future__ import annotations
 
-import asyncio
 import re
 import traceback
-from asyncio import create_task, gather
 from contextlib import suppress
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -21,7 +19,6 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from common.bot import ClassBot
-from crawjud._wrapper import wrap_init
 from crawjud.addons.interator import Interact
 from crawjud.bots.pje.res.autenticador import autenticar
 from crawjud.bots.pje.res.buscador import buscar_processo
@@ -35,7 +32,6 @@ if TYPE_CHECKING:
 load_dotenv()
 
 
-@wrap_init
 class Movimentacao(ClassBot):
     """Initialize and execute pauta operations for retrieving court hearing data now.
 
@@ -78,56 +74,52 @@ class Movimentacao(ClassBot):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaforo_regiao = asyncio.Semaphore(1)
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
         self.max_rows = len(self.position_process)
+        self.total_rows = len(self.position_process)
 
-        tasks = [
-            create_task(self._queue_regiao(key, value, semaforo_regiao))
-            for key, value in list(frame.items())
-        ]
-        await gather(*tasks)
+        for key, value in list(frame.items()):
+            try:
+                await self._queue_regiao(key, value)
+
+            except Exception as e:
+                print(e)
 
     async def _queue_regiao(
         self,
         regiao: str,
         data: list[BotData],
-        semaforo_regiao: asyncio.Semaphore,
     ) -> None:
-        async with semaforo_regiao:
-            if self.is_stoped:
-                asyncio.current_task().cancel()
+        if not self.driver_trt.get(regiao):
+            driver = DriverBot(
+                selected_browser="chrome",
+                execution_path=self.output_dir_path,
+            )
 
-            if not self.driver_trt.get(regiao):
-                driver = DriverBot(
-                    selected_browser="chrome",
-                    execution_path=self.output_dir_path,
-                )
+            wait = driver.wait
 
-                wait = driver.wait
+            self.driver_trt[regiao] = {
+                "driver": driver,
+                "wait": wait,
+            }
 
-                self.driver_trt[regiao] = {
-                    "driver": driver,
-                    "wait": wait,
-                }
+            driver.maximize_window()
 
-                driver.maximize_window()
+        driver: WebDriver = self.driver_trt[regiao]["driver"]
+        wait: WebDriverWait = self.driver_trt[regiao]["wait"]
 
-            driver: WebDriver = self.driver_trt[regiao]["driver"]
-            wait: WebDriverWait = self.driver_trt[regiao]["wait"]
+        await autenticar(driver, wait, regiao)
 
-            await autenticar(driver, wait, regiao)
+        for value in data:
+            await self.queue(
+                data=value,
+                driver=driver,
+                wait=wait,
+                regiao=regiao,
+            )
 
-            for value in data:
-                await self.queue(
-                    data=value,
-                    driver=driver,
-                    wait=wait,
-                    regiao=regiao,
-                )
-
-            driver.quit()
+        driver.quit()
 
     async def queue(  # noqa: D102
         self,
@@ -136,9 +128,6 @@ class Movimentacao(ClassBot):
         wait: WebDriverWait,
         regiao: str,
     ) -> None:
-        if self.is_stoped:
-            asyncio.current_task().cancel()
-
         try:
             row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
             await buscar_processo(
@@ -147,6 +136,7 @@ class Movimentacao(ClassBot):
                 wait=wait,
                 data=data,
                 regiao=regiao,
+                print_msg=self.print_msg,
             )
             await self.extrair_movimentacao(
                 regiao=regiao, driver=driver, wait=wait, data=data, row=row
@@ -221,13 +211,9 @@ class Movimentacao(ClassBot):
                 continue
 
         app: Celery = current_app
-
         args_task = {
             "pid": self.pid,
             "data": movimentacoes,
-            "filename": f"EXECUÇÃO {self.pid}.xlsx",
-            "sheet_name": f"TRT{regiao.zfill(2)}",
+            "processo": data["NUMERO_PROCESSO"],
         }
-
-        task = app.gen_task_name("save_success", "celery_app.tasks.bot")
-        app.send_task(task, kwargs=args_task)
+        app.send_task("save_cache", kwargs=args_task)

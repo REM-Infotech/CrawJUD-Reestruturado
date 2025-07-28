@@ -4,14 +4,13 @@ import io
 import re
 from asyncio import sleep
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from addons.printlogs._async import AsyncPrintMessage
 from addons.recaptcha import captcha_to_image
 from crawjud.bots.pje.res.formatador import formata_url_pje
 from crawjud.core._dictionary import BotData
@@ -29,11 +28,11 @@ async def buscar_processo(  # noqa: D102, D103
     wait: WebDriverWait,
     data: BotData,
     regiao: str,
-    prt: AsyncPrintMessage,
+    print_msg: Any,
 ) -> None:
     url = await formata_url_pje(regiao, "search")
     driver.get(url)
-    await prt.print_msg(
+    print_msg(
         f"Buscando processo Nº{data['NUMERO_PROCESSO']}",
         row=row,
     )
@@ -55,7 +54,7 @@ async def buscar_processo(  # noqa: D102, D103
     )
     btn_pesquisar.click()
     await desafio_captcha(driver, wait)
-    await prt.print_msg("Processo encontrado!", row=row, type_log="info")
+    print_msg("Processo encontrado!", row=row, type_log="info")
 
 
 async def desafio_captcha(  # noqa: D102, D103

@@ -52,9 +52,17 @@ class BotTask:  # noqa: D101
     count_id_log: int = 0
     current_task: Task = None
     start_time: datetime = None
-
+    _pid: str = ""
     __name__ = "BotTask"
     __annotations__ = {"name": str, "system": str}
+
+    @property
+    def pid(self) -> str:  # noqa: D102
+        return self._pid
+
+    @pid.setter
+    def pid(self, new_val: str) -> None:
+        self._pid = new_val
 
     def print_msg(  # noqa: D102
         self,
@@ -66,8 +74,8 @@ class BotTask:  # noqa: D101
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        pid = pid if pid else str(self.current_task.request.id)[:6].upper()
-        total_count = self.master_instance.total_rows
+        pid = pid if pid else str(self.pid)
+        total_count = self._total_rows
         remaining = 0
         if row > 0:
             # Calcula o número restante de linhas
@@ -75,10 +83,10 @@ class BotTask:  # noqa: D101
 
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
-        self.count_id_log += 1
+
         data = MessageLog(
             message=prompt,
-            pid=str(self.current_task.request.id),
+            pid=str(self.pid),
             row=row,
             type=type_log,
             status=status,
@@ -92,7 +100,7 @@ class BotTask:  # noqa: D101
             "print_message",
             kwargs={
                 "data": data,
-                "room": str(self.current_task.request.id),
+                "room": str(pid),
                 "event": "log_execution",
             },
         )
@@ -118,11 +126,6 @@ class BotTask:  # noqa: D101
         await storage.download_files(
             dest=path_files,
             prefix=config_folder_name,
-        )
-
-        # Print log message indicating successful file download
-        self.print_msg(
-            "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
         )
 
         for root, _, files in path_files.joinpath(config_folder_name).walk():
@@ -156,35 +159,25 @@ class BotTask:  # noqa: D101
             self.start_time = datetime.strptime(
                 current_task.request.eta, "%Y-%m-%dT%H:%M:%S.%f%z"
             )
-
             pid = str(current_task.request.id)
+            self.pid = pid
+
             module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
             bot = import_module(module_name, __package__)
             class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
 
-            instance_crawjud = CrawJUD()
-            self.master_instance = instance_crawjud
-
             # Aguarda a finalização da task de upload antes de continuar
             path_config = await self.download_files(pid, config_folder_name)
 
-            master = await instance_crawjud.initialize(
+            self.master_instance = await CrawJUD().initialize(
                 pid=pid,
                 task_bot=self,
                 bot_name=name,
                 bot_system=system,
                 path_config=path_config,
             )
-            self.print_msg(
-                "Iniciando execução do robô...",
-                pid,
-                0,
-                "log",
-                "Inicializando",
-            )
 
-            _class_bot = self.transfer_attributes(master, class_bot)
-            return await _class_bot.execution()
+            return await class_bot(master=self.master_instance).execution()
 
         except Exception as e:
             _msg = "\n".join(traceback.format_exception(e))
@@ -192,7 +185,6 @@ class BotTask:  # noqa: D101
             raise e
 
     def transfer_attributes(self, source: CrawJUD, target: ClassBot) -> ClassBot:  # noqa: D102
-        target = target.__new__(target)  # cria instância sem chamar __init__
         for key, value in source.__dict__.items():
             setattr(target, key, value)
 
@@ -200,6 +192,12 @@ class BotTask:  # noqa: D101
         for attr in dir(source):
             if callable(getattr(source, attr)) and not attr.startswith("__"):
                 fn = getattr(source, attr)
+                if isinstance(fn, MethodType):
+                    setattr(target, attr, MethodType(fn.__func__, target))
+
+        for attr in dir(self):
+            if callable(getattr(self, attr)) and not attr.startswith("__"):
+                fn = getattr(self, attr)
                 if isinstance(fn, MethodType):
                     setattr(target, attr, MethodType(fn.__func__, target))
 

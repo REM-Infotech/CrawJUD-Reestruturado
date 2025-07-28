@@ -94,9 +94,9 @@ class MessageLog(JsonModel):
 
 
 class CachedExecution(JsonModel):  # noqa: D101
+    processo: str = Field(description="Processo Juridico", primary_key=True)
     pid: str = Field(
         default="desconhecido",
         description="e.g. 'C3K7H5' (identificador do processo)",
-        primary_key=True,
     )
     data: list[dict[str, Any]] = Field()

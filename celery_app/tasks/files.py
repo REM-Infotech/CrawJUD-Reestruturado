@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 from werkzeug.utils import secure_filename
 
 from addons.storage import Storage
 from celery_app._wrapper import shared_task
+from models.logs import CachedExecution
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
@@ -48,24 +49,13 @@ async def save_success(  # noqa: D103
     await storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
 
-@shared_task(name="save_success_cache")
+@shared_task(name="save_cache")
 async def save_success_cache(  # noqa: D103
     pid: str,
     data: list[BotData],
-    filename: str,
-    sheet_name: str = "Resultados",
+    processo: str,
+    *args: Any,
+    **kwargs: Any,
 ) -> None:
-    storage = Storage("minio")
-    path_planilha = workdir_path.joinpath("temp", pid, filename)
-
-    path_planilha.parent.mkdir(exist_ok=True, parents=True)
-    df = pd.DataFrame(data)
-
-    with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
-        df.to_excel(
-            excel_writer=writter,
-            index=False,
-            sheet_name=sheet_name,
-        )
-    file_name = secure_filename(path_planilha.name)
-    await storage.upload_file(f"{pid}/{file_name}", path_planilha)
+    _cache = CachedExecution(processo=processo, data=data, pid=pid)
+    _cache.save()
