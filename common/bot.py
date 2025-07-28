@@ -21,7 +21,7 @@ TReturn = TypeVar("TReturn")
 
 
 class ClassBot(CrawJUD):  # noqa:  D101
-    async def print_msg(  # noqa: B027, D102
+    def print_msg(  # noqa: B027, D102
         self,
         message: str = "Carregando",
         pid: str = None,

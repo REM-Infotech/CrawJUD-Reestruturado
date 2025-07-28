@@ -24,7 +24,6 @@ import traceback
 from datetime import datetime
 from importlib import import_module
 from pathlib import Path
-from types import MethodType
 from typing import TYPE_CHECKING, Any, AnyStr, Literal, Self
 
 from celery import Task
@@ -118,8 +117,6 @@ class BotTask:  # noqa: D101
 
     async def download_files(self, pid: str, config_folder_name: str) -> Path:  # noqa: D102
         storage = Storage("minio")
-        # Download files from storage
-
         path_files = workdir.joinpath("temp", pid)
 
         await storage.download_files(
@@ -184,22 +181,3 @@ class BotTask:  # noqa: D101
             _msg = "\n".join(traceback.format_exception(e))
             print(_msg)
             raise e
-
-    def transfer_attributes(self, source: CrawJUD, target: ClassBot) -> ClassBot:  # noqa: D102
-        for key, value in source.__dict__.items():
-            setattr(target, key, value)
-
-        # Copiar métodos de instância dinamicamente (opcional)
-        for attr in dir(source):
-            if callable(getattr(source, attr)) and not attr.startswith("__"):
-                fn = getattr(source, attr)
-                if isinstance(fn, MethodType):
-                    setattr(target, attr, MethodType(fn.__func__, target))
-
-        for attr in dir(self):
-            if callable(getattr(self, attr)) and not attr.startswith("__"):
-                fn = getattr(self, attr)
-                if isinstance(fn, MethodType):
-                    setattr(target, attr, MethodType(fn.__func__, target))
-
-        return target
