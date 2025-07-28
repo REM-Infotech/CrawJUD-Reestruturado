@@ -153,16 +153,18 @@ class LogsNamespace(Namespace):
 
         """
         # Inicializa os contadores se não existirem
-        message["success"] = message.get("success", 0)
-        message["errors"] = message.get("errors", 0)
-        message["remaining"] = message.get("total", 0) - message["success"]
 
-        # Atualiza os contadores conforme o tipo de mensagem
-        if message.get("type") and message.get("row") > 0:
-            if message.get("type") == "error":
-                message["errors"] += 1
-            elif message["type"] == "success":
-                message["success"] += 1
+        if message["status"] != "Inicializando":
+            message["success"] = message.get("success", 0)
+            message["errors"] = message.get("errors", 0)
+            message["remaining"] = message.get("total", 0) - message["success"]
+
+            # Atualiza os contadores conforme o tipo de mensagem
+            if message.get("type") and message.get("row") > 0:
+                if message.get("type") == "error":
+                    message["errors"] += 1
+                elif message["type"] == "success":
+                    message["success"] += 1
 
         return message
 

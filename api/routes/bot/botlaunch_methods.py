@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json  # noqa: F401
 import traceback
+from os import path
 from pathlib import Path
 from traceback import format_exception  # noqa: F401
 from typing import TYPE_CHECKING, Any, List, Self, TypedDict
+from uuid import uuid4
 
 import aiofiles
 import chardet
@@ -25,6 +27,7 @@ from quart import current_app as app  # noqa: F401
 from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
 from werkzeug.datastructures import MultiDict
 
+from addons.storage import Storage
 from api.addons.make_models import MakeModels  # noqa: F401
 from api.interface.formbot import FormDict  # noqa: F401
 from api.interface.session import SessionDict
@@ -154,6 +157,13 @@ class LoadForm:  # noqa: D101
 
         async with aiofiles.open(json_file, "wb") as f:
             await f.write(bytes(json.dumps(data), encoding="utf-8"))
+
+        storage = Storage("minio")
+        sid = getattr(session, "sid", None)
+        _sid = sid if sid else uuid4().hex
+
+        path_minio = path.join(_sid.upper(), json_file.name)
+        await storage.upload_file(path_minio, json_file)
 
         return name_file_config, json_file.name
 
