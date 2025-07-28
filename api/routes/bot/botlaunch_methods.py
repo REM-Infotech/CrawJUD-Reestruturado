@@ -124,7 +124,7 @@ class LoadForm:  # noqa: D101
                 "config_folder_name": name_file_config,
             }
 
-            _task = celery_app.send_task("run_bot", kwargs=args_task)
+            _task = celery_app.send_task("run_bot", kwargs=args_task, countdown=2)
 
             return _task.task_id
 

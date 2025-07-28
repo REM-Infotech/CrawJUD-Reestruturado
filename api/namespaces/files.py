@@ -61,7 +61,7 @@ class FileNamespaces(Namespace):
         sid: str | None = getattr(session, "sid", None)
 
         if sid:
-            path_temp = Path(__file__).cwd().joinpath("temp", sid)
+            path_temp = Path(__file__).cwd().joinpath("temp", sid.upper())
             if path_temp.exists():
                 shutil.rmtree(path_temp)
 
