@@ -80,7 +80,7 @@ class Movimentacao(ClassBot):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaforo_regiao = asyncio.Semaphore(10)
+        semaforo_regiao = asyncio.Semaphore(5)
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
         self.total_rows = len(self.position_process)
@@ -159,7 +159,6 @@ class Movimentacao(ClassBot):
                         regiao=regiao,
                     )
 
-                driver.quit()
             except Exception as e:
                 print("\n".join(traceback.format_exception(e)))
                 self.print_msg(
