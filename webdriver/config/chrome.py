@@ -2,12 +2,13 @@
 from pathlib import Path
 from typing import Any
 
+from browsermobproxy import Client
 from selenium.webdriver.chrome.options import Options
 
 from webdriver._types import (
     ChromePreferences,
 )
-from webdriver.config._proxy import configure_proxy
+from webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 
@@ -26,7 +27,6 @@ arguments_list: list[str] = [
     "--disable-backgrounding-occluded-windows",
     "--disable-blink-features=AutomationControlled",
     "--disable-features=MediaFoundationVideoCapture",
-    "--no-proxy-server",
     "--disable-software-rasterizer",
     "--disable-features=VizDisplayCompositor",
 ]
@@ -50,6 +50,8 @@ chrome_preferences: ChromePreferences = {
 
 
 class ChromeOptions(Options):  # noqa: D101
+    _proxy_client: Client = None
+
     def __init__(  # noqa: D107
         self,
         extensions_path: Path | str = work_dir,
@@ -74,6 +76,14 @@ class ChromeOptions(Options):  # noqa: D101
             self._proxy_client = configure_proxy()
             self.proxy = self._proxy_client.selenium_proxy()
             self.add_argument(f"--proxy-server={self._proxy_client.proxy}")
+
+    @property
+    def proxy_client(self) -> Client:  # noqa: D102
+        return self._proxy_client
+
+    @proxy_client.setter
+    def proxy_client(self, new_proxy: Client) -> None:
+        self._proxy_client = new_proxy
 
 
 def configure_chrome(

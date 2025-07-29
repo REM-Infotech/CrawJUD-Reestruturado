@@ -14,8 +14,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import aiofiles
-import requests
 from celery import Celery, current_app
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
@@ -245,18 +243,16 @@ class Movimentacao(ClassBot):
         for cookie in driver.get_cookies():
             cookies.update({cookie["name"]: cookie["value"]})
 
-        driver.proxy.new_har("teste_tls", options={"captureContent": True})
-        _har_data = (
-            driver.proxy.har
-        )  # HAR: HTTP Archive (todos os requests/responses)
-        for file, link in arquivos:
-            response = requests.get(link, cookies=cookies, timeout=15)  # noqa: ASYNC210
-            _data = response.content  # noqa: B018
-            async with aiofiles.open(
-                Path(self.output_dir_path).joinpath(file), "wb"
-            ) as f:
-                await f.write(_data)
+        _har_data = driver.current_HAR
 
+        list_data = [
+            item
+            for item in _har_data.entries
+            if "pje-consulta-api/api/processos/" in item.request.url
+        ]
+
+        for _entry in list_data:
+            pass
         args_task = {
             "pid": self.pid,
             "data": movimentacoes,

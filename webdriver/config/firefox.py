@@ -3,11 +3,12 @@
 from pathlib import Path
 from typing import Any
 
+from browsermobproxy import Client
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options
 
 from webdriver._types import FirefoxPreferences
-from webdriver.config._proxy import configure_proxy
+from webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 
@@ -22,6 +23,8 @@ firefox_preferences = {
 
 
 class FirefoxOptions(Options):  # noqa: D101
+    _proxy_client: Client = None
+
     def __init__(  # noqa: D107
         self,
         extensions_path: Path | str = work_dir,
@@ -40,6 +43,14 @@ class FirefoxOptions(Options):  # noqa: D101
         if with_proxy:
             self._proxy_client = configure_proxy()
             self.proxy = self._proxy_client.selenium_proxy()
+
+    @property
+    def proxy_client(self) -> Client:  # noqa: D102
+        return self._proxy_client
+
+    @proxy_client.setter
+    def proxy_client(self, new_proxy: Client) -> None:
+        self._proxy_client = new_proxy
 
 
 def configure_gecko(

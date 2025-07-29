@@ -62,24 +62,27 @@ async def desafio_captcha(  # noqa: D102, D103
     wait: WebDriverWait,
 ) -> None:
     tries = 0
+
+    with suppress(Exception):
+        btn_proc = WebDriverWait(driver, 5).until(
+            ec.presence_of_all_elements_located((
+                By.CSS_SELECTOR,
+                'button[class="selecao-processo ng-star-inserted"]',
+            ))
+        )[0]
+        btn_proc.click()
+
     while tries < 15:
         with suppress(Exception):
-            with suppress(Exception):
-                btn_proc = WebDriverWait(driver, 5).until(
-                    ec.presence_of_all_elements_located((
-                        By.CSS_SELECTOR,
-                        'button[class="selecao-processo ng-star-inserted"]',
-                    ))
-                )[0]
-                btn_proc.click()
-
             img = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'img[id="imagemCaptcha"]',
                 ))
             ).get_attribute("src")
-            bytes_img = base64.b64decode(img.replace("data:image/png;base64, ", ""))
+            bytes_img = base64.b64decode(
+                img.replace(" ", "").replace("data:image/png;base64,", "")
+            )
             readable_buffer = io.BytesIO(bytes_img)
             text = captcha_to_image(readable_buffer.read()).zfill(6)[:6]
 
@@ -93,7 +96,7 @@ async def desafio_captcha(  # noqa: D102, D103
             )
             btn_enviar.click()
 
-        await sleep(4)
+        await sleep(2)
         full_match = re.fullmatch(pattern_url, driver.current_url)
 
         if full_match:
