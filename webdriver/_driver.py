@@ -8,7 +8,7 @@ from selenium.webdriver.firefox.remote_connection import FirefoxRemoteConnection
 from selenium.webdriver.firefox.service import Service as GeckoService
 from webdriver_manager.chrome import ChromeDriverManager
 
-from webdriver.configure import configure_chrome, configure_gecko
+from webdriver.config import configure_chrome, configure_gecko
 
 if TYPE_CHECKING:
     from ._types import OptionsConfig

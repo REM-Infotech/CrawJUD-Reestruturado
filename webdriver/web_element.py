@@ -6,6 +6,7 @@ import re  # noqa: F401
 import traceback  # noqa: F401
 from contextlib import suppress
 from time import sleep
+from typing import TYPE_CHECKING, Self
 
 from selenium.common.exceptions import (  # noqa: F401
     NoSuchElementException,
@@ -14,16 +15,21 @@ from selenium.common.exceptions import (  # noqa: F401
 from selenium.webdriver import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
 
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
+
 
 class WebElementBot(WebElement):  # noqa: D101
-    @property
-    def clr(self) -> WebElement:  # noqa: D102
-        return super()
+    _cuurent_driver: WebDriver = None
+
+    @classmethod
+    def set_driver(cls, _driver: WebDriver) -> type[Self]:  # noqa: D102
+        cls._cuurent_driver = _driver
+        return cls
 
     def click(self) -> None:
         """Perform a click action on a web element with brief pauses.

@@ -29,6 +29,31 @@ driver_options = TypeVar(
     bound=Union[Callable[..., GeckoOptions] | Callable[..., ChromeOptions]],
 )
 
+ChromePreferences = TypedDict(
+    "ChromePreferences",
+    {
+        "download.prompt_for_download": bool,
+        "plugins.always_open_pdf_externally": bool,
+        "profile.default_content_settings.popups": int,
+        "printing.print_preview_sticky_settings.appState": str,
+        "download.default_directory": str,
+        "credentials_enable_service": bool,
+        "profile.password_manager_enabled": bool,
+    },
+)
+
+FirefoxPreferences = TypedDict(
+    "FirefoxPreferences",
+    {
+        "browser.download.folderList": int,
+        "browser.download.manager.showWhenStarting": bool,
+        "browser.download.dir": str,
+        "browser.helperApps.neverAsk.saveToDisk": str,
+        "pdfjs.disabled": bool,
+    },
+)
+
+
 ChromeConfig = TypedDict(
     "ChromeConfig",
     {

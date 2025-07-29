@@ -2,71 +2,70 @@
 
 from __future__ import annotations
 
-import json
-from contextlib import suppress  # noqa: F401
 from pathlib import Path
-from time import sleep  # noqa: F401
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, ParamSpec, TypeVar, Union
 
-from browsermobproxy import Client as ProxyClient
-from browsermobproxy import Server
-from selenium import webdriver
-from selenium.common.exceptions import (  # noqa: F401
-    NoSuchElementException,
-)
-from selenium.webdriver import Keys  # noqa: F401
-from selenium.webdriver.common.action_chains import ActionChains  # noqa: F401
-from selenium.webdriver.common.by import By  # noqa: F401
-from selenium.webdriver.remote.webelement import WebElement  # noqa: F401
-from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
+from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
+from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.core.download_manager import WDMDownloadManager
-from webdriver_manager.core.driver_cache import DriverCacheManager  # noqa: F401
-from webdriver_manager.core.file_manager import FileManager  # noqa: F401
-from webdriver_manager.core.os_manager import OperationSystemManager  # noqa: F401
+from webdriver_manager.core.driver_cache import DriverCacheManager
+from webdriver_manager.core.file_manager import FileManager
+from webdriver_manager.core.os_manager import OperationSystemManager
 
 from webdriver._driver import config
-from webdriver._types import BrowserOptions
-from webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
-    from selenium.webdriver.common.options import ArgOptions as Options
     from selenium.webdriver.common.service import Service
-    from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
-    from selenium.webdriver.remote.webelement import WebElement  # noqa: F401
 
-BROWSERMOB_PATH = "/opt/browsermob-proxy/bin/browsermob-proxy/bin"
+    from webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
+    from webdriver.config.chrome import ChromeOptions
+    from webdriver.config.firefox import FirefoxOptions
+    from webdriver.web_element import WebElementBot
 
 
-class DriverBot(webdriver.Remote):  # noqa: D101
-    _proxy: ProxyClient = None
+work_dir = Path(__file__).cwd()
 
-    @property
-    def proxy(self) -> ProxyClient:  # noqa: D102
-        return self._proxy
+P = ParamSpec("P")
+T = TypeVar("T")
 
-    @proxy.setter
-    def proxy(self, new_value: ProxyClient) -> None:
-        self._proxy = new_value
 
+class DriverBot(WebDriver):  # noqa: D101
     def __init__(  # noqa: D107
         self,
         selected_browser: BrowserOptions,
         execution_path: str | Path = None,
-        dir_extensions: str | Path = None,
         *args: str,
         **kwargs: str,
     ) -> None:
+        driver_config = config[selected_browser]
+
+        # Configura o Manager
+        self._configure_manager(
+            driver_config=driver_config,
+            execution_path=execution_path,
+        )
+        self._configure_service(driver_config=driver_config, **kwargs)
+        self._configure_executor(driver_config=driver_config)
+        self._configure_options(driver_config=driver_config, **kwargs)
+
+        super().__init__(
+            command_executor=self._executor,
+            options=self._options,
+            web_element_cls=WebElementBot.set_driver(self),
+        )
+
+        self._wait = WebDriverWait(self, 5)
+
+    def _configure_manager(
+        self,
+        driver_config: ChromeConfig | FirefoxConfig,
+        execution_path: str | Path = None,
+    ) -> str:
         root_dir = (
-            Path(execution_path)
-            if execution_path
-            else Path(__file__).home().joinpath("temp")
+            Path(execution_path) if execution_path else work_dir.joinpath("temp")
         )
         root_dir.mkdir(exist_ok=True)
-        driver_config = config[selected_browser]
-        server = Server(BROWSERMOB_PATH)
-        server.start()
-        proxy = server.create_proxy()
-        # Configura o Manager
+
         system_manager = OperationSystemManager()
         file_manager = FileManager(os_system_manager=system_manager)
         _manager = driver_config["manager"](
@@ -75,57 +74,40 @@ class DriverBot(webdriver.Remote):  # noqa: D101
                 file_manager=file_manager, root_dir=root_dir
             ),
             os_system_manager=system_manager,
-        ).install()
+        )
+        self._manager = _manager
+        return _manager
 
-        # Configura o service
+    def _configure_service(
+        self,
+        driver_config: ChromeConfig | FirefoxConfig,
+        **kwargs: Any,
+    ) -> None:
         self._service = driver_config["service"](
-            executable_path=_manager,
+            executable_path=self._manager.install(),
             port=kwargs.get("PORT", 0),
         )
         self._service.start()
 
-        # Configura o executor
+    def _configure_executor(
+        self, driver_config: ChromeConfig | FirefoxConfig
+    ) -> None:
         driver_config["args_executor"].update({
-            "remote_server_addr": self.service.service_url
+            "remote_server_addr": self._service.service_url
         })
-        _executor = driver_config["executor"](**driver_config["args_executor"])
+        self._executor = driver_config["executor"](**driver_config["args_executor"])
 
-        self._options = driver_config.get("options")(
-            proxy=proxy,
-            dir_extensions=dir_extensions,
-            chrome_prefs={
-                "download.prompt_for_download": False,
-                "plugins.always_open_pdf_externally": True,
-                "profile.default_content_settings.popups": 0,
-                "printing.print_preview_sticky_settings.appState": json.dumps({
-                    "recentDestinations": [
-                        {"id": "Save as PDF", "origin": "local", "account": ""}
-                    ],
-                    "selectedDestinationId": "Save as PDF",
-                    "version": 2,
-                }),
-                "download.default_directory": str(execution_path),
-                "credentials_enable_service": True,
-                "profile.password_manager_enabled": True,
-            },
-        )
-        self.proxy = proxy
+    def _configure_options(
+        self,
+        driver_config: ChromeConfig | FirefoxConfig,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        self._options = driver_config.get("options")(*args, **kwargs)
         self._options.enable_downloads = True
-        super().__init__(
-            command_executor=_executor,
-            options=self._options,
-            web_element_cls=WebElementBot,
-        )
-
-        self._wait = WebDriverWait(self, 5)
-
-    def get_downloadable_files(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, ANN201, D102
-        arg = args
-        kwarg = kwargs
-        print(arg, kwarg)
 
     @property
-    def options(self) -> Options:  # noqa: D102
+    def options(self) -> Union[FirefoxOptions, ChromeOptions]:  # noqa: D102
         return self._options
 
     @property
@@ -135,3 +117,13 @@ class DriverBot(webdriver.Remote):  # noqa: D101
     @property
     def wait(self) -> WebDriverWait:  # noqa: D102
         return self._wait
+
+    @wait.setter
+    def wait(self, new_wait: WebDriverWait) -> None:
+        self._wait = new_wait
+
+    def find_element(self, *args: P.args, **kwargs: P.kwargs) -> WebElementBot:  # noqa: D102
+        return super().find_element(*args, kwargs)
+
+    def find_elements(self, *args: P.args, **kwargs: P.kwargs) -> List[WebElementBot]:  # noqa: D102
+        return super().find_elements(*args, kwargs)
