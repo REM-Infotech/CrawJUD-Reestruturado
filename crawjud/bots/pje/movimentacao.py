@@ -206,10 +206,14 @@ class Movimentacao(ClassBot):
             for item in entries
             if "pje-consulta-api/api/processos/" in item.request.url
             and re.match(
-                r"^https:\/\/pje\.trt\d+\.jus\.br\/pje-consulta-api\/api\/processos\/\d+$",
+                r"^https:\/\/pje\.trt\d+\.jus\.br\/pje-consulta-api\/api\/processos\/\d+",
                 item.request.url,
             )
         ][-1]
+
+        url = entry_proxy.request.url.split("?")[0]
+        if "/documentos" in url:
+            url = url.split("/documentos")[0]
 
         headers = {
             header["name"]: header["value"] for header in entry_proxy.request.headers
@@ -219,13 +223,13 @@ class Movimentacao(ClassBot):
         _cookies = {str(cookie["name"]): str(cookie["value"]) for cookie in cookies}
 
         response = requests.get(  # noqa: ASYNC210
-            f"{entry_proxy.request.url}?tokenDesafio={token_captcha}&resposta={_cookies['respostaDesafio']}",
+            f"{url}?tokenDesafio={token_captcha}&resposta={_cookies['respostaDesafio']}",
             cookies=_cookies,
             headers=headers,
             timeout=25,
         )
         _response2 = requests.get(  # noqa: ASYNC210
-            f"{entry_proxy.request.url}/integra?tokenCaptcha={response.headers['captchatoken']}",
+            f"{url}/integra?tokenCaptcha={response.headers['captchatoken']}",
             cookies=_cookies,
             headers=headers,
             timeout=25,
