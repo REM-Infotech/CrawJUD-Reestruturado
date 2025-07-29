@@ -160,10 +160,12 @@ class Movimentacao(ClassBot):
                     )
 
             except Exception as e:
-                print("\n".join(traceback.format_exception(e)))
+                msg = "\n".join(traceback.format_exception(e))
                 self.print_msg(
-                    "Erro de operação",
+                    message=f"Erro de operação\n{msg}",
+                    pid=self.pid,
                     type_log="error",
+                    status="Em Execução",
                 )
                 if driver:
                     with suppress(Exception):
@@ -215,9 +217,9 @@ class Movimentacao(ClassBot):
                 )
 
         except Exception as e:
-            print("\n".join(traceback.format_exception(e)))
+            msg = "\n".join(traceback.format_exception(e))
             self.print_msg(
-                message="Erro de operação",
+                message=f"Erro de operação\n{msg}",
                 row=row,
                 pid=self.pid,
                 type_log="error",

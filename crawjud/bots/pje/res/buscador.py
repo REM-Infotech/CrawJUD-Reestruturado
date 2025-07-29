@@ -36,12 +36,12 @@ async def buscar_processo(  # noqa: D102, D103
     )
     url_dados_basicos = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
     response = await client.get(url=url_dados_basicos)
-    data_request: dict[str, str] = response.json()
+    data_request = response.json()
 
     if isinstance(data_request, list):
         data_request = data_request[0]
 
-    id_processo = str(data_request[0]["id"])
+    id_processo = str(data_request["id"])
 
     resultado = await desafio_captcha(
         client=client, id_processo=id_processo, data=data

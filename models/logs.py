@@ -99,4 +99,4 @@ class CachedExecution(JsonModel):  # noqa: D101
         default="desconhecido",
         description="e.g. 'C3K7H5' (identificador do processo)",
     )
-    data: list[dict[str, Any]] = Field()
+    data: dict[str, Any] | list[Any] = Field()
