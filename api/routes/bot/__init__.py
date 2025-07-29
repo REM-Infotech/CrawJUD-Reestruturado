@@ -23,8 +23,8 @@ from api.wrapper import crossdomain
 bot = Blueprint("bot", __name__, url_prefix="/bot")
 
 
-@bot.route("/start_bot", methods=["get", "post"])
-@crossdomain(origin="*", methods=["get", "post"])
+@bot.route("/start_bot", methods=["get", "post", "options"])
+@crossdomain(origin="*", methods=["get", "post", "options"])
 @jwt_required
 async def start_bot() -> None:  # noqa: D103
     try:
