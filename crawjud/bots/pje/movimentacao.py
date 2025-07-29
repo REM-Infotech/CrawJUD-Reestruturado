@@ -101,6 +101,7 @@ class Movimentacao(ClassBot):
         data: list[BotData],
         semaforo_regiao: asyncio.Semaphore,
     ) -> None:
+        driver = None
         async with semaforo_regiao:
             try:
                 if self.is_stoped:
@@ -142,6 +143,9 @@ class Movimentacao(ClassBot):
                     "Erro de operação",
                     type_log="error",
                 )
+                if driver:
+                    with suppress(Exception):
+                        driver.quit()
 
     async def queue(  # noqa: D102
         self,

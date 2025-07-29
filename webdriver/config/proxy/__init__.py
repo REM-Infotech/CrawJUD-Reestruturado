@@ -4,17 +4,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TypedDict
 
-from browsermobproxy import Client as ProxyClient
-from browsermobproxy import Server
+from browsermobproxy import Client, Server
 from dotenv import dotenv_values
 
 environ = dotenv_values()
 
 
-def configure_proxy() -> ProxyClient:  # noqa: D103
+def configure_proxy() -> tuple[Client, Server]:  # noqa: D103
     server = Server(environ["BROWSERMOB_PATH"])
     server.start()
-    return server.create_proxy()
+    return server.create_proxy(), server
 
 
 @dataclass(frozen=True)

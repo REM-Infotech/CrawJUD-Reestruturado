@@ -146,6 +146,10 @@ class DriverBot(WebDriver):  # noqa: D101
     def wait(self) -> WebDriverWait:  # noqa: D102
         return self._wait
 
+    def quit(self) -> None:  # noqa: D102
+        self.options.proxy_server.stop()
+        return super().quit()
+
     @wait.setter
     def wait(self, new_wait: WebDriverWait) -> None:
         self._wait = new_wait
@@ -187,10 +191,12 @@ class DriverBot(WebDriver):  # noqa: D101
         self,
     ) -> Generator[EntryRequest, Any, None]:
         _slice = self._count
-        if self._count == 0:
-            self._count = len(self.client.har.get("log").get("entries"))
+        list_entries: list = self.client.har.get("log").get("entries")
+        self._count = len(self.client.har.get("log").get("entries"))
+        if _slice > 0:
+            list_entries: list = list_entries[_slice:]
 
-        for entry in self.client.har.get("log").get("entries")[:_slice]:
+        for entry in list_entries:
             yield EntryRequest(
                 pageref=entry.get("pageref"),
                 startedDateTime=entry.get("startedDateTime"),

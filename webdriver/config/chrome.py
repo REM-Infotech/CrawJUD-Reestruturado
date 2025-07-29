@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Any
 
-from browsermobproxy import Client
+from browsermobproxy import Client, Server
 from selenium.webdriver.chrome.options import Options
 
 from webdriver._types import (
@@ -73,7 +73,9 @@ class ChromeOptions(Options):  # noqa: D101
         self.add_experimental_option("prefs", preferences)
 
         if with_proxy:
-            self._proxy_client = configure_proxy()
+            client, server = configure_proxy()
+            self._server = server
+            self._proxy_client = client
             self.proxy = self._proxy_client.selenium_proxy()
             self.add_argument(f"--proxy-server={self._proxy_client.proxy}")
 
@@ -84,6 +86,10 @@ class ChromeOptions(Options):  # noqa: D101
     @proxy_client.setter
     def proxy_client(self, new_proxy: Client) -> None:
         self._proxy_client = new_proxy
+
+    @property
+    def proxy_server(self) -> Server:  # noqa: D102
+        return self._server
 
 
 def configure_chrome(

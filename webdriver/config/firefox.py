@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from browsermobproxy import Client
+from browsermobproxy import Client, Server
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options
 
@@ -41,7 +41,9 @@ class FirefoxOptions(Options):  # noqa: D101
             self.profile.set_preference(k, v)
 
         if with_proxy:
-            self._proxy_client = configure_proxy()
+            client, server = configure_proxy()
+            self._proxy_client = client
+            self._server = server
             self.proxy = self._proxy_client.selenium_proxy()
 
     @property
@@ -51,6 +53,10 @@ class FirefoxOptions(Options):  # noqa: D101
     @proxy_client.setter
     def proxy_client(self, new_proxy: Client) -> None:
         self._proxy_client = new_proxy
+
+    @property
+    def proxy_server(self) -> Server:  # noqa: D102
+        return self._server
 
 
 def configure_gecko(
