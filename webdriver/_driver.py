@@ -7,6 +7,7 @@ from selenium.webdriver.chromium.remote_connection import ChromiumRemoteConnecti
 from selenium.webdriver.firefox.remote_connection import FirefoxRemoteConnection
 from selenium.webdriver.firefox.service import Service as GeckoService
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 from webdriver.config import configure_chrome, configure_gecko
 
@@ -32,7 +33,7 @@ config: OptionsConfig = {
         "service": GeckoService,
         "executor": FirefoxRemoteConnection,
         "options": configure_gecko,
-        "manager": ChromeDriverManager,
+        "manager": GeckoDriverManager,
         "args_executor": {
             "remote_server_addr": "",
             "keep_alive": True,
@@ -43,7 +44,7 @@ config: OptionsConfig = {
         "service": GeckoService,
         "executor": FirefoxRemoteConnection,
         "options": configure_gecko,
-        "manager": ChromeDriverManager,
+        "manager": GeckoDriverManager,
         "args_executor": {
             "remote_server_addr": "",
             "keep_alive": True,

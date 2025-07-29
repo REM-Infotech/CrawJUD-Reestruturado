@@ -13,6 +13,7 @@ from webdriver_manager.core.file_manager import FileManager
 from webdriver_manager.core.os_manager import OperationSystemManager
 
 from webdriver._driver import config
+from webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.common.service import Service
@@ -20,7 +21,6 @@ if TYPE_CHECKING:
     from webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
     from webdriver.config.chrome import ChromeOptions
     from webdriver.config.firefox import FirefoxOptions
-    from webdriver.web_element import WebElementBot
 
 
 work_dir = Path(__file__).cwd()
@@ -123,7 +123,7 @@ class DriverBot(WebDriver):  # noqa: D101
         self._wait = new_wait
 
     def find_element(self, *args: P.args, **kwargs: P.kwargs) -> WebElementBot:  # noqa: D102
-        return super().find_element(*args, kwargs)
+        return super().find_element(*args, **kwargs)
 
     def find_elements(self, *args: P.args, **kwargs: P.kwargs) -> List[WebElementBot]:  # noqa: D102
-        return super().find_elements(*args, kwargs)
+        return super().find_elements(*args, **kwargs)

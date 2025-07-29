@@ -49,14 +49,14 @@ class WebElementBot(WebElement):  # noqa: D101
         for key in dir(Keys):
             if getattr(Keys, key) == word:
                 send = ""
-                self.clr.send_keys(word)
+                super().send_keys(word)
                 break
 
         if send is None:
             self.click()
             for c in str(word):
                 sleep(0.001)
-                self.clr.send_keys(c)
+                super().send_keys(c)
 
     def double_click(self) -> None:
         """Double-click on the given webelement."""
@@ -87,7 +87,7 @@ class WebElementBot(WebElement):  # noqa: D101
     def clear(self) -> None:  # noqa: D102
         self.click()
         sleep(0.5)
-        self.clr.clear()
+        super().clear()
         sleep(1)
 
     # def sleep_load(self, *args: str, **kwargs: str) -> None:
@@ -141,7 +141,7 @@ class WebElementBot(WebElement):  # noqa: D101
         while True:
             check_wait = None
             with suppress(NoSuchElementException):
-                check_wait = self.clr.find_element(
+                check_wait = super().find_element(
                     By.CSS_SELECTOR,
                     'div[id="modal:waitContainer"][style="position: absolute; z-index: 100; background-color: inherit; display: none;"]',  # noqa: E501
                 )
@@ -161,7 +161,7 @@ class WebElementBot(WebElement):  # noqa: D101
             div0 = 'div[id="processoValorPagamentoEditForm:pvp:j_id_2m_1_i_2_1_9_g_1:uploadGedEFile"]'
             progress_bar = None
 
-            div0progress_bar = self.clr.find_element(By.CSS_SELECTOR, div0)
+            div0progress_bar = super().find_element(By.CSS_SELECTOR, div0)
             div1progress_bar = div0progress_bar.find_element(By.CSS_SELECTOR, div1)
 
             with suppress(NoSuchElementException):
@@ -172,7 +172,7 @@ class WebElementBot(WebElement):  # noqa: D101
 
     def scroll_to(self) -> None:
         """Scroll the view to the specified web element."""
-        action = ActionChains(self.clr)
+        action = ActionChains(super())
         action.scroll_to_element(self)
         sleep(0.5)
 

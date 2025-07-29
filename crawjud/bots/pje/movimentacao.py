@@ -24,7 +24,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from common.bot import ClassBot
 from crawjud._wrapper import wrap_init
-from crawjud.addons.interator import Interact
 from crawjud.bots.pje.res.autenticador import autenticar
 from crawjud.bots.pje.res.buscador import buscar_processo
 from crawjud.core._dictionary import BotData
@@ -44,7 +43,7 @@ class Movimentacao(ClassBot):
     Inherit from CrawJUD and manage the process of fetching pautas.
     """
 
-    driver_trt: dict[str, dict[str, DriverBot | WebDriverWait | Interact]] = {}
+    driver_trt: dict[str, dict[str, DriverBot | WebDriverWait]] = {}
     position_process: dict[str, int] = {}
     app: Celery = current_app
 
@@ -109,8 +108,9 @@ class Movimentacao(ClassBot):
 
                 if not self.driver_trt.get(regiao):
                     driver = DriverBot(
-                        selected_browser="chrome",
+                        selected_browser="firefox",
                         execution_path=self.output_dir_path,
+                        with_proxy=True,
                     )
 
                     wait = driver.wait
