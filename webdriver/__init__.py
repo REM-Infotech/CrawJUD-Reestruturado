@@ -34,8 +34,8 @@ class DriverBot(WebDriver):  # noqa: D101
         self,
         selected_browser: BrowserOptions,
         execution_path: str | Path = None,
-        *args: str,
-        **kwargs: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         driver_config = config[selected_browser]
 
