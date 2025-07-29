@@ -263,7 +263,7 @@ class Movimentacao(ClassBot):
                 ),
                 "w",
             ) as f:
-                await f.write(json.dumps(_data_processo))
+                await f.write(json.dumps(_data_processo, ensure_ascii=False))
 
         except Exception as e:
             print(e)
