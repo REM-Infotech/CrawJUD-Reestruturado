@@ -84,7 +84,7 @@ class Movimentacao(ClassBot):
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
         self.total_rows = len(self.position_process)
-
+        self.max_rows = self.total_rows
         tasks = [
             create_task(self._queue_regiao(key, value, semaforo_regiao))
             for key, value in list(frame.items())
@@ -258,7 +258,10 @@ class Movimentacao(ClassBot):
 
         try:
             async with aiofiles.open(
-                f"{data['NUMERO_PROCESSO']} - {self.pid}.json", "w"
+                Path(self.output_dir_path).joinpath(
+                    f"{data['NUMERO_PROCESSO']} - {self.pid}.json"
+                ),
+                "w",
             ) as f:
                 await f.write(json.dumps(_data_processo))
 

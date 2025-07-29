@@ -55,6 +55,7 @@ T = TypeVar("T")
 class DriverBot(WebDriver):  # noqa: D101
     _har: DictHARProxy = None
     _log: dict[str, DictHARProxy] = None
+    _count: int = 0
 
     def __init__(  # noqa: D107
         self,
@@ -185,7 +186,11 @@ class DriverBot(WebDriver):  # noqa: D101
     def _entry_generator(
         self,
     ) -> Generator[EntryRequest, Any, None]:
-        for entry in self.client.har.get("log").get("entries"):
+        _slice = self._count
+        if self._count == 0:
+            self._count = len(self.client.har.get("log").get("entries"))
+
+        for entry in self.client.har.get("log").get("entries")[:_slice]:
             yield EntryRequest(
                 pageref=entry.get("pageref"),
                 startedDateTime=entry.get("startedDateTime"),

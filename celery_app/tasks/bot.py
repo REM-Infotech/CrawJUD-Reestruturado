@@ -124,11 +124,6 @@ class BotTask:  # noqa: D101
     ) -> None:
         pid = pid if pid else str(self.pid)
         total_count = self.master_instance.total_rows
-        remaining = 0
-        if row > 0:
-            # Calcula o número restante de linhas
-            remaining = (total_count + 1) - row
-
         time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
         prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
 
@@ -141,7 +136,7 @@ class BotTask:  # noqa: D101
             total=total_count,
             success=0,
             errors=0,
-            remaining=remaining,
+            remaining=self.master_instance.total_rows,
             start_time=self.start_time.strftime("%d/%m/%Y, %H:%M:%S"),
         )
         app.send_task(
