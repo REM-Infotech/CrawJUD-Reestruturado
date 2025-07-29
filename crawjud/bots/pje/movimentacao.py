@@ -6,18 +6,20 @@ This module fetches and processes court hearing schedules (pautas) for automated
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 import traceback
 from asyncio import create_task, gather
 from contextlib import suppress
-from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+import aiofiles
+import requests
 from celery import Celery, current_app
 from dotenv import load_dotenv
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.common.by import By  # noqa: F401
+from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait
 
 from common.bot import ClassBot
@@ -160,10 +162,9 @@ class Movimentacao(ClassBot):
                 data=data,
                 regiao=regiao,
                 print_msg=self.print_msg,
+                pid=self.pid,
             )
-            await self.extrair_movimentacao(
-                regiao=regiao, driver=driver, wait=wait, data=data, row=row
-            )
+            await self.extrair_movimentacao(driver=driver, data=data, row=row)
             self.print_msg(
                 "Execução realizada com sucesso!",
                 row=row,
@@ -182,80 +183,93 @@ class Movimentacao(ClassBot):
         self,
         driver: DriverBot,
         row: int,
-        regiao: str,
-        wait: WebDriverWait,
         data: BotData,
     ) -> None:
-        btn_modo_tabela = wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'button[aria-label="Visualizar em Tabela"]',
-            ))
-        )
-        btn_modo_tabela.click()
-
-        data_row = wait.until(
-            ec.presence_of_all_elements_located((
-                By.XPATH,
-                "//tr[contains(@class, 'row-odd') or contains(@class, 'row-even')]",
-            ))
+        self.print_msg(
+            message="Extraindo movimentações do processo",
+            type_log="info",
+            row=row,
+            pid=self.pid,
+            status="Em Execução",
         )
 
-        movimentacoes: list[dict[str, str | datetime]] = []
-
-        arquivos: list[tuple[str, str]] = []
-
-        for item in data_row:
-            try:
-                data_td = item.find_elements(By.TAG_NAME, "td")
-                split_time = data_td[1].text.split(" ")
-                data_movimentacao = datetime.strptime(
-                    f"{split_time[0]}/{split_time[1]} {split_time[2]}",
-                    "%d/%m/%Y %H:%M",
-                )
-                if len(data_td) == 5:
-                    id_movimentacao = "Sem ID"
-                    descricao_movimentacao = data_td[3].text
-
-                elif len(data_td) >= 6:
-                    id_movimentacao = data_td[3].text
-                    descricao_movimentacao = data_td[4].text
-                    file_name = data_td[4].find_elements(By.TAG_NAME, "a")[0].text
-                    link_arquivo = data_td[4].find_elements(By.TAG_NAME, "a")[-1]
-                    arquivos.append((file_name, link_arquivo.get_attribute("href")))
-
-                to_save = {
-                    "PROCESSO": data["NUMERO_PROCESSO"],
-                    "DATA": data_movimentacao,
-                    "TIPO": data_td[2].text,
-                    "MOVIMENTACAO_ID": id_movimentacao,
-                    "DESCRIÇÃO": descricao_movimentacao,
-                }
-
-                movimentacoes.append(to_save)
-
-            except Exception as e:
-                print(e)
-                continue
-
-        cookies = {}
-
-        for cookie in driver.get_cookies():
-            cookies.update({cookie["name"]: cookie["value"]})
+        cookies = driver.get_cookies()
 
         _har_data = driver.current_HAR
-
-        list_data = [
+        entries = list(_har_data.entries)
+        entry_proxy = [
             item
-            for item in _har_data.entries
+            for item in entries
             if "pje-consulta-api/api/processos/" in item.request.url
+            and re.match(
+                r"^https:\/\/pje\.trt\d+\.jus\.br\/pje-consulta-api\/api\/processos\/\d+$",
+                item.request.url,
+            )
+        ][-1]
+
+        headers = {
+            header["name"]: header["value"] for header in entry_proxy.request.headers
+        }
+        token_captcha = list(filter(lambda x: x["name"] == "tokenDesafio", cookies))
+        token_captcha = token_captcha[-1]["value"]
+        _cookies = {str(cookie["name"]): str(cookie["value"]) for cookie in cookies}
+
+        response = requests.get(  # noqa: ASYNC210
+            f"{entry_proxy.request.url}?tokenDesafio={token_captcha}&resposta={_cookies['respostaDesafio']}",
+            cookies=_cookies,
+            headers=headers,
+            timeout=25,
+        )
+        _response2 = requests.get(  # noqa: ASYNC210
+            f"{entry_proxy.request.url}/integra?tokenCaptcha={response.headers['captchatoken']}",
+            cookies=_cookies,
+            headers=headers,
+            timeout=25,
+        )
+
+        async with aiofiles.open(
+            Path(self.output_dir_path).joinpath(
+                f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {self.pid}.pdf"
+            ),
+            "wb",
+        ) as f:
+            for _data_ in _response2.iter_content(4096):
+                await f.write(_data_)
+
+        _data_processo = response.json()
+
+        _documentos: list[dict[str, str | Any]] = [
+            item
+            for item in _data_processo["itensProcesso"]
+            if item["tipoConteudo"].upper() == "PDF"
         ]
 
-        for _entry in list_data:
-            pass
+        _movimentacao: list[dict[str, str | Any]] = [
+            item
+            for item in _data_processo["itensProcesso"]
+            if item["tipoConteudo"].upper() == "HTML"
+        ]
+
         args_task = {
             "pid": self.pid,
-            "data": movimentacoes,
+            "data": _movimentacao,
             "processo": data["NUMERO_PROCESSO"],
         }
+
+        try:
+            async with aiofiles.open(
+                f"{data['NUMERO_PROCESSO']} - {self.pid}.json", "w"
+            ) as f:
+                await f.write(json.dumps(_data_processo))
+
+        except Exception as e:
+            print(e)
+
         self.app.send_task("save_cache", kwargs=args_task)
+        self.print_msg(
+            message="Informações salvas!",
+            pid=self.pid,
+            row=row,
+            type_log="success",
+            status="Em Execução",
+        )

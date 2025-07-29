@@ -29,12 +29,16 @@ async def buscar_processo(  # noqa: D102, D103
     data: BotData,
     regiao: str,
     print_msg: Any,
+    pid: str,
 ) -> None:
     url = await formata_url_pje(regiao, "search")
     driver.get(url)
     print_msg(
-        f"Buscando processo Nº{data['NUMERO_PROCESSO']}",
+        message=f"Buscando processo Nº{data['NUMERO_PROCESSO']}",
+        pid=pid,
         row=row,
+        type_log="log",
+        status="Em Execução",
     )
     campo_processo = wait.until(
         ec.presence_of_element_located((
@@ -54,7 +58,13 @@ async def buscar_processo(  # noqa: D102, D103
     )
     btn_pesquisar.click()
     await desafio_captcha(driver, wait)
-    print_msg("Processo encontrado!", row=row, type_log="info")
+    print_msg(
+        message="Processo encontrado!",
+        row=row,
+        type_log="info",
+        pid=pid,
+        status="Em Execução",
+    )
 
 
 async def desafio_captcha(  # noqa: D102, D103
