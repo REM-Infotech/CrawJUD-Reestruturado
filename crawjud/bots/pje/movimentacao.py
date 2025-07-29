@@ -9,13 +9,13 @@ import asyncio
 import json
 import re
 import traceback
-from asyncio import create_task, gather
+from asyncio import create_task, gather, sleep
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiofiles
-import requests
+import httpx
 from celery import Celery, current_app
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By  # noqa: F401
@@ -80,15 +80,17 @@ class Movimentacao(ClassBot):
 
         This method continuously processes each court hearing date and handles errors.
         """
-        semaforo_regiao = asyncio.Semaphore(1)
+        semaforo_regiao = asyncio.Semaphore(10)
         dataframe = self.dataFrame()
         frame = await self._separar_regiao(dataframe)
         self.total_rows = len(self.position_process)
         self.max_rows = self.total_rows
-        tasks = [
-            create_task(self._queue_regiao(key, value, semaforo_regiao))
-            for key, value in list(frame.items())
-        ]
+        tasks = []
+        for key, value in list(frame.items()):
+            task = create_task(self._queue_regiao(key, value, semaforo_regiao))
+            tasks.append(task)
+            await sleep(30)
+
         await gather(*tasks)
         self.app.send_task(
             "save_succes",
@@ -109,7 +111,7 @@ class Movimentacao(ClassBot):
 
                 if not self.driver_trt.get(regiao):
                     driver = DriverBot(
-                        selected_browser="firefox",
+                        selected_browser="chrome",
                         execution_path=self.output_dir_path,
                         with_proxy=True,
                     )
@@ -127,12 +129,33 @@ class Movimentacao(ClassBot):
                 wait: WebDriverWait = self.driver_trt[regiao]["wait"]
 
                 await autenticar(driver, wait, regiao)
+                await sleep(5)
+
+                cookies_driver = driver.get_cookies()
+                _har_data = driver.current_HAR
+                entries = list(_har_data.entries)
+                entry_proxy = [
+                    item
+                    for item in entries
+                    if f"https://pje.trt{regiao}.jus.br/pje-comum-api/"
+                    in item.request.url
+                ][-1]
+                headers = {
+                    header["name"]: header["value"]
+                    for header in entry_proxy.request.headers
+                }
+                cookies = {
+                    str(cookie["name"]): str(cookie["value"])
+                    for cookie in cookies_driver
+                }
+
+                driver.quit()
 
                 for value in data:
                     await self.queue(
                         data=value,
-                        driver=driver,
-                        wait=wait,
+                        headers=headers,
+                        cookies=cookies,
                         regiao=regiao,
                     )
 
@@ -150,8 +173,8 @@ class Movimentacao(ClassBot):
     async def queue(  # noqa: D102
         self,
         data: BotData,
-        driver: DriverBot,
-        wait: WebDriverWait,
+        headers: dict[str, str],
+        cookies: dict[str, str],
         regiao: str,
     ) -> None:
         if self.is_stoped:
@@ -159,35 +182,62 @@ class Movimentacao(ClassBot):
 
         try:
             row = int(self.position_process.get(str(data["NUMERO_PROCESSO"]))) + 1
-            await buscar_processo(
-                row=row,
-                driver=driver,
-                wait=wait,
-                data=data,
-                regiao=regiao,
-                print_msg=self.print_msg,
-                pid=self.pid,
-            )
-            await self.extrair_movimentacao(driver=driver, data=data, row=row)
-            self.print_msg(
-                "Execução realizada com sucesso!",
-                row=row,
-                type_log="success",
-            )
+
+            async with httpx.AsyncClient(
+                timeout=25,
+                base_url=f"https://pje.trt{regiao}.jus.br/pje-consulta-api/api",
+                cookies=cookies,
+                headers=headers,
+            ) as client:
+                _header, _cookie, results = await buscar_processo(
+                    row=row,
+                    client=client,
+                    data=data,
+                    print_msg=self.print_msg,
+                    pid=self.pid,
+                )
+                await self.extrair_movimentacao(
+                    client=client,
+                    data=data,
+                    row=row,
+                    id_processo=results[0],
+                    token_captcha=results[1],
+                    resposta_captcha=results[2],
+                    resultados_busca=results[3],
+                    _header=_header,
+                    _cookie=_cookie,
+                )
+                self.print_msg(
+                    message="Execução realizada com sucesso!",
+                    row=row,
+                    pid=self.pid,
+                    type_log="success",
+                    status="Em Execução",
+                )
 
         except Exception as e:
             print("\n".join(traceback.format_exception(e)))
             self.print_msg(
-                "Erro de operação",
+                message="Erro de operação",
                 row=row,
+                pid=self.pid,
                 type_log="error",
+                status="Em Execução",
             )
 
     async def extrair_movimentacao(  # noqa: D102
         self,
-        driver: DriverBot,
         row: int,
         data: BotData,
+        client: httpx.AsyncClient,
+        id_processo: str,
+        token_captcha: str,
+        resposta_captcha: str,
+        resultados_busca: dict[str, str],
+        _header: Any,
+        _cookie: Any,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         self.print_msg(
             message="Extraindo movimentações do processo",
@@ -196,43 +246,9 @@ class Movimentacao(ClassBot):
             pid=self.pid,
             status="Em Execução",
         )
-
-        cookies = driver.get_cookies()
-
-        _har_data = driver.current_HAR
-        entries = list(_har_data.entries)
-        entry_proxy = [
-            item
-            for item in entries
-            if "pje-consulta-api/api/processos/" in item.request.url
-            and re.match(
-                r"^https:\/\/pje\.trt\d+\.jus\.br\/pje-consulta-api\/api\/processos\/\d+",
-                item.request.url,
-            )
-        ][-1]
-
-        url = entry_proxy.request.url.split("?")[0]
-        if "/documentos" in url:
-            url = url.split("/documentos")[0]
-
-        headers = {
-            header["name"]: header["value"] for header in entry_proxy.request.headers
-        }
-        token_captcha = list(filter(lambda x: x["name"] == "tokenDesafio", cookies))
-        token_captcha = token_captcha[-1]["value"]
-        _cookies = {str(cookie["name"]): str(cookie["value"]) for cookie in cookies}
-
-        response = requests.get(  # noqa: ASYNC210
-            f"{url}?tokenDesafio={token_captcha}&resposta={_cookies['respostaDesafio']}",
-            cookies=_cookies,
-            headers=headers,
-            timeout=25,
-        )
-        _response2 = requests.get(  # noqa: ASYNC210
-            f"{url}/integra?tokenCaptcha={response.headers['captchatoken']}",
-            cookies=_cookies,
-            headers=headers,
-            timeout=25,
+        _response2 = await client.get(
+            f"/processos/{id_processo}/integra?tokenCaptcha={token_captcha}",
+            headers=_header,
         )
 
         async with aiofiles.open(
@@ -241,26 +257,24 @@ class Movimentacao(ClassBot):
             ),
             "wb",
         ) as f:
-            for _data_ in _response2.iter_content(4096):
+            async for _data_ in _response2.aiter_bytes(65536):
                 await f.write(_data_)
-
-        _data_processo = response.json()
 
         _documentos: list[dict[str, str | Any]] = [
             item
-            for item in _data_processo["itensProcesso"]
+            for item in resultados_busca["itensProcesso"]
             if item["tipoConteudo"].upper() == "PDF"
         ]
 
         _movimentacao: list[dict[str, str | Any]] = [
             item
-            for item in _data_processo["itensProcesso"]
+            for item in resultados_busca["itensProcesso"]
             if item["tipoConteudo"].upper() == "HTML"
         ]
 
         args_task = {
             "pid": self.pid,
-            "data": _movimentacao,
+            "data": resultados_busca,
             "processo": data["NUMERO_PROCESSO"],
         }
 
@@ -271,7 +285,7 @@ class Movimentacao(ClassBot):
                 ),
                 "w",
             ) as f:
-                await f.write(json.dumps(_data_processo, ensure_ascii=False))
+                await f.write(json.dumps(resultados_busca, ensure_ascii=False))
 
         except Exception as e:
             print(e)

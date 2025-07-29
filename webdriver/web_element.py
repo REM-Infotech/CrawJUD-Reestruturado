@@ -55,7 +55,7 @@ class WebElementBot(WebElement):  # noqa: D101
         if send is None:
             self.click()
             for c in str(word):
-                sleep(0.001)
+                sleep(0.005)
                 super().send_keys(c)
 
     def double_click(self) -> None:

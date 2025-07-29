@@ -1,19 +1,15 @@
 # noqa: D100
 import base64
 import io
-import re
 from asyncio import sleep
-from contextlib import suppress
+from time import time
 from typing import TYPE_CHECKING, Any
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait
+import httpx
 
 from addons.recaptcha import captcha_to_image
-from crawjud.bots.pje.res.formatador import formata_url_pje
 from crawjud.core._dictionary import BotData
+from crawjud.exceptions.bot import ExecutionError
 
 if TYPE_CHECKING:
     from crawjud.core._dictionary import BotData
@@ -24,15 +20,13 @@ pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe
 
 async def buscar_processo(  # noqa: D102, D103
     row: int,
-    driver: WebDriver,
-    wait: WebDriverWait,
+    client: httpx.AsyncClient,
     data: BotData,
-    regiao: str,
     print_msg: Any,
     pid: str,
-) -> None:
-    url = await formata_url_pje(regiao, "search")
-    driver.get(url)
+) -> tuple[
+    httpx.Headers, httpx.Cookies, str, tuple[str, str, str, dict[str, str | Any]]
+]:
     print_msg(
         message=f"Buscando processo Nº{data['NUMERO_PROCESSO']}",
         pid=pid,
@@ -40,24 +34,16 @@ async def buscar_processo(  # noqa: D102, D103
         type_log="log",
         status="Em Execução",
     )
-    campo_processo = wait.until(
-        ec.presence_of_element_located((
-            By.CSS_SELECTOR,
-            'input[id="nrProcessoInput"]',
-        ))
+    url_dados_basicos = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
+    response = await client.get(url=url_dados_basicos)
+    data_request: dict[str, str] = response.json()
+
+    id_processo = str(data_request[0]["id"])
+
+    resultado = await desafio_captcha(
+        client=client, id_processo=id_processo, data=data
     )
 
-    campo_processo.click()
-    campo_processo.send_keys(data["NUMERO_PROCESSO"])
-
-    btn_pesquisar = wait.until(
-        ec.presence_of_element_located((
-            By.CSS_SELECTOR,
-            'button[id="btnPesquisar"]',
-        ))
-    )
-    btn_pesquisar.click()
-    await desafio_captcha(driver, wait)
     print_msg(
         message="Processo encontrado!",
         row=row,
@@ -65,51 +51,58 @@ async def buscar_processo(  # noqa: D102, D103
         pid=pid,
         status="Em Execução",
     )
+    return resultado
 
 
 async def desafio_captcha(  # noqa: D102, D103
-    driver: WebDriver,
-    wait: WebDriverWait,
-) -> None:
+    client: httpx.AsyncClient,
+    id_processo: str,
+    data: BotData,
+) -> tuple[
+    httpx.Headers, httpx.Cookies, str, tuple[str, str, str, dict[str, str | Any]]
+]:
     tries = 0
+    response2 = None
+    results: tuple[str, str, str, dict[str, str | Any]] = None
+    url_desafio = f"/captcha?idProcesso={id_processo}"
+    response = await client.get(url=url_desafio)
+    data_request: dict[str, str] = response.json()
 
-    with suppress(Exception):
-        btn_proc = WebDriverWait(driver, 5).until(
-            ec.presence_of_all_elements_located((
-                By.CSS_SELECTOR,
-                'button[class="selecao-processo ng-star-inserted"]',
-            ))
-        )[0]
-        btn_proc.click()
+    if isinstance(data_request, list):
+        data_request = data_request[-1]
+
+    img = data_request.get("imagem")
+    token_desafio = data_request.get("tokenDesafio")
 
     while tries < 15:
-        with suppress(Exception):
-            img = wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    'img[id="imagemCaptcha"]',
-                ))
-            ).get_attribute("src")
-            bytes_img = base64.b64decode(
-                img.replace(" ", "").replace("data:image/png;base64,", "")
+        bytes_img = base64.b64decode(
+            img.replace(" ", "").replace("data:image/png;base64,", "")
+        )
+        readable_buffer = io.BytesIO(bytes_img)
+        text = captcha_to_image(readable_buffer.read()).zfill(6)[:6]
+        url = f"/processos/{id_processo}?tokenDesafio={token_desafio}&resposta={text}"
+
+        response2 = await client.get(url=url)
+        now = int(time())
+        sleep_time = 2 + (now % 11)  # 2 a 15 segundos
+        await sleep(sleep_time)
+
+        data_request: dict[str, str] = response2.json()
+        if not data_request.get("imagem"):
+            results = (
+                id_processo,
+                response2.headers["captchatoken"],
+                text,
+                data_request,
             )
-            readable_buffer = io.BytesIO(bytes_img)
-            text = captcha_to_image(readable_buffer.read()).zfill(6)[:6]
-
-            input_captcha = driver.find_element(
-                By.CSS_SELECTOR, 'input[id="captchaInput"]'
-            )
-            input_captcha.send_keys(text)
-
-            btn_enviar = driver.find_element(
-                By.CSS_SELECTOR, 'button[id="btnEnviar"]'
-            )
-            btn_enviar.click()
-
-        await sleep(2)
-        full_match = re.fullmatch(pattern_url, driver.current_url)
-
-        if full_match:
+            tries = 0
             break
 
+        img = data_request.get("imagem")
+        token_desafio = data_request.get("tokenDesafio")
         tries += 1
+
+    if tries > 15:
+        raise ExecutionError("", message="Erro ao obter informações do processo")
+
+    return response2.headers, response2.cookies, results
