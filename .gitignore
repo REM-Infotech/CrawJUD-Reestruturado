@@ -20,6 +20,8 @@ lib64/
 *.pfx
 *.p7s
 *.p12
+.xlsx
+
 process_dbg.png
 parts/
 sdist/
