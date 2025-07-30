@@ -21,7 +21,7 @@ lib64/
 *.p7s
 *.p12
 .xlsx
-
+_teste.py
 process_dbg.png
 parts/
 sdist/
