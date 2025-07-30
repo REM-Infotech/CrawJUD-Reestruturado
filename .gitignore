@@ -20,7 +20,8 @@ lib64/
 *.pfx
 *.p7s
 *.p12
-.xlsx
+*.xlsx
+.graalvenv/*
 _teste.py
 process_dbg.png
 parts/
