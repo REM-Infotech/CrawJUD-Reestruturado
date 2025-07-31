@@ -19,7 +19,11 @@ load_dotenv()
 
 
 data_query = CachedExecution.all_data()
+data_query = CachedExecution.all_data()
 path_planilha = Path(__file__).parent.joinpath("Processos.xlsx")
+
+if path_planilha.exists():
+    os.remove(path_planilha)
 
 os.remove(path_planilha)
 
@@ -230,6 +234,12 @@ def load_data() -> tuple[list, list, list]:
         _data_item = _item.model_dump()["data"]
         _data_item.pop("numero")
 
+        if _data_item.get("expedientes"):
+            _data_item.pop("expedientes")
+
+        if _data_item.get("itensProcesso"):
+            _data_item.pop("itensProcesso")
+
         listAssuntos.extend([
             {"NUMERO_PROCESSO": _pk, **item}
             for item in list(formata_assuntos(_data_item.pop("assuntos")))
@@ -243,21 +253,14 @@ def load_data() -> tuple[list, list, list]:
             for item in list(formata_partes(_data_item.pop("poloAtivo")))
         ])
 
-        if _data_item.get("expedientes"):
-            _data_item.pop("expedientes")
-
-        if _data_item.get("itensProcesso"):
-            _data_item.pop("itensProcesso")
-
-        with suppress(Exception):
-            _listExpedientes = _data_item.pop("expedientes")  # noqa: F841, N806
-            _listitensProcesso = _data_item.pop("itensProcesso")  # noqa: F841, N806
+        if _data_item.get("poloOutros"):
             outras_partes_list.extend([
                 {"NUMERO_PROCESSO": _pk, **item}
-                for item in list(  # noqa: N806
+                for item in list(
                     formata_partes_terceiros(_data_item.pop("poloOutros"))
                 )
             ])
+
         advogados.extend([
             {"NUMERO_PROCESSO": _pk, **item} for item in list_dict_representantes
         ])
@@ -295,10 +298,8 @@ def load_data() -> tuple[list, list, list]:
                 lista_partes_ativo = []
                 lista_partes_passivo = []
                 listAssuntos: list[dict[str, str]] = []  # noqa: N806
-                list_dict_representantes.clear()
 
             contagem = 0
-            list_dict_representantes.clear()
 
         tqdm.write(
             colored(
