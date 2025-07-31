@@ -29,7 +29,8 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from pytz import timezone
 from socketio import AsyncSimpleClient
 
-from celery_app._wrapper import shared_task, subtask
+from celery_app._wrapper import shared_task
+from celery_app.custom._task import subtask
 from models.logs import MessageLog
 
 if TYPE_CHECKING:

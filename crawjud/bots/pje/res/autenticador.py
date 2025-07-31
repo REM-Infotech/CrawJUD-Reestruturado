@@ -2,28 +2,53 @@
 from __future__ import annotations
 
 from time import sleep
+from typing import cast
 
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from celery_app._wrapper import shared_task
-from crawjud.bots.pje.res.formatador import formata_url_pje
+from celery_app.custom._task import subtask
+from crawjud.types.bot import DictReturnAuth, TReturnAuth
 from webdriver import DriverBot
 
 
 @shared_task(name="pje.autenticador")
-def autenticar(  # noqa: D102, D103
-    regiao: str,
-) -> None:
+def autenticar(regiao: str) -> TReturnAuth:
+    r"""
+    Realiza a autenticação no sistema PJe utilizando certificado digital.
+
+    Args:
+        regiao (str): Região do tribunal para autenticação.
+
+    Returns:
+        (TReturnAuth | MessageTimeoutAutenticacao):
+            `TReturnAuth`: Dicionário contendo cookies, headers e base_url autenticados.
+
+            `MessageTimeoutAutenticacao`: Mensagem de erro caso o tempo de espera para validação de sessão seja excedido.
+
+    Raises:
+        TimeoutException: Caso ocorra um timeout ao procurar elementos na página.
+
+    """
     driver = DriverBot(
         selected_browser="chrome",
         with_proxy=True,
     )
     wait = driver.wait
+    url_login_task = subtask("pje.formata_url_pje").apply_async(
+        kwargs={"regiao": regiao, "type_format": "login"}
+    )
+    url_valida_sessao = subtask("pje.formata_url_pje").apply_async(
+        kwargs={"regiao": regiao, "type_format": "validate_login"}
+    )
 
-    url = formata_url_pje(regiao)
-    driver.get(url)
+    url_login = url_login_task.get()
+    url_valida_sessao = url_valida_sessao.get()
+
+    driver.get(url_login)
     btn_sso = wait.until(
         ec.presence_of_element_located((
             By.CSS_SELECTOR,
@@ -43,6 +68,34 @@ def autenticar(  # noqa: D102, D103
     event_cert = btn_certificado.get_attribute("onclick")
     driver.execute_script(event_cert)
 
-    WebDriverWait(driver, 60).until(
-        ec.url_to_be(formata_url_pje(regiao, "validate_login"))
+    try:
+        WebDriverWait(driver, 60).until(ec.url_to_be(url_valida_sessao))
+    except TimeoutException:
+        return "Tempo de espera excedido para validação de sessão"
+
+    cookies_driver = driver.get_cookies()
+    _har_data = driver.current_HAR
+    entries = list(_har_data.entries)
+    entry_proxy = [
+        item
+        for item in entries
+        if f"https://pje.trt{regiao}.jus.br/pje-comum-api/" in item.request.url
+    ][-1]
+
+    _cookies = {
+        str(cookie["name"]): str(cookie["value"]) for cookie in cookies_driver
+    }
+
+    _headers = {
+        str(header["name"]): str(header["value"])
+        for header in entry_proxy.request.headers
+    }
+
+    return cast(
+        DictReturnAuth,
+        {
+            "cookies": _cookies,
+            "headers": _headers,
+            "base_url": f"https://pje.trt{regiao}.jus.br/pje-consulta-api/api",
+        },
     )

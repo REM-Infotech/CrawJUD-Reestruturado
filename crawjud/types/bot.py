@@ -1,6 +1,21 @@
 """TypedDict for bot data."""
 
-from typing import TypedDict
+from typing import Literal, TypedDict, Union
+
+DictReturnAuth = TypedDict(
+    "DictReturnAuth",
+    {
+        "cookies": dict[str, str],
+        "headers": dict[str, str],
+        "base_url": str,
+    },
+)
+
+MessageTimeoutAutenticacao = Literal[
+    "Tempo de espera excedido para validação de sessão"
+]
+
+TReturnAuth = Union[DictReturnAuth, MessageTimeoutAutenticacao]
 
 
 class BotData(TypedDict):

@@ -12,7 +12,7 @@ from time import time
 from typing import TYPE_CHECKING, Literal, cast
 
 import requests as client
-from celery import shared_task, subtask
+from celery import shared_task
 
 from addons.recaptcha import captcha_to_image
 from crawjud.exceptions.bot import ExecutionError

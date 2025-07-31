@@ -1,10 +1,14 @@
 # noqa: D100
 
+import re
+from contextlib import suppress
 from datetime import datetime
 
-from celery import shared_task, subtask
+from celery import shared_task
 
+from celery_app.custom._task import subtask
 from crawjud.bots.resources.formatadores import formata_tempo
+from crawjud.types.bot import BotData
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]
@@ -243,3 +247,56 @@ class PJeFormatadores:  # noqa: D101
             new_data.append(formated_data)
 
         return new_data
+
+    @staticmethod
+    @shared_task(name="pje.formata_trt")
+    def formata_trt(numero_processo: str) -> str:  # noqa: D102
+        trt_id = None
+        with suppress(Exception):
+            trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+            if trt_id.startswith("0"):
+                trt_id = trt_id.replace("0", "")
+
+        return trt_id
+
+    @staticmethod
+    @shared_task(name="pje.separar_regiao")
+    async def separar_regiao(
+        frame: list[BotData],
+    ) -> dict[str, list[BotData] | dict[str, int]]:
+        """
+        Separa os processos por região a partir do número do processo.
+
+        Args:
+            frame (list[BotData]): Lista de dicionários contendo dados dos processos.
+
+        Returns:
+            dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
+            posição de cada processo.
+
+        """
+        regioes_dict: dict[str, list[BotData]] = {}
+        position_process: dict[str, int] = {}
+
+        for item in frame:
+            numero_processo = item["NUMERO_PROCESSO"]
+            regiao: str = (
+                subtask("pje.formata_trt")
+                .apply_async(kwargs={"numero_processo": numero_processo})
+                .get()
+            )
+
+            if not regiao:
+                continue
+
+            position_process[numero_processo] = len(position_process)
+            if not regioes_dict.get(regiao):
+                regioes_dict[regiao] = [item]
+                continue
+
+            regioes_dict[regiao].append(item)
+
+        return {
+            "regioes": regioes_dict,
+            "position_process": position_process,
+        }
