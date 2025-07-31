@@ -8,6 +8,7 @@ from typing import Any, Generator
 import pandas as pd
 from clear import clear
 from dotenv import load_dotenv
+from termcolor import colored
 from tqdm import tqdm
 
 from models.logs import CachedExecution
@@ -248,10 +249,13 @@ def load_data() -> tuple[list, list, list]:
     list_anexos: list[dict[str, str]] = []
     list_movimentacoes: list[dict[str, str]] = []
     list_expedientes: list[dict[str, str]] = []
+    contagem = 0
+    divide_5 = 0
     for _, _item in pbar:
         if not pbar.total:
-            pbar.total = int(_item.total_pks)
+            pbar.total = int(_item.total_pks) + 1
             pbar.display()
+            divide_5 = int(pbar.total / 5)
 
         _pk = _item.processo
         _data_item = _item.model_dump()["data"]
@@ -308,32 +312,46 @@ def load_data() -> tuple[list, list, list]:
             {"NUMERO_PROCESSO": _pk, **item}
             for item in list(formata_geral([_data_item]))
         ])
-        with pd.ExcelWriter(**kw) as writer:
-            saves = [
-                (data_save, "Processos", writer),
-                (list_assuntos, "Assuntos", writer),
-                (outras_partes_list, "Outras Partes", writer),
-                (lista_partes_ativo, "Autores", writer),
-                (lista_partes_passivo, "Réus", writer),
-                (advogados, "Advogados", writer),
-                (list_movimentacoes, "Movimentações", writer),
-                (list_anexos, "Anexos Movimentações", writer),
-                (list_expedientes, "Expedientes", writer),
-            ]
-            for save in saves:
-                save_in_batches(*save)
-                save[0].clear()
 
-            data_save: list[dict[str, str]] = []
-            advogados = []
-            outras_partes_list = []
-            lista_partes_ativo = []
-            lista_partes_passivo = []
-            list_assuntos: list[dict[str, str]] = []
-            list_anexos: list[dict[str, str]] = []
-            list_movimentacoes: list[dict[str, str]] = []
-            list_expedientes: list[dict[str, str]] = []
-            list_dict_representantes = []
+        if contagem == int(divide_5) or int(pbar.n) + 1 == pbar.total:
+            with pd.ExcelWriter(**kw) as writer:
+                saves = [
+                    (data_save, "Processos", writer),
+                    (list_assuntos, "Assuntos", writer),
+                    (outras_partes_list, "Outras Partes", writer),
+                    (lista_partes_ativo, "Autores", writer),
+                    (lista_partes_passivo, "Réus", writer),
+                    (advogados, "Advogados", writer),
+                    (list_movimentacoes, "Movimentações", writer),
+                    (list_anexos, "Anexos Movimentações", writer),
+                    (list_expedientes, "Expedientes", writer),
+                ]
+                for save in saves:
+                    save_in_batches(*save)
+                    save[0].clear()
+
+                data_save: list[dict[str, str]] = []
+                advogados = []
+                outras_partes_list = []
+                lista_partes_ativo = []
+                lista_partes_passivo = []
+                list_assuntos: list[dict[str, str]] = []
+                list_anexos: list[dict[str, str]] = []
+                list_movimentacoes: list[dict[str, str]] = []
+                list_expedientes: list[dict[str, str]] = []
+
+            contagem = 0
+
+        tqdm.write(
+            colored(
+                str(int(pbar.n) + 1 == pbar.total),
+                color={"False": "red", "True": "green"}[
+                    str(int(pbar.n) + 1 == pbar.total)
+                ],
+            )
+        )
+        contagem += 1
+        list_dict_representantes = []
 
 
 with suppress(Exception):
