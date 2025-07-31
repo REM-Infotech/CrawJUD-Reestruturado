@@ -1,32 +1,24 @@
-## Description
+# <Task Name / Breve descrição da tarefa + número do PR>
 
-<!--
-Copilot: Caso seja iniciado uma pull request, utilize esse template e insira o texto gerado aqui dentro.
-Copilot: Em uma pull request com o texto que foi solicitado, Preciso que o texto detalhe os commits e suas mensagens.
--->
+## Tipo de Alteração/Alterações (Máximo 3 tipos)
 
-## Tasks
+- [ ] Correção de bug (ajuste que resolve um problema sem quebrar funcionalidades)
+- [ ] Nova funcionalidade (implementação de recurso novo sem impacto em recursos existentes)
+- [ ] Chore (atualização de pacotes ou testes, sem impacto direto para o usuário final)
+- [ ] Release (nova versão da aplicação - apenas para produção)
+- [ ] Refatoração (alteração de código sem adicionar recurso ou corrigir bug)
+- [ ] Melhoria de performance (otimização sem alterar funcionalidades)
+- [ ] Correção de segurança (ajuste para vulnerabilidades)
+- [ ] Build (mudanças no sistema de build ou dependências externas)
+- [ ] Documentação (alterações ou atualizações na documentação)
+- [ ] CI/CD (ajustes em arquivos ou scripts de integração/entrega contínua)
+- [ ] Hotfix (correções rápidas para problemas em produção)
 
-- [task-id](task-link) or N/A
+## Checklist (Mnimo 3 itens)
 
-## Type of change
-
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Chore (packages, or tests updates, nothing that affect the final user directly)
-- [ ] Release (new version of the application - only for production)
-- [ ] Refactor (code changes that neither fix a bug nor add a feature)
-- [ ] Performance improvement (changes that improve performance without altering functionality)
-- [ ] Security fix (changes that address security vulnerabilities)
-- [ ] Build (changes that affect the build system or external dependencies)
-- [ ] Documentation (changes or updates to documentation)
-- [ ] CI/CD (changes to our CI/CD configuration files and scripts)
-- [ ] Hotfix (quick fixes to production issues)
-
-## Checklist
-
-- [ ] My changes have less than or equal 400 lines
-- [ ] I have performed a self-review of my own code
-- [ ] The existing tests and linter pass locally with my changes
-- [ ] I have commented my code in hard-to-understand areas (if applicable)
-- [ ] I have created tests for my fix or feature (if applicable)
+- [ ] Minhas alterações respeitam o limite de 700 linhas alteradas por Pull Request
+- [ ] Revisão do próprio código realizada ou revisão por agente (IA ou outro dev)
+  > Para revisão por IA, requer dupla verificação para garantir a qualidade do código.
+- [ ] Meu código passa nos testes ou no linter localmente
+- [ ] Meu código contem comentários em trechos complexos
+- [ ] Criei testes para validação de correção/funcionalidade (Opcional)
