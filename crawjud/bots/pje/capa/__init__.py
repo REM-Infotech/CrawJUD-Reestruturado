@@ -23,9 +23,6 @@ class Capa(ClassBot):  # noqa: D101
     @classmethod
     @classmethod_shared_task(name="pje.capa")
     def pje_capa(cls, current_task: ContextTask, *args: Any, **kwargs: Any) -> None:  # noqa: D102, N805
-        if isinstance(cls, str):
-            cls = Capa
-
         cls.tratamento_dados()
         autenticar: Signature = subtask("pje.autenticador")
         _teste = autenticar.apply_async(kwargs={"regiao": "11"})
