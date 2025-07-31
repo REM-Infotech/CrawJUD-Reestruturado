@@ -21,6 +21,7 @@ from contextlib import suppress
 from typing import (
     Any,
     Callable,
+    Generator,
     Literal,
     Mapping,
     ParamSpec,
@@ -266,7 +267,8 @@ class CachedExecution(JsonModel):  # noqa: D101
         )
 
 
-def all_data(cls: type[T]) -> list[T]:  # noqa: D102, D103
+def all_data(cls: type[T]) -> Generator[T, Any, None]:  # noqa: D102, D103
     pks = list(cls.all_pks())
-    _data = [cls.get(pk) for pk in pks]
-    return _data
+    cls.total_pks = len(pks)
+    for pk in pks:
+        yield cls.get(pk)
