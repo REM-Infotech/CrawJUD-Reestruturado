@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 from typing import AnyStr
 
 from celery import Celery
@@ -17,15 +18,42 @@ class AsyncCelery(Celery):
 
         class ContextTask(TaskBase):
             abstract = True
+            contains_classmethod = False
 
-            async def _run(self, *args: AnyStr, **kwargs: AnyStr) -> None:
+            def get_cls(self, qualname: str, module_name: str) -> object:
+                _module = importlib.import_module(module_name)
+                cls: object = getattr(_module, qualname, None)
+                if cls is None:
+                    raise ImportError(
+                        f"Class {qualname} not found in module {module_name}"
+                    )
+                return cls
+
+            def _run(self, *args: AnyStr, **kwargs: AnyStr) -> None:
+                annotations = self.__annotations__
+                if self.contains_classmethod:
+                    # If the task is a classmethod, we need to get the class
+                    cls = self.get_cls(
+                        self.__wrapped__.__qualname__.split(".")[0],
+                        self.__wrapped__.__module__,
+                    )
+                    if not isinstance(cls, type):
+                        raise TypeError(f"{cls} is not a class")
+
+                    kwargs.update({"cls": cls})
+
+                    # Create an instance of the class
+
+                if "current_task" in annotations or "task" in annotations:
+                    kwargs.update({"task": self})
+
                 if asyncio.iscoroutinefunction(self.run):
-                    return await self.run(task=self, *args, **kwargs)  # noqa: B026
+                    return asyncio.run(self.run(*args, **kwargs))  # noqa: B026
 
                 return self.run(task=self, *args, **kwargs)  # noqa: B026
 
             def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
-                return asyncio.run(self._run(*args, **kwargs))
+                return self._run(*args, **kwargs)
 
         self.Task = ContextTask
 

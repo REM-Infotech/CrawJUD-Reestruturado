@@ -9,8 +9,8 @@ from selenium.webdriver.common.by import By  # noqa: F401
 from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
 
+from celery_app._wrapper import classmethod_shared_task, wrap_init
 from common.bot import ClassBot
-from crawjud._wrapper import classmethod_shared_task, wrap_init
 from crawjud.bots.pje.res.buscador import buscar_processo  # noqa: F401
 from crawjud.core._dictionary import BotData  # noqa: F401
 from webdriver import DriverBot  # noqa: F401
