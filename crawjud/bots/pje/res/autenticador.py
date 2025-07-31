@@ -1,25 +1,28 @@
 # noqa: D100
 from __future__ import annotations
 
-from asyncio import sleep
-from typing import TYPE_CHECKING
+from time import sleep
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
+from celery_app._wrapper import shared_task
 from crawjud.bots.pje.res.formatador import formata_url_pje
-from crawjud.core._dictionary import BotData
-
-if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+from webdriver import DriverBot
 
 
-async def autenticar(  # noqa: D102, D103
-    driver: WebDriver, wait: WebDriverWait, regiao: str, data: BotData = None
+@shared_task(name="pje.autenticador")
+def autenticar(  # noqa: D102, D103
+    regiao: str,
 ) -> None:
-    url = await formata_url_pje(regiao)
+    driver = DriverBot(
+        selected_browser="chrome",
+        with_proxy=True,
+    )
+    wait = driver.wait
+
+    url = formata_url_pje(regiao)
     driver.get(url)
     btn_sso = wait.until(
         ec.presence_of_element_located((
@@ -29,7 +32,7 @@ async def autenticar(  # noqa: D102, D103
     )
     btn_sso.click()
 
-    await sleep(5)
+    sleep(5)
 
     btn_certificado = wait.until(
         ec.presence_of_element_located((
@@ -41,5 +44,5 @@ async def autenticar(  # noqa: D102, D103
     driver.execute_script(event_cert)
 
     WebDriverWait(driver, 60).until(
-        ec.url_to_be(await formata_url_pje(regiao, "validate_login"))
+        ec.url_to_be(formata_url_pje(regiao, "validate_login"))
     )

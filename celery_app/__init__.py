@@ -93,3 +93,6 @@ def make_celery() -> Celery:
     importlib.import_module(".tasks", __package__)
 
     return app
+
+
+app_celery = make_celery()
