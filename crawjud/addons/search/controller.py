@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from selenium.webdriver.support.wait import WebDriverWait
 
     from addons.printlogs import PrintMessage
-    from crawjud.core._dictionary import BotData
+    from crawjud.types import BotData
     from crawjud.types.elements import type_elements
 
 

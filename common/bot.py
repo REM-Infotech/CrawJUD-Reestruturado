@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 
 from crawjud.addons.search import SearchController  # noqa: F401
 from crawjud.core import CrawJUD
-from crawjud.core._dictionary import BotData
+from crawjud.types import BotData
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData  # noqa: F401
+    from crawjud.types import BotData  # noqa: F401
 
 load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
 

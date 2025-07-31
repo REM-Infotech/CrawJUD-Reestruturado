@@ -15,12 +15,12 @@ import requests as client
 from celery import shared_task, subtask
 
 from addons.recaptcha import captcha_to_image
-from crawjud.core._dictionary import BotData
 from crawjud.exceptions.bot import ExecutionError
+from crawjud.types import BotData
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+    from crawjud.types import BotData
 
 
 # Expressão regular para validar URLs de processos PJe

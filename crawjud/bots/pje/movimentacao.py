@@ -26,11 +26,11 @@ from common.bot import ClassBot
 from crawjud._wrapper import wrap_init
 from crawjud.bots.pje.res.autenticador import autenticar
 from crawjud.bots.pje.res.buscador import buscar_processo
-from crawjud.core._dictionary import BotData
+from crawjud.types import BotData
 from webdriver import DriverBot
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+    from crawjud.types import BotData
 
 
 load_dotenv()

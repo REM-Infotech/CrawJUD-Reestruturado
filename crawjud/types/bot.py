@@ -1,3 +1,5 @@
+"""TypedDict for bot data."""
+
 from typing import TypedDict
 
 

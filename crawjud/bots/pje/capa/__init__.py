@@ -5,19 +5,13 @@ from typing import TYPE_CHECKING, Any
 
 from celery import subtask
 from dotenv import load_dotenv
-from selenium.webdriver.common.by import By  # noqa: F401
-from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
-from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
 
 from celery_app._wrapper import classmethod_shared_task
 from celery_app._wrapper import wrap_init as wrap_init
 from common.bot import ClassBot
-from crawjud.bots.pje.res.buscador import buscar_processo  # noqa: F401
-from crawjud.core._dictionary import BotData  # noqa: F401
-from webdriver import DriverBot  # noqa: F401
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData as BotData
+    from crawjud.types import BotData  # noqa: F401
 
 
 load_dotenv()

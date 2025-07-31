@@ -14,7 +14,7 @@ from celery_app._wrapper import shared_task
 from models.logs import CachedExecution
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+    from crawjud.types import BotData
 
 workdir_path = Path(__file__).cwd()
 

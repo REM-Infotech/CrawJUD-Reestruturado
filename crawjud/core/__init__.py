@@ -46,7 +46,7 @@ from crawjud.types import StrPath, TypeData
 from crawjud.types.elements import type_elements
 
 if TYPE_CHECKING:
-    from crawjud.core._dictionary import BotData
+    from crawjud.types import BotData
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
 PrintTReturn = TypeVar("PrintTReturn", bound=Any)

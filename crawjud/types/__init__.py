@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from os import PathLike
 from typing import Dict, List, Literal, Tuple, TypeVar, Union
 
+from crawjud.types.bot import BotData
+
 Numbers = Union[int, float, complex, datetime, timedelta]
 numbers = Union[int, float]
 strings = Union[str, bytes]
@@ -43,3 +45,6 @@ StrPath = Union[str, PathLike]
 ReturnFormataTempo = Union[datetime, float, int, bool, str]
 TypeLog = Literal["log", "success", "warning", "info", "error"]
 StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]
+
+
+__all__ = ["BotData"]
