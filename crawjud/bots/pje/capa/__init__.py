@@ -9,7 +9,8 @@ from selenium.webdriver.common.by import By  # noqa: F401
 from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
 
-from celery_app._wrapper import classmethod_shared_task, wrap_init
+from celery_app._wrapper import classmethod_shared_task
+from celery_app._wrapper import wrap_init as wrap_init
 from common.bot import ClassBot
 from crawjud.bots.pje.res.buscador import buscar_processo  # noqa: F401
 from crawjud.core._dictionary import BotData  # noqa: F401
@@ -22,7 +23,6 @@ if TYPE_CHECKING:
 load_dotenv()
 
 
-@wrap_init
 class Capa(ClassBot):  # noqa: D101
     @classmethod
     @classmethod_shared_task(name="pje.capa")
