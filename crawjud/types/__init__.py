@@ -40,3 +40,6 @@ WrappedFnReturnT = TypeVar("WrappedFnReturnT")
 AnyStr = TypeVar("AnyStr", bound=strings)
 app_name = Literal["Quart", "Worker"]
 StrPath = Union[str, PathLike]
+ReturnFormataTempo = Union[datetime, float, int, bool, str]
+TypeLog = Literal["log", "success", "warning", "info", "error"]
+StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]

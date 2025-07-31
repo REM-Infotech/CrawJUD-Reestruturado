@@ -1,26 +1,13 @@
 # noqa: D100
 
-import re
 from datetime import datetime
-from typing import Union
 
 from celery import shared_task, subtask
 
+from crawjud.bots.resources.formatadores import formata_tempo
+
 DictData = dict[str, str | datetime]
 ListData = list[DictData]
-
-ReturnFormataTempo = Union[datetime, float, int, bool, str]
-
-
-def formata_tempo(item: str | bool) -> ReturnFormataTempo:  # noqa: D103
-    if isinstance(item, str):
-        if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item):
-            return datetime.strptime(item.split(".")[0], "%Y-%m-%dT%H:%M:%S")
-
-        elif re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$", item):
-            return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S.%f")
-
-    return item
 
 
 class PJeFormatadores:  # noqa: D101
