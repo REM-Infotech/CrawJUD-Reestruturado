@@ -141,7 +141,7 @@ def formata_partes_terceiros(
         yield formated_data
 
 
-def formata_tempo(item: str | bool) -> datetime | str:
+def formata_tempo(item: str | bool) -> datetime | float | int | bool | str:
     if isinstance(item, str):
         if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item):
             return datetime.strptime(item.split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -149,22 +149,51 @@ def formata_tempo(item: str | bool) -> datetime | str:
         elif re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$", item):
             return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S.%f")
 
-        return str(item)
-
-    return str(item)
+    return item
 
 
 def formata_anexos(
     lista: list[dict[str, str]],
 ) -> Generator[dict[str, str], Any, None]:
-    for pos, item in enumerate(lista):
+    new_lista: list[dict[str, str]] = []
+    for item in lista:
+        new_lista.extend(item.pop("anexos"))
+
+    for item in new_lista:
         formated_data = {
-            f"{k}_anexo_{str(pos).zfill(2)}".upper(): formata_tempo(v)
+            k.upper(): formata_tempo(v)
             for k, v in list(dict(item).items())
             if not isinstance(v, list)
-            or k.lower() == "id"
-            or k.lower() == "titulo"
-            or k.lower() == "idUnicoDocumento".lower()
+            and (
+                k.lower() == "id"
+                or k.lower() == "titulo"
+                or k.lower() == "idUnicoDocumento".lower()
+                or k.lower() == "data"
+            )
+        }
+
+        yield formated_data
+
+
+def formata_movimentacao(
+    lista: list[dict[str, str]],
+) -> Generator[dict[str, str], Any, None]:
+    for item in lista:
+        if item.get("anexos"):
+            item.pop("anexos")
+
+        formated_data = {
+            k.upper(): formata_tempo(v)
+            for k, v in list(dict(item).items())
+            if not isinstance(v, list)
+            and (
+                k.lower() == "id"
+                or k.lower() == "titulo"
+                or k.lower() == "idUnicoDocumento".lower()
+                or k.lower() == "data"
+                or k.lower() == "usuarioCriador".lower()
+                or k.lower() == "tipoConteudo".lower()
+            )
         }
 
         yield formated_data
@@ -216,7 +245,10 @@ def load_data() -> tuple[list, list, list]:
     outras_partes_list: list[dict[str, str]] = []
     lista_partes_ativo: list[dict[str, str]] = []
     lista_partes_passivo: list[dict[str, str]] = []
-    listAssuntos: list[dict[str, str]] = []  # noqa: N806
+    list_assuntos: list[dict[str, str]] = []  # noqa: N806
+    list_anexos: list[dict[str, str]] = []
+    list_movimentacoes: list[dict[str, str]] = []
+    list_expedientes: list[dict[str, str]] = []
     contagem = 0
     divide_5 = 0
     for _, _item in pbar:
@@ -230,12 +262,27 @@ def load_data() -> tuple[list, list, list]:
         _data_item.pop("numero")
 
         if _data_item.get("expedientes"):
-            _data_item.pop("expedientes")
+            list_expedientes.extend([
+                {"NUMERO_PROCESSO": _pk, **item}
+                for item in list(formata_geral(list(_data_item.pop("expedientes"))))
+            ])
 
         if _data_item.get("itensProcesso"):
-            _data_item.pop("itensProcesso")
+            itens_processo: list[dict[str, str]] = _data_item.pop("itensProcesso")
+            list_anexos.extend([
+                {"NUMERO_PROCESSO": _pk, **item}
+                for item in list(
+                    formata_anexos(
+                        list(filter(lambda x: x.get("anexos"), itens_processo))
+                    )
+                )
+            ])
+            list_movimentacoes.extend([
+                {"NUMERO_PROCESSO": _pk, **item}
+                for item in formata_movimentacao(list(itens_processo))
+            ])
 
-        listAssuntos.extend([
+        list_assuntos.extend([
             {"NUMERO_PROCESSO": _pk, **item}
             for item in list(formata_assuntos(_data_item.pop("assuntos")))
         ])
@@ -256,6 +303,7 @@ def load_data() -> tuple[list, list, list]:
                 )
             ])
 
+        global list_dict_representantes
         advogados.extend([
             {"NUMERO_PROCESSO": _pk, **item} for item in list_dict_representantes
         ])
@@ -266,22 +314,17 @@ def load_data() -> tuple[list, list, list]:
         ])
 
         if contagem == int(divide_5) or int(pbar.n) + 1 == pbar.total:
-            tqdm.write(
-                colored(
-                    str(int(pbar.n) + 1 == pbar.total),
-                    color={"False": "red", "True": "green"}[
-                        str(int(pbar.n) + 1 == pbar.total)
-                    ],
-                )
-            )
             with pd.ExcelWriter(**kw) as writer:
                 saves = [
                     (data_save, "Processos", writer),
-                    (listAssuntos, "Assuntos", writer),
+                    (list_assuntos, "Assuntos", writer),
                     (outras_partes_list, "Outras Partes", writer),
                     (lista_partes_ativo, "Autores", writer),
                     (lista_partes_passivo, "Réus", writer),
                     (advogados, "Advogados", writer),
+                    (list_movimentacoes, "Movimentações", writer),
+                    (list_anexos, "Anexos Movimentações", writer),
+                    (list_expedientes, "Expedientes", writer),
                 ]
                 for save in saves:
                     save_in_batches(*save)
@@ -292,17 +335,23 @@ def load_data() -> tuple[list, list, list]:
                 outras_partes_list = []
                 lista_partes_ativo = []
                 lista_partes_passivo = []
-                listAssuntos: list[dict[str, str]] = []  # noqa: N806
+                list_assuntos: list[dict[str, str]] = []
+                list_anexos: list[dict[str, str]] = []
+                list_movimentacoes: list[dict[str, str]] = []
+                list_expedientes: list[dict[str, str]] = []
 
             contagem = 0
 
         tqdm.write(
             colored(
                 str(int(pbar.n) + 1 == pbar.total),
-                color={"False": "red", "True": "green"}[str(pbar.n == pbar.total)],
+                color={"False": "red", "True": "green"}[
+                    str(int(pbar.n) + 1 == pbar.total)
+                ],
             )
         )
         contagem += 1
+        list_dict_representantes = []
 
 
 with suppress(Exception):
