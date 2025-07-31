@@ -3,16 +3,18 @@
 import importlib
 import logging
 from logging.config import dictConfig
-from os import getenv
+from os import environ, getenv
 from pathlib import Path
 from typing import AnyStr
 
 from celery.signals import after_setup_logger
 
-from celery_app.addons import worker_name_generator
-from celery_app.addons.logger import dict_config
+from addons.logger import dict_config
+from celery_app.addons import worker_name_generator as worker_name_generator
 from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
+
+app = Celery(__name__)
 
 
 @after_setup_logger.connect
@@ -33,25 +35,24 @@ def config_loggers(
         **kwargs (AnyType): Keyword arguments, may include a 'logger' instance to be configured.
 
     """
-    logger_name = f"{worker_name_generator()}_celery"
+    logger_name = environ["WORKER_NAME"]
     log_path = Path().cwd().joinpath("temp", "logs")
     log_path.mkdir(exist_ok=True, parents=True)
     log_file = log_path.joinpath(f"{logger_name}.log")
     log_file.touch(exist_ok=True)
 
-    log_level = logging.DEBUG
+    log_level = logging.INFO
     if getenv("DEBUG", "False").lower() == "true":
-        log_level = logging.DEBUG
+        log_level = logging.INFO
 
     config, _ = dict_config(
         LOG_LEVEL=log_level, LOGGER_NAME=logger_name, FILELOG_PATH=log_file
     )
 
+    logger.handlers.clear()
     dictConfig(config)
     # Alter the Celery logger using the provided logger from kwargs if available.
     logger.setLevel(log_level)
-    # Clear existing handlers and add the ones from the new configuration.
-    logger.handlers.clear()
     configured_logger = logging.getLogger(logger_name.replace("_", "."))
     for handler in configured_logger.handlers:
         logger.addHandler(handler)
@@ -67,10 +68,9 @@ def make_celery() -> Celery:
         Celery: Configured Celery instance.
 
     """
-    celery = Celery(__name__)
     config = Config.load_config()
 
-    celery.conf.update(config.celery_config)
+    app.conf.update(config.celery_config)
 
     # class ContextTask(celery.Task):
     #     def __call__(
@@ -82,7 +82,7 @@ def make_celery() -> Celery:
 
     # celery.Task = ContextTask
 
-    celery.conf.update(
+    app.conf.update(
         # task_queues=CELERY_QUEUES,
         # task_routes=CELERY_ROUTES,
         task_default_queue="default",
@@ -92,8 +92,7 @@ def make_celery() -> Celery:
 
     importlib.import_module(".tasks", __package__)
 
-    return celery
+    return app
 
 
-app = make_celery()
-application = app
+app_celery = make_celery()

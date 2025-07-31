@@ -153,16 +153,23 @@ class LogsNamespace(Namespace):
 
         """
         # Inicializa os contadores se não existirem
-        message["success"] = message.get("success", 0)
-        message["errors"] = message.get("errors", 0)
-        message["remaining"] = message.get("total", 0) - message["success"]
 
-        # Atualiza os contadores conforme o tipo de mensagem
-        if message.get("type") and message.get("row") > 0:
-            if message.get("type") == "error":
-                message["errors"] += 1
-            elif message["type"] == "success":
-                message["success"] += 1
+        if message["status"] != "Inicializando":
+            message["success"] = message.get("success", 0)
+            message["errors"] = message.get("errors", 0)
+            message["remaining"] = message.get("total", 0) - message["success"]
+
+            # Atualiza os contadores conforme o tipo de mensagem
+            if message.get("type") and message.get("row") > 0:
+                if message.get("type") == "error":
+                    message["errors"] += 1
+                elif message["type"] == "success":
+                    message["success"] += 1
+
+        else:
+            message["success"] = 0
+            message["errors"] = 0
+            message["remaining"] = 0
 
         return message
 
@@ -195,11 +202,11 @@ class LogsNamespace(Namespace):
                 type="LOG",
                 pid=pid,
                 status="Em Execução",
-                row=1,
-                total=1,
-                errors=1,
-                success=1,
-                remaining=1,
+                row=0,
+                total=0,
+                errors=0,
+                success=0,
+                remaining=0,
                 start_time="01/01/2023 - 00:00:00",
             )
         )

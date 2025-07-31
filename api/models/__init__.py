@@ -1,12 +1,11 @@
 """Módulo de gestão de Models do banco de dados."""
 
 import pathlib
-from os import environ
 from typing import TypedDict
 from uuid import uuid4
 
 import pandas as pd
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from tqdm import tqdm
 
 from api import app, db
@@ -29,7 +28,7 @@ __all__ = [
     ThreadBots,
 ]
 
-load_dotenv()
+environ = dotenv_values()
 
 
 class DatabaseInitEnvDict(TypedDict):
@@ -96,12 +95,11 @@ async def init_database() -> None:
 
                 if not bot:
                     bot = BotsCrawJUD(**row)
+                    bot.license = [license_user]
                     bot_toadd.append(bot)
 
             if bot_toadd:
                 db.session.add_all(bot_toadd)
-
-            license_user.bots.extend(bot_toadd)
 
             db.session.commit()
 

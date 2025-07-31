@@ -19,147 +19,160 @@ Raises:
 
 from __future__ import annotations
 
-from asyncio import iscoroutinefunction
+import shutil
+import traceback
+from datetime import datetime
 from importlib import import_module
-from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, AnyStr, Literal, Self
 
-from celery.app import shared_task
+from celery import Task
+from pytz import timezone
 
-from addons.printlogs import PrintMessage
+from addons.printlogs._interface import MessageLog
 from addons.storage import Storage
-from common.bot import ClassBot
+from celery_app import app
+from celery_app._wrapper import shared_task
 
 if TYPE_CHECKING:
-    from celery_app.types import TReturnMessageExecutBot
+    from common.bot import ClassBot
+    from crawjud.core import CrawJUD
+
+workdir = Path(__file__).cwd()
+
+TypeLog = Literal["log", "success", "warning", "info", "error"]
+StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]
 
 
-@shared_task
-async def initialize_bot(name: str, system: str, pid: str) -> TReturnMessageExecutBot:
-    """
-    Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID.
+class BotTask:  # noqa: D101
+    _total_rows: int = 0
+    _master_instance: CrawJUD = None
+    count_id_log: int = 0
+    current_task: Task = None
+    start_time: datetime = None
+    _pid: str = ""
+    __name__ = "BotTask"
+    __annotations__ = {"name": str, "system": str}
 
-    This function dynamically imports the appropriate bot module and class, downloads necessary files from storage,
-    initializes the bot with its configuration, and starts its execution. It also sets up logging and a stop signal
-    handler for graceful termination.
+    @staticmethod
+    @shared_task(name="run_bot")
+    async def run_bot(  # noqa: D102
+        *args: AnyStr,
+        **kwargs: AnyStr,
+    ) -> str:
+        return await BotTask().start_bot(*args, **kwargs)
 
-    Args:
-        name (str): The name of the bot to initialize.
-        system (str): The system under which the bot is categorized.
-        pid (str): The process ID associated with the bot execution.
+    async def start_bot(  # noqa: D102
+        self,
+        name: str,
+        system: str,
+        file_config: str,
+        config_folder_name: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        try:
+            current_task: Task = kwargs.get("task")
+            self.current_task = current_task
+            self.start_time = datetime.strptime(
+                current_task.request.eta, "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+            pid = str(current_task.request.id)
+            self.pid = pid
 
-    Returns:
-        TReturnMessageExecutBot: A message indicating the result of the bot execution.
+            module_name = f"crawjud.bots.{system.lower()}.{name.lower()}"
+            bot = import_module(module_name, __package__)
+            class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
+            self.master_instance = class_bot()
+            self.master_instance.print_msg = self.print_msg
 
-    Raises:
-        ImportError: If the specified bot class cannot be found in the imported module.
-        Exception: For any other errors during initialization or execution, with details printed to logs.
+            # Aguarda a finalização da task de upload antes de continuar
+            path_config = await self.download_files(pid, config_folder_name)
 
-    """
-    # from celery_app import app
+            await self.master_instance.initialize(
+                pid=pid,
+                task_bot=self,
+                bot_name=name,
+                bot_system=system,
+                path_config=path_config,
+            )
 
-    # app.send_task("send_email", kwargs={})
+            return await self.master_instance.execution()
 
-    # Import the bot module dynamically based on the system and name
-    bot = import_module(f"crawjud.bots.{system.lower()}.{name.lower()}", __package__)
+        except Exception as e:
+            _msg = "\n".join(traceback.format_exception(e))
+            print(_msg)
+            raise e
 
-    # Get the ClassBot from the imported module
-    # Using getattr to handle cases where the class might not exist
-    # This allows for more flexible bot implementations
-    class_bot: type[ClassBot] = getattr(bot, name.capitalize(), None)
-    if class_bot is None:
-        raise ImportError(
-            f"Bot class '{name.capitalize()}' not found in module '{bot.__name__}'"
+    @property
+    def pid(self) -> str:  # noqa: D102
+        return self._pid
+
+    @pid.setter
+    def pid(self, new_val: str) -> None:
+        self._pid = new_val
+
+    def print_msg(  # noqa: D102
+        self,
+        message: str = "Carregando",
+        pid: str = None,
+        row: int = 0,
+        type_log: str = "log",
+        status: str = "Inicializando",
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        pid = pid if pid else str(self.pid)
+        total_count = self.master_instance.total_rows
+        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
+        prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
+
+        data = MessageLog(
+            message=prompt,
+            pid=str(self.pid),
+            row=row,
+            type=type_log,
+            status=status,
+            total=total_count,
+            success=0,
+            errors=0,
+            remaining=self.master_instance.total_rows,
+            start_time=self.start_time.strftime("%d/%m/%Y, %H:%M:%S"),
+        )
+        app.send_task(
+            "print_message",
+            kwargs={
+                "data": data,
+                "room": str(pid),
+                "event": "log_execution",
+            },
         )
 
-    try:
-        with PrintMessage(pid=pid) as prt:
-            storage = Storage("minio")
+    @property
+    def master_instance(self) -> CrawJUD:  # noqa: D102
+        return self._master_instance
 
-            # Print log message indicating bot initialization
-            prt.print_msg("Configurando o robô...", pid, 0, "log", "Inicializando")
-            path_files = Path(__file__).cwd().joinpath("temp")
+    @master_instance.setter
+    def master_instance(self, new_val: CrawJUD) -> None:
+        self._master_instance = new_val
 
-            # Print log message for downloading files
-            prt.print_msg(
-                "Baixando arquivos do robô...", pid, 0, "log", "Inicializando"
-            )
+    @property
+    def prt(self) -> Self:  # noqa: D102
+        return self
 
-            # Download files from storage
-            await storage.download_files(
-                dest=path_files,
-                prefix=pid,
-            )
+    async def download_files(self, pid: str, config_folder_name: str) -> Path:  # noqa: D102
+        storage = Storage("minio")
+        path_files = workdir.joinpath("temp", pid)
 
-            # Print log message indicating successful file download
-            prt.print_msg(
-                "Arquivos baixados com sucesso!", pid, 0, "log", "Inicializando"
-            )
-            path_config = path_files.joinpath(pid, f"{pid}.json")
+        await storage.download_files(
+            dest=path_files,
+            prefix=config_folder_name,
+        )
 
-            # Initialize the bot instance
-            bot_instance = class_bot.initialize(
-                bot_name=name, bot_system=system, path_config=path_config, prt=prt
-            )
+        for root, _, files in path_files.joinpath(config_folder_name).walk():
+            for file in files:
+                shutil.move(root.joinpath(file), path_files.joinpath(file))
 
-            # Set the PrintMessage instance to the bot instance
-            prt.bot_instance = bot_instance
-            namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
+        shutil.rmtree(path_files.joinpath(config_folder_name))
 
-            # Set up the handler for stop signal
-            @prt.io.on("stop_signal", namespace=namespace)
-            def stop_signal(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
-                bot_instance.is_stoped = True
-
-            # Print log message indicating bot execution start
-            prt.print_msg(
-                "Iniciando execução do robô...", pid, 0, "log", "Inicializando"
-            )
-
-            # Start the bot execution
-            if iscoroutinefunction(bot_instance.execution):
-                await bot_instance.execution()
-            else:
-                bot_instance.execution()
-            return "Execução encerrada com sucesso!"
-
-    except Exception as e:
-        print(e)
-        return "Erro no robô. Verifique os logs para mais detalhes."
-
-
-@shared_task
-def scheduled_initialize_bot(
-    bot_name: str, bot_system: str, path_config: str
-) -> TReturnMessageExecutBot:
-    """
-    Initialize and executes a bot based on the provided bot name, system, and configuration path.
-
-    This function dynamically imports the specified bot module, retrieves the corresponding bot class,
-    initializes it with the given parameters, and executes its main logic.
-
-    Args:
-        bot_name (str): The name of the bot to initialize and execute.
-        bot_system (str): The system or category under which the bot is organized.
-        path_config (str): The file path to the configuration required for the bot.
-
-    Returns:
-        TReturnMessageExecutBot: A message indicating the successful completion of the bot execution.
-
-    Raises:
-        ImportError: If the specified bot module cannot be imported.
-        AttributeError: If the bot class does not exist in the imported module.
-        Exception: Propagates any exception raised during bot initialization or execution.
-
-    """
-    bot = import_module(
-        f"crawjud.bots.{bot_system.lower()}.{bot_name.lower()}", __package__
-    )
-
-    class_bot = getattr(bot, bot_name.capitalize(), None)
-    class_bot.initialize(
-        bot_name=bot_name, bot_system=bot_system, path_config=path_config
-    )
-    class_bot.execution()
-    return "Execução encerrada com sucesso!"
+        return path_files.joinpath(f"{config_folder_name}.json")

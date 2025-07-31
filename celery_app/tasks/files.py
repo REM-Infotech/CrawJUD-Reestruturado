@@ -1,46 +1,61 @@
 """Modulo de gerenciamento de tarefas do Celery."""
 
-# from __future__ import annotations
+from __future__ import annotations
 
-# import mimetypes
-# from pathlib import Path
-# from typing import TYPE_CHECKING
+from os import environ
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-# from celery.app import shared_task
+import pandas as pd
+from werkzeug.utils import secure_filename
 
-# from addons.storage import Storage
+from addons.storage import Storage
+from celery_app._wrapper import shared_task
+from models.logs import CachedExecution
 
-# if TYPE_CHECKING:
-#     from celery_app.types import StrPath, TReturnMessageUploadFile
+if TYPE_CHECKING:
+    from crawjud.core._dictionary import BotData
+
+workdir_path = Path(__file__).cwd()
+
+server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
+namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
+
+transports = ["websocket"]
+headers = {"Content-Type": "application/json"}
+url_server = environ["SOCKETIO_SERVER_URL"]
 
 
-# @shared_task
-# def upload_file(file_path: StrPath) -> TReturnMessageUploadFile:
-#     """Upload a file to Google Cloud Storage.
+@shared_task(name="save_success")
+async def save_success(  # noqa: D103
+    pid: str, filename: str
+) -> None:
+    _data_query = CachedExecution.find(CachedExecution.pid == pid).all()
 
-#     Args:
-#         file_path (Path): The path file to upload.
+    list_data = []
+    for item in _data_query:
+        list_data.extend(item.data)
 
-#     Returns:
-#         str: The basename of the uploaded file if successful, else None.
+    storage = Storage("minio")
+    path_planilha = workdir_path.joinpath("temp", pid, filename)
 
-#     Raises:
-#         Exception: If an error occurs during the upload process.
+    path_planilha.parent.mkdir(exist_ok=True, parents=True)
+    df = pd.DataFrame(list_data)
 
-#     """
-#     file = Path(file_path).resolve()
-#     file_name = file.name
+    with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
+        df.to_excel(excel_writer=writter, index=False, sheet_name="Resultados")
 
-#     storage = Storage()
-#     bucket = storage.bucket_gcs()
+    file_name = secure_filename(path_planilha.name)
+    await storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
-#     # Create a Blob object in the bucket
-#     blob = bucket.blob(file_name)
 
-#     # Upload the local file to the Blob object
-
-#     content_type, _ = mimetypes.guess_type(file)
-
-#     blob.upload_from_filename(file, content_type=content_type)
-
-#     return "Arquivo enviado com sucesso!"
+@shared_task(name="save_cache")
+async def save_success_cache(  # noqa: D103
+    pid: str,
+    data: list[BotData],
+    processo: str,
+    *args: Any,
+    **kwargs: Any,
+) -> None:
+    _cache = CachedExecution(processo=processo, data=data, pid=pid)
+    _cache.save()

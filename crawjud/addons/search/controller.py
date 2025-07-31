@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from selenium.webdriver.support.wait import WebDriverWait
 
     from addons.printlogs import PrintMessage
-    from crawjud.addons.interator import Interact
     from crawjud.core._dictionary import BotData
     from crawjud.types.elements import type_elements
 
@@ -22,7 +21,6 @@ class SearchController:
     wait: WebDriverWait
     elements: type[type_elements]
     bot_data: BotData
-    interact: Interact
     prt: PrintMessage
 
     subclasses = {}
@@ -34,7 +32,6 @@ class SearchController:
         wait: WebDriverWait,
         elements: type[type_elements],
         bot_data: dict[str, str],
-        interact: Interact,
         prt: PrintMessage,
     ) -> None:
         """Inicializador do SearchController."""
@@ -43,7 +40,6 @@ class SearchController:
         self.wait = wait
         self.elements = elements
         self.bot_data = bot_data
-        self.interact = interact
         self.prt = prt
 
     @classmethod

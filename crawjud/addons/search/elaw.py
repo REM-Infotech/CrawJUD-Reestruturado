@@ -37,7 +37,7 @@ class ElawSearch(SearchController):
         )
         campo_numproc.clear()
         sleep(0.15)
-        self.interact.send_key(campo_numproc, self.bot_data.get("NUMERO_PROCESSO"))
+        campo_numproc.send_keys(self.bot_data.get("NUMERO_PROCESSO"))
 
         self.driver.find_element(By.ID, "btnPesquisar").click()
         search_result: WebElement = self.wait.until(

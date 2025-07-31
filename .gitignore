@@ -20,6 +20,10 @@ lib64/
 *.pfx
 *.p7s
 *.p12
+*.xlsx
+.graalvenv/*
+_teste.py
+process_dbg.png
 parts/
 sdist/
 signer4j/*

@@ -2,48 +2,291 @@
 
 from __future__ import annotations
 
+import json
+import logging
+import logging.config
 import re
 import ssl
 import subprocess
 import traceback
 import unicodedata
-from contextlib import suppress
+from abc import ABC
 from datetime import datetime
 from difflib import SequenceMatcher
+from logging import Logger
 from os import listdir, path
 from pathlib import Path
 from time import perf_counter, sleep
-from typing import Any, Self
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Callable,
+    Generic,
+    ParamSpec,
+    Self,
+    TypeVar,
+)
 
 import pandas as pd
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from dotenv import load_dotenv
 from pandas import Timestamp
+from pytz import timezone
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
 from werkzeug.utils import secure_filename
 
-from crawjud.core._dictionary import BotData
-from crawjud.core.master import Controller
-from crawjud.exceptions.bot import ExecutionError
-from crawjud.types import TypeData
-from models.logs import MessageLog
+from addons.logger import dict_config
+from addons.printlogs import PrintMessage
+from crawjud.addons.make_templates import MakeTemplates
+from crawjud.addons.search import SearchController
+from crawjud.exceptions.bot import ExecutionError, StartError
+from crawjud.types import StrPath, TypeData
+from crawjud.types.elements import type_elements
 
-load_dotenv(Path(__file__).parent.resolve().joinpath("../.env"))
+if TYPE_CHECKING:
+    from crawjud.core._dictionary import BotData
+T = TypeVar("AnyValue", bound=str)
+PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
+PrintTReturn = TypeVar("PrintTReturn", bound=Any)
 
 
-class CrawJUD(Controller):
-    """CrawJUD bot core class.
+class CrawJUD(ABC):
+    """Classe de controle de variáveis CrawJUD."""
 
-    Manages the initialization, setup, and authentication processes
-    of the CrawJUD bot.
-    """
+    _row: int = 0
+    # Variáveis de dados/configuraçoes
+    bot_data: dict[str, str]
+    config_bot: dict[str, AnyStr]
+    planilha_sucesso: StrPath
+    # Variáveis de estado/posição/indice
+    pid: str
+    pos: int
+    _is_stoped: bool
+    start_time: float
 
-    @classmethod
-    def initialize(cls, *args: Any, **kwargs: Any) -> Self:  # noqa: D102
-        raise NotImplementedError("Subclasses must implement this method")
+    # Variáveis de verificações
+    system: str
+    typebot: str
+    state_or_client: str = None
+    preferred_browser: str = "chrome"
+    _total_rows: int = 0
+    _print_msg: Callable[PrintParamSpec, PrintTReturn] = None
 
-    def execution(self) -> None:  # noqa: D102
-        raise NotImplementedError("Subclasses must implement this method")
+    # Variáveis de autenticação/protocolo
+    username: str
+    password: str
+    senhatoken: str
+
+    # Classes Globais
+    elements: type_elements
+    driver: WebDriver
+    search: SearchController
+    wait: WebDriverWait
+    logger: Logger
+    prt: PrintMessage
+
+    # Variáveis de nome/caminho de arquivos/pastas
+    xlsx: str
+    input_file: StrPath
+    output_dir_path: StrPath
+    _cities_am: dict[str, str]
+    _search: SearchController = None
+    _data_bot: dict[str, str] = {}
+
+    @property
+    def total_rows(self) -> int:  # noqa: D102
+        return self._total_rows
+
+    @total_rows.setter
+    def total_rows(self, new_value: int) -> None:
+        self._total_rows = new_value
+
+    @property
+    def is_stoped(self) -> bool:  # noqa: D102
+        return self._is_stoped
+
+    @is_stoped.setter
+    def is_stoped(self, new_value: bool) -> None:
+        self._is_stoped = new_value
+
+    @property
+    def bot_data(self) -> BotData:
+        """Property bot data."""
+        return self._data_bot
+
+    @bot_data.setter
+    def bot_data(self, new_data: BotData) -> None:
+        """Property bot data."""
+        self._data_bot = new_data
+
+    @property
+    def search_bot(self) -> SearchController:
+        """Property para o searchbot."""
+        return self._search
+
+    @search_bot.setter
+    def search_bot(self, instancia: SearchController) -> None:
+        """Define a instância do searchbot."""
+        self._search = instancia
+
+    @property
+    def row(self) -> int:  # noqa: D102
+        return self._row
+
+    @row.setter
+    def row(self, new_value: int) -> None:
+        """Define o valor da variável row."""
+        self._row = new_value
+
+    @property
+    def cities_amazonas(self) -> dict[str, str]:  # noqa: N802
+        """Return a dictionary categorizing Amazonas cities as 'Capital' or 'Interior'.
+
+        Returns:
+            dict[str, str]: City names with associated regional classification.
+
+        """
+        return self._cities_am
+
+    @property
+    def print_msg(self) -> Callable[PrintParamSpec, PrintTReturn]:  # noqa: D102
+        return self._print_msg
+
+    @print_msg.setter
+    def print_msg(self, new_value: Callable[PrintParamSpec, PrintTReturn]) -> None:
+        self._print_msg = new_value
+
+    @property
+    def prt(self) -> Callable[PrintParamSpec, PrintTReturn]:  # noqa: D102
+        return self._print_msg
+
+    async def initialize(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Self:
+        """Initialize a new Pauta instance with provided arguments now.
+
+        Args:
+            *args (str|int): Positional arguments.
+            **kwargs (str|int): Keyword arguments.
+
+        """
+        try:
+            self.print_msg = kwargs.get("task_bot").print_msg
+            with (
+                Path(__file__)
+                .parent.resolve()
+                .joinpath("data_formatters", "cities_amazonas.json")
+                .open("r") as f
+            ):
+                self._cities_am = json.loads(f.read())
+
+            self.is_stoped = False
+            self.start_time = perf_counter()
+            self.output_dir_path = Path(kwargs.get("path_config")).parent.resolve()
+            for k, v in list(kwargs.items()):
+                if "bot" in k:
+                    setattr(self, k.split("_")[1], v)
+                    continue
+
+                setattr(self, k, v)
+
+            pid = kwargs.get("pid")
+            self.print_msg("Configurando o núcleo...", pid, 0, "log", "Inicializando")
+
+            self.open_cfg()
+
+            # Configuração do logger
+            self.configure_logger()
+
+            # Define o InputFile
+            self.input_file = Path(self.output_dir_path).resolve().joinpath(self.xlsx)
+
+            # Criação de planilhas template
+            self.make_templates()
+
+            self.print_msg(
+                "Núcleo configurado.", self.pid, 0, "success", "Inicializando"
+            )
+
+            return self
+
+        except Exception as e:
+            raise StartError(exception=e) from e
+
+    def configure_logger(self) -> None:
+        """Configura o logger."""
+        log_path = str(self.output_dir_path.joinpath(f"{self.pid}.log"))
+
+        config, logger_name = dict_config(
+            LOG_LEVEL=logging.INFO, LOGGER_NAME=self.pid, FILELOG_PATH=log_path
+        )
+        logging.config.dictConfig(config)
+
+        self.logger = logging.getLogger(logger_name)
+        self.total_rows = int(getattr(self, "total_rows", 0))
+
+    def make_templates(self) -> None:
+        """Criação de planilhas de output do robô."""
+        time_xlsx = datetime.now(timezone("America/Manaus")).strftime("%d-%m-%y")
+        self.print_msg(
+            "Criando planilhas de output",
+            row=0,
+            type_log="log",
+            status="Inicializando",
+        )
+        planilha_args = [
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Sucessos - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "sucesso",
+                "BOT_NAME": self.name,
+            },
+            {
+                "PATH_OUTPUT": self.output_dir_path,
+                "TEMPLATE_NAME": f"Erros - PID {self.pid} {time_xlsx}.xlsx",
+                "TEMPLATE_TYPE": "erro",
+                "BOT_NAME": self.name,
+            },
+        ]
+        self.print_msg(
+            "Planilhas criadas.",
+            row=0,
+            type_log="success",
+            status="Inicializando",
+        )
+
+        for item in planilha_args:
+            attribute_name, attribute_val = MakeTemplates.constructor(**item).make()
+            setattr(self, attribute_name, attribute_val)
+
+    def open_cfg(self) -> None:
+        """Abre as configurações de execução."""
+        self.print_msg(
+            "Carregando configurações",
+            row=0,
+            type_log="log",
+            status="Inicializando",
+        )
+
+        with Path(self.path_config).resolve().open("r") as f:
+            data: dict[str, AnyStr] = json.loads(f.read())
+            self.config_bot = data
+            for k, v in list(data.items()):
+                if k == "state" or k == "client":
+                    self.state_or_client = v
+
+                setattr(self, k, v)
+
+        self.print_msg(
+            "Configurações carregadas",
+            row=0,
+            type_log="success",
+            status="Inicializando",
+        )
 
     def dataFrame(self) -> list[BotData]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
@@ -52,46 +295,39 @@ class CrawJUD(Controller):
         and returns the data as a list of dictionaries.
 
         Returns:
-            List(list[dict[str, str]]): A record list from the processed Excel file.
+            list[BotData]: A record list from the processed Excel file.
 
         Raises:
             FileNotFoundError: If the target file does not exist.
             ValueError: For problems reading the file.
 
         """
-        df = pd.read_excel(self.input_file)
+        input_file = Path(self.output_dir_path).joinpath(self.xlsx).resolve()
+
+        df = pd.read_excel(input_file)
         df.columns = df.columns.str.upper()
 
+        def format_data(x: Generic[T]) -> str:
+            if str(x) == "NaT" or str(x) == "nan":
+                return ""
+
+            if isinstance(x, (datetime, Timestamp)):
+                return x.strftime("%d/%m/%Y")
+
+            return x
+
+        def format_float(x: Generic[T]) -> str:
+            return f"{x:.2f}".replace(".", ",")
+
         for col in df.columns:
-            with suppress(Exception):
-                df[col] = df[col].apply(
-                    lambda x: (
-                        x.strftime("%d/%m/%Y")
-                        if isinstance(x, (datetime, Timestamp))
-                        else x
-                    )
-                )
+            df[col] = df[col].apply(format_data)
 
         for col in df.select_dtypes(include=["float"]).columns:
-            with suppress(Exception):
-                df[col] = df[col].apply(lambda x: f"{x:.2f}".replace(".", ","))
+            df[col] = df[col].apply(format_float)
 
-        data_planilha = []
+        to_list = [dict(list(item.items())) for item in df.to_dict(orient="records")]
 
-        df_dicted = df.to_dict(orient="records")
-        for item in df_dicted:
-            for key, value in item.items():
-                if str(value) == "nan":
-                    item[key] = None
-
-            data_planilha.append(item)
-
-        logs = MessageLog.query_logs(self.pid)
-
-        if logs and logs.row > 0:
-            data_planilha = data_planilha[: logs.row + 1]
-
-        return data_planilha
+        return to_list
 
     def elawFormats(self, data: dict[str, str]) -> dict[str, str]:  # noqa: N802
         """Format a legal case dictionary according to pre-defined rules.
@@ -141,19 +377,9 @@ class CrawJUD(Controller):
 
     def tratamento_erros(self, exc: Exception, last_message: str = None) -> None:
         """Tratamento de erros dos robôs."""
-        windows = []
-        with suppress(Exception):
-            windows = self.driver.window_handles
-
-        if len(windows) == 0:
-            self.configure_webdriver()
-            self.portal_authentication()
-
         err_message = "\n".join(traceback.format_exception_only(exc))
         message = f"Erro de Operação: {err_message}"
-        self.prt.print_msg(
-            message=message, type_log="error", pid=self.pid, row=self.row
-        )
+        self.print_msg(message=message, type_log="error", pid=self.pid, row=self.row)
 
         self.bot_data.update({"MOTIVO_ERRO": err_message})
         self.append_error(self.bot_data)
@@ -196,7 +422,7 @@ class CrawJUD(Controller):
         self.row = self.total_rows
         type_log = "success"
         message = f"Fim da execução, tempo: {minutes} minutos e {seconds} segundos"
-        self.prt.print_msg(
+        self.print_msg(
             message=message,
             pid=self.pid,
             row=self.row,
@@ -291,9 +517,7 @@ class CrawJUD(Controller):
 
         save_info(data)
 
-        self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
-        )
+        self.print_msg(message=message, pid=self.pid, row=self.row, type_log=type_log)
 
     def append_error(self, data: dict[str, str] = None) -> None:
         """Append error information to the error spreadsheet file.

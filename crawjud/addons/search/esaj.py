@@ -54,14 +54,14 @@ class EsajSearch(SearchController):
         ratioNumberOld: WebElement = self.wait.until(  # noqa: N806
             ec.presence_of_element_located((By.ID, "radioNumeroAntigo"))
         )  # noqa: N806
-        self.interact.click(ratioNumberOld)
+        ratioNumberOld.click()
 
         # Insere o processo no Campo
         lineprocess: WebElement = self.wait.until(
             ec.presence_of_element_located((By.ID, "nuProcessoAntigoFormatado"))
         )
-        self.interact.click(lineprocess)
-        self.interact.send_key(lineprocess, self.bot_data.get("NUMERO_PROCESSO"))
+        lineprocess.click()
+        lineprocess.send_keys(self.bot_data.get("NUMERO_PROCESSO"))
 
         # Abre o Processo
         openprocess = None
@@ -69,7 +69,7 @@ class EsajSearch(SearchController):
             openprocess: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.ID, id_consultar))
             )
-            self.interact.click(openprocess)
+            openprocess.click()
 
         check_process = None
         with suppress(NoSuchElementException, TimeoutException):

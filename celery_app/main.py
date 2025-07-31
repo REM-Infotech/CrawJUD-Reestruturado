@@ -1,7 +1,6 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
 import argparse
-import asyncio
 from contextlib import suppress
 from multiprocessing import Process  # noqa: F401
 from os import environ
@@ -18,25 +17,29 @@ from inquirer import List, prompt
 from inquirer.themes import GreenPassion
 from tqdm import tqdm
 
+from celery_app import app as app
 from celery_app import make_celery
 from celery_app.addons import worker_name_generator
 
 clear()
+environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
+
+work_dir = Path(__file__).cwd()
 
 
 def start_worker() -> None:
     """Start the Celery Worker."""
     environ.update({"APPLICATION_APP": "worker"})
-    worker_name = f"{worker_name_generator()}@{node()}"
+    worker_name = environ["WORKER_NAME"]
 
     celery = make_celery()
     worker = Worker(
         app=celery,
         hostname=worker_name,
         task_events=True,
-        loglevel="INFO",
-        concurrency=50.0,
-        pool="threads",
+        loglevel="DEBUG",
+        concurrency=16,
+        pool="prefork",
     )
     worker = worker
 
@@ -50,21 +53,20 @@ def start_worker() -> None:
         else:
             tqdm.write("[bold red]Error starting worker.")
 
-    asyncio.run(start_worker())
-
 
 def start_beat() -> None:
     """Start the Celery beat scheduler."""
     celery = make_celery()
     environ.update({"APPLICATION_APP": "beat"})
     scheduler = "celery_app.addons.scheduler:DatabaseScheduler"
-    worker_name = f"{worker_name_generator()}_celery"
     beat = Beat(
         app=celery,
         scheduler=scheduler,
         max_interval=5,
         loglevel="INFO",
-        logfile=Path().cwd().joinpath("temp", "logs", f"{worker_name}.log"),
+        logfile=work_dir.joinpath(
+            "temp", "logs", f"{environ['WORKER_NAME']}_beat.log"
+        ),
         no_color=False,
     )
     beat.run()
@@ -128,6 +130,7 @@ def main() -> None:
 
             if not result:
                 process_running = stop_service(process_celery)
+                break
 
             if result.get("option_server") == opt_1:
                 process_celery = restart_service(callable_obj, process_celery)
