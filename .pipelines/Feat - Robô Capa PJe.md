@@ -1,6 +1,6 @@
 # Pull Request (#23) Feat - Robô Capa PJe
 
-## Tipo de Alteração
+## Tipo de Alteração/Alterações (Máximo 3 tipos)
 
 - [ ] Correção de bug (ajuste que resolve um problema sem quebrar funcionalidades)
 - [ ] Nova funcionalidade (implementação de recurso novo sem impacto em recursos existentes)
@@ -14,10 +14,11 @@
 - [ ] CI/CD (ajustes em arquivos ou scripts de integração/entrega contínua)
 - [ ] Hotfix (correções rápidas para problemas em produção)
 
-## Checklist
+## Checklist (Mnimo 3 itens)
 
-- [ ] Alterações com até 400 linhas
-- [ ] Revisão do próprio código realizada
-- [ ] Testes e linter executados localmente com sucesso
-- [ ] Código comentado em trechos complexos (se aplicável)
-- [ ] Testes criados para correção ou funcionalidade (se aplicável)
+- [ ] Minhas alterações respeitam o limite de 700 linhas alteradas por Pull Request
+- [ ] Revisão do próprio código realizada ou revisão por agente (IA ou outro dev)
+  > Para revisão por IA, requer dupla verificação para garantir a qualidade do código.
+- [ ] Meu código passa nos testes ou no linter localmente
+- [ ] Meu código contem comentários em trechos complexos
+- [ ] Criei testes para validação de correção/funcionalidade (Opcional)
