@@ -1,6 +1,5 @@
 import os
 import re
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
@@ -19,13 +18,10 @@ load_dotenv()
 
 
 data_query = CachedExecution.all_data()
-data_query = CachedExecution.all_data()
 path_planilha = Path(__file__).parent.joinpath("Processos.xlsx")
 
 if path_planilha.exists():
     os.remove(path_planilha)
-
-os.remove(path_planilha)
 
 list_dict_representantes: list[dict[str, str]] = []
 kw = {
@@ -196,8 +192,7 @@ def save_in_batches(
         existing_df = pd.read_excel(str(path_planilha), sheet_name=sheet_name)
         df_final = pd.concat([existing_df, df])
         df_final.to_excel(writer, sheet_name=sheet_name, index=False)
-    except Exception as e:
-        tqdm.write("\n".join(traceback.format_exception(e)))
+    except Exception:
         df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
