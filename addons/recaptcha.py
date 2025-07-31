@@ -14,6 +14,8 @@ Raises:
 
 """
 
+import base64
+import io
 import re
 from typing import Any
 
@@ -81,12 +83,12 @@ def reabre_imagem(f: Any) -> np.ndarray:
     return threshold
 
 
-def captcha_to_image(im_b: bytes) -> str:
+def captcha_to_image(im_b: str) -> str:
     """
     Processa uma imagem de captcha e extraia o texto utilizando OCR.
 
     Args:
-        im_b (bytes): Imagem em bytes a ser processada.
+        im_b (str): Imagem em str a ser processada.
 
     Returns:
         str: Texto extraído da imagem após o processamento.
@@ -98,7 +100,7 @@ def captcha_to_image(im_b: bytes) -> str:
     """
     # Define nome do arquivo para debug do processamento
     _process_dbg = "process_dbg.png"
-
+    im_b = io.BytesIO(base64.b64decode(im_b)).read()
     # Pré-processa a imagem
     thresh = load_img_blur_apply(im_b=im_b)
     thresh = cv2.bitwise_not(thresh)
@@ -146,4 +148,4 @@ def captcha_to_image(im_b: bytes) -> str:
         text_pytesseract.lower().replace("\n", "").strip().replace(" ", ""),
     )
 
-    return text
+    return text.zfill(6)[:6]
