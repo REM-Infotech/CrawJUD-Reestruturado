@@ -12,8 +12,9 @@ class ItemMessageList(TypedDict):
 
     """
 
-    id_log: int | None  # e.g. 1 (unique identifier for the log entry)
+    id_log: int  # e.g. 1 (unique identifier for the log entry)
     message: (
         str
-        | None  # e.g. "[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]"
+        # e.g. "[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]"
     )
+    type: str

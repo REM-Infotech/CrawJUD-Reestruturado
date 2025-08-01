@@ -88,8 +88,10 @@ class LogsNamespace(Namespace):
 
         """
         control = cast(Control, app_celery.control)
+        request_data = await request.data
+        pid = request_data.get("pid")
         control.revoke(
-            (await request.data)["pid"],
+            task_id=pid,
             terminate=True,
         )
 
@@ -124,7 +126,7 @@ class LogsNamespace(Namespace):
         # Obtém os dados do formulário e carrega o log do Redis
         _data = dict(list((await request.form).items()))
         message = await self.log_redis(pid=_data["pid"])
-        return message
+        return message, True
 
     async def on_log_execution(self) -> None:
         """
@@ -143,12 +145,15 @@ class LogsNamespace(Namespace):
         # Emite o log atualizado para a sala do processo
         await self.emit("log_execution", data=message, room=_data["pid"])
 
-    async def _calc_success_errors(self, message: MessageLogDict) -> MessageLogDict:
+    async def _calc_success_errors(  # noqa: D417
+        self, message: MessageLogDict, log: MessageLog = None
+    ) -> MessageLogDict:
         """
         Calcula e atualiza os valores de sucesso, erro e restante no log.
 
         Args:
             message (MessageLogDict): Dicionário com informações do log.
+            log
 
         Returns:
             MessageLogDict: Dicionário atualizado com contadores de sucesso e erro.
@@ -156,22 +161,29 @@ class LogsNamespace(Namespace):
         """
         # Inicializa os contadores se não existirem
 
-        if message["status"] != "Inicializando":
-            message["success"] = message.get("success", 0)
-            message["errors"] = message.get("errors", 0)
-            message["remaining"] = message.get("total", 0) - message["success"]
+        if log:
+            count_success = len(
+                list(filter(lambda x: x["type"] == "success", log.messages))
+            )
+            count_error = len(
+                list(filter(lambda x: x["type"] == "error", log.messages))
+            )
+            remaining = count_success + count_error
 
+            message["success"] = count_success
+            message["errors"] = count_error
+            message["remaining"] = remaining
+
+        if message["status"] != "Inicializando":
             # Atualiza os contadores conforme o tipo de mensagem
             if message.get("type") and message.get("row") > 0:
-                if message.get("type") == "error":
-                    message["errors"] += 1
-                elif message["type"] == "success":
-                    message["success"] += 1
+                if message.get("type") == "success":
+                    message["success"] = message.get("success", 0) + 1
+                    message["remaining"] = message["remaining"] - 1
 
-        else:
-            message["success"] = 0
-            message["errors"] = 0
-            message["remaining"] = 0
+                if message.get("type") == "error":
+                    message["errors"] = message.get("errors", 0) + 1
+                    message["remaining"] = message["remaining"] - 1
 
         return message
 
@@ -195,13 +207,30 @@ class LogsNamespace(Namespace):
         # Consulta o log existente pelo pid
         log = MessageLog.query_logs(pid)
 
-        # Prepara a mensagem base
-        _message: MessageLogDict = (
-            dict(message)
-            if message
+        # # Prepara a mensagem base
+        # _message: MessageLogDict = (
+        #     dict(message)
+        #     if message
+        #     else MessageLogDict(
+        #         message="CARREGANDO",
+        #         type="LOG",
+        #         pid=pid,
+        #         status="Em Execução",
+        #         row=0,
+        #         total=0,
+        #         errors=0,
+        #         success=0,
+        #         remaining=0,
+        #         start_time="01/01/2023 - 00:00:00",
+        #     )
+        # )
+        #
+
+        _message = (
+            message or log.model_dump()
+            if log
             else MessageLogDict(
                 message="CARREGANDO",
-                type="LOG",
                 pid=pid,
                 status="Em Execução",
                 row=0,
@@ -209,34 +238,44 @@ class LogsNamespace(Namespace):
                 errors=0,
                 success=0,
                 remaining=0,
+                type="info",
                 start_time="01/01/2023 - 00:00:00",
             )
         )
+
         msg = _message.pop("message", "Mensagem não informada")
 
-        if log:
-            # Adiciona nova mensagem ao log existente
-            log.messages.append(
-                ItemMessageList(message=msg, id_log=len(log.messages))
-            )
-            if not _message:
-                _message = log.model_dump()
-
-        elif not log:
+        # Atualiza os contadores de sucesso e erro
+        updated_msg = await self._calc_success_errors(_message, log)
+        type_log = updated_msg.pop("type", "info")
+        if not log:
             # Cria novo log se não existir
-            _message["messages"] = [
+            updated_msg["messages"] = [
                 ItemMessageList(
-                    id_log=int(_message.pop("id_log", 0)) + 1,
+                    id_log=int(updated_msg.pop("id_log", 0)) + 1,
                     message=msg,
+                    type=type_log,
                 )
             ]
-            log = MessageLog(**_message)
+            log = MessageLog(**updated_msg)
             log.save()
 
-        # Atualiza os contadores de sucesso e erro
-        updated_msg = await self._calc_success_errors(_message)
+        elif log:
+            if updated_msg.get("pk"):
+                updated_msg.pop("pk")
+
+            updated_msg["messages"] = log.messages or []
+            updated_msg["messages"].append(
+                ItemMessageList(
+                    id_log=int(updated_msg.pop("id_log", 0)) + 1,
+                    message=msg,
+                    type=type_log,
+                )
+            )
+
         # Atualiza o log no banco de dados
         log.update(**updated_msg)
 
         updated_msg["message"] = msg
+        updated_msg["type"] = type_log
         return updated_msg

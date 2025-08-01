@@ -87,7 +87,7 @@ class AsyncResult(__AsyncResult):
             self._app.control.ping(timeout=0.5)
 
         if self.failed():
-            raise
+            return None
 
         return self.result
 

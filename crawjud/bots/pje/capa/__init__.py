@@ -69,8 +69,11 @@ class Capa(ClassBot):  # noqa: D101
         **kwargs: Generic[T],
     ) -> None:
         _pid = str(current_task.request.id)
+        _start_time: datetime = formata_tempo(current_task.request.eta).strftime(
+            "%d/%m/%Y, %H:%M:%S"
+        )
         _keyword_args = kwargs.copy()
-
+        _task_message = subtask("log_message")
         _task_download_files = subtask("crawjud.download_files")
         _task_autenticacao = subtask("pje.autenticador")
         _task_bot_data = subtask("crawjud.dataFrame")
@@ -79,6 +82,17 @@ class Capa(ClassBot):  # noqa: D101
         _files_b64: list[DictFiles] = _task_download_files.apply_async(
             kwargs={"storage_folder_name": storage_folder_name}
         ).wait_ready()
+
+        _task_message.apply_async(
+            kwargs={
+                "pid": _pid,
+                "message": "Abrindo planilha Excel...",
+                "row": 0,
+                "type_log": "log",
+                "total_rows": 0,
+                "start_time": _start_time,
+            }
+        )
 
         xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", _files_b64))
         if not xlsx_key:
@@ -90,6 +104,17 @@ class Capa(ClassBot):  # noqa: D101
             kwargs={"base91_planilha": xlsx_key[0]["file_base91str"]}
         ).wait_ready()
 
+        _task_message.apply_async(
+            kwargs={
+                "pid": _pid,
+                "message": "Planilha carregada!",
+                "row": 0,
+                "type_log": "info",
+                "total_rows": len(_bot_data),
+                "start_time": _start_time,
+            }
+        )
+
         regioes: DictSeparaRegiao = _task_separa_regiao.apply_async(
             kwargs={"frame": _bot_data}
         ).wait_ready()
@@ -99,29 +124,64 @@ class Capa(ClassBot):  # noqa: D101
         _tasks_queue_processos: list[AsyncResult] = []
         _process = list(psutil.process_iter())
 
-        _start_time: datetime = formata_tempo(current_task.request.eta)
         _total_rows = len(_bot_data)
+
+        _task_message.apply_async(
+            kwargs={
+                "pid": _pid,
+                "message": "Realizando autenticação nos TRTs...",
+                "row": 0,
+                "type_log": "log",
+                "total_rows": len(_bot_data),
+                "start_time": _start_time,
+            }
+        )
+
         for regiao, data_regiao in list(regioes["regioes"].items()):
+            _task_message.apply_async(
+                kwargs={
+                    "pid": _pid,
+                    "message": f"Autenticando no TRT {regiao}",
+                    "row": 0,
+                    "type_log": "log",
+                    "total_rows": _total_rows,
+                    "start_time": _start_time,
+                }
+            )
             autenticacao_data: TReturnAuth = _task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
             if isinstance(autenticacao_data, dict):
                 kw_args = dict(autenticacao_data)
-
                 kw_args.update({
                     "data": data_regiao,
                     "pid": _pid,
                     "regiao": regiao,
-                    "start_time": _start_time.strftime("%d/%m/%Y, %H:%M:%S"),
+                    "start_time": _start_time,
                     "total_rows": _total_rows,
                     "position_process": _position_process,
                 })
+
+                # Inicia a fila de tarefas para processar os dados
                 _task_queue_processos = subtask(
                     "pje.queue_processos",
                 ).apply_async(kwargs=kw_args)
 
+                # Armazena a tarefa na lista de tarefas
                 _tasks_queue_processos.append(_task_queue_processos)
                 _kill_browsermob()
+
+                # Envia mensagem de sucesso
+                _task_message.apply_async(
+                    kwargs={
+                        "pid": _pid,
+                        "message": "Autenticado com sucesso!",
+                        "row": 0,
+                        "type_log": "info",
+                        "total_rows": _total_rows,
+                        "start_time": _start_time,
+                    }
+                )
 
         print("ok")
 
@@ -140,7 +200,11 @@ class Capa(ClassBot):  # noqa: D101
         **kwargs: Generic[T],
     ) -> None:
         """Enqueue processes for further processing."""
+        task_message = subtask("log_message")
         for item in data:
+            pid = str(item["pid"])
+            row = int(item["row"]) + 1
+            start_time = item["start_time"]
             item["row"] = position_process[item["NUMERO_PROCESSO"]]
             item["total_rows"] = total_rows
             item["pid"] = pid
@@ -158,6 +222,19 @@ class Capa(ClassBot):  # noqa: D101
                 .wait_ready()
             )
 
+            if not resultados_busca:
+                task_message.apply_async(
+                    kwargs={
+                        "pid": pid,
+                        "message": "Falha ao obter informações do processo ",
+                        "row": row,
+                        "type_log": "error",
+                        "total_rows": item.get("total_rows", 0),
+                        "start_time": start_time,
+                    }
+                )
+                continue
+
             subtask("save_cache").apply_async(
                 kwargs={
                     "pid": pid,
@@ -165,10 +242,7 @@ class Capa(ClassBot):  # noqa: D101
                     "processo": item["NUMERO_PROCESSO"],
                 }
             )
-            pid = str(item["pid"])
-            row = int(item["row"])
-            start_time = item["start_time"]
-            task_message = subtask("log_message")
+
             task_message.apply_async(
                 kwargs={
                     "pid": pid,

@@ -108,34 +108,16 @@ class MessageLogDict(TypedDict):
 
     """Model for message logs."""
 
-    pid: str = Field(
-        default="desconhecido",
-        description="e.g. 'C3K7H5' (identificador do processo)",
-        primary_key=True,
-    )
-
-    messages: list[ItemMessageList] = Field(
-        default=[ItemMessageList(message="Mensagem não informada")],
-        description=description_message,
-    )
-    type: str = Field(
-        default="log", description="e.g. 'log', 'error', 'success' (tipo do log)"
-    )
-    status: str = Field(
-        default="Desconhecido",
-        description="e.g. 'Em Execução', 'Concluído', 'Erro' (status do processo)",
-    )
-    start_time: str = Field(
-        default="00/00/0000 - 00:00:00",
-        description="e.g. '01/01/2023 - 19:37:15' (data/hora de início)",
-    )
-    row: int = Field(description="e.g. 15 (linha atual sendo processada)")
-    total: int = Field(description="e.g. 100 (total de linhas a serem processadas)")
-    errors: int = Field(description="e.g. 2 (quantidade de erros encontrados)")
-    success: int = Field(
-        description="e.g. 98 (quantidade de operações bem-sucedidas)"
-    )
-    remaining: int = Field(description="e.g. 85 (linhas restantes para processar)")
+    pid: str
+    type: str
+    messages: list[ItemMessageList]
+    status: str
+    start_time: str
+    row: int
+    total: int
+    errors: int
+    success: int
+    remaining: int
 
 
 class MessageLog(JsonModel):
@@ -170,11 +152,10 @@ class MessageLog(JsonModel):
     )
 
     messages: list[ItemMessageList] = Field(
-        default=[ItemMessageList(message="Mensagem não informada")],
+        default=[
+            ItemMessageList(message="Mensagem não informada", id_log=0, type="info")
+        ],
         description=description_message,
-    )
-    type: str = Field(
-        default="log", description="e.g. 'log', 'error', 'success' (tipo do log)"
     )
     status: str = Field(
         default="Desconhecido",
