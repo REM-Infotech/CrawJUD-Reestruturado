@@ -25,12 +25,17 @@ load_dotenv()
 @wrap_init
 class Capa(ClassBot):  # noqa: D101
     @staticmethod
-    @shared_task(name="pje.capa")
+    @shared_task(name="pje.movimentacao")
     def pje_capa(  # noqa: D102
         current_task: ContextTask,
+        name: str,
+        system: str,
+        file_config: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        _pid = str(current_task.request.pid)
+        _keyword_args = kwargs.copy()
         autenticar = subtask("pje.autenticador", *()).apply_async(
             kwargs={"regiao": "11"}
         )
@@ -41,9 +46,7 @@ class Capa(ClassBot):  # noqa: D101
         _result_auth: TReturnAuth = autenticar.result
 
         if isinstance(_result_auth, MessageTimeoutAutenticacao):
-            raise ExecutionError(
-                bot_execution_id=current_task.request.pid, message=str(_result_auth)
-            )
+            raise ExecutionError(bot_execution_id=_pid, message=str(_result_auth))
 
     @classmethod
     @classmethod_shared_task(name="pje.tratamento_dados")

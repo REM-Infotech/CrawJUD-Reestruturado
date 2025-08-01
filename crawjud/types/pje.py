@@ -11,7 +11,26 @@ from __future__ import annotations
 
 from typing import List, Optional, TypedDict
 
+from crawjud.types.bot import BotData
+
 TDict = dict[str, str]
+
+
+class DictSeparaRegiao(TypedDict):
+    """
+    Define o dicionário que separa regiões e posições de processos.
+
+    Args:
+        regioes (dict[str, list[BotData]]): Dicionário de regiões e bots.
+        position_process (dict[str, int]): Posição dos processos por região.
+
+    Returns:
+        DictSeparaRegiao: Dicionário com informações de separação de regiões.
+
+    """
+
+    regioes: dict[str, list[BotData]]
+    position_process: dict[str, int]
 
 
 class DictReturnDesafio(TypedDict):

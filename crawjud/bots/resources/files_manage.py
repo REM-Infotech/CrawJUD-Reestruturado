@@ -5,20 +5,32 @@ Este módulo fornece funções para baixar arquivos de um storage, organizar e
 remover diretórios temporários utilizados durante o processamento dos dados.
 """
 
+import asyncio
+import base64
 import shutil
 from pathlib import Path
+from typing import TypedDict
 
 from addons.storage import Storage
+from celery_app._wrapper import shared_task
 from crawjud import work_dir
 
 
-async def download_files(pid: str, config_folder_name: str) -> Path:
+class DictFiles(TypedDict):
+    """Dicionário para armazenar informações de arquivos baixados."""
+
+    file_name: str
+    file_base64str: str
+    file_suffix: str = ".json"
+
+
+@shared_task(name="crawjud.download_files")
+def download_files(storage_folder_name: str) -> Path:
     """
     Baixe arquivos de um storage, organize e remova diretórios temporários.
 
     Args:
-        pid (str): Identificador do processo para o diretório temporário.
-        config_folder_name (str): Nome da pasta de configuração para download.
+        storage_folder_name (str): Nome da pasta de configuração para download.
 
     Returns:
         Path: Caminho para o arquivo JSON baixado e movido.
@@ -28,20 +40,31 @@ async def download_files(pid: str, config_folder_name: str) -> Path:
 
     """
     storage = Storage("minio")
-    path_files = work_dir.joinpath("temp", pid)
+    path_files = work_dir.joinpath("temp")
 
-    await storage.download_files(
-        dest=path_files,
-        prefix=config_folder_name,
+    asyncio.run(
+        storage.download_files(
+            dest=path_files,
+            prefix=storage_folder_name,
+        )
     )
 
-    for root, _, files in path_files.joinpath(config_folder_name).walk():
+    list_files: list[DictFiles] = []
+    for root, _, files in path_files.joinpath(storage_folder_name).walk():
         for file in files:
-            shutil.move(root.joinpath(file), path_files.joinpath(file))
+            with root.joinpath(file).open("rb") as f:
+                file_base64str = base64.b64encode(f.read()).decode()
+            list_files.append(
+                DictFiles(
+                    file_name=file,
+                    file_base64str=file_base64str,
+                    file_suffix=Path(file).suffix,
+                )
+            )
 
-    shutil.rmtree(path_files.joinpath(config_folder_name))
+    shutil.rmtree(path_files.joinpath(storage_folder_name))
 
-    return path_files.joinpath(f"{config_folder_name}.json")
+    return list_files
 
 
 async def remove_temp_files(pid: str) -> None:

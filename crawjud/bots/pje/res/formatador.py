@@ -3,18 +3,65 @@
 import re
 from contextlib import suppress
 from datetime import datetime
+from typing import cast
 
 from celery import shared_task
 
 from celery_app.custom._canvas import subtask
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.types.bot import BotData
+from crawjud.types.pje import DictSeparaRegiao
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]
 
 
 class PJeFormatadores:  # noqa: D101
+    @staticmethod
+    @shared_task(name="pje.separar_regiao")
+    async def separar_regiao(
+        frame: list[BotData],
+    ) -> DictSeparaRegiao:
+        """
+        Separa os processos por região a partir do número do processo.
+
+        Args:
+            frame (list[BotData]): Lista de dicionários contendo dados dos processos.
+
+        Returns:
+            dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
+            posição de cada processo.
+
+        """
+        regioes_dict: dict[str, list[BotData]] = {}
+        position_process: dict[str, int] = {}
+
+        for item in frame:
+            numero_processo = item["NUMERO_PROCESSO"]
+            regiao: str = (
+                subtask("pje.formata_trt")
+                .apply_async(kwargs={"numero_processo": numero_processo})
+                .get()
+            )
+
+            if not regiao:
+                continue
+
+            position_process[numero_processo] = len(position_process)
+            if not regioes_dict.get(regiao):
+                regioes_dict[regiao] = [item]
+                continue
+
+            regioes_dict[regiao].append(item)
+
+        return cast(
+            DictSeparaRegiao,
+            {
+                "regioes": regioes_dict,
+                "position_process": position_process,
+            },
+        )
+
     @staticmethod
     @shared_task(name="pje.formata_url_pje")
     async def formata_url_pje(regiao: str, type_format: str = "login") -> str:  # noqa: D102, D103
@@ -258,45 +305,3 @@ class PJeFormatadores:  # noqa: D101
                 trt_id = trt_id.replace("0", "")
 
         return trt_id
-
-    @staticmethod
-    @shared_task(name="pje.separar_regiao")
-    async def separar_regiao(
-        frame: list[BotData],
-    ) -> dict[str, list[BotData] | dict[str, int]]:
-        """
-        Separa os processos por região a partir do número do processo.
-
-        Args:
-            frame (list[BotData]): Lista de dicionários contendo dados dos processos.
-
-        Returns:
-            dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
-            posição de cada processo.
-
-        """
-        regioes_dict: dict[str, list[BotData]] = {}
-        position_process: dict[str, int] = {}
-
-        for item in frame:
-            numero_processo = item["NUMERO_PROCESSO"]
-            regiao: str = (
-                subtask("pje.formata_trt")
-                .apply_async(kwargs={"numero_processo": numero_processo})
-                .get()
-            )
-
-            if not regiao:
-                continue
-
-            position_process[numero_processo] = len(position_process)
-            if not regioes_dict.get(regiao):
-                regioes_dict[regiao] = [item]
-                continue
-
-            regioes_dict[regiao].append(item)
-
-        return {
-            "regioes": regioes_dict,
-            "position_process": position_process,
-        }
