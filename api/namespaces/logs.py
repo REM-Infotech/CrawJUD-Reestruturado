@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import engineio
 import socketio
+from celery.app.control import Control
 from quart import request, session
 from quart_socketio import Namespace
 
+from celery_app import app as app_celery
 from interfaces import ItemMessageList
 from models.logs import MessageLog, MessageLogDict
 
@@ -85,10 +87,11 @@ class LogsNamespace(Namespace):
             None: Apenas emite o evento de parada.
 
         """
-        # Obtém os dados do formulário da requisição
-        message_data = dict(list((await request.form).items()))
-        # Emite o sinal de parada para o processo identificado por pid
-        await self.emit("stop_signal", data=message_data, room=message_data["pid"])
+        control = cast(Control, app_celery.control)
+        control.revoke(
+            (await request.data)["pid"],
+            terminate=True,
+        )
 
     async def on_join_room(self) -> None:
         """
