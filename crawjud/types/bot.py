@@ -11,6 +11,7 @@ class DictReturnAuth(TypedDict):
     base_url: str
 
 
+MessageNadaEncontrado = Literal["Nenhum processo encontrado"]
 MessageTimeoutAutenticacao = Literal[
     "Tempo de espera excedido para validação de sessão"
 ]

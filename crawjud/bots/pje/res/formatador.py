@@ -36,27 +36,52 @@ class PJeFormatadores:  # noqa: D101
         regioes_dict: dict[str, list[BotData]] = {}
         position_process: dict[str, int] = {}
 
-        def formata_trt(numero_processo: str) -> str:  # noqa: D102
-            trt_id = None
+        def formata_trt(numero_processo: str) -> None | tuple[str, str]:  # noqa: D102
+            # Remove letras, símbolos e pontuações, mantendo apenas números
+
+            # Verifica se o número do processo está no formato CNJ (NNNNNNN-DD.AAAA.J.TR.NNNN)
+            padrao_cnj = r"^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$"
+            # Remove caracteres especiais e letras, mantendo apenas números, pontuação, "-" e "_"
+            numero_processo = re.sub(r"[^\d\-\._]", "", numero_processo)
+
+            if not re.match(padrao_cnj, numero_processo):
+                return
+
+            numero_processo = re.sub(
+                r"(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})",
+                r"\1-\2.\3.\4.\5.\6",
+                numero_processo,
+            )
             with suppress(Exception):
                 trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
                 if trt_id.startswith("0"):
                     trt_id = trt_id.replace("0", "")
 
-            return trt_id
+                return trt_id, numero_processo
 
         for item in frame:
             numero_processo = item["NUMERO_PROCESSO"]
-            regiao: str = formata_trt(numero_processo)
+            format_item = formata_trt(numero_processo)
 
-            if not regiao:
+            if not format_item:
                 continue
 
+            # Extrai a região e o número do processo formatado
+            regiao = format_item[0]
+            numero_processo = format_item[1]
+
+            # Atualiza o número do processo no item
+            item["NUMERO_PROCESSO"] = numero_processo
+
+            # Adiciona a posição do processo na lista original no dicionário de posições
             position_process[numero_processo] = len(position_process)
+
+            # Caso a região não exista no dicionário, cria uma nova lista
             if not regioes_dict.get(regiao):
                 regioes_dict[regiao] = [item]
                 continue
 
+            # Caso a região já exista, adiciona o item à lista correspondente
             regioes_dict[regiao].append(item)
 
         return cast(

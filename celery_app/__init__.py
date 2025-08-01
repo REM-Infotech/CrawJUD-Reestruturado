@@ -1,6 +1,7 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
 import logging
+import re
 from logging.config import dictConfig
 from os import environ, getenv
 from pathlib import Path
@@ -34,7 +35,9 @@ def config_loggers(
         **kwargs (AnyType): Keyword arguments, may include a 'logger' instance to be configured.
 
     """
-    logger_name = environ["WORKER_NAME"]
+    logger_name = environ.get(
+        "WORKER_NAME", str(re.sub(r"[^a-zA-Z0-9]", "_", "celery_app"))
+    )
     log_path = Path().cwd().joinpath("temp", "logs")
     log_path.mkdir(exist_ok=True, parents=True)
     log_file = log_path.joinpath(f"{logger_name}.log")

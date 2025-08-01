@@ -7,17 +7,17 @@ utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceç�
 
 from __future__ import annotations
 
-from asyncio import sleep
-from time import time
-from typing import TYPE_CHECKING, Literal, cast
+from time import sleep, time
+from typing import TYPE_CHECKING, cast
 
-import requests as client
 from celery import shared_task
+from httpx import Client
 
 from addons.recaptcha import captcha_to_image
 from celery_app.custom._canvas import subtask
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types import BotData
+from crawjud.types.bot import MessageNadaEncontrado
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo
 
 if TYPE_CHECKING:
@@ -29,26 +29,21 @@ pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe
 
 
 # Tipo literal para mensagem de processo não encontrado
-MessageNadaEncontrado = Literal["Nenhum processo encontrado"]
 
 
 @shared_task(name="pje.buscador")
 def buscar_processo(
-    row: int,
     data: BotData,
-    pid: str,
-    url_base: str,
-    start_time: str,
+    headers: dict[str, str],
+    cookies: dict[str, str],
 ) -> DictReturnDesafio | MessageNadaEncontrado:
     """
     Realiza a busca de um processo no sistema PJe utilizando os dados fornecidos.
 
     Args:
-        row (int): Número da linha do processo na lista de execução.
+        headers (dict[str, str]): Cabeçalhos HTTP para a requisição.
+        cookies (dict[str, str]): Cookies HTTP para a requisição.
         data (BotData): Dados do processo a serem consultados.
-        pid (str): Identificador do processo de execução.
-        url_base (str): URL base do sistema PJe.
-        start_time (str): Horário de início da execução.
 
     Returns:
         resultado = desafio_captcha(id_processo=id_processo, data=data, url_base=url_base)
@@ -58,6 +53,11 @@ def buscar_processo(
 
     """
     # Envia mensagem de log para task assíncrona
+
+    pid = str(data["pid"])
+    row = int(data["row"])
+    url_base = str(data["url_base"])
+    start_time = data["start_time"]
     task_message = subtask("log_message")
     task_message.apply_async(
         kwargs={
@@ -70,38 +70,38 @@ def buscar_processo(
         }
     )
 
-    # Monta URL para buscar dados básicos do processo
-    url_dados_basicos = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
-    link = f"{url_base}/{url_dados_basicos}".replace("//", "/")
-    response = client.get(url=link, timeout=10)
-    data_request = response.json()
+    with Client(
+        base_url=url_base,
+        timeout=30,
+        headers=headers,
+        cookies=cookies,
+    ) as client:
+        # Monta URL para buscar dados básicos do processo
+        url_dados_basicos = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
+        response = client.get(url=url_dados_basicos)
+        data_request = response.json()
 
-    # Caso a resposta seja uma lista, pega o primeiro item
-    if isinstance(data_request, list):
-        data_request = data_request[0]
+        # Caso a resposta seja uma lista, pega o primeiro item
+        if isinstance(data_request, list):
+            data_request = data_request[0]
 
-    # Se encontrou o id do processo, resolve o captcha
-    if data_request.get("id"):
-        id_processo = str(data_request["id"])
-        resultado = desafio_captcha(
-            id_processo=id_processo, data=data, url_base=url_base
-        )
-        return cast(DictReturnDesafio, resultado)
+        # Se encontrou o id do processo, resolve o captcha
+        if data_request.get("id"):
+            id_processo = str(data_request["id"])
+            resultado = desafio_captcha(id_processo=id_processo, client=client)
+            return cast(DictReturnDesafio, resultado)
 
-    # Caso não encontre, retorna mensagem padrão
-    return "Nenhum processo encontrado"
+        # Caso não encontre, retorna mensagem padrão
+        return "Nenhum processo encontrado"
 
 
-def desafio_captcha(
-    id_processo: str, data: BotData, url_base: str
-) -> DictReturnDesafio:
+def desafio_captcha(id_processo: str, client: Client) -> DictReturnDesafio:
     """
     Resolve o desafio captcha para acessar informações do processo no sistema PJe.
 
     Args:
         id_processo (str): Identificador do processo a ser consultado.
-        data (BotData): Dados do bot necessários para a requisição.
-        url_base (str): URL base do sistema PJe.
+        client (Client): Cliente HTTP para realizar requisições.
 
     Returns:
         DictReturnDesafio: Dicionário contendo headers, cookies e resultados do processo.
@@ -114,9 +114,7 @@ def desafio_captcha(
     response2 = None
     results: DictResults = {}
     # Monta URL para obter o desafio captcha
-    url_desafio = f"/captcha?idProcesso={id_processo}"
-    link = f"{url_base}/{url_desafio}".replace("//", "/")
-
+    link = f"/captcha?idProcesso={id_processo}"
     response = client.get(url=link, timeout=60)
     _request_json = response.json()
 
@@ -135,10 +133,11 @@ def desafio_captcha(
     while tries < 15:
         text = captcha_to_image(img)
 
-        url = f"/processos/{id_processo}?tokenDesafio={token_desafio}&resposta={text}"
-        link_desafio = f"{url_base}/{url}".replace("//", "/")
+        _link2 = (
+            f"/processos/{id_processo}?tokenDesafio={token_desafio}&resposta={text}"
+        )
 
-        response2 = client.get(url=link_desafio, timeout=60)
+        response2 = client.get(url=_link2, timeout=60)
         sleep(int(2 + (int(time()) % 11)))
 
         data_request = response2.json()
@@ -161,11 +160,17 @@ def desafio_captcha(
     if tries > 15:
         raise ExecutionError("", message="Erro ao obter informações do processo")
 
+    _cookies: dict[str, str] = {}
+
+    for cookie in response2._request.headers["Cookie"].split("; "):  # noqa: SLF001
+        key, value = cookie.split("=", 1)
+        _cookies[key] = value
+
     return_data = cast(
         DictReturnDesafio,
         {
             "headers": dict(response2.headers),
-            "cookies": response2.cookies.get_dict(),
+            "cookies": dict(_cookies),
             "results": results,
         },
     )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -94,7 +95,7 @@ class DriverBot(WebDriver):  # noqa: D101
         )
         root_dir.mkdir(exist_ok=True)
 
-        system_manager = OperationSystemManager()
+        system_manager = OperationSystemManager(sys.platform)
         file_manager = FileManager(os_system_manager=system_manager)
         _manager = driver_config["manager"](
             download_manager=WDMDownloadManager(),

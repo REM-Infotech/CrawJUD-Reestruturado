@@ -36,7 +36,7 @@ def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: 
 
     """
     driver = DriverBot(
-        selected_browser="firefox",
+        selected_browser="chrome",
         with_proxy=True,
     )
     wait = driver.wait

@@ -1,18 +1,23 @@
 # noqa: D104
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic
+from contextlib import suppress
+from datetime import datetime
+from typing import TYPE_CHECKING, Generic
 
+import psutil
 from celery import chain  # noqa: F401
 from dotenv import load_dotenv
 
-from celery_app._wrapper import classmethod_shared_task, shared_task
+from celery_app._wrapper import classmethod_shared_task as classmethod_shared_task
+from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
 from celery_app.types._celery._canvas import AsyncResult
 from celery_app.types._celery._task import Task as Task
 from common.bot import ClassBot
 from crawjud._wrapper import wrap_init
+from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types.bot import (
     DictFiles,
@@ -22,12 +27,33 @@ from crawjud.types.bot import (
 from crawjud.types.bot import (
     MessageTimeoutAutenticacao as MessageTimeoutAutenticacao,
 )
-from crawjud.types.pje import DictSeparaRegiao
+from crawjud.types.pje import DictReturnDesafio, DictSeparaRegiao
 
 if TYPE_CHECKING:
     from crawjud.types import BotData, T  # noqa: F401
 
 load_dotenv()
+
+
+def _kill_browsermob() -> None:
+    import psutil
+
+    keyword = "browsermob"
+    matching_procs = []
+
+    # Primeira fase: coleta segura
+    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+        with suppress(
+            psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, Exception
+        ):
+            if any(keyword in part for part in proc.info["cmdline"]):
+                matching_procs.append(proc)
+
+    # Segunda fase: ação
+    for proc in matching_procs:
+        with suppress(psutil.NoSuchProcess, psutil.AccessDenied, Exception):
+            print(f"Matando PID {proc.pid} ({' '.join(proc.info['cmdline'])})")
+            proc.kill()
 
 
 @wrap_init
@@ -69,18 +95,67 @@ class Capa(ClassBot):  # noqa: D101
         ).wait_ready()
 
         _position_process = regioes["position_process"]
-        regiao_session: dict[str, DictReturnAuth] = {}
-        _tasks_auth: list[AsyncResult] = []
-        for regiao, _ in list(regioes["regioes"].items()):
+        _regiao_session: dict[str, DictReturnAuth] = {}
+        _tasks_queue_processos: list[AsyncResult] = []
+        _process = list(psutil.process_iter())
+
+        _start_time: datetime = formata_tempo(current_task.request.eta)
+        _total_rows = len(_bot_data)
+        for regiao, data_regiao in list(regioes["regioes"].items()):
             autenticacao_data: TReturnAuth = _task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
             if isinstance(autenticacao_data, dict):
-                regiao_session[regiao] = autenticacao_data
+                kw_args = dict(autenticacao_data)
+
+                kw_args.update({
+                    "data": data_regiao,
+                    "pid": _pid,
+                    "regiao": regiao,
+                    "start_time": _start_time.strftime("%d/%m/%Y, %H:%M:%S"),
+                    "total_rows": _total_rows,
+                    "position_process": _position_process,
+                })
+                _task_queue_processos = subtask(
+                    "pje.queue_processos",
+                ).apply_async(kwargs=kw_args)
+
+                _tasks_queue_processos.append(_task_queue_processos)
+                _kill_browsermob()
 
         print("ok")
 
-    @classmethod
-    @classmethod_shared_task(name="pje.tratamento_dados")
-    def tratamento_dados(cls, *args: Any, **kwargs: Any) -> None:  # noqa: D102, N805
-        print("teste!")
+    @staticmethod
+    @shared_task(name="pje.queue_processos")
+    def queue_processos(
+        cookies: dict[str, str],  # noqa: D102
+        headers: dict[str, str],
+        base_url: str,
+        data: list[BotData],
+        pid: str,
+        start_time: str,
+        position_process: dict[str, int],
+        total_rows: int = 0,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:
+        """Enqueue processes for further processing."""
+        for item in data:
+            item["row"] = position_process[item["NUMERO_PROCESSO"]]
+            item["total_rows"] = total_rows
+            item["pid"] = pid
+            item["url_base"] = base_url
+            item["start_time"] = start_time
+            resultados_busca: DictReturnDesafio = (
+                subtask("pje.buscador")
+                .apply_async(
+                    kwargs={
+                        "data": item,
+                        "headers": headers,
+                        "cookies": cookies,
+                    }
+                )
+                .wait_ready()
+            )
+
+            print(resultados_busca["results"]["data_request"])

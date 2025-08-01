@@ -31,7 +31,7 @@ from socketio import AsyncSimpleClient
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
-from models.logs import MessageLog
+from models.logs import MessageLogDict
 
 if TYPE_CHECKING:
     pass
@@ -173,7 +173,7 @@ def log_message(
     prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
 
     # Cria objeto de log da mensagem
-    data = MessageLog(
+    data = MessageLogDict(
         message=prompt,
         pid=str(pid),
         row=row,
