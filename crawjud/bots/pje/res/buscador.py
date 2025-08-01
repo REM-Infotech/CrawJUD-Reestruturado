@@ -7,6 +7,7 @@ utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceç�
 
 from __future__ import annotations
 
+import json.decoder
 from time import sleep
 from typing import TYPE_CHECKING, cast
 
@@ -79,7 +80,14 @@ def buscar_processo(
         # Monta URL para buscar dados básicos do processo
         url_dados_basicos = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
         response = client.get(url=url_dados_basicos)
-        data_request = response.json()
+
+        try:
+            data_request = response.json()
+
+        except json.decoder.JSONDecodeError:
+            data_request = response.content
+            print(f"\n\n\n\n{data_request}\n\n\n\n")
+            return "Nenhum processo encontrado"
 
         # Caso a resposta seja uma lista, pega o primeiro item
         if isinstance(data_request, list):
