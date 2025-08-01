@@ -1,9 +1,23 @@
 """Fornece funções utilitárias para formatação dados."""
 
+from __future__ import annotations
+
+import base64
+import io
 import re
 from datetime import datetime
+from typing import (
+    Generic,
+    TypeVar,
+)
 
+import pandas as pd
+
+from celery_app._wrapper import shared_task
 from crawjud.types import ReturnFormataTempo
+from crawjud.types.bot import BotData
+
+T = TypeVar("AnyValue", bound=str)
 
 
 def formata_tempo(item: str | bool) -> ReturnFormataTempo:  # noqa: D103
@@ -15,3 +29,45 @@ def formata_tempo(item: str | bool) -> ReturnFormataTempo:  # noqa: D103
             return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S.%f")
 
     return item
+
+
+@shared_task(name="crawjud.dataFrame")
+def dataFrame(base64_planilha: str) -> list[BotData]:  # noqa: N802
+    """Convert an Excel file to a list of dictionaries with formatted data.
+
+    Reads an Excel file, processes the data by formatting dates and floats,
+    and returns the data as a list of dictionaries.
+
+    Returns:
+        list[BotData]: A record list from the processed Excel file.
+
+    Raises:
+        FileNotFoundError: If the target file does not exist.
+        ValueError: For problems reading the file.
+
+    """
+    buffer_planilha = io.BytesIO(base64.b64encode(base64_planilha))
+    df = pd.read_excel(buffer_planilha)
+    df.columns = df.columns.str.upper()
+
+    def format_data(x: Generic[T]) -> str:
+        if str(x) == "NaT" or str(x) == "nan":
+            return ""
+
+        if isinstance(x, (datetime, pd.Timestamp)):
+            return x.strftime("%d/%m/%Y")
+
+        return x
+
+    def format_float(x: Generic[T]) -> str:
+        return f"{x:.2f}".replace(".", ",")
+
+    for col in df.columns:
+        df[col] = df[col].apply(format_data)
+
+    for col in df.select_dtypes(include=["float"]).columns:
+        df[col] = df[col].apply(format_float)
+
+    to_list = [BotData(list(item.items())) for item in df.to_dict(orient="records")]
+
+    return to_list
