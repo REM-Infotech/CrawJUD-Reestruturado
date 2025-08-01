@@ -202,14 +202,13 @@ class Capa(ClassBot):  # noqa: D101
         """Enqueue processes for further processing."""
         task_message = subtask("log_message")
         for item in data:
-            pid = str(item["pid"])
-            row = int(item["row"]) + 1
-            start_time = item["start_time"]
             item["row"] = position_process[item["NUMERO_PROCESSO"]]
             item["total_rows"] = total_rows
             item["pid"] = pid
             item["url_base"] = base_url
             item["start_time"] = start_time
+            row = int(item["row"]) + 1
+            start_time = item["start_time"]
             resultados_busca: DictReturnDesafio = (
                 subtask("pje.buscador")
                 .apply_async(
