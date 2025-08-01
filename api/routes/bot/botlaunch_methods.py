@@ -113,15 +113,14 @@ class LoadForm:  # noqa: D101
             form["user_name"] = self.sess["current_user"]["nome_usuario"]
             form["user_id"] = self.sess["current_user"]["id"]
 
-            name_file_config, json_config = await self._files_task_kwargs(form)
+            name_file_config, _ = await self._files_task_kwargs(form)
 
             celery_app: Celery = current_app.extensions["celery"]
 
             args_task = {
                 "name": self.bot.type.lower(),
                 "system": self.bot.system.lower(),
-                "file_config": json_config,
-                "config_folder_name": name_file_config,
+                "storage_folder_name": name_file_config,
             }
 
             _task = celery_app.send_task(
