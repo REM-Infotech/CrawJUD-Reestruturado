@@ -25,7 +25,7 @@ class DictFiles(TypedDict):
 
 
 @shared_task(name="crawjud.download_files")
-def download_files(storage_folder_name: str) -> Path:
+def download_files(storage_folder_name: str) -> list[DictFiles]:
     """
     Baixe arquivos de um storage, organize e remova diretórios temporários.
 
@@ -33,7 +33,7 @@ def download_files(storage_folder_name: str) -> Path:
         storage_folder_name (str): Nome da pasta de configuração para download.
 
     Returns:
-        Path: Caminho para o arquivo JSON baixado e movido.
+        list[DictFiles]: Lista de dicionários contendo informações dos arquivos baixados.
 
     Raises:
         FileNotFoundError: Caso o diretório de arquivos não seja encontrado.
