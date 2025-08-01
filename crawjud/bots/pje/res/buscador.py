@@ -7,7 +7,7 @@ utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceç�
 
 from __future__ import annotations
 
-from time import sleep, time
+from time import sleep
 from typing import TYPE_CHECKING, cast
 
 from celery import shared_task
@@ -88,18 +88,23 @@ def buscar_processo(
         # Se encontrou o id do processo, resolve o captcha
         if data_request.get("id"):
             id_processo = str(data_request["id"])
-            resultado = desafio_captcha(id_processo=id_processo, client=client)
+            resultado = desafio_captcha(
+                data=data, id_processo=id_processo, client=client
+            )
             return cast(DictReturnDesafio, resultado)
 
         # Caso não encontre, retorna mensagem padrão
         return "Nenhum processo encontrado"
 
 
-def desafio_captcha(id_processo: str, client: Client) -> DictReturnDesafio:
+def desafio_captcha(
+    data: BotData, id_processo: str, client: Client
+) -> DictReturnDesafio:
     """
     Resolve o desafio captcha para acessar informações do processo no sistema PJe.
 
     Args:
+        data (BotData): Dados do processo a serem consultados.
         id_processo (str): Identificador do processo a ser consultado.
         client (Client): Cliente HTTP para realizar requisições.
 
@@ -138,7 +143,6 @@ def desafio_captcha(id_processo: str, client: Client) -> DictReturnDesafio:
         )
 
         response2 = client.get(url=_link2, timeout=60)
-        sleep(int(2 + (int(time()) % 11)))
 
         data_request = response2.json()
         # Se não retornar imagem, captcha foi resolvido
@@ -150,8 +154,23 @@ def desafio_captcha(id_processo: str, client: Client) -> DictReturnDesafio:
                 data_request=cast(Processo, data_request),
             )
             tries = 0
+            pid = str(data["pid"])
+            row = int(data["row"])
+            start_time = data["start_time"]
+            task_message = subtask("log_message")
+            task_message.apply_async(
+                kwargs={
+                    "pid": pid,
+                    "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
+                    "row": row,
+                    "type_log": "info",
+                    "total_rows": data.get("total_rows", 0),
+                    "start_time": start_time,
+                }
+            )
             break
 
+        sleep(4)
         img = data_request.get("imagem")
         token_desafio = data_request.get("tokenDesafio")
         tries += 1

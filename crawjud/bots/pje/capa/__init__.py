@@ -165,5 +165,19 @@ class Capa(ClassBot):  # noqa: D101
                     "processo": item["NUMERO_PROCESSO"],
                 }
             )
+            pid = str(item["pid"])
+            row = int(item["row"])
+            start_time = item["start_time"]
+            task_message = subtask("log_message")
+            task_message.apply_async(
+                kwargs={
+                    "pid": pid,
+                    "message": f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
+                    "row": row,
+                    "type_log": "success",
+                    "total_rows": item.get("total_rows", 0),
+                    "start_time": start_time,
+                }
+            )
 
             print()

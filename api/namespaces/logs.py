@@ -9,9 +9,8 @@ import socketio
 from quart import request, session
 from quart_socketio import Namespace
 
-from addons.printlogs._interface import ItemMessageList
-from addons.printlogs._interface import MessageLog as MessageLogDict
-from models.logs import MessageLog
+from interfaces import ItemMessageList
+from models.logs import MessageLog, MessageLogDict
 
 
 class ASyncServerType(socketio.AsyncServer):

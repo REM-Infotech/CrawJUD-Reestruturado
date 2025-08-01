@@ -11,6 +11,8 @@ import click
 import redis
 from dotenv import load_dotenv
 
+from models.logs import ModelRedisHandler
+
 
 class RedisHandler(logging.Handler):
     """Custom logging handler to send logs to Redis."""
@@ -40,9 +42,7 @@ class RedisHandler(logging.Handler):
         """Emit the log record to Redis."""
         try:
             log_entry = self.format(record)  # Formata o log conforme configurado
-            self.client.rpush(
-                self.LIST_LOGS_REDIS, log_entry
-            )  # Adiciona à lista no Redis
+            ModelRedisHandler(**dict(json.loads(log_entry))).save()
         except Exception:
             self.handleError(record)  # Captura erros ao salvar no Redis
 

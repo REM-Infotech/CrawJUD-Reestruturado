@@ -32,9 +32,10 @@ from typing import (
     Union,
 )
 
-from redis_om import Field, JsonModel, NotFoundError
+from redis_om import Field, HashModel, JsonModel, NotFoundError
 
-from addons.printlogs._interface import ItemMessageList
+from crawjud.types.pje import Processo
+from interfaces import ItemMessageList
 
 description_message = (
     "e.g. '[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]'"
@@ -48,6 +49,29 @@ IncEx: TypeAlias = Union[
     Mapping[int, Union["IncEx", bool]],
     Mapping[str, Union["IncEx", bool]],
 ]
+
+
+class ModelRedisHandler(HashModel):
+    """
+    Defina o modelo ModelRedisHandler para armazenar logs no Redis.
+
+    Args:
+        level (str): Nível do log (ex: 'INFO', 'ERROR').
+        message (str): Mensagem do log.
+        time (str): Data e hora do log.
+        module (str): Nome do módulo do sistema.
+        module_name (str): Nome específico do módulo.
+
+    Returns:
+        ModelRedisHandler: Instância do modelo de log.
+
+    """
+
+    level: str
+    message: str
+    time: str
+    module: str
+    module_name: str
 
 
 class CachedExecutionDict(TypedDict):  # noqa: D101
@@ -224,7 +248,7 @@ class CachedExecution(JsonModel):  # noqa: D101
         default="desconhecido",
         description="e.g. 'C3K7H5' (identificador do processo)",
     )
-    data: dict[str, Any] | list[Any] = Field()
+    data: Processo | Any = Field()
 
     @classmethod
     def all_data(cls) -> list[Self]:  # noqa: D102
