@@ -202,55 +202,59 @@ class Capa(ClassBot):  # noqa: D101
         """Enqueue processes for further processing."""
         task_message = subtask("log_message")
         for item in data:
-            item["row"] = position_process[item["NUMERO_PROCESSO"]]
-            item["total_rows"] = total_rows
-            item["pid"] = pid
-            item["url_base"] = base_url
-            item["start_time"] = start_time
-            row = int(item["row"]) + 1
-            start_time = item["start_time"]
-            resultados_busca: DictReturnDesafio = (
-                subtask("pje.buscador")
-                .apply_async(
+            with suppress(Exception):
+                item["row"] = position_process[item["NUMERO_PROCESSO"]]
+                item["total_rows"] = total_rows
+                item["pid"] = pid
+                item["url_base"] = base_url
+                item["start_time"] = start_time
+                row = int(item["row"]) + 1
+                start_time = item["start_time"]
+                resultados_busca: DictReturnDesafio = (
+                    subtask("pje.buscador")
+                    .apply_async(
+                        kwargs={
+                            "data": item,
+                            "headers": headers,
+                            "cookies": cookies,
+                        }
+                    )
+                    .wait_ready()
+                )
+
+                if not resultados_busca or (
+                    isinstance(resultados_busca, str)
+                    and "Nenhum processo encontrado" in resultados_busca
+                ):
+                    task_message.apply_async(
+                        kwargs={
+                            "pid": pid,
+                            "message": "Falha ao obter informações do processo ",
+                            "row": row,
+                            "type_log": "error",
+                            "total_rows": item.get("total_rows", 0),
+                            "start_time": start_time,
+                        }
+                    )
+                    continue
+
+                subtask("save_cache").apply_async(
                     kwargs={
-                        "data": item,
-                        "headers": headers,
-                        "cookies": cookies,
+                        "pid": pid,
+                        "data": resultados_busca["results"]["data_request"],
+                        "processo": item["NUMERO_PROCESSO"],
                     }
                 )
-                .wait_ready()
-            )
 
-            if not resultados_busca:
                 task_message.apply_async(
                     kwargs={
                         "pid": pid,
-                        "message": "Falha ao obter informações do processo ",
+                        "message": f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
                         "row": row,
-                        "type_log": "error",
+                        "type_log": "success",
                         "total_rows": item.get("total_rows", 0),
                         "start_time": start_time,
                     }
                 )
-                continue
 
-            subtask("save_cache").apply_async(
-                kwargs={
-                    "pid": pid,
-                    "data": resultados_busca["results"]["data_request"],
-                    "processo": item["NUMERO_PROCESSO"],
-                }
-            )
-
-            task_message.apply_async(
-                kwargs={
-                    "pid": pid,
-                    "message": f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
-                    "row": row,
-                    "type_log": "success",
-                    "total_rows": item.get("total_rows", 0),
-                    "start_time": start_time,
-                }
-            )
-
-            print()
+                print()
