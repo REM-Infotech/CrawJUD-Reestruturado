@@ -6,7 +6,7 @@ from datetime import datetime
 
 from celery import shared_task
 
-from celery_app.custom._task import subtask
+from celery_app.custom._canvas import subtask
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.types.bot import BotData
 

@@ -51,6 +51,7 @@ dependencies = [
     "browsermob-proxy (>=0.8.0,<0.9.0)",
     "xlsxwriter (>=3.2.5,<4.0.0)",
     "termcolor (>=3.1.0,<4.0.0)",
+    "beartype (>=0.21.0,<0.22.0)",
 
 ]
 [tool.poetry]

@@ -30,7 +30,7 @@ from pytz import timezone
 from socketio import AsyncSimpleClient
 
 from celery_app._wrapper import shared_task
-from celery_app.custom._task import subtask
+from celery_app.custom._canvas import subtask
 from models.logs import MessageLog
 
 if TYPE_CHECKING:

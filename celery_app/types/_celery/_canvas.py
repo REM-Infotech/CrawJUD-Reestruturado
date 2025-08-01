@@ -1,7 +1,21 @@
-from typing import AnyStr, Generic, Optional, ParamSpec, Protocol, TypeVar
+from __future__ import annotations
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Generic,
+    ParamSpec,
+    TypeVar,
+    cast,
+)
 
 from celery.canvas import Signature as __Signature
 from celery.result import AsyncResult as __AsyncResult
+from celery.result import states
+
+if TYPE_CHECKING:
+    from celery_app.custom._celery import AsyncCelery
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -11,7 +25,7 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-class AsyncResult(Protocol, __AsyncResult):
+class AsyncResult(__AsyncResult):
     """Celery AsyncResult.
 
     Class that wraps the result of a task execution.
@@ -24,11 +38,47 @@ class AsyncResult(Protocol, __AsyncResult):
 
     """
 
-    def get(self, timeout: Optional[float] = None) -> Generic[R]:
-        """Get the result of the task execution."""
+    _app: AsyncCelery = None
+
+    def get(
+        self,
+        timeout: int = None,
+        propagate: bool = True,
+        interval: float = 0.5,
+        no_ack: bool = True,
+        follow_parents: bool = True,
+        callback: Any = None,
+        on_message: Any = None,
+        on_interval: Any = None,
+        disable_sync_subtasks: bool = True,
+        EXCEPTION_STATES: Exception = states.EXCEPTION_STATES,  # noqa: N803
+        PROPAGATE_STATES: Exception = states.PROPAGATE_STATES,  # noqa: N803
+    ) -> Generic[R]:
+        return super().get(
+            timeout,
+            propagate,
+            interval,
+            no_ack,
+            follow_parents,
+            callback,
+            on_message,
+            on_interval,
+            disable_sync_subtasks,
+            EXCEPTION_STATES,
+            PROPAGATE_STATES,
+        )
+
+    def __getattr__(self, item: str) -> Any:
+        """Get attribute from AsyncResult."""
+        if item == "_app" and not hasattr(self, "_app"):
+            from celery import current_app
+
+            self._app = current_app
+
+        return super().__getattr__(item)
 
 
-class Signature(Protocol, __Signature):
+class Signature(__Signature):
     """Task Signature.
 
     Class that wraps the arguments and execution options
@@ -86,7 +136,41 @@ class Signature(Protocol, __Signature):
 
     """
 
-    def apply_async(self, *args: AnyStr, **kwargs: AnyStr) -> AsyncResult:
+    _app: AsyncCelery = None
+
+    def __init__(
+        self,
+        task: Any = None,
+        args: Any = None,
+        kwargs: Any = None,
+        options: Any = None,
+        type: Any = None,  # noqa: A002
+        subtask_type: Any = None,
+        immutable: Any = False,
+        app: AsyncCelery = None,
+        **ex: Any,
+    ) -> None:
+        if isinstance(task, str):
+            task = app.tasks[task]
+
+        super().__init__(
+            task, args, kwargs, options, type, subtask_type, immutable, app, **ex
+        )
+
+    @classmethod
+    def from_dict(cls, d, app=None):  # noqa: ANN001, ANN206
+        """Create a new signature from a dict.
+        Subclasses can override this method to customize how are
+        they created from a dict.
+        """  # noqa: D205
+        typ = d.get("subtask_type")
+        if typ:
+            target_cls = cls.TYPES[typ]
+            if target_cls is not cls:
+                return target_cls.from_dict(d, app=app)
+        return Signature(d, app=app)
+
+    def apply_async(self, *args: AnyStr, **kwargs: AnyStr) -> AsyncResult | None:
         """Apply this task asynchronously.
 
         Arguments:
@@ -103,3 +187,7 @@ class Signature(Protocol, __Signature):
             :meth:`~@Task.apply_async` and the :ref:`guide-calling` guide.
 
         """
+        async_result = cast(AsyncResult, super().apply_async(*args, **kwargs))
+        async_result._app = self._app  # noqa: SLF001
+        if async_result:
+            return async_result

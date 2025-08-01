@@ -1,48 +1,70 @@
-from typing import Any, AnyStr, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, AnyStr, Callable, ParamSpec, TypeVar
 
 from celery import shared_task as share
 
+from celery_app.types._celery._task import Task
+
 P = ParamSpec("P")
 R = TypeVar("R")
+T = TypeVar("SharedTask", bound=Any)
 TClassBot = TypeVar("TClassBot", bound=object)
 TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 
 class_set = set()
 
 
-def classmethod_shared_task(
-    *task_args: Any,
-    **task_kwargs: Any,
-) -> Any:
+def shared_task(*args: Any, **kwargs: Any) -> Task | Callable[..., Task]:  # noqa: D103
     """
-    Crie um decorador para permitir o uso de shared_task em métodos de classe.
+    Crie um decorador do shared_task com Type Annotations.
 
     Args:
-        *task_args: Argumentos posicionais para o shared_task.
-        **task_kwargs: Argumentos nomeados para o shared_task.
+        *args: Argumentos posicionais para o shared_task.
+        **kwargs: Argumentos nomeados para o shared_task.
 
     Returns:
-        Callable[..., classmethod]: Função decorada como classmethod e shared_task.
+        Callable[..., Task]: Função decorada como shared_task.
 
     """
 
-    def decorator(func: Callable[..., R]) -> classmethod:
+    def decorator(func: Callable[P, R]) -> Task:
         # Aplica o shared_task na função
-        task = share(*task_args, **task_kwargs)(func)
+        task = share(*args, **kwargs)(func)
         task.contains_classmethod = True
         # Retorna como classmethod
         return task
 
-    if len(task_args) == 1 and callable(task_args[0]):
+    if len(args) == 1 and callable(args[0]):
         # Se o primeiro argumento for uma função, aplica diretamente
-        return classmethod_shared_task()(task_args[0])
+        return shared_task(*args, **kwargs)(args[0])
 
     return decorator
 
 
-T = TypeVar("SharedTask", bound=Any)
-P = ParamSpec("SharedParamSpecTask", bound=Any)
+def classmethod_shared_task(
+    *args: Any,
+    **kwargs: Any,
+) -> Task | Callable[P, Task]:
+    """
+    Crie um decorador para permitir o uso de shared_task em métodos de classe.
 
+    Args:
+        *args: Argumentos posicionais para o shared_task.
+        **kwargs: Argumentos nomeados para o shared_task.
 
-def shared_task(*args: Any, **kwargs: Any) -> Callable[P, Optional[T]]:  # noqa: D103
-    return share(*args, **kwargs)
+    Returns:
+        Task | Callable[P, Task]: Função decorada
+
+    """
+
+    def decorator(func: Callable[P, R]) -> Task:
+        # Aplica o shared_task na função
+        task = share(*args, **kwargs)(func)
+        task.contains_classmethod = True
+        # Retorna como classmethod
+        return task
+
+    if len(args) == 1 and callable(args[0]):
+        # Se o primeiro argumento for uma função, aplica diretamente
+        return classmethod_shared_task(*args, **kwargs)(args[0])
+
+    return decorator

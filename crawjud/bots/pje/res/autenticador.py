@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from time import sleep
-from typing import cast
+from typing import Any, cast
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -10,13 +10,13 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from celery_app._wrapper import shared_task
-from celery_app.custom._task import subtask
+from celery_app.custom._canvas import subtask
 from crawjud.types.bot import DictReturnAuth, TReturnAuth
 from webdriver import DriverBot
 
 
 @shared_task(name="pje.autenticador")
-def autenticar(regiao: str) -> TReturnAuth:
+def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: D417
     r"""
     Realiza a autenticação no sistema PJe utilizando certificado digital.
 

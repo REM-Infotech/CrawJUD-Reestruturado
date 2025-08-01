@@ -6,6 +6,7 @@ from typing import Dict, List, Literal, Tuple, TypeVar, Union
 
 from crawjud.types.bot import BotData
 
+T = TypeVar("T", bound=BotData)
 Numbers = Union[int, float, complex, datetime, timedelta]
 numbers = Union[int, float]
 strings = Union[str, bytes]
