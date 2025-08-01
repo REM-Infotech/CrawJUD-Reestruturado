@@ -158,4 +158,12 @@ class Capa(ClassBot):  # noqa: D101
                 .wait_ready()
             )
 
-            print(resultados_busca["results"]["data_request"])
+            subtask("save_cache").apply_async(
+                kwargs={
+                    "pid": pid,
+                    "data": resultados_busca["results"]["data_request"],
+                    "processo": item["NUMERO_PROCESSO"],
+                }
+            )
+
+            print()
