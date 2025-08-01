@@ -15,6 +15,7 @@ import requests as client
 from celery import shared_task
 
 from addons.recaptcha import captcha_to_image
+from celery_app.custom._canvas import subtask
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types import BotData
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo

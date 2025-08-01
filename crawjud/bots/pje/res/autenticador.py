@@ -1,6 +1,7 @@
 # noqa: D100
 from __future__ import annotations
 
+import os
 from time import sleep
 from typing import Any, cast
 
@@ -11,6 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
+from crawjud.exceptions.bot import ExecutionError
 from crawjud.types.bot import DictReturnAuth, TReturnAuth
 from webdriver import DriverBot
 
@@ -34,68 +36,83 @@ def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: 
 
     """
     driver = DriverBot(
-        selected_browser="chrome",
+        selected_browser="firefox",
         with_proxy=True,
     )
     wait = driver.wait
     url_login_task = subtask("pje.formata_url_pje").apply_async(
         kwargs={"regiao": regiao, "type_format": "login"}
     )
-    url_valida_sessao = subtask("pje.formata_url_pje").apply_async(
-        kwargs={"regiao": regiao, "type_format": "validate_login"}
-    )
-
-    url_login = url_login_task.get()
-    url_valida_sessao = url_valida_sessao.get()
-
-    driver.get(url_login)
-    btn_sso = wait.until(
-        ec.presence_of_element_located((
-            By.CSS_SELECTOR,
-            'button[id="btnSsoPdpj"]',
-        ))
-    )
-    btn_sso.click()
-
-    sleep(5)
-
-    btn_certificado = wait.until(
-        ec.presence_of_element_located((
-            By.CSS_SELECTOR,
-            ('div[class="certificado"] > a'),
-        ))
-    )
-    event_cert = btn_certificado.get_attribute("onclick")
-    driver.execute_script(event_cert)
-
     try:
-        WebDriverWait(driver, 60).until(ec.url_to_be(url_valida_sessao))
-    except TimeoutException:
-        return "Tempo de espera excedido para validação de sessão"
+        while not url_login_task.ready():
+            sleep(2)
+            print("Aguardando formatação da URL de login...")
 
-    cookies_driver = driver.get_cookies()
-    _har_data = driver.current_HAR
-    entries = list(_har_data.entries)
-    entry_proxy = [
-        item
-        for item in entries
-        if f"https://pje.trt{regiao}.jus.br/pje-comum-api/" in item.request.url
-    ][-1]
+        url_valida_sessao = subtask("pje.formata_url_pje").apply_async(
+            kwargs={"regiao": regiao, "type_format": "validate_login"}
+        )
 
-    _cookies = {
-        str(cookie["name"]): str(cookie["value"]) for cookie in cookies_driver
-    }
+        while not url_valida_sessao.ready():
+            sleep(2)
+            print("Aguardando formatação da URL de validação de sessão...")
 
-    _headers = {
-        str(header["name"]): str(header["value"])
-        for header in entry_proxy.request.headers
-    }
+        url_login: str = url_login_task.result
+        url_valida_sessao: str = url_valida_sessao.result
 
-    return cast(
-        DictReturnAuth,
-        {
-            "cookies": _cookies,
-            "headers": _headers,
-            "base_url": f"https://pje.trt{regiao}.jus.br/pje-consulta-api/api",
-        },
-    )
+        driver.get(url_login)
+        btn_sso = wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'button[id="btnSsoPdpj"]',
+            ))
+        )
+        btn_sso.click()
+
+        sleep(5)
+
+        btn_certificado = wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                ('div[class="certificado"] > a'),
+            ))
+        )
+        event_cert = btn_certificado.get_attribute("onclick")
+        driver.execute_script(event_cert)
+
+        try:
+            WebDriverWait(driver, 60).until(ec.url_to_be(url_valida_sessao))
+        except TimeoutException:
+            return "Tempo de espera excedido para validação de sessão"
+
+        sleep(5)
+        cookies_driver = driver.get_cookies()
+        _har_data = driver.current_HAR
+        entries = list(_har_data.entries)
+        entry_proxy = [
+            item
+            for item in entries
+            if f"https://pje.trt{regiao}.jus.br/pje-comum-api/" in item.request.url
+        ][-1]
+
+        _cookies = {
+            str(cookie["name"]): str(cookie["value"]) for cookie in cookies_driver
+        }
+
+        _headers = {
+            str(header["name"]): str(header["value"])
+            for header in entry_proxy.request.headers
+        }
+        driver.quit()
+
+        return cast(
+            DictReturnAuth,
+            {
+                "cookies": _cookies,
+                "headers": _headers,
+                "base_url": f"https://pje.trt{regiao}.jus.br/pje-consulta-api/api",
+            },
+        )
+
+    except Exception as e:
+        driver.quit()
+        raise ExecutionError(kwargs.get("pid", str(os.getpid())), e) from e

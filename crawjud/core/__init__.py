@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 import logging
 import logging.config
@@ -39,6 +41,7 @@ from werkzeug.utils import secure_filename
 
 from addons.logger import dict_config
 from addons.printlogs import PrintMessage
+from celery_app._wrapper import shared_task
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
 from crawjud.exceptions.bot import ExecutionError, StartError
@@ -288,7 +291,9 @@ class CrawJUD(ABC):
             status="Inicializando",
         )
 
-    def dataFrame(self) -> list[BotData]:  # noqa: N802
+    @shared_task(name="crawjud.dataFrame")
+    @staticmethod
+    def dataFrame(base64_planilha: str) -> list[BotData]:  # noqa: N802
         """Convert an Excel file to a list of dictionaries with formatted data.
 
         Reads an Excel file, processes the data by formatting dates and floats,
@@ -302,9 +307,8 @@ class CrawJUD(ABC):
             ValueError: For problems reading the file.
 
         """
-        input_file = Path(self.output_dir_path).joinpath(self.xlsx).resolve()
-
-        df = pd.read_excel(input_file)
+        buffer_planilha = io.BytesIO(base64.b64encode(base64_planilha))
+        df = pd.read_excel(buffer_planilha)
         df.columns = df.columns.str.upper()
 
         def format_data(x: Generic[T]) -> str:
@@ -325,7 +329,9 @@ class CrawJUD(ABC):
         for col in df.select_dtypes(include=["float"]).columns:
             df[col] = df[col].apply(format_float)
 
-        to_list = [dict(list(item.items())) for item in df.to_dict(orient="records")]
+        to_list = [
+            BotData(list(item.items())) for item in df.to_dict(orient="records")
+        ]
 
         return to_list
 

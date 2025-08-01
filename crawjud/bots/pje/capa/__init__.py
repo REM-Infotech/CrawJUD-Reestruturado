@@ -1,6 +1,7 @@
 # noqa: D104
 from __future__ import annotations
 
+from time import sleep
 from typing import TYPE_CHECKING, Any, Generic
 
 from celery import chain  # noqa: F401
@@ -31,10 +32,11 @@ class Capa(ClassBot):  # noqa: D101
         **kwargs: Generic[T],
     ) -> None:
         autenticar = subtask("pje.autenticador", *()).apply_async(
-            kwargs={"regiao": "TRF1"}
+            kwargs={"regiao": "11"}
         )
 
         while not autenticar.ready():
+            sleep(2)
             print("Aguardando autenticação...")
         _result_auth: TReturnAuth = autenticar.result
 
