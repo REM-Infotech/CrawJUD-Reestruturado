@@ -36,13 +36,18 @@ class PJeFormatadores:  # noqa: D101
         regioes_dict: dict[str, list[BotData]] = {}
         position_process: dict[str, int] = {}
 
+        def formata_trt(numero_processo: str) -> str:  # noqa: D102
+            trt_id = None
+            with suppress(Exception):
+                trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+                if trt_id.startswith("0"):
+                    trt_id = trt_id.replace("0", "")
+
+            return trt_id
+
         for item in frame:
             numero_processo = item["NUMERO_PROCESSO"]
-            regiao: str = (
-                subtask("pje.formata_trt")
-                .apply_async(kwargs={"numero_processo": numero_processo})
-                .get()
-            )
+            regiao: str = formata_trt(numero_processo)
 
             if not regiao:
                 continue
@@ -123,7 +128,7 @@ class PJeFormatadores:  # noqa: D101
                 formatar_endereco = task_formata_endereco.apply_async(
                     kwargs={"endr_dict": item.get("endereco")}
                 )
-                result = formatar_endereco.get()
+                result = formatar_endereco.wait_ready()
                 item.update({"endereco".upper(): result})
 
             formated_data = {
@@ -156,7 +161,7 @@ class PJeFormatadores:  # noqa: D101
                 formatar_endereco = task_formata_endereco.apply_async(
                     kwargs={"endr_dict": item.get("endereco")}
                 )
-                result = formatar_endereco.get()
+                result = formatar_endereco.wait_ready()
                 item.update({"endereco".upper(): result})
 
             if item.get("representantes"):
@@ -179,7 +184,7 @@ class PJeFormatadores:  # noqa: D101
                 kwargs={"lista": representantes, "representado": item.get("nome")}
             )
 
-            result = representantes_task.get()
+            result = representantes_task.wait_ready()
 
             if not isinstance(result, list):
                 raise TypeError(
@@ -207,7 +212,7 @@ class PJeFormatadores:  # noqa: D101
                 formatar_endereco = task_formata_endereco.apply_async(
                     kwargs={"endr_dict": item.get("endereco")}
                 )
-                result = formatar_endereco.get()
+                result = formatar_endereco.wait_ready()
                 item.update({"endereco".upper(): result})
 
             if item.get("representantes"):
@@ -230,7 +235,7 @@ class PJeFormatadores:  # noqa: D101
                 kwargs={"lista": representantes, "representado": item.get("nome")}
             )
 
-            result = representantes_task.get()
+            result = representantes_task.wait_ready()
 
             if not isinstance(result, list):
                 raise TypeError(

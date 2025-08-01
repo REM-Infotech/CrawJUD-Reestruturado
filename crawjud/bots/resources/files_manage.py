@@ -6,22 +6,15 @@ remover diretórios temporários utilizados durante o processamento dos dados.
 """
 
 import asyncio
-import base64
 import shutil
 from pathlib import Path
-from typing import TypedDict
+
+import base91
 
 from addons.storage import Storage
 from celery_app._wrapper import shared_task
 from crawjud import work_dir
-
-
-class DictFiles(TypedDict):
-    """Dicionário para armazenar informações de arquivos baixados."""
-
-    file_name: str
-    file_base64str: str
-    file_suffix: str = ".json"
+from crawjud.types.bot import DictFiles
 
 
 @shared_task(name="crawjud.download_files")
@@ -53,14 +46,14 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     for root, _, files in path_files.joinpath(storage_folder_name).walk():
         for file in files:
             with root.joinpath(file).open("rb") as f:
-                file_base64str = base64.b64encode(f.read()).decode()
-            list_files.append(
-                DictFiles(
-                    file_name=file,
-                    file_base64str=file_base64str,
-                    file_suffix=Path(file).suffix,
+                file_base91str = base91.encode(f.read())
+                list_files.append(
+                    DictFiles(
+                        file_name=file,
+                        file_base91str=file_base91str,
+                        file_suffix=Path(file).suffix,
+                    )
                 )
-            )
 
     shutil.rmtree(path_files.joinpath(storage_folder_name))
 

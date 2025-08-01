@@ -284,6 +284,19 @@ tests = ["cloudpickle ; platform_python_implementation == \"CPython\"", "hypothe
 tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" and python_version >= \"3.10\"", "pytest-mypy-plugins ; platform_python_implementation == \"CPython\" and python_version >= \"3.10\""]
 
 [[package]]
+name = "base91"
+version = "1.0.1"
+description = "Base91 encoding in Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "base91-1.0.1-py2-none-any.whl", hash = "sha256:9af14fe252dedf4b1b05cae504e17f4af75ea9311d05d25042c94dbefbf965de"},
+    {file = "base91-1.0.1-py3-none-any.whl", hash = "sha256:a1e605d0e762661eee73943dc33becf807890214f497896153b1851a56b357bf"},
+    {file = "base91-1.0.1.tar.gz", hash = "sha256:5b284a2ba3c97be1eb9473f3af94a9bf141d61005d836e75e645d2798da58799"},
+]
+
+[[package]]
 name = "bcrypt"
 version = "4.3.0"
 description = "Modern password hashing for your software and your servers"
@@ -4304,4 +4317,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "ed1dee5d2a9c7e357be4721f7a756bd115f50bbaa6f6bc12040e0ef0ca0525fb"
+content-hash = "aa9857eaa5cf933e967be4d33fc28533622c0852458acc7de0b9b66e6e1df119"

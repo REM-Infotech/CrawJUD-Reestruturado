@@ -77,6 +77,20 @@ class AsyncResult(__AsyncResult):
 
         return super().__getattr__(item)
 
+    def wait_ready(self, timeout: float = None) -> Generic[R]:
+        """Wait until the result is ready."""
+        while not self.ready():
+            if timeout is not None:
+                timeout -= 0.5
+                if timeout <= 0:
+                    return None
+            self._app.control.ping(timeout=0.5)
+
+        if self.failed():
+            raise
+
+        return self.result
+
 
 class Signature(__Signature):
     """Task Signature.
@@ -170,13 +184,20 @@ class Signature(__Signature):
                 return target_cls.from_dict(d, app=app)
         return Signature(d, app=app)
 
-    def apply_async(self, *args: AnyStr, **kwargs: AnyStr) -> AsyncResult | None:
+    def apply_async(
+        self,
+        args: AnyStr = None,
+        kwargs: AnyStr = None,
+        route_name: str = None,
+        **options: AnyStr,
+    ) -> AsyncResult | None:
         """Apply this task asynchronously.
 
         Arguments:
             args (Tuple): Partial args to be prepended to the existing args.
             kwargs (Dict): Partial kwargs to be merged with existing kwargs.
-            options (Dict): Partial options to be merged
+            route_name (str): Name of the route to use for this task.
+            **options (Dict): Partial options to be merged
                 with existing options.
 
         Returns:
@@ -187,7 +208,11 @@ class Signature(__Signature):
             :meth:`~@Task.apply_async` and the :ref:`guide-calling` guide.
 
         """
-        async_result = cast(AsyncResult, super().apply_async(*args, **kwargs))
+        async_result = cast(
+            AsyncResult,
+            super().apply_async(args, kwargs, route_name=route_name, **options),
+        )
         async_result._app = self._app  # noqa: SLF001
+        async_result.wait_ready = AsyncResult.wait_ready.__get__(async_result)
         if async_result:
             return async_result

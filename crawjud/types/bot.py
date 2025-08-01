@@ -2,20 +2,28 @@
 
 from typing import Literal, TypedDict, Union
 
-DictReturnAuth = TypedDict(
-    "DictReturnAuth",
-    {
-        "cookies": dict[str, str],
-        "headers": dict[str, str],
-        "base_url": str,
-    },
-)
+
+class DictReturnAuth(TypedDict):
+    """TypedDict for authentication return data."""
+
+    cookies: dict[str, str]
+    headers: dict[str, str]
+    base_url: str
+
 
 MessageTimeoutAutenticacao = Literal[
     "Tempo de espera excedido para validação de sessão"
 ]
 
 TReturnAuth = Union[DictReturnAuth, MessageTimeoutAutenticacao]
+
+
+class DictFiles(TypedDict):
+    """Dicionário para armazenar informações de arquivos baixados."""
+
+    file_name: str
+    file_base91str: str
+    file_suffix: str = ".json"
 
 
 class BotData(TypedDict):

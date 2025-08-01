@@ -148,6 +148,7 @@ class DriverBot(WebDriver):  # noqa: D101
 
     def quit(self) -> None:  # noqa: D102
         self.options.proxy_server.stop()
+        self.options.proxy_client.close()
         return super().quit()
 
     @wait.setter

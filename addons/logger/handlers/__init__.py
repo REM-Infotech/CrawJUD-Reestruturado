@@ -93,7 +93,7 @@ class FileHandler(logging.handlers.RotatingFileHandler):
 
 
 class _ColorFormatter(logging.Formatter):
-    grey = click.style("%(message)s", fg=(1, 66, 66), reset=True)
+    grey = click.style("%(message)s", fg=(15, 194, 150), reset=True)
     green = click.style("%(message)s", fg="green", reset=True)
     yellow = click.style("%(message)s", fg="yellow", reset=True)
     red = click.style("%(message)s", fg="red")

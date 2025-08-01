@@ -40,24 +40,17 @@ def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: 
         with_proxy=True,
     )
     wait = driver.wait
-    url_login_task = subtask("pje.formata_url_pje").apply_async(
-        kwargs={"regiao": regiao, "type_format": "login"}
-    )
-    try:
-        while not url_login_task.ready():
-            sleep(2)
-            print("Aguardando formatação da URL de login...")
 
-        url_valida_sessao = subtask("pje.formata_url_pje").apply_async(
+    try:
+        url_login_task = subtask("pje.formata_url_pje").apply_async(
+            kwargs={"regiao": regiao, "type_format": "login"}
+        )
+        url_valida_sessao_task = subtask("pje.formata_url_pje").apply_async(
             kwargs={"regiao": regiao, "type_format": "validate_login"}
         )
 
-        while not url_valida_sessao.ready():
-            sleep(2)
-            print("Aguardando formatação da URL de validação de sessão...")
-
-        url_login: str = url_login_task.result
-        url_valida_sessao: str = url_valida_sessao.result
+        url_login: str = url_login_task.wait_ready()
+        url_valida_sessao: str = url_valida_sessao_task.wait_ready()
 
         driver.get(url_login)
         btn_sso = wait.until(
@@ -84,7 +77,14 @@ def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: 
         except TimeoutException:
             return "Tempo de espera excedido para validação de sessão"
 
-        sleep(5)
+        sleep(1)
+
+        if (
+            "pjekz/painel/usuario-externo" in driver.current_url
+            or "pjekz" in driver.current_url
+        ):
+            driver.refresh()
+
         cookies_driver = driver.get_cookies()
         _har_data = driver.current_HAR
         entries = list(_har_data.entries)

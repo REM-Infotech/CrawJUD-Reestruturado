@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import io
 import re
 from datetime import datetime
@@ -11,6 +10,7 @@ from typing import (
     TypeVar,
 )
 
+import base91
 import pandas as pd
 
 from celery_app._wrapper import shared_task
@@ -32,7 +32,7 @@ def formata_tempo(item: str | bool) -> ReturnFormataTempo:  # noqa: D103
 
 
 @shared_task(name="crawjud.dataFrame")
-def dataFrame(base64_planilha: str) -> list[BotData]:  # noqa: N802
+def dataFrame(base91_planilha: str) -> list[BotData]:  # noqa: N802
     """Convert an Excel file to a list of dictionaries with formatted data.
 
     Reads an Excel file, processes the data by formatting dates and floats,
@@ -46,7 +46,7 @@ def dataFrame(base64_planilha: str) -> list[BotData]:  # noqa: N802
         ValueError: For problems reading the file.
 
     """
-    buffer_planilha = io.BytesIO(base64.b64encode(base64_planilha))
+    buffer_planilha = io.BytesIO(base91.decode(base91_planilha))
     df = pd.read_excel(buffer_planilha)
     df.columns = df.columns.str.upper()
 

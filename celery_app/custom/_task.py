@@ -52,38 +52,38 @@ class ContextTask(TaskBase):
 
         return self.run(*args, **kwargs)  # noqa: B026
 
-    # def signature(
-    #     self, args: Any = None, *starargs: Any, **starkwargs: Any
-    # ) -> Signature:
-    #     """Create signature.
+    def signature(
+        self, args: Any = None, *starargs: Any, **starkwargs: Any
+    ) -> Signature:
+        """Create signature.
 
-    #     Returns:
-    #         :class:`~celery.signature`:  object for
-    #             this task, wrapping arguments and execution options
-    #             for a single task invocation.
+        Returns:
+            :class:`~celery.signature`:  object for
+                this task, wrapping arguments and execution options
+                for a single task invocation.
 
-    #     """
-    #     starkwargs.setdefault("app", self.app)
-    #     return subtask(self, args, *starargs, **starkwargs)
+        """
+        starkwargs.setdefault("app", self.app)
+        return subtask(self, args, *starargs, **starkwargs)
 
-    # def subtask(
-    #     self,
-    #     args: Any = None,
-    #     *starargs: Any,
-    #     **starkwargs: Any,
-    # ) -> Signature:
-    #     """Create signature.
+    def subtask(
+        self,
+        args: Any = None,
+        *starargs: Any,
+        **starkwargs: Any,
+    ) -> Signature:
+        """Create signature.
 
-    #     Returns:
-    #         :class:`~celery.signature`:  object for
-    #             this task, wrapping arguments and execution options
-    #             for a single task invocation.
+        Returns:
+            :class:`~celery.signature`:  object for
+                this task, wrapping arguments and execution options
+                for a single task invocation.
 
-    #     """
-    #     star_arg = starargs
-    #     star_kwarg = starkwargs
+        """
+        star_arg = starargs
+        star_kwarg = starkwargs
 
-    #     return subtask(self, args, *star_arg, **star_kwarg)
+        return subtask(self, args, *star_arg, **star_kwarg)
 
     def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
         return self._run(*args, **kwargs)
