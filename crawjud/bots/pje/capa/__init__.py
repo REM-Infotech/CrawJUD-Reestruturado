@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING, Generic
 import psutil
 from celery import chain  # noqa: F401
 from dotenv import load_dotenv
+from httpx import Client
 
+from addons.storage import Storage
 from celery_app._wrapper import classmethod_shared_task as classmethod_shared_task
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
@@ -257,3 +259,33 @@ class Capa(ClassBot):  # noqa: D101
                 )
 
                 print()
+
+    @staticmethod
+    @shared_task(name="pje.copia_integral")
+    def download_copia_integral(  # noqa: D102
+        url_base: str,
+        pid: str,
+        headers: dict[str, str],
+        cookies: dict[str, str],
+        id_processo: str,
+        token_captcha: str,
+    ) -> None:
+        storage = Storage("minio")
+        with suppress(Exception):
+            with Client(
+                base_url=url_base,
+                timeout=30,
+                headers=headers,
+                cookies=cookies,
+            ) as client:
+                response = client.get(
+                    url=f"/processos/{id_processo}/integra?tokenCaptcha={token_captcha}"
+                )
+                chunk = 65536
+                for data in response.iter_bytes(chunk):
+                    storage.bucket.append_object(
+                        object_name=f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {pid}.pdf",
+                        data=data,
+                        chunk_size=chunk,
+                        length=response.headers.get("Content-Length", 0),
+                    )

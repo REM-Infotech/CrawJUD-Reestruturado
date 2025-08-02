@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET  # noqa: S405
+from contextlib import suppress
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar
+from typing import TYPE_CHECKING, Any, BinaryIO, Generator, Type, TypeVar
 
 from minio.datatypes import Bucket as __Bucket
 from minio.datatypes import ListAllMyBucketsResult
 from minio.datatypes import Object as __Object
+from minio.helpers import ObjectWriteResult
 from minio.time import from_iso8601utc
 from minio.xml import cast, find, findall, findtext
 from urllib3 import BaseHTTPResponse
@@ -59,7 +61,7 @@ class Bucket(__Bucket):
         extra_headers: str = None,
         extra_query_params: str = None,
     ) -> Generator[Blob, Any, None]:
-        for ob in self.client.list_objects(
+        for ob in self.client._list_objects(  # noqa: SLF001
             self.name,
             prefix,
             recursive,
@@ -73,6 +75,51 @@ class Bucket(__Bucket):
             extra_query_params,
         ):
             yield Blob.from_object(ob, self.client)
+
+    def get_object(  # noqa: ANN202
+        self,
+        object_name: str,
+        offset: int = 0,
+        length: int = 0,
+        request_headers: Any | None = None,
+        ssec: Any | None = None,
+        version_id: str | None = None,
+        extra_query_params: Any | None = None,
+    ) -> BaseHTTPResponse | None:
+        with suppress(Exception):
+            return self.client.get_object(
+                self.name,
+                object_name,
+                offset,
+                length,
+                request_headers,
+                ssec,
+                version_id,
+                extra_query_params,
+            )
+
+        return None
+
+    def append_object(
+        self,
+        object_name: str,
+        data: BinaryIO,
+        length: int,
+        chunk_size: int = None,
+        progress: Any = None,
+        extra_headers: Any = None,
+    ) -> ObjectWriteResult:
+        if not self.get_object(object_name):
+            return self.client.put_object(self.bucket_name, object_name, data, length)
+
+        return self.client.append_object(
+            object_name,
+            data,
+            length,
+            chunk_size,
+            progress,
+            extra_headers,
+        )
 
 
 class Blob(__Object):
