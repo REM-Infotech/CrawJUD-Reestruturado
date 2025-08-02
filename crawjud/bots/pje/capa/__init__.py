@@ -247,6 +247,18 @@ class Capa(ClassBot):  # noqa: D101
                     }
                 )
 
+                subtask("pje.capa.copia_integral").apply_async(
+                    kwargs={
+                        "url_base": base_url,
+                        "pid": pid,
+                        "headers": headers,
+                        "cookies": cookies,
+                        "id_processo": resultados_busca["results"]["id_processo"],
+                        "data": item,
+                        "captchatoken": resultados_busca["results"]["captchatoken"],
+                    }
+                )
+
                 task_message.apply_async(
                     kwargs={
                         "pid": pid,
@@ -261,14 +273,17 @@ class Capa(ClassBot):  # noqa: D101
                 print()
 
     @staticmethod
-    @shared_task(name="pje.copia_integral")
+    @shared_task(name="pje.capa.copia_integral")
     def download_copia_integral(  # noqa: D102
         url_base: str,
         pid: str,
         headers: dict[str, str],
         cookies: dict[str, str],
         id_processo: str,
-        token_captcha: str,
+        data: BotData,
+        captchatoken: str,
+        *args: Generic[T],
+        **kwargs: Generic[T],
     ) -> None:
         storage = Storage("minio")
         with suppress(Exception):
@@ -279,13 +294,13 @@ class Capa(ClassBot):  # noqa: D101
                 cookies=cookies,
             ) as client:
                 response = client.get(
-                    url=f"/processos/{id_processo}/integra?tokenCaptcha={token_captcha}"
+                    url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
                 chunk = 65536
-                for data in response.iter_bytes(chunk):
+                for _data in response.iter_bytes(chunk):
                     storage.bucket.append_object(
                         object_name=f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {pid}.pdf",
-                        data=data,
+                        data=_data,
                         chunk_size=chunk,
                         length=response.headers.get("Content-Length", 0),
                     )
