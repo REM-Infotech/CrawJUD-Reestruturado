@@ -59,7 +59,7 @@ def _kill_browsermob() -> None:
 @wrap_init
 class Capa(ClassBot):  # noqa: D101
     @staticmethod
-    @shared_task(name="pje.movimentacao")
+    @shared_task(name="pje.capa")
     def pje_capa(  # noqa: D102
         current_task: ContextTask,
         name: str,
@@ -151,6 +151,7 @@ class Capa(ClassBot):  # noqa: D101
             autenticacao_data: TReturnAuth = _task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
+
             if isinstance(autenticacao_data, dict):
                 kw_args = dict(autenticacao_data)
                 kw_args.update({
@@ -182,8 +183,6 @@ class Capa(ClassBot):  # noqa: D101
                         "start_time": _start_time,
                     }
                 )
-
-        print("ok")
 
     @staticmethod
     @shared_task(name="pje.queue_processos")

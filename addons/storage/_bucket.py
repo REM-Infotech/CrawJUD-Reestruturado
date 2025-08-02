@@ -1,0 +1,92 @@
+from __future__ import annotations
+
+import xml.etree.ElementTree as ET  # noqa: S405
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar
+
+from minio.datatypes import Bucket as __Bucket
+from minio.datatypes import ListAllMyBucketsResult
+from minio.datatypes import Object as __Object
+from minio.time import from_iso8601utc
+from minio.xml import cast, find, findall, findtext
+from urllib3 import BaseHTTPResponse
+
+if TYPE_CHECKING:
+    from addons.storage import Storage  # noqa: F401
+
+A = TypeVar("A", bound="ListBuckets")
+
+
+class ListBuckets(ListAllMyBucketsResult):
+    def __init__(self, buckets: list[__Bucket]) -> None:
+        super().__init__(buckets=buckets)
+
+    @classmethod
+    def fromxml(cls: Type[A], element: ET.Element) -> A:
+        """Create new object with values from XML element."""
+        element = cast(ET.Element, find(element, "Buckets", True))
+        buckets = []
+        elements = findall(element, "Bucket")
+        for bucket in elements:
+            name = cast(str, findtext(bucket, "Name", True))
+            creation_date = findtext(bucket, "CreationDate")
+            buckets.append(
+                Bucket(
+                    name,
+                    from_iso8601utc(creation_date) if creation_date else None,
+                )
+            )
+
+        return cls(buckets=buckets)
+
+
+class Bucket(__Bucket):
+    client: Storage
+
+    def __init__(self, name: str, creation_date: datetime, client: Storage) -> None:
+        super().__init__(name, creation_date)
+
+    def list_objects(
+        self,
+        prefix: str = None,
+        recursive: str = False,
+        start_after: str = None,
+        include_user_meta: str = False,
+        include_version: str = False,
+        use_api_v1: str = False,
+        use_url_encoding_type: str = True,
+        fetch_owner: str = False,
+        extra_headers: str = None,
+        extra_query_params: str = None,
+    ) -> Generator[Blob, Any, None]:
+        for ob in self.client.list_objects(
+            self.name,
+            prefix,
+            recursive,
+            start_after,
+            include_user_meta,
+            include_version,
+            use_api_v1,
+            use_url_encoding_type,
+            fetch_owner,
+            extra_headers,
+            extra_query_params,
+        ):
+            yield Blob.from_object(ob, self.client)
+
+
+class Blob(__Object):
+    @classmethod
+    def from_object(cls, _object: __Object, client: Storage) -> Blob:
+        """Create a Blob instance from an existing Object."""
+        return cls()
+
+    def __init__(self, bucket: Bucket, name: str) -> None:
+        self.bucket = bucket
+        self.name = name
+
+    def get(self) -> BaseHTTPResponse:
+        return self.bucket.client.get_object(self.bucket.name, self.name)
+
+    def put(self, data: Any) -> Any:
+        return self.bucket.client.put_object(self.bucket.name, self.name, data)
