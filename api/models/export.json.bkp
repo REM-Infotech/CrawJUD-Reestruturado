@@ -1,6 +1,17 @@
 [
   {
     "id": "1",
+    "display_name": "PROJUDI - BUSCA PROCESSOS",
+    "system": "PROJUDI",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "PROC_PARTE",
+    "form_cfg": "proc_parte",
+    "classification": "JURIDICO",
+    "text": "Busca processos por nome da parte e exporta em uma planilha"
+  },
+  {
+    "id": "2",
     "display_name": "PROJUDI - CAPA",
     "system": "PROJUDI",
     "state": "AM",
@@ -11,7 +22,29 @@
     "text": "Extrai a capa do processo e exporta em uma planilha"
   },
   {
-    "id": "2",
+    "id": "3",
+    "display_name": "PROJUDI - INTIMAÇÕES",
+    "system": "PROJUDI",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "INTIMACOES",
+    "form_cfg": "only_auth",
+    "classification": "JURIDICO",
+    "text": "Extrai intimações do painel do advogado e exporta em uma planilha"
+  },
+  {
+    "id": "4",
+    "display_name": "PROJUDI - MOVIMENTAÇÕES",
+    "system": "PROJUDI",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "MOVIMENTACAO",
+    "form_cfg": "file_auth",
+    "classification": "JURIDICO",
+    "text": "Extrator de movimentações processuais "
+  },
+  {
+    "id": "5",
     "display_name": "PROJUDI - PROTOCOLO",
     "system": "PROJUDI",
     "state": "AM",
@@ -22,7 +55,29 @@
     "text": "Peticionamento em lotes de processos "
   },
   {
-    "id": "3",
+    "id": "6",
+    "display_name": "ESAJ - BUSCA PAGAMENTOS",
+    "system": "ESAJ",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "BUSCA_PAGS",
+    "form_cfg": "file_auth",
+    "classification": "JURIDICO",
+    "text": "Robô responsável por buscar pagamentos feitos em processos"
+  },
+  {
+    "id": "7",
+    "display_name": "ESAJ - BUSCA PROCESSOS",
+    "system": "ESAJ",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "PROC_PARTE",
+    "form_cfg": "proc_parte",
+    "classification": "JURIDICO",
+    "text": "Busca processos por nome da parte e exporta em uma planilha"
+  },
+  {
+    "id": "8",
     "display_name": "ESAJ - CAPA",
     "system": "ESAJ",
     "state": "AM",
@@ -33,7 +88,29 @@
     "text": "Extrai a capa do processo e exporta em uma planilha"
   },
   {
-    "id": "4",
+    "id": "9",
+    "display_name": "ESAJ - EMISSÃO GUIAS",
+    "system": "ESAJ",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "EMISSOR",
+    "form_cfg": "file_auth",
+    "classification": "JURIDICO",
+    "text": "Emissor de guias de pagamento ESAJ"
+  },
+  {
+    "id": "10",
+    "display_name": "ESAJ - MOVIMENTAÇÕES",
+    "system": "ESAJ",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "MOVIMENTACAO",
+    "form_cfg": "file_auth",
+    "classification": "JURIDICO",
+    "text": "Extrator de movimentações processuais "
+  },
+  {
+    "id": "11",
     "display_name": "ESAJ - PROTOCOLO",
     "system": "ESAJ",
     "state": "AM",
@@ -44,29 +121,29 @@
     "text": "Peticionamento em lotes de processos "
   },
   {
-    "id": "5",
-    "display_name": "PJE - CAPA",
+    "id": "12",
+    "display_name": "PJE - PAUTA AUDIENCIAS",
+    "system": "PJE",
+    "state": "AM",
+    "client": "EVERYONE",
+    "type": "PAUTA",
+    "form_cfg": "file_auth",
+    "classification": "JURIDICO",
+    "text": "Robô responsável por extrair pautas do Pje"
+  },
+  {
+    "id": "13",
+    "display_name": "PJE - MOVIMENTAÇÕES",
     "system": "PJE",
     "state": "EVERYONE",
     "client": "EVERYONE",
-    "type": "CAPA",
+    "type": "MOVIMENTACAO",
     "form_cfg": "pje",
     "classification": "JURIDICO",
-    "text": "Extrai a capa do processo e exporta em uma planilha"
+    "text": "Extrator de movimentações processuais."
   },
   {
-    "id": "6",
-    "display_name": "PJE - PROTOCOLO",
-    "system": "PJE",
-    "state": "EVERYONE",
-    "client": "EVERYONE",
-    "type": "PROTOCOLO",
-    "form_cfg": "pje",
-    "classification": "JURIDICO",
-    "text": "Peticionamento em lotes de processos "
-  },
-  {
-    "id": "7",
+    "id": "14",
     "display_name": "CAIXA - EMISSÃO GUIAS",
     "system": "CAIXA",
     "state": "AM",
@@ -77,7 +154,7 @@
     "text": "Robô responsável por emissão de guias"
   },
   {
-    "id": "8",
+    "id": "15",
     "display_name": "TJDFT - CALCULADORA",
     "system": "TJDFT",
     "state": "EVERYONE",
@@ -88,7 +165,7 @@
     "text": "Robô de emissão de cálculo de atualização monetária"
   },
   {
-    "id": "9",
+    "id": "16",
     "display_name": "ELAW - DOWNLOAD DOC.",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -99,7 +176,7 @@
     "text": "Robô responsável por baixar documentos"
   },
   {
-    "id": "10",
+    "id": "17",
     "display_name": "ELAW - ENCERRAMENTOS",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -110,7 +187,7 @@
     "text": "Robô responsável por encerramento de processos"
   },
   {
-    "id": "11",
+    "id": "18",
     "display_name": "ELAW - PAGAMENTO",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -121,7 +198,7 @@
     "text": "Robô responsável por solicitação de pagamentos"
   },
   {
-    "id": "12",
+    "id": "19",
     "display_name": "ELAW - PRAZOS",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -132,7 +209,7 @@
     "text": "Lançador de prazos em lotes ELAW"
   },
   {
-    "id": "13",
+    "id": "20",
     "display_name": "ELAW - PRE-CADASTRO",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -143,7 +220,7 @@
     "text": "Robô responsável por realizar pré cadastro de processos"
   },
   {
-    "id": "14",
+    "id": "21",
     "display_name": "ELAW - PROVISIONAMENTO",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -154,7 +231,7 @@
     "text": "Robô responsável por provisionar valores"
   },
   {
-    "id": "15",
+    "id": "22",
     "display_name": "ELAW - ANDAMENTOS",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -165,7 +242,7 @@
     "text": "Robô responsável por inserção de andamentos"
   },
   {
-    "id": "16",
+    "id": "23",
     "display_name": "ELAW - COMPL. CADASTRO",
     "system": "ELAW",
     "state": "EVERYONE",
@@ -176,7 +253,7 @@
     "text": "Robô responsável por complemento de cadastro"
   },
   {
-    "id": "17",
+    "id": "24",
     "display_name": "ELAW - ATUALIZAR FASE",
     "system": "ELAW",
     "state": "EVERYONE",
