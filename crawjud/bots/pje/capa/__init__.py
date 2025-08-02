@@ -247,14 +247,14 @@ class Capa(ClassBot):  # noqa: D101
                     }
                 )
 
+                file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
                 subtask("pje.capa.copia_integral").apply_async(
                     kwargs={
                         "url_base": base_url,
-                        "pid": pid,
+                        "file_name": file_name,
                         "headers": headers,
                         "cookies": cookies,
                         "id_processo": resultados_busca["results"]["id_processo"],
-                        "data": item,
                         "captchatoken": resultados_busca["results"]["captchatoken"],
                     }
                 )
@@ -276,12 +276,11 @@ class Capa(ClassBot):  # noqa: D101
     @shared_task(name="pje.capa.copia_integral")
     def download_copia_integral(  # noqa: D102
         url_base: str,
-        pid: str,
         headers: dict[str, str],
         cookies: dict[str, str],
         id_processo: str,
-        data: BotData,
         captchatoken: str,
+        file_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
@@ -299,7 +298,7 @@ class Capa(ClassBot):  # noqa: D101
                 chunk = 65536
                 for _data in response.iter_bytes(chunk):
                     storage.bucket.append_object(
-                        object_name=f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {pid}.pdf",
+                        object_name=file_name,
                         data=_data,
                         chunk_size=chunk,
                         length=response.headers.get("Content-Length", 0),
