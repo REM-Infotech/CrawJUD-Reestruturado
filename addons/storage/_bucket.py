@@ -138,6 +138,8 @@ class Blob(__Object):
         self.__dict__ = ob.__dict__
         self.client = client
         self.bucket = bucket
+        if not self.is_dir:
+            del self.list_objects
 
     def list_objects(
         self,
@@ -152,17 +154,15 @@ class Blob(__Object):
         extra_headers: str = None,
         extra_query_params: str = None,
     ) -> Generator[Blob, Any, None]:
-        if self.is_dir:
-            return self.bucket.list_objects(
-                prefix=self.name,
-                recursive=recursive,
-                start_after=start_after,
-                include_user_meta=include_user_meta,
-                include_version=include_version,
-                use_api_v1=use_api_v1,
-                use_url_encoding_type=use_url_encoding_type,
-                fetch_owner=fetch_owner,
-                extra_headers=extra_headers,
-                extra_query_params=extra_query_params,
-            )
-        return self
+        return self.bucket.list_objects(
+            prefix=self.name,
+            recursive=recursive,
+            start_after=start_after,
+            include_user_meta=include_user_meta,
+            include_version=include_version,
+            use_api_v1=use_api_v1,
+            use_url_encoding_type=use_url_encoding_type,
+            fetch_owner=fetch_owner,
+            extra_headers=extra_headers,
+            extra_query_params=extra_query_params,
+        )
