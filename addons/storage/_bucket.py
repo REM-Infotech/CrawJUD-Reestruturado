@@ -3,14 +3,14 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET  # noqa: S405
 from contextlib import suppress
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, BinaryIO, Generator, Type, TypeVar
+from typing import TYPE_CHECKING, Any, BinaryIO, Generator, Type, TypeVar, cast
 
 from minio.datatypes import Bucket as __Bucket
 from minio.datatypes import ListAllMyBucketsResult
 from minio.datatypes import Object as __Object
 from minio.helpers import ObjectWriteResult
 from minio.time import from_iso8601utc
-from minio.xml import cast, find, findall, findtext
+from minio.xml import find, findall, findtext
 from urllib3 import BaseHTTPResponse
 
 if TYPE_CHECKING:
@@ -46,12 +46,13 @@ class Bucket(__Bucket):
     client: Storage
 
     def __init__(self, name: str, creation_date: datetime, client: Storage) -> None:
+        self.client = client
         super().__init__(name, creation_date)
 
     def list_objects(
         self,
         prefix: str = None,
-        recursive: str = False,
+        recursive: bool = True,
         start_after: str = None,
         include_user_meta: str = False,
         include_version: str = False,
@@ -62,19 +63,19 @@ class Bucket(__Bucket):
         extra_query_params: str = None,
     ) -> Generator[Blob, Any, None]:
         for ob in self.client._list_objects(  # noqa: SLF001
-            self.name,
-            prefix,
-            recursive,
-            start_after,
-            include_user_meta,
-            include_version,
-            use_api_v1,
-            use_url_encoding_type,
-            fetch_owner,
-            extra_headers,
-            extra_query_params,
+            bucket_name=self.name,
+            delimiter=None if recursive else "/",
+            include_user_meta=include_user_meta,
+            prefix=prefix,
+            start_after=start_after,
+            use_api_v1=use_api_v1,
+            include_version=include_version,
+            encoding_type="url" if use_url_encoding_type else None,
+            fetch_owner=fetch_owner,
+            extra_headers=extra_headers,
+            extra_query_params=extra_query_params,
         ):
-            yield Blob.from_object(ob, self.client)
+            yield Blob.from_object(ob, self.client, self)
 
     def get_object(  # noqa: ANN202
         self,
@@ -124,16 +125,44 @@ class Bucket(__Bucket):
 
 class Blob(__Object):
     @classmethod
-    def from_object(cls, _object: __Object, client: Storage) -> Blob:
+    def from_object(cls, _object: __Object, client: Storage, bucket: Bucket) -> Blob:
         """Create a Blob instance from an existing Object."""
-        return cls()
+        return cls(ob=_object, client=client, bucket=bucket)
 
-    def __init__(self, bucket: Bucket, name: str) -> None:
+    @property
+    def name(self) -> str:
+        """Get the name of the blob."""
+        return self.object_name
+
+    def __init__(self, ob: __Object, client: Storage, bucket: Bucket) -> None:
+        self.__dict__ = ob.__dict__
+        self.client = client
         self.bucket = bucket
-        self.name = name
 
-    def get(self) -> BaseHTTPResponse:
-        return self.bucket.client.get_object(self.bucket.name, self.name)
-
-    def put(self, data: Any) -> Any:
-        return self.bucket.client.put_object(self.bucket.name, self.name, data)
+    def list_objects(
+        self,
+        prefix: str = None,
+        recursive: bool = True,
+        start_after: str = None,
+        include_user_meta: str = False,
+        include_version: str = False,
+        use_api_v1: str = False,
+        use_url_encoding_type: str = True,
+        fetch_owner: str = False,
+        extra_headers: str = None,
+        extra_query_params: str = None,
+    ) -> Generator[Blob, Any, None]:
+        if self.is_dir:
+            return self.bucket.list_objects(
+                prefix=self.name,
+                recursive=recursive,
+                start_after=start_after,
+                include_user_meta=include_user_meta,
+                include_version=include_version,
+                use_api_v1=use_api_v1,
+                use_url_encoding_type=use_url_encoding_type,
+                fetch_owner=fetch_owner,
+                extra_headers=extra_headers,
+                extra_query_params=extra_query_params,
+            )
+        return self
