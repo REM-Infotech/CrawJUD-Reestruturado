@@ -102,7 +102,7 @@ class Storage(Client):  # noqa: B903, D101
         # Abre o arquivo em modo binário
         with file_path.open("rb") as f:
             # Inicializa barra de progresso
-            size = f.read()
+            size = len(f.read())
             with tqdm(
                 total=file_size, unit="B", unit_scale=True, desc=file_name
             ) as pbar:
