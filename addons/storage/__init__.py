@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Generator, Literal
 
 from dotenv import dotenv_values
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
 from minio.xml import unmarshal
+from tqdm import tqdm
 
 from addons.storage._bucket import Blob as Blob
 from addons.storage._bucket import Bucket, ListBuckets
@@ -75,3 +77,47 @@ class Storage(Client):  # noqa: B903, D101
         response = self._execute("GET")
         result = unmarshal(ListBuckets, response.data.decode())
         return result.buckets
+
+    def upload_file(self, file_name: str, file_path: Path) -> None:  # noqa: D102
+        """Upload a file to the bucket.
+
+        Args:
+            file_name (str): Nome do arquivo no bucket.
+            file_path (Path): Caminho do arquivo local a ser enviado.
+
+        Returns:
+            None: Não retorna valor.
+
+        Raises:
+            FileNotFoundError: Caso o arquivo não seja encontrado.
+
+        """
+        # Verifica se o arquivo existe
+        if not file_path.exists():
+            raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
+
+        file_size = file_path.stat().st_size
+        chunk_size = 1024  # Tamanho do chunk em bytes
+
+        # Abre o arquivo em modo binário
+        with file_path.open("rb") as f:
+            # Inicializa barra de progresso
+            size = f.read()
+            with tqdm(
+                total=file_size, unit="B", unit_scale=True, desc=file_name
+            ) as pbar:
+                while True:
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    pbar.update(len(chunk))
+                    self.bucket.append_object(file_name, chunk, size)
+
+    def download_files(self, dest: str | Path, prefix: str) -> None:  # noqa: D102
+        files = self.bucket.list_objects(prefix=prefix, recursive=True)
+
+        if isinstance(dest, str):
+            dest = Path(dest)
+
+        for file in files:
+            self.fget_object(self.bucket.name, file.name, dest.joinpath(file.name))
