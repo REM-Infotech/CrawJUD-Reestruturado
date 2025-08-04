@@ -56,6 +56,7 @@ class FileService:
 
             file_name = str(data.get("name"))
             index = int(data.get("index", 0))
+
             _total = int(data.get("total", 1)) * 1024
             chunk = data.get("chunk", _file.get("chunk", b""))
             chunksize = int(data.get("chunksize", 1024))
@@ -66,9 +67,15 @@ class FileService:
             _start = index * chunksize
             _end = min(file_size, _start + chunksize)
             _index_size = index * chunksize
+
+            tqdm.write(f"index: {index}")
+            tqdm.write(f"end: {_end}")
+            tqdm.write(f"file size: {file_size}")
+
             content_type = str(data.get("content_type"))
 
             if not all([file_name, chunk, content_type]):
+                tqdm.write(f"chunk: {chunk}")
                 if chunk == b"":
                     return
 
@@ -85,7 +92,7 @@ class FileService:
             async with aiofiles.open(file_path, mode) as f:
                 await f.write(chunk)
 
-            if _end == file_size:
+            if _end >= file_size:
                 async with aiofiles.open(file_path, "rb") as f:
                     _data = io.BytesIO(await f.read())
                     dest_path = path.join(sid.upper(), file_name)
@@ -96,7 +103,7 @@ class FileService:
                         content_type=content_type,
                     )
 
-                shutil.rmtree(file_path)
+                shutil.rmtree(file_path.parent)
 
         except Exception as e:
             clear()
