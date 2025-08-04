@@ -177,6 +177,8 @@ class Blob(__Object):
         )
 
     def save(self, dest: Path | str) -> None:
+        if hasattr(self, "is_dir"):
+            return
         if isinstance(dest, str):
             dest = Path(dest)
 
