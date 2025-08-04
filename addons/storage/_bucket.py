@@ -114,7 +114,6 @@ class Bucket(__Bucket):
     ) -> ObjectWriteResult:
         if not self.get_object(object_name):
             return self.client.put_object(
-                bucket_name=self.name,
                 object_name=object_name,
                 data=io.BytesIO(data),
                 length=length,
@@ -124,7 +123,6 @@ class Bucket(__Bucket):
         size = length * 1024
         _chunktotal = chunk_size * 1024
         return self.client.append_object(
-            bucket_name=self.name,
             object_name=object_name,
             data=io.BytesIO(data),
             length=size,

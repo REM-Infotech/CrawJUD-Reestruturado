@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import json  # noqa: F401
+import shutil
 import traceback
 from os import path
 from pathlib import Path
@@ -157,6 +159,8 @@ class LoadForm:  # noqa: D101
         name_file_config = self.sid.upper()
         json_file = self.upload_folder.joinpath(name_file_config).with_suffix(".json")
 
+        self.upload_folder.mkdir(exist_ok=True, parents=True)
+
         data.update({json_file.name: json_file.name})
 
         async with aiofiles.open(json_file, "wb") as f:
@@ -167,7 +171,13 @@ class LoadForm:  # noqa: D101
         _sid = sid if sid else uuid4().hex
 
         path_minio = path.join(_sid.upper(), json_file.name)
-        storage.upload_file(path_minio, json_file)
+
+        async with aiofiles.open(json_file, "rb") as f:
+            _byte = await f.read()
+            _size = len(_byte)
+            storage.put_object(path_minio, io.BytesIO(_byte), length=_size)
+
+        shutil.rmtree(self.upload_folder)
 
         return name_file_config, json_file.name
 

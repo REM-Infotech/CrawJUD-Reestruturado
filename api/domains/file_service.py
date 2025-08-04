@@ -3,6 +3,7 @@
 import io
 import shutil
 import traceback
+from os import path
 from pathlib import Path
 from typing import Any, AnyStr
 
@@ -51,7 +52,7 @@ class FileService:
         try:
             data = await request.form
             _file = await request.files
-            sid = request.sid
+            sid = str(request.sid)
 
             file_name = str(data.get("name"))
             index = int(data.get("index", 0))
@@ -88,7 +89,7 @@ class FileService:
                 async with aiofiles.open(file_path, "rb") as f:
                     _data = io.BytesIO(await f.read())
                     storage.put_object(
-                        file_name,
+                        path.join(sid.upper(), file_name),
                         _data,
                         _end,
                         content_type=content_type,
