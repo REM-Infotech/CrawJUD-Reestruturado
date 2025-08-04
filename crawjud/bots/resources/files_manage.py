@@ -5,7 +5,9 @@ Este módulo fornece funções para baixar arquivos de um storage, organizar e
 remover diretórios temporários utilizados durante o processamento dos dados.
 """
 
+import json
 import shutil
+from os import path
 from pathlib import Path
 
 import base91
@@ -35,20 +37,46 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     path_files = work_dir.joinpath("temp")
     list_files: list[DictFiles] = []
 
-    for file in storage.list_objects(storage_folder_name, recursive=True):
-        file.save(path_files)
+    _folder_temp = storage_folder_name.upper()
+    _json_name = f"{storage_folder_name.upper()}.json"
+    _object_name = path.join(_folder_temp, _json_name)
+    config_file = storage.bucket.get_object(_object_name)
 
-    for root, _, files in path_files.joinpath(storage_folder_name).walk():
-        for file in files:
-            with root.joinpath(file).open("rb") as f:
-                file_base91str = base91.encode(f.read())
-                list_files.append(
-                    DictFiles(
-                        file_name=file,
-                        file_base91str=file_base91str,
-                        file_suffix=Path(file).suffix,
-                    )
+    path_files.joinpath(_object_name).parent.mkdir(exist_ok=True, parents=True)
+
+    _data_json: dict[str, str] = json.loads(config_file.data)
+
+    if _data_json.get("xlsx"):
+        _xlsx_name = _data_json.get("xlsx")
+        _path_minio = path.join(_folder_temp, _xlsx_name)
+        file_xlsx = storage.bucket.get_object(_path_minio)
+        file_base91str = base91.encode(file_xlsx.data)
+
+        _suffix = Path(_xlsx_name).suffix
+
+        list_files.append(
+            DictFiles(
+                file_name=_xlsx_name,
+                file_base91str=file_base91str,
+                file_suffix=_suffix,
+            )
+        )
+
+    if _data_json.get("otherfiles"):
+        files_list: list[str] = _data_json.get("otherfiles")
+        for file in files_list:
+            _path_minio = path.join(_folder_temp, file)
+            _file = storage.bucket.get_object(_path_minio)
+            _suffix = Path(file).suffix
+
+            file_base91str = base91.encode(_file.data)
+            list_files.append(
+                DictFiles(
+                    file_name=file,
+                    file_base91str=file_base91str,
+                    file_suffix=_suffix,
                 )
+            )
 
     shutil.rmtree(path_files.joinpath(storage_folder_name))
 

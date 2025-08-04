@@ -92,14 +92,14 @@ class Bucket(__Bucket):
     ) -> BaseHTTPResponse | None:
         with suppress(Exception):
             return self.client.get_object(
-                self.name,
-                object_name,
-                offset,
-                length,
-                request_headers,
-                ssec,
-                version_id,
-                extra_query_params,
+                bucket_name=self.name,
+                object_name=object_name,
+                offset=offset,
+                length=length,
+                request_headers=request_headers,
+                ssec=ssec,
+                version_id=version_id,
+                extra_query_params=extra_query_params,
             )
 
         return None
