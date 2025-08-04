@@ -5,7 +5,6 @@ Este módulo fornece funções para baixar arquivos de um storage, organizar e
 remover diretórios temporários utilizados durante o processamento dos dados.
 """
 
-import asyncio
 import shutil
 from pathlib import Path
 
@@ -35,11 +34,9 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     storage = Storage("minio")
     path_files = work_dir.joinpath("temp")
 
-    asyncio.run(
-        storage.download_files(
-            dest=path_files,
-            prefix=storage_folder_name,
-        )
+    storage.download_files(
+        dest=path_files,
+        prefix=storage_folder_name,
     )
 
     list_files: list[DictFiles] = []

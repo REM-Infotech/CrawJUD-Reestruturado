@@ -1,6 +1,5 @@
 """Socket.IO namespace for bot file operations and session management."""
 
-import asyncio
 import shutil
 from pathlib import Path
 from typing import AnyStr
@@ -36,7 +35,8 @@ class FileNamespaces(Namespace):
             data: Dictionary containing file data and a temporary ID ('id_temp').
 
         """
-        asyncio.create_task(self.file_service.save_file())
+        tqdm.write(f"File upload request received in namespace {self.namespace}")
+        await self.file_service.save_file()
 
     async def on_connect(self) -> None:
         """Handle client connection event.

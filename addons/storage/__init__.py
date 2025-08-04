@@ -102,16 +102,16 @@ class Storage(Client):  # noqa: B903, D101
         # Abre o arquivo em modo binário
         with file_path.open("rb") as f:
             # Inicializa barra de progresso
-            size = len(f.read())
             with tqdm(
                 total=file_size, unit="B", unit_scale=True, desc=file_name
             ) as pbar:
                 while True:
+                    print(f)
                     chunk = f.read(chunk_size)
                     if not chunk:
                         break
                     pbar.update(len(chunk))
-                    self.bucket.append_object(file_name, chunk, size)
+                    self.bucket.append_object(file_name, chunk, 0)
 
     def download_files(self, dest: str | Path, prefix: str) -> None:  # noqa: D102
         files = self.bucket.list_objects(prefix=prefix, recursive=True)

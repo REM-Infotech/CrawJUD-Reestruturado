@@ -37,13 +37,25 @@ class FileService:
             is_coroutine = iscoroutinefunction(v.save)
             file_path = path_temp.joinpath(file_name)
 
+            self.stream = v.stream
+            v.save = self.save.__get__(v, WerkZeugFileStorage)
+
             if is_coroutine:
                 await v.save(path_temp.joinpath(file_name))
             elif not is_coroutine:
                 v.save(path_temp.joinpath(file_name))
 
             path_minio = os.path.join(_sid.upper(), file_name)
-            await storage.upload_file(path_minio, file_path)
+            storage.upload_file(path_minio, file_path)
+
+    def save(self, path: Path) -> None:  # noqa: D102
+        chunk_size = 16384
+        mode = "wb" if not Path(path).exists() else "ab"
+        with Path(path).open(mode) as file_:
+            data = self.stream.read(chunk_size)
+            while data != b"":
+                file_.write(data)
+                data = self.stream.read(chunk_size)
 
     async def save_session(
         self,

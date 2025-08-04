@@ -47,7 +47,7 @@ async def create_app() -> Quart:
     app.asgi_app = ProxyHeadersMiddleware(app.asgi_app)
     return cors(
         app,
-        allow_origin=[re.compile(r"^https?:\/\/[^\/]+$")],
+        allow_origin=[re.compile(r"^https?:\/\/[^\/]+")],
         allow_headers=[
             "Content-Type",
             "Authorization",

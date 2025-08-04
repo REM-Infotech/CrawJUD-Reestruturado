@@ -167,7 +167,7 @@ class LoadForm:  # noqa: D101
         _sid = sid if sid else uuid4().hex
 
         path_minio = path.join(_sid.upper(), json_file.name)
-        await storage.upload_file(path_minio, json_file)
+        storage.upload_file(path_minio, json_file)
 
         return name_file_config, json_file.name
 

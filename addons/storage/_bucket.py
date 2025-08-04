@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import xml.etree.ElementTree as ET  # noqa: S405
 from contextlib import suppress
 from datetime import datetime
@@ -111,11 +112,13 @@ class Bucket(__Bucket):
         extra_headers: Any = None,
     ) -> ObjectWriteResult:
         if not self.get_object(object_name):
-            return self.client.put_object(self.bucket_name, object_name, data, length)
+            return self.client.put_object(
+                self.name, object_name, io.BytesIO(data), length
+            )
 
         return self.client.append_object(
             object_name,
-            data,
+            io.BytesIO(data),
             length,
             chunk_size,
             progress,

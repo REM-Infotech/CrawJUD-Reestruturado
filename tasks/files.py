@@ -46,7 +46,7 @@ async def save_success(  # noqa: D103
         df.to_excel(excel_writer=writter, index=False, sheet_name="Resultados")
 
     file_name = secure_filename(path_planilha.name)
-    await storage.upload_file(f"{pid}/{file_name}", path_planilha)
+    storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
 
 @shared_task(name="save_cache")
