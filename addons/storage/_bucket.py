@@ -4,6 +4,7 @@ import io
 import xml.etree.ElementTree as ET  # noqa: S405
 from contextlib import suppress
 from datetime import datetime
+from os import path
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar, cast
 
@@ -133,6 +134,10 @@ class Bucket(__Bucket):
 
 
 class Blob(__Object):
+    _object_name: str = None
+    client: Storage
+    bucket: Bucket
+
     @classmethod
     def from_object(cls, _object: __Object, client: Storage, bucket: Bucket) -> Blob:
         """Create a Blob instance from an existing Object."""
@@ -141,14 +146,19 @@ class Blob(__Object):
     @property
     def name(self) -> str:
         """Get the name of the blob."""
-        return self.object_name
+        if not self._object_name:
+            self._object_name = self.object_name
+
+        return self._object_name
+
+    @name.setter
+    def name(self, new_name: str) -> None:
+        self._object_name = new_name
 
     def __init__(self, ob: __Object, client: Storage, bucket: Bucket) -> None:
         self.__dict__ = ob.__dict__
         self.client = client
         self.bucket = bucket
-        if not self.is_dir:
-            del self.list_objects
 
     def list_objects(
         self,
@@ -177,11 +187,23 @@ class Blob(__Object):
         )
 
     def save(self, dest: Path | str) -> None:
-        if hasattr(self, "is_dir"):
-            return
-        if isinstance(dest, str):
-            dest = Path(dest)
+        if not self.is_dir:
+            if isinstance(dest, str):
+                dest = Path(dest)
 
-        file_dest = str(dest.joinpath(self.name))
+            if "/" in self.name:
+                split_bar = self.name.split("/")
+                for _path in split_bar:
+                    dest = dest.joinpath(_path)
 
-        self.client.fget_object(self.bucket_name, self.name, file_dest)
+                self.name = dest.name
+                dest = dest.parent.resolve()
+                dest.mkdir(exist_ok=True, parents=True)
+
+            file_dest = str(dest.joinpath(self.name))
+
+            self.client.fget_object(
+                bucket_name=self.bucket_name,
+                object_name=path.join(dest.name, self.name),
+                file_path=file_dest,
+            )

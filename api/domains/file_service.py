@@ -88,10 +88,11 @@ class FileService:
             if _end == file_size:
                 async with aiofiles.open(file_path, "rb") as f:
                     _data = io.BytesIO(await f.read())
+                    dest_path = path.join(sid.upper(), file_name)
                     storage.put_object(
-                        path.join(sid.upper(), file_name),
-                        _data,
-                        _end,
+                        object_name=dest_path,
+                        data=_data,
+                        length=_end,
                         content_type=content_type,
                     )
 

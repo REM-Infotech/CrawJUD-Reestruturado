@@ -35,7 +35,7 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     path_files = work_dir.joinpath("temp")
     list_files: list[DictFiles] = []
 
-    for file in storage.list_objects(storage_folder_name):
+    for file in storage.list_objects(storage_folder_name, recursive=True):
         file.save(path_files)
 
     for root, _, files in path_files.joinpath(storage_folder_name).walk():
