@@ -4,7 +4,7 @@ import io
 import xml.etree.ElementTree as ET  # noqa: S405
 from contextlib import suppress
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, BinaryIO, Generator, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar, cast
 
 from minio.datatypes import Bucket as __Bucket
 from minio.datatypes import ListAllMyBucketsResult
@@ -105,24 +105,31 @@ class Bucket(__Bucket):
     def append_object(
         self,
         object_name: str,
-        data: BinaryIO,
+        data: bytes,
         length: int,
         chunk_size: int = None,
+        content_type: str = "application/octet-stream",
         progress: Any = None,
         extra_headers: Any = None,
     ) -> ObjectWriteResult:
         if not self.get_object(object_name):
             return self.client.put_object(
-                self.name, object_name, io.BytesIO(data), length
+                bucket_name=self.name,
+                object_name=object_name,
+                data=io.BytesIO(data),
+                length=length,
+                content_type=content_type,
             )
 
+        size = length * 1024
+        _chunktotal = chunk_size * 1024
         return self.client.append_object(
-            object_name,
-            io.BytesIO(data),
-            length,
-            chunk_size,
-            progress,
-            extra_headers,
+            bucket_name=self.name,
+            object_name=object_name,
+            data=io.BytesIO(data),
+            length=size,
+            progress=progress,
+            extra_headers=extra_headers,
         )
 
 

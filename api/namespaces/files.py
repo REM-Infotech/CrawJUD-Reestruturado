@@ -35,7 +35,6 @@ class FileNamespaces(Namespace):
             data: Dictionary containing file data and a temporary ID ('id_temp').
 
         """
-        tqdm.write(f"File upload request received in namespace {self.namespace}")
         await self.file_service.save_file()
 
     async def on_connect(self) -> None:

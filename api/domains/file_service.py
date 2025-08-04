@@ -1,10 +1,15 @@
 """Serviço de domínio para manipulação de arquivos e sessões."""
 
+import io
+import traceback
 from pathlib import Path
 from typing import Any, AnyStr
 
 import aiofiles
+from clear import clear
 from quart import request
+from tqdm import tqdm
+from werkzeug.datastructures import FileStorage
 
 from addons.storage import Storage
 
@@ -42,31 +47,55 @@ class FileService:
         #     path_minio = os.path.join(_sid.upper(), file_name)
         #     storage.upload_file(path_minio, file_path)
 
-        data = await request.form
-        sid = request.sid
+        try:
+            data = await request.form
+            _file = await request.files
+            sid = request.sid
 
-        file_name = data.get("name")
-        index = int(data.get("index", 0))
-        total = int(data.get("total", 1))
-        chunk_size = int(data.get("chunk_size"))
-        chunk = data.get("chunk")
-        content_type = data.get("content_type")
+            file_name = str(data.get("name"))
+            index = int(data.get("index", 0))
+            _total = int(data.get("total", 1)) * 1024
+            chunk = data.get("chunk", _file.get("chunk", b""))
+            chunksize = int(data.get("chunksize", 1024))
+            file_size = int(data.get("file_size"))
+            if isinstance(chunk, FileStorage):
+                chunk = chunk.stream.read()
 
-        if not all([file_name, chunk, content_type]):
-            raise ValueError("Dados do chunk incompletos.")
+            _start = index * chunksize
+            _end = min(file_size, _start + chunksize)
+            _index_size = index * chunksize
+            content_type = str(data.get("content_type"))
 
-        # Define diretório temporário para armazenar os chunks
-        path_temp = Path(__file__).cwd().joinpath("temp", sid.upper())
-        path_temp.mkdir(parents=True, exist_ok=True)
-        file_path = path_temp.joinpath(file_name)
+            if not all([file_name, chunk, content_type]):
+                if chunk == b"":
+                    return
 
-        # Salva o chunk no arquivo temporário
-        mode = "ab" if index > 0 else "wb"
+                raise ValueError("Dados do chunk incompletos.")
 
-        storage.bucket.append_object(file_path.name, chunk, total, chunk_size)
+            # Define diretório temporário para armazenar os chunks
+            path_temp = Path(__file__).cwd().joinpath("temp", sid.upper())
+            path_temp.mkdir(parents=True, exist_ok=True)
+            file_path = path_temp.joinpath(file_name)
 
-        async with aiofiles.open(file_path, mode) as f:
-            await f.write(chunk)
+            # Salva o chunk no arquivo temporário
+            mode = "ab" if index > 0 else "wb"
+
+            async with aiofiles.open(file_path, mode) as f:
+                await f.write(chunk)
+
+            if _end == file_size:
+                async with aiofiles.open(file_path, "rb") as f:
+                    _data = io.BytesIO(await f.read())
+                    storage.put_object(
+                        file_name,
+                        _data,
+                        _end,
+                        content_type=content_type,
+                    )
+
+        except Exception as e:
+            clear()
+            tqdm.write("\n".join(traceback.format_exception(e)))
 
     async def save_session(
         self,

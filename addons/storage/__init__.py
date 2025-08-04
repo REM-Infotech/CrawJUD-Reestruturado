@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Generator, Literal
+from typing import Any, BinaryIO, Generator, Literal
 
 from dotenv import dotenv_values
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
+from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
 
@@ -112,6 +113,41 @@ class Storage(Client):  # noqa: B903, D101
                         break
                     pbar.update(len(chunk))
                     self.bucket.append_object(file_name, chunk, 0)
+
+    def put_object(  # noqa: D102
+        self,
+        object_name: str,
+        data: BinaryIO,
+        length: int,
+        content_type: str = "application/octet-stream",
+        metadata: Any | None = None,
+        sse: Any | None = None,
+        progress: Any | None = None,
+        part_size: int = 0,
+        num_parallel_uploads: int = 3,
+        tags: Any | None = None,
+        retention: Any | None = None,
+        legal_hold: bool = False,
+        write_offset: int | None = None,
+    ) -> ObjectWriteResult:
+        bucket_name = self.bucket.name
+
+        return super().put_object(
+            bucket_name,
+            object_name,
+            data,
+            length,
+            content_type,
+            metadata,
+            sse,
+            progress,
+            part_size,
+            num_parallel_uploads,
+            tags,
+            retention,
+            legal_hold,
+            write_offset,
+        )
 
     def download_files(self, dest: str | Path, prefix: str) -> None:  # noqa: D102
         files = self.bucket.list_objects(prefix=prefix, recursive=True)
