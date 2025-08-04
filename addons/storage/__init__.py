@@ -149,6 +149,26 @@ class Storage(Client):  # noqa: B903, D101
             write_offset,
         )
 
+    def append_object(  # noqa: D102
+        self,
+        object_name: str,
+        data: bytes,
+        length: int,
+        chunk_size: int = None,
+        content_type: str = "application/octet-stream",
+        progress: Any = None,
+        extra_headers: Any = None,
+    ) -> ObjectWriteResult:
+        return self.bucket.append_object(
+            object_name,
+            data,
+            length,
+            chunk_size,
+            content_type,
+            progress,
+            extra_headers,
+        )
+
     def download_files(self, dest: str | Path, prefix: str) -> None:  # noqa: D102
         files = self.bucket.list_objects(prefix=prefix, recursive=True)
 

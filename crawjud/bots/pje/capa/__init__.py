@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from contextlib import suppress
 from datetime import datetime
+from math import ceil
+from pathlib import Path
 from typing import TYPE_CHECKING, Generic
 
 import psutil
@@ -296,10 +298,11 @@ class Capa(ClassBot):  # noqa: D101
                     url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
                 chunk = 65536
-                for _data in response.iter_bytes(chunk):
-                    storage.bucket.append_object(
-                        object_name=file_name,
-                        data=_data,
-                        chunk_size=chunk,
-                        length=response.headers.get("Content-Length", 0),
+                _path_temp = Path(__file__).cwd().joinpath("temp", id_processo)
+                total_chunks = ceil(len(response.content))
+
+                for _bytes in response.iter_bytes(chunk):
+                    content_lenght = len(_bytes)
+                    storage.append_object(
+                        file_name, _bytes, content_lenght, total_chunks
                     )

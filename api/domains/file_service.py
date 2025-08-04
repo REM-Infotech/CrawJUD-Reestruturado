@@ -1,6 +1,7 @@
 """Serviço de domínio para manipulação de arquivos e sessões."""
 
 import io
+import shutil
 import traceback
 from pathlib import Path
 from typing import Any, AnyStr
@@ -92,6 +93,8 @@ class FileService:
                         _end,
                         content_type=content_type,
                     )
+
+                shutil.rmtree(file_path)
 
         except Exception as e:
             clear()
