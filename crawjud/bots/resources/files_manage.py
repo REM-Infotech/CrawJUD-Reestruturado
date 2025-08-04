@@ -33,13 +33,11 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     """
     storage = Storage("minio")
     path_files = work_dir.joinpath("temp")
-
-    storage.download_files(
-        dest=path_files,
-        prefix=storage_folder_name,
-    )
-
     list_files: list[DictFiles] = []
+
+    for file in storage.list_objects(storage_folder_name):
+        file.save(path_files)
+
     for root, _, files in path_files.joinpath(storage_folder_name).walk():
         for file in files:
             with root.joinpath(file).open("rb") as f:

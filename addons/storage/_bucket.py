@@ -4,6 +4,7 @@ import io
 import xml.etree.ElementTree as ET  # noqa: S405
 from contextlib import suppress
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar, cast
 
 from minio.datatypes import Bucket as __Bucket
@@ -174,3 +175,11 @@ class Blob(__Object):
             extra_headers=extra_headers,
             extra_query_params=extra_query_params,
         )
+
+    def save(self, dest: Path | str) -> None:
+        if isinstance(dest, str):
+            dest = Path(dest)
+
+        file_dest = str(dest.joinpath(self.name))
+
+        self.client.fget_object(self.bucket_name, self.name, file_dest)
