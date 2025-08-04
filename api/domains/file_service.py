@@ -1,16 +1,10 @@
 """Serviço de domínio para manipulação de arquivos e sessões."""
 
-import os
-from asyncio import iscoroutinefunction
 from pathlib import Path
 from typing import Any, AnyStr
-from uuid import uuid4
 
-from quart import request, session
-from quart.datastructures import FileStorage
-from werkzeug.datastructures import MultiDict
-from werkzeug.datastructures.file_storage import FileStorage as WerkZeugFileStorage
-from werkzeug.utils import secure_filename
+import aiofiles
+from quart import request
 
 from addons.storage import Storage
 
@@ -22,40 +16,57 @@ class FileService:
 
     async def save_file(self) -> None:
         """Salva um arquivo enviado para o diretório temporário especificado."""
-        file_data: MultiDict[
-            str, FileStorage | WerkZeugFileStorage
-        ] = await request.files
+        # file_data: MultiDict[
+        #     str, FileStorage | WerkZeugFileStorage
+        # ] = await request.files
 
         storage = Storage("minio")
-        sid = getattr(session, "sid", None)
-        _sid = str(sid) if sid else uuid4().hex
-        path_temp = workdir_path.joinpath("temp", _sid.upper())
+        # sid = getattr(session, "sid", None)
+        # _sid = str(sid) if sid else uuid4().hex
+        # path_temp = workdir_path.joinpath("temp", _sid.upper())
 
-        path_temp.mkdir(exist_ok=True, parents=True)
-        for _, v in list(file_data.items()):
-            file_name = secure_filename(v.filename)
-            is_coroutine = iscoroutinefunction(v.save)
-            file_path = path_temp.joinpath(file_name)
+        # path_temp.mkdir(exist_ok=True, parents=True)
+        # for _, v in list(file_data.items()):
+        #     file_name = secure_filename(v.filename)
+        #     is_coroutine = iscoroutinefunction(v.save)
+        #     file_path = path_temp.joinpath(file_name)
 
-            self.stream = v.stream
-            v.save = self.save.__get__(v, WerkZeugFileStorage)
+        #     self.stream = v.stream
+        #     v.save = self.save.__get__(v, WerkZeugFileStorage)
 
-            if is_coroutine:
-                await v.save(path_temp.joinpath(file_name))
-            elif not is_coroutine:
-                v.save(path_temp.joinpath(file_name))
+        #     if is_coroutine:
+        #         await v.save(path_temp.joinpath(file_name))
+        #     elif not is_coroutine:
+        #         v.save(path_temp.joinpath(file_name))
 
-            path_minio = os.path.join(_sid.upper(), file_name)
-            storage.upload_file(path_minio, file_path)
+        #     path_minio = os.path.join(_sid.upper(), file_name)
+        #     storage.upload_file(path_minio, file_path)
 
-    def save(self, path: Path) -> None:  # noqa: D102
-        chunk_size = 16384
-        mode = "wb" if not Path(path).exists() else "ab"
-        with Path(path).open(mode) as file_:
-            data = self.stream.read(chunk_size)
-            while data != b"":
-                file_.write(data)
-                data = self.stream.read(chunk_size)
+        data = await request.form
+        sid = request.sid
+
+        file_name = data.get("name")
+        index = int(data.get("index", 0))
+        total = int(data.get("total", 1))
+        chunk_size = int(data.get("chunk_size"))
+        chunk = data.get("chunk")
+        content_type = data.get("content_type")
+
+        if not all([file_name, chunk, content_type]):
+            raise ValueError("Dados do chunk incompletos.")
+
+        # Define diretório temporário para armazenar os chunks
+        path_temp = Path(__file__).cwd().joinpath("temp", sid.upper())
+        path_temp.mkdir(parents=True, exist_ok=True)
+        file_path = path_temp.joinpath(file_name)
+
+        # Salva o chunk no arquivo temporário
+        mode = "ab" if index > 0 else "wb"
+
+        storage.bucket.append_object(file_path.name, chunk, total, chunk_size)
+
+        async with aiofiles.open(file_path, mode) as f:
+            await f.write(chunk)
 
     async def save_session(
         self,
