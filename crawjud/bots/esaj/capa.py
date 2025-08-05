@@ -9,11 +9,11 @@ import traceback
 from contextlib import suppress
 from typing import Self
 
-from common.bot import ClassBot
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 

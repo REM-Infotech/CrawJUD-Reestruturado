@@ -3,7 +3,7 @@
 This module provides an automation interface for the PJE-AM system.
 """
 
-from crawjud.bot.Utils.elements.properties import Configuracao
+from crawjud.addons.elements.properties import Configuracao
 
 
 class PJE_AM(Configuracao):  # noqa: N801

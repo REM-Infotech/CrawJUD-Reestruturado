@@ -9,7 +9,7 @@ from selenium.webdriver.firefox.service import Service as GeckoService
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
-from webdriver.config import configure_chrome, configure_gecko
+from utils.webdriver.config import configure_chrome, configure_gecko
 
 if TYPE_CHECKING:
     from ._types import OptionsConfig

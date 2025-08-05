@@ -8,19 +8,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Generic
 
 import psutil
-from celery import chain  # noqa: F401
-from common.bot import ClassBot
 from dotenv import load_dotenv
 from httpx import Client
 
-from celery_app._wrapper import classmethod_shared_task as classmethod_shared_task
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
-from celery_app.custom._task import ContextTask
+from celery_app.custom._task import ContextTask as ContextTask
 from celery_app.types._celery._canvas import AsyncResult
-from celery_app.types._celery._task import Task as Task
 from crawjud._wrapper import wrap_init
 from crawjud.bots.resources.formatadores import formata_tempo
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import (
     DictFiles,
@@ -62,10 +59,10 @@ def _kill_browsermob() -> None:
 
 @wrap_init
 class Capa(ClassBot):  # noqa: D101
-    task_download_files = subtask("crawjud.download_files")
-    task_autenticacao = subtask("pje.autenticador")
-    task_bot_data = subtask("crawjud.dataFrame")
-    task_separa_regiao = subtask("pje.separar_regiao")
+    # task_download_files = subtask("crawjud.download_files")
+    # task_autenticacao = subtask("pje.autenticador")
+    # task_bot_data = subtask("crawjud.dataFrame")
+    # task_separa_regiao = subtask("pje.separar_regiao")
 
     @classmethod
     def enviar_mensagem_log(  # noqa: D102
@@ -89,16 +86,15 @@ class Capa(ClassBot):  # noqa: D101
             }
         )
 
-    @staticmethod
-    @shared_task(name="pje.capa")
+    @shared_task(name="pje.capa", bind=True)
     def pje_capa(  # noqa: D102
-        current_task: ContextTask,
+        self,
         storage_folder_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        pid = str(current_task.request.id)
-        start_time: datetime = formata_tempo(current_task.request.eta).strftime(
+        pid = str(self.request.id)
+        start_time: datetime = formata_tempo(self.request.eta).strftime(
             "%d/%m/%Y, %H:%M:%S"
         )
         cls = Capa
@@ -187,9 +183,9 @@ class Capa(ClassBot):  # noqa: D101
                     start_time=start_time,
                 )
 
-    @staticmethod
-    @shared_task(name="pje.queue_processos")
+    @shared_task(name="pje.queue_processos", bind=True)
     def queue_processos(
+        self,
         cookies: dict[str, str],  # noqa: D102
         headers: dict[str, str],
         base_url: str,
@@ -273,9 +269,9 @@ class Capa(ClassBot):  # noqa: D101
 
                 print()
 
-    @staticmethod
-    @shared_task(name="pje.capa.copia_integral")
+    @shared_task(name="pje.capa.copia_integral", bind=True)
     def download_copia_integral(  # noqa: D102
+        self,
         url_base: str,
         headers: dict[str, str],
         cookies: dict[str, str],

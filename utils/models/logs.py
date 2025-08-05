@@ -35,7 +35,7 @@ from typing import (
 from redis_om import Field, HashModel, JsonModel, NotFoundError
 
 from crawjud.types.pje import Processo
-from interfaces import ItemMessageList
+from utils.interfaces import ItemMessageList
 
 description_message = (
     "e.g. '[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]'"

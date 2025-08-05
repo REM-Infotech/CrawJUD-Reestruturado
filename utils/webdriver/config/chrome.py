@@ -5,10 +5,10 @@ from typing import Any
 from browsermobproxy import Client, Server
 from selenium.webdriver.chrome.options import Options
 
-from webdriver._types import (
+from utils.webdriver._types import (
     ChromePreferences,
 )
-from webdriver.config.proxy import configure_proxy
+from utils.webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 

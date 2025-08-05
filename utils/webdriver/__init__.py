@@ -22,8 +22,8 @@ from webdriver_manager.core.driver_cache import DriverCacheManager
 from webdriver_manager.core.file_manager import FileManager
 from webdriver_manager.core.os_manager import OperationSystemManager
 
-from webdriver._driver import config
-from webdriver.config.proxy import (
+from utils.webdriver._driver import config
+from utils.webdriver.config.proxy import (
     ContentData,
     Cookie,
     DictHARProxy,
@@ -34,17 +34,17 @@ from webdriver.config.proxy import (
     RequestData,
     ResponseData,
 )
-from webdriver.config.proxy import (
+from utils.webdriver.config.proxy import (
     CreatorInfo as CreatorInfo,
 )
-from webdriver.web_element import WebElementBot
+from utils.webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.common.service import Service
 
-    from webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
-    from webdriver.config.chrome import ChromeOptions
-    from webdriver.config.firefox import FirefoxOptions
+    from utils.webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
+    from utils.webdriver.config.chrome import ChromeOptions
+    from utils.webdriver.config.firefox import FirefoxOptions
 
 
 work_dir = Path(__file__).cwd()

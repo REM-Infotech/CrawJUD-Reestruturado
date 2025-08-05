@@ -3,7 +3,7 @@
 This module provides selectors for automating ELAW operations.
 """
 
-from crawjud.bot.Utils.elements.properties import Configuracao
+from crawjud.addons.elements.properties import Configuracao
 
 
 class ELAW_AME(Configuracao):  # noqa: N801
@@ -26,7 +26,9 @@ class ELAW_AME(Configuracao):  # noqa: N801
     btn_busca = ""
 
     # ANDAMENTOS
-    botao_andamento = 'button[id="tabViewProcesso:j_id_i1_4_1_3_ae:novoAndamentoPrimeiraBtn"]'
+    botao_andamento = (
+        'button[id="tabViewProcesso:j_id_i1_4_1_3_ae:novoAndamentoPrimeiraBtn"]'
+    )
     input_data = 'input[id="j_id_2n:j_id_2r_2_9_input"]'
     inpt_ocorrencia = 'textarea[id="j_id_2n:txtOcorrenciaAndamento"]'
     inpt_obs = 'textarea[id="j_id_2n:txtObsAndamento"]'
@@ -38,7 +40,9 @@ class ELAW_AME(Configuracao):  # noqa: N801
     selectortipoaudiencia = 'select[id="j_id_2l:comboTipoAudiencia_input"]'
     DataAudiencia = 'input[id="j_id_2l:j_id_2p_2_8_8:dataAudienciaField_input"]'
     btn_salvar = 'button[id="btnSalvarNovaAudiencia"]'
-    tableprazos = 'tbody[id="tabViewProcesso:j_id_i1_4_1_3_d:dtAgendamentoResults_data"]'
+    tableprazos = (
+        'tbody[id="tabViewProcesso:j_id_i1_4_1_3_d:dtAgendamentoResults_data"]'
+    )
 
     tipo_polo = "//*[contains(@id, 'fieldid_13755typeSelectField1CombosCombo_input')]"
 
@@ -58,15 +62,21 @@ class ELAW_AME(Configuracao):  # noqa: N801
     vara_input = "//select[contains(@id, 'comboVara_input')]"
     empresa_input = "//select[contains(@id, 'comboClientProcessoParte_input')]"
     tipo_empresa_input = '//select[contains(@id, "j_id_3y_4_2_2_4_9_2_5_input")]'
-    tipo_parte_contraria_input = "//select[contains(@id, 'j_id_3y_4_2_2_5_9_9_4_2_m_input')]"
+    tipo_parte_contraria_input = (
+        "//select[contains(@id, 'j_id_3y_4_2_2_5_9_9_4_2_m_input')]"
+    )
     select_tipo_doc = "//select[contains(@id, 'tipoDocumentoInput_input')]"
     combo_rito = '//select[contains(@id, "comboRito_input")]'
 
     numero_processo = "input[id='j_id_3y_1:j_id_3y_4_2_2_2_9_f_2:txtNumeroMask']"
     css_campo_doc = 'input[id="j_id_3y_1:j_id_3y_4_2_2_5_9_9_1:cpfCnpjInput"]'
-    css_search_button = 'button[id="j_id_3y_1:j_id_3y_4_2_2_5_9_9_1:j_id_3y_4_2_2_5_9_9_4_2_f"]'
+    css_search_button = (
+        'button[id="j_id_3y_1:j_id_3y_4_2_2_5_9_9_1:j_id_3y_4_2_2_5_9_9_4_2_f"]'
+    )
 
-    select_uf_proc = "//select[contains(@id, 'fieldid_9240pgTypeSelectField1CombosCombo_input')]"
+    select_uf_proc = (
+        "//select[contains(@id, 'fieldid_9240pgTypeSelectField1CombosCombo_input')]"
+    )
     select_field = "".join(
         (
             'div[id="j_id_3y_1:j_id_3y_4_2_2_9_9_44_2:j_id_3y_4_2_2_9_9_44',
@@ -84,21 +94,35 @@ class ELAW_AME(Configuracao):  # noqa: N801
     filtro_processo = 'input[id="j_id_3y_1:comboProcessoTipo_filter"]'
     css_data_distribuicao = 'input[id="j_id_3y_1:dataDistribuicao_input"]'
     adv_responsavel = "//input[contains(@id, 'autoCompleteLawyer_input')]"
-    select_advogado_responsavel = "//select[contains(@id, 'comboAdvogadoResponsavelProcesso_input')]"  # noqa: N815
-    css_input_select_adv = 'input[id="j_id_3y_1:comboAdvogadoResponsavelProcesso_filter"]'  # noqa: N815
+    select_advogado_responsavel = (
+        "//select[contains(@id, 'comboAdvogadoResponsavelProcesso_input')]"  # noqa: N815
+    )
+    css_input_select_adv = (
+        'input[id="j_id_3y_1:comboAdvogadoResponsavelProcesso_filter"]'  # noqa: N815
+    )
     css_input_adv = 'input[id="j_id_3y_1:autoCompleteLawyerOutraParte_input"]'
-    css_check_adv = '//*[contains(@id, "j_id_3y_1:autoCompleteLawyerOutraParte_item")]'
+    css_check_adv = (
+        '//*[contains(@id, "j_id_3y_1:autoCompleteLawyerOutraParte_item")]'
+    )
     valor_causa = "//input[contains(@id, 'amountCase_input')]"
     escritrorio_externo = '//div[contains(@id, "comboEscritorio")]'
     select_escritorio = "//select[contains(@id, 'comboEscritorio_input')]"
     contingencia = "//*[contains(@id, 'processoContingenciaTipoCombo_input')]"
     contigencia_panel = 'div[id="j_id_3y_1:j_id_3y_4_2_2_s_9_n_1:processoContingenciaTipoCombo_panel"]'
     css_add_adv = 'button[id="j_id_3y_1:lawyerOutraParteNovoButtom"]'
-    iframe_cadastro_parte_contraria = 'div[id*=":parteContrariaMainGridBtnNovo_dlg"] > div > iframe'
-    iframe_cadastro_parte_close_dnv = 'div[id*=":parteContrariaMainGridBtnNovo_dlg"] > div > a'
+    iframe_cadastro_parte_contraria = (
+        'div[id*=":parteContrariaMainGridBtnNovo_dlg"] > div > iframe'
+    )
+    iframe_cadastro_parte_close_dnv = (
+        'div[id*=":parteContrariaMainGridBtnNovo_dlg"] > div > a'
+    )
 
-    iframe_cadastro_advogado_close_dnv = 'div[id="j_id_3y_1:lawyerOutraParteNovoButtom_dlg"] > div > a'
-    iframe_cadastro_advogado_contra = 'div[id="j_id_3y_1:lawyerOutraParteNovoButtom_dlg"] > div > iframe'
+    iframe_cadastro_advogado_close_dnv = (
+        'div[id="j_id_3y_1:lawyerOutraParteNovoButtom_dlg"] > div > a'
+    )
+    iframe_cadastro_advogado_contra = (
+        'div[id="j_id_3y_1:lawyerOutraParteNovoButtom_dlg"] > div > iframe'
+    )
     btn_novo_advogado_contra = '//button[contains(@id, "lawyerOutraParteNovoButtom")]'
     css_naoinfomadoc = "".join(
         (
@@ -120,31 +144,47 @@ class ELAW_AME(Configuracao):  # noqa: N801
     css_name_parte = 'input[id="j_id_1k"]'
     css_save_button = 'button[id="parteContrariaButtom"]'
     css_salvar_proc = 'button[id="btnSalvarOpen"]'
-    css_t_found = 'table[id="j_id_3y_1:j_id_3y_4_2_2_5_9_9_1:parteContrariaSearchDisplayGrid"]'
+    css_t_found = (
+        'table[id="j_id_3y_1:j_id_3y_4_2_2_5_9_9_1:parteContrariaSearchDisplayGrid"]'
+    )
     div_messageerro_css = 'div[id="messages"]'
 
     # COMPLEMENTAR
     botao_editar_complementar = 'button[id="dtProcessoResults:0:btnEditar"]'
     css_input_uc = "//textarea[contains(@id, 'fieldid_9236fieldTextarea')]"
-    divisao_select = "//*[contains(@id, 'fieldid_9241typeSelectField1CombosCombo_input')]"
+    divisao_select = (
+        "//*[contains(@id, 'fieldid_9241typeSelectField1CombosCombo_input')]"
+    )
     data_citacao = "//input[contains(@id, 'dataRecebimento_input')]"
     bairro_input = "//input[contains(@id, 'fieldid_9237fieldText')]"
     fase_input = '//select[contains(@id, "processoFaseCombo_input")]'
-    provimento_input = '//select[contains(@id, "fieldid_8401typeSelectField1CombosCombo_input")]'
-    fato_gerador_input = '//select[contains(@id, "fieldid_9239typeSelectField1CombosCombo_input")]'
+    provimento_input = (
+        '//select[contains(@id, "fieldid_8401typeSelectField1CombosCombo_input")]'
+    )
+    fato_gerador_input = (
+        '//select[contains(@id, "fieldid_9239typeSelectField1CombosCombo_input")]'
+    )
 
     input_descobjeto = "//*[contains(@id, 'fieldid_9844fieldTextarea')]"
-    objeto_input = "//select[contains(@id, 'fieldid_8405typeSelectField1CombosCombo_input')]"
+    objeto_input = (
+        "//select[contains(@id, 'fieldid_8405typeSelectField1CombosCombo_input')]"
+    )
 
     # DOWNLOAD
     anexosbutton_css = 'a[href="#tabViewProcesso:files"]'
-    css_table_doc = 'tbody[id="tabViewProcesso:gedEFileDataTable:GedEFileViewDt_data"]'
+    css_table_doc = (
+        'tbody[id="tabViewProcesso:gedEFileDataTable:GedEFileViewDt_data"]'
+    )
     botao_baixar = 'button[title="Baixar"]'
 
     # PAGAMENTOS
     valor_pagamento = 'a[href="#tabViewProcesso:processoValorPagamento"]'
-    botao_novo_pagamento = 'button[id="tabViewProcesso:pvp-pgBotoesValoresPagamentoBtnNovo"]'
-    css_typeitens = 'div[id="processoValorPagamentoEditForm:pvp:processoValorPagamentoTipoCombo"]'
+    botao_novo_pagamento = (
+        'button[id="tabViewProcesso:pvp-pgBotoesValoresPagamentoBtnNovo"]'
+    )
+    css_typeitens = (
+        'div[id="processoValorPagamentoEditForm:pvp:processoValorPagamentoTipoCombo"]'
+    )
     listitens_css = 'ul[id="processoValorPagamentoEditForm:pvp:processoValorPagamentoTipoCombo_items"]'
 
     # Input informa valor de pagamento
@@ -157,25 +197,17 @@ class ELAW_AME(Configuracao):  # noqa: N801
     type_doc_css = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_2_1_9_g_1:eFileTipoCombo"]'
     list_type_doc_css = 'ul[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_2_1_9_g_1:eFileTipoCombo_items"]'
     editar_pagamento = 'input[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_2_1_9_g_1:uploadGedEFile_input"]'
-    css_div_condenacao_type = (
-        'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
-    )
-    valor_sentenca = (
-        'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_3"]'
-    )
-    valor_acordao = (
-        'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_1"]'
-    )
+    css_div_condenacao_type = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
+    valor_sentenca = 'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_3"]'
+    valor_acordao = 'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_3_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_1"]'
     css_desc_pgto = 'textarea[id="processoValorPagamentoEditForm:pvp:processoValorPagamentoDescription"]'
     css_data = 'input[id="processoValorPagamentoEditForm:pvp:processoValorPagamentoVencData_input"]'
-    css_inputfavorecido = 'input[id="processoValorPagamentoEditForm:pvp:processoValorFavorecido_input"]'
+    css_inputfavorecido = (
+        'input[id="processoValorPagamentoEditForm:pvp:processoValorFavorecido_input"]'
+    )
     resultado_favorecido = 'li[class="ui-autocomplete-item ui-autocomplete-list-item ui-corner-all ui-state-highlight"]'
-    valor_processo = (
-        'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_8_1_9_28_1_2_1:pvpEFSpgTypeSelectField1CombosCombo"]'
-    )
-    boleto = (
-        'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_8_1_9_28_1_2_1:pvpEFSpgTypeSelectField1CombosCombo_1"]'
-    )
+    valor_processo = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_8_1_9_28_1_2_1:pvpEFSpgTypeSelectField1CombosCombo"]'
+    boleto = 'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_8_1_9_28_1_2_1:pvpEFSpgTypeSelectField1CombosCombo_1"]'
     css_cod_bars = "".join(
         (
             'input[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_8_1_9_28_1_2_1:j_id_30_1_i_8_1_9_28_1_2_c_2:j_id_30_',
@@ -183,21 +215,17 @@ class ELAW_AME(Configuracao):  # noqa: N801
         ),
     )
     css_centro_custas = 'input[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_9_1_9_28_1_1_1:pvpEFBfieldText"]'
-    css_div_conta_debito = (
-        'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_a_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
-    )
+    css_div_conta_debito = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_a_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
     valor_guia = 'input[id="processoValorPagamentoEditForm:pvp:valorField_input"]'
     css_gru = 'li[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_2_1_9_g_1:eFileTipoCombo_35"]'
     editar_pagamentofile = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_2_1_9_g_1:gedEFileDataTable"]'
-    css_tipocusta = (
-        'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_4_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
-    )
-    css_listcusta = (
-        'ul[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_4_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_items"]'
-    )
+    css_tipocusta = 'div[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_4_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo"]'
+    css_listcusta = 'ul[id="processoValorPagamentoEditForm:pvp:j_id_30_1_i_4_1_9_28_1_1_1:pvpEFBtypeSelectField1CombosCombo_items"]'
     custas_civis = 'li[data-label="CUSTAS JUDICIAIS CIVEIS"]'
     custas_monitorias = 'li[data-label="CUSTAS JUDICIAIS - MONITORIAS"]'
-    botao_salvar_pagamento = 'button[id="processoValorPagamentoEditForm:btnSalvarProcessoValorPagamento"]'
+    botao_salvar_pagamento = (
+        'button[id="processoValorPagamentoEditForm:btnSalvarProcessoValorPagamento"]'
+    )
 
     # Validar resultados Solicitação de Pagamento
     valor_resultado = 'div[id="tabViewProcesso:pvp-dtProcessoValorResults"]'
@@ -213,7 +241,9 @@ class ELAW_AME(Configuracao):  # noqa: N801
     visualizar_tipoCondenacao = r"#processoValorPagamentoView\:j_id_p_1_2_1_2_1 > table > tbody > tr:nth-child(4)"  # noqa: N815
 
     # PROVISIONAMENTO
-    css_btn_edit = 'button[id="tabViewProcesso:j_id_i1_c_1_6_2:processoValoresEditarBtn"]'
+    css_btn_edit = (
+        'button[id="tabViewProcesso:j_id_i1_c_1_6_2:processoValoresEditarBtn"]'
+    )
     ver_valores = 'a[href="#tabViewProcesso:valores"]'
 
     # table_valores_css = 'tbody[id="tabViewProcesso:j_id_i1_c_1_5_2:j_id_i1_c_1_5_70:viewValoresCustomeDt_data"]'
@@ -224,7 +254,9 @@ class ELAW_AME(Configuracao):  # noqa: N801
     checkbox = 'div[class="ui-chkbox ui-widget"]'
     botao_adicionar = 'button[id="adicionarObjetoBtn"]'
     botao_editar = 'button[id*="editarFasePedidoBtn"]'
-    css_val_inpt = 'input[id*="processoAmountObjetoDt:0:amountValor_input"][type="text"]'
+    css_val_inpt = (
+        'input[id*="processoAmountObjetoDt:0:amountValor_input"][type="text"]'
+    )
     css_risk = "".join((
         "/html/body/div[1]/div[4]/div[1]/div/div[2]/form[2]/table/tbody/tr[2]/td/div/div/table[2]",
         "/tbody/tr[2]/td/span/div/div/div/div[1]/div/table/tbody/tr[1]/td[7]/div",

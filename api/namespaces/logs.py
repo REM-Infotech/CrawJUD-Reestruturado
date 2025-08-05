@@ -7,11 +7,11 @@ from typing import Any, cast
 import engineio
 import socketio
 from celery.app.control import Control
-from interfaces import ItemMessageList
 from quart import request, session
 from quart_socketio import Namespace
 
 from celery_app import app as app_celery
+from utils.interfaces import ItemMessageList
 from utils.models.logs import MessageLog, MessageLogDict
 
 

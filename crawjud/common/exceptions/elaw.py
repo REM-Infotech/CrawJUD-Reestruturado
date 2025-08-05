@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import traceback
 
-from crawjud.exceptions import BaseCrawJUDError
+from crawjud.common.exceptions import BaseCrawJUDError
 
 
 class ElawError(BaseCrawJUDError):

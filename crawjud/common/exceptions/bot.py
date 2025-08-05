@@ -3,7 +3,7 @@
 import logging
 import traceback
 
-from crawjud.exceptions import BaseCrawJUDError
+from crawjud.common.exceptions import BaseCrawJUDError
 
 
 class StartError(Exception):

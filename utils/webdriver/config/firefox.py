@@ -7,8 +7,8 @@ from browsermobproxy import Client, Server
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options
 
-from webdriver._types import FirefoxPreferences
-from webdriver.config.proxy import configure_proxy
+from utils.webdriver._types import FirefoxPreferences
+from utils.webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 

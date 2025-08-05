@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import AnyStr, ParamSpec, TypeVar
 
-from common.bot import ClassBot
+from crawjud.common.bot import ClassBot
 
 TClassBot = TypeVar("TClassBot", bound=object)
 TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)

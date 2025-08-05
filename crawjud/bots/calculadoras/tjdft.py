@@ -13,7 +13,6 @@ from contextlib import suppress
 from time import sleep
 from typing import Self
 
-from common.bot import ClassBot
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.print_page_options import PrintOptions
@@ -22,6 +21,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 cookieaceito = []

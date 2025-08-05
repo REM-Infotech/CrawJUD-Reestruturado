@@ -11,7 +11,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
 
     handlers_config = {
         "file_handler": {
-            "class": "addons.logger.handlers.FileHandler",
+            "class": "utils.logger.handlers.FileHandler",
             "level": logging.INFO,
             "formatter": "json",
             "filename": "app.log",
@@ -24,7 +24,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
             "formatter": "color",  # Usa o novo formatter colorido
         },
         "redis_handler": {
-            "class": "addons.logger.handlers.RedisHandler",
+            "class": "utils.logger.handlers.RedisHandler",
             "level": logging.INFO,
             "formatter": "json",
         },
@@ -47,10 +47,10 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
                 "format": "%(message)s",
             },
             "json": {
-                "()": "addons.logger.handlers.JsonFormatter",
+                "()": "utils.logger.handlers.JsonFormatter",
             },
             "color": {
-                "()": "addons.logger.handlers._ColorFormatter",
+                "()": "utils.logger.handlers._ColorFormatter",
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },

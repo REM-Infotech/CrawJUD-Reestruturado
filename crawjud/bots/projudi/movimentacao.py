@@ -15,7 +15,6 @@ from time import sleep
 from typing import Self
 
 import requests
-from common.bot import ClassBot
 from pypdf import PdfReader
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -23,6 +22,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 

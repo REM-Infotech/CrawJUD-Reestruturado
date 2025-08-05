@@ -18,7 +18,6 @@ from pathlib import Path
 from time import sleep
 from typing import Self
 
-from common.bot import ClassBot
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
@@ -27,6 +26,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 type_doc = {"11": "cpf", "14": "cnpj"}
