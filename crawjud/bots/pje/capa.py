@@ -317,7 +317,7 @@ class Capa(ClassBot):
                 file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
                 subtask("pje.capa.copia_integral").apply_async(
                     kwargs={
-                        "pid": str,
+                        "pid": pid,
                         "url_base": base_url,
                         "file_name": file_name,
                         "headers": headers,

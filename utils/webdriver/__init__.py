@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -88,14 +87,15 @@ class DriverBot(WebDriver):  # noqa: D101
     def _configure_manager(
         self,
         driver_config: ChromeConfig | FirefoxConfig,
-        execution_path: str | Path = None,
+        execution_path: str | Path = __file__,
     ) -> str:
-        root_dir = (
-            Path(execution_path) if execution_path else work_dir.joinpath("temp")
-        )
-        root_dir.mkdir(exist_ok=True)
+        root_dir = work_dir.joinpath("temp")
+        if execution_path and execution_path != __file__:
+            root_dir = Path(execution_path)
 
-        system_manager = OperationSystemManager(sys.platform)
+        root_dir.mkdir(exist_ok=True, parents=True)
+
+        system_manager = OperationSystemManager()
         file_manager = FileManager(os_system_manager=system_manager)
         _manager = driver_config["manager"](
             download_manager=WDMDownloadManager(),
