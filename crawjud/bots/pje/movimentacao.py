@@ -23,8 +23,8 @@ from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud._wrapper import wrap_init
-from crawjud.bots.pje.res.autenticador import autenticar
-from crawjud.bots.pje.res.buscador import buscar_processo
+from crawjud.bots.pje.resources.autenticador import autenticar
+from crawjud.bots.pje.resources.buscador import buscar_processo
 from crawjud.common.bot import ClassBot
 from crawjud.types import BotData
 from utils.webdriver import DriverBot

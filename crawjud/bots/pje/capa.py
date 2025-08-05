@@ -1,11 +1,11 @@
-# noqa: D104
+# noqa: D100
 from __future__ import annotations
 
 from contextlib import suppress
 from datetime import datetime
 from math import ceil
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic
+from typing import TYPE_CHECKING, Generic, Self
 
 import psutil
 from dotenv import load_dotenv
@@ -59,10 +59,12 @@ def _kill_browsermob() -> None:
 
 @wrap_init
 class Capa(ClassBot):  # noqa: D101
-    # task_download_files = subtask("crawjud.download_files")
-    # task_autenticacao = subtask("pje.autenticador")
-    # task_bot_data = subtask("crawjud.dataFrame")
-    # task_separa_regiao = subtask("pje.separar_regiao")
+    task_download_files = subtask("crawjud.download_files")
+    task_autenticacao = subtask("pje.autenticador")
+    task_bot_data = subtask("crawjud.dataFrame")
+    task_separa_regiao = subtask("pje.separar_regiao")
+
+    bind: Self
 
     @classmethod
     def enviar_mensagem_log(  # noqa: D102
@@ -97,9 +99,8 @@ class Capa(ClassBot):  # noqa: D101
         start_time: datetime = formata_tempo(self.request.eta).strftime(
             "%d/%m/%Y, %H:%M:%S"
         )
-        cls = Capa
 
-        files_b64: list[DictFiles] = cls.task_download_files.apply_async(
+        files_b64: list[DictFiles] = self.bind.task_download_files.apply_async(
             kwargs={"storage_folder_name": storage_folder_name}
         ).wait_ready()
 
@@ -109,11 +110,11 @@ class Capa(ClassBot):  # noqa: D101
                 bot_execution_id=pid, message="Nenhum arquivo Excel encontrado."
             )
 
-        bot_data: list[BotData] = cls.task_bot_data.apply_async(
+        bot_data: list[BotData] = self.bind.task_bot_data.apply_async(
             kwargs={"base91_planilha": xlsx_key[0]["file_base91str"]}
         ).wait_ready()
 
-        cls.enviar_mensagem_log(
+        self.bind.enviar_mensagem_log(
             pid=pid,
             message="Planilha carregada!",
             row=0,
@@ -122,7 +123,7 @@ class Capa(ClassBot):  # noqa: D101
             start_time=start_time,
         )
 
-        regioes: DictSeparaRegiao = cls.task_separa_regiao.apply_async(
+        regioes: DictSeparaRegiao = self.bind.task_separa_regiao.apply_async(
             kwargs={"frame": bot_data}
         ).wait_ready()
 
@@ -131,7 +132,7 @@ class Capa(ClassBot):  # noqa: D101
 
         total_rows = len(bot_data)
 
-        cls.enviar_mensagem_log(
+        self.bind.enviar_mensagem_log(
             pid=pid,
             message="Realizando autenticação nos TRTs...",
             row=0,
@@ -141,7 +142,7 @@ class Capa(ClassBot):  # noqa: D101
         )
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            cls.enviar_mensagem_log(
+            self.bind.enviar_mensagem_log(
                 pid=pid,
                 message=f"Autenticando no TRT {regiao}",
                 row=0,
@@ -149,7 +150,7 @@ class Capa(ClassBot):  # noqa: D101
                 total_rows=total_rows,
                 start_time=start_time,
             )
-            autenticacao_data: TReturnAuth = cls.task_autenticacao.apply_async(
+            autenticacao_data: TReturnAuth = self.bind.task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
 
@@ -174,7 +175,7 @@ class Capa(ClassBot):  # noqa: D101
                 _kill_browsermob()
 
                 # Envia mensagem de sucesso
-                cls.enviar_mensagem_log(
+                self.bind.enviar_mensagem_log(
                     pid=pid,
                     message="Autenticado com sucesso!",
                     row=0,

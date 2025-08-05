@@ -1,5 +1,9 @@
 # noqa: D104
 
-from . import capa, res
+import importlib
 
-__all__ = ["capa", "res"]
+from . import resources
+
+capa = importlib.import_module(".capa", __package__)
+
+__all__ = ["capa", "resources"]
