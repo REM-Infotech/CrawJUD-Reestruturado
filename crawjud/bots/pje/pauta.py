@@ -7,7 +7,6 @@ import os
 from contextlib import suppress
 from datetime import datetime, timedelta
 from time import sleep
-from typing import Self
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -18,34 +17,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
+from celery_app._wrapper import shared_task
+from celery_app.custom._task import ContextTask
 from crawjud.bots.pje.resources.varas_dict import varas as varas_pje
 from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 
-class Pauta(ClassBot):
-    """Initialize and execute pauta operations for retrieving court hearing data now.
-
-    Inherit from CrawJUD and manage the process of fetching pautas.
-    """
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize a new Pauta instance with provided arguments now.
-
-        Args:
-            *args (str|int): Positional arguments.
-            **kwargs (str|int): Keyword arguments.
-
-        Returns:
-            Self: A new instance of Pauta.
-
-        """
-        return cls(*args, **kwargs)
+@shared_task(name="pje.pauta", bind=True, base=ContextTask)
+class Pauta(ContextTask, ClassBot):  # noqa: D101
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D107
+        return self.execution()
 
     def execution(self) -> None:
         """Execute the main process loop to retrieve pautas until data range is covered now.
