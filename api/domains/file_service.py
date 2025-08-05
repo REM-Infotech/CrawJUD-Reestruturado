@@ -42,11 +42,6 @@ class FileService:
 
             _start = index * chunksize
             _end = min(file_size, _start + chunksize)
-            _index_size = index * chunksize
-
-            # tqdm.write(f"index: {index}")
-            # tqdm.write(f"end: {_end}")
-            # tqdm.write(f"file size: {file_size}")
 
             content_type = str(data.get("content_type"))
 

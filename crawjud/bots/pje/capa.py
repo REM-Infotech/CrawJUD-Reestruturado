@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from math import ceil
+from os import path
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic
 
@@ -317,6 +317,7 @@ class Capa(ClassBot):
                 file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
                 subtask("pje.capa.copia_integral").apply_async(
                     kwargs={
+                        "pid": str,
                         "url_base": base_url,
                         "file_name": file_name,
                         "headers": headers,
@@ -340,6 +341,7 @@ class Capa(ClassBot):
     @shared_task(name="pje.capa.copia_integral", bind=True)
     def download_copia_integral(
         self,
+        pid: str,
         url_base: str,
         headers: dict[str, str],
         cookies: dict[str, str],
@@ -353,6 +355,7 @@ class Capa(ClassBot):
         Realiza o download da cópia integral do processo e salva no storage.
 
         Args:
+            pid: str: Identificador do processo.
             url_base (str): URL base do serviço.
             headers (dict[str, str]): Cabeçalhos HTTP.
             cookies (dict[str, str]): Cookies de autenticação.
@@ -379,11 +382,22 @@ class Capa(ClassBot):
                 )
                 chunk = 65536
                 _path_temp = Path(__file__).cwd().joinpath("temp", id_processo)
-                total_chunks = ceil(len(response.content))
-
+                file_path = _path_temp.joinpath(file_name)
                 # Salva arquivo em chunks no storage
-                for _bytes in response.iter_bytes(chunk):
-                    content_lenght = len(_bytes)
+                for pos, _bytes in enumerate(response.iter_bytes(chunk)):
+                    mode = "ap"
+                    if pos == 0:
+                        mode = "wb"
+
+                    with file_path.open(mode) as f:
+                        f.write(_bytes)
+
+                file_size = path.getsize(file_path)
+                dest_name = path.join(pid.upper(), file_name)
+
+                with file_path.open("rb") as file:
                     storage.append_object(
-                        file_name, _bytes, content_lenght, total_chunks
+                        object_name=dest_name,
+                        data=file,
+                        length=file_size,
                     )
