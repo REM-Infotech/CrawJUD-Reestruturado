@@ -10,6 +10,8 @@ Classes:
 from __future__ import annotations
 
 import os
+import time
+import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -17,11 +19,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ProcNotFoundError, SaveError
-from crawjud.exceptions.elaw import ElawError
-
-from .elaw import ElawAuth
+from crawjud.bot.common import ExecutionError
+from crawjud.bot.core import CrawJUD
 
 
 class Prazos(CrawJUD):
@@ -49,6 +48,25 @@ class Prazos(CrawJUD):
         """
         return cls(*args, **kwargs)
 
+    def __init__(
+        self,
+        *args: str | int,
+        **kwargs: str | int,
+    ) -> None:
+        """Initialize the Prazos instance.
+
+        Args:
+            *args (tuple[str | int]): Variable length argument list.
+            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
+
+        """
+        super().__init__()
+        self.module_bot = __name__
+
+        super().setup(*args, **kwargs)
+        super().auth_bot()
+        self.start_time = time.perf_counter()
+
     def execution(self) -> None:
         """Execute the main processing loop for deadlines."""
         frame = self.dataFrame()
@@ -57,7 +75,7 @@ class Prazos(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.is_stoped:
+            if self.isStoped:
                 break
 
             with suppress(Exception):
@@ -68,7 +86,29 @@ class Prazos(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                self.tratamento_erros(exc=e)
+                old_message = None
+                windows = self.driver.window_handles
+
+                if len(windows) == 0:
+                    with suppress(Exception):
+                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+
+                    old_message = self.message
+
+                    self.auth_bot()
+
+                if old_message is None:
+                    old_message = self.message
+                message_error = str(e)
+
+                self.type_log = "error"
+                self.message_error = f"{message_error}. | Operação: {old_message}"
+                self.prt()
+
+                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+                self.append_error(self.bot_data)
+
+                self.message_error = None
 
         self.finalize_execution()
 
@@ -80,32 +120,24 @@ class Prazos(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search(self.bot_data)
+            search = self.search_bot()
             if not search:
-                message = "Buscando Processo"
-                raise ProcNotFoundError(
-                    message="Não Encontrado!", bot_execution_id=self.pid
-                )
+                self.message = "Buscando Processo"
+                raise ExecutionError(message="Não Encontrado!")
 
             comprovante = ""
-            self.data_Concat = (
-                f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
-            )
-            message = "Processo Encontrado!"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.data_Concat = f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
+            self.message = "Processo Encontrado!"
+            self.type_log = "log"
+            self.prt()
 
             self.TablePautas()
             chk_lancamento = self.CheckLancamento()
 
             if chk_lancamento:
-                message = "Já existe lançamento para esta pauta"
-                type_log = "info"
-                chk_lancamento.update({
-                    "MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"
-                })
+                self.message = "Já existe lançamento para esta pauta"
+                self.type_log = "info"
+                chk_lancamento.update({"MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"})
 
                 comprovante = chk_lancamento
 
@@ -114,17 +146,15 @@ class Prazos(CrawJUD):
                 self.save_Prazo()
                 comprovante = self.CheckLancamento()
                 if not comprovante:
-                    raise SaveError(
-                        message="Não foi possível comprovar lançamento, verificar manualmente",
-                        bot_execution_id=self.pid,
-                    )
+                    raise ExecutionError(message="Não foi possível comprovar lançamento, verificar manualmente")
 
-                message = "Pauta lançada!"
+                self.message = "Pauta lançada!"
 
-            self.append_success([comprovante], message)
+            self.append_success([comprovante], self.message)
 
         except Exception as e:
-            raise ElawAuth(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def TablePautas(self) -> None:  # noqa: N802
         """Verify if there are existing schedules for the specified day.
@@ -134,20 +164,17 @@ class Prazos(CrawJUD):
 
         """
         try:
-            switch_pautaandamento = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.switch_pautaandamento
-            )
+            switch_pautaandamento = self.driver.find_element(By.CSS_SELECTOR, self.elements.switch_pautaandamento)
 
             switch_pautaandamento.click()
 
-            message = f"Verificando se existem pautas para o dia {self.data_Concat}"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = f"Verificando se existem pautas para o dia {self.data_Concat}"
+            self.type_log = "log"
+            self.prt()
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def NovaPauta(self) -> None:  # noqa: N802
         """Launch a new audience schedule.
@@ -157,42 +184,30 @@ class Prazos(CrawJUD):
 
         """
         try:
-            message = "Lançando nova audiência"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Lançando nova audiência"
+            self.type_log = "log"
+            self.prt()
 
             btn_novaaudiencia = self.wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    self.elements.btn_novaaudiencia,
-                )),
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.btn_novaaudiencia)),
             )
 
             btn_novaaudiencia.click()
 
             # Info tipo Audiencia
-            message = "Informando tipo de audiência"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Informando tipo de audiência"
+            self.type_log = "log"
+            self.prt()
 
             selectortipoaudiencia: WebElement = self.wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    self.elements.selectortipoaudiencia,
-                )),
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.selectortipoaudiencia)),
             )
 
             items = selectortipoaudiencia.find_elements(By.TAG_NAME, "option")
             opt_itens: dict[str, str] = {}
             for item in items:
                 value_item = item.get_attribute("value")
-                text_item = self.driver.execute_script(
-                    f"return $(\"option[value='{value_item}']\").text();"
-                )
+                text_item = self.driver.execute_script(f"return $(\"option[value='{value_item}']\").text();")
 
                 opt_itens.update({text_item.upper(): value_item})
 
@@ -201,29 +216,23 @@ class Prazos(CrawJUD):
                 command = f"$('{self.elements.selectortipoaudiencia}').val(['{value_opt}']);"
                 self.driver.execute_script(command)
 
-                command2 = (
-                    f"$('{self.elements.selectortipoaudiencia}').trigger('change');"
-                )
+                command2 = f"$('{self.elements.selectortipoaudiencia}').trigger('change');"
                 self.driver.execute_script(command2)
 
             # Info Data Audiencia
-            message = "Informando data da Audiência"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Informando data da Audiência"
+            self.type_log = "log"
+            self.prt()
 
             DataAudiencia: WebElement = self.wait.until(  # noqa: N806
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    self.elements.DataAudiencia,
-                )),
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.DataAudiencia)),
             )
 
             DataAudiencia.send_keys(self.data_Concat)
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def save_Prazo(self) -> None:  # noqa: N802
         """Save the newly created deadline.
@@ -233,20 +242,17 @@ class Prazos(CrawJUD):
 
         """
         try:
-            message = "Salvando..."
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Salvando..."
+            self.type_log = "log"
+            self.prt()
 
-            btn_salvar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_salvar
-            )
+            btn_salvar = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_salvar)
 
             btn_salvar.click()
 
         except Exception as e:
-            raise SaveError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def CheckLancamento(self) -> dict[str, str] | None:  # noqa: N802
         """Check if the deadline has been successfully recorded.
@@ -260,15 +266,10 @@ class Prazos(CrawJUD):
         """
         try:
             tableprazos: WebElement = self.wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    self.elements.tableprazos,
-                )),
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.tableprazos)),
             )
 
-            tableprazos: list[WebElement] = tableprazos.find_elements(
-                By.TAG_NAME, "tr"
-            )
+            tableprazos: list[WebElement] = tableprazos.find_elements(By.TAG_NAME, "tr")
 
             data = None
             for item in tableprazos:
@@ -288,9 +289,7 @@ class Prazos(CrawJUD):
                     nameComprovante = f"Comprovante - {nProc_pid}.png"  # noqa: N806
                     idPrazo = str(item.find_elements(By.TAG_NAME, "td")[2].text)  # noqa: N806
 
-                    item.screenshot(
-                        os.path.join(self.output_dir_path, nameComprovante)
-                    )
+                    item.screenshot(os.path.join(self.output_dir_path, nameComprovante))
 
                     data = {
                         "NUMERO_PROCESSO": str(self.bot_data["NUMERO_PROCESSO"]),
@@ -302,4 +301,5 @@ class Prazos(CrawJUD):
             return data
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e

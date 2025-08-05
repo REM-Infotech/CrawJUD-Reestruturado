@@ -7,6 +7,8 @@ Classes:
     Andamentos: Manages process progress by extending the CrawJUD base class
 """
 
+import time
+import traceback
 from contextlib import suppress
 from time import sleep
 from typing import Self
@@ -17,9 +19,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import SaveError
-from crawjud.exceptions.elaw import ElawError
+from crawjud.bot.common import ExecutionError
+from crawjud.bot.core import CrawJUD
 
 
 class Andamentos(CrawJUD):
@@ -41,6 +42,25 @@ class Andamentos(CrawJUD):
         """
         return cls(*args, **kwargs)
 
+    def __init__(
+        self,
+        *args: str | int,
+        **kwargs: str | int,
+    ) -> None:
+        """Initialize the Andamentos instance.
+
+        Args:
+            *args (tuple[str | int]): Variable length argument list.
+            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
+
+        """
+        super().__init__()
+        self.module_bot = __name__
+
+        super().setup(*args, **kwargs)
+        super().auth_bot()
+        self.start_time = time.perf_counter()
+
     def execution(self) -> None:
         """Execute the main processing loop for andamentos.
 
@@ -54,7 +74,7 @@ class Andamentos(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.is_stoped:
+            if self.isStoped:
                 break
 
             with suppress(Exception):
@@ -65,7 +85,29 @@ class Andamentos(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                self.tratamento_erros(exc=e)
+                old_message = None
+                windows = self.driver.window_handles
+
+                if len(windows) == 0:
+                    with suppress(Exception):
+                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+
+                    old_message = self.message
+
+                    self.auth_bot()
+
+                if old_message is None:
+                    old_message = self.message
+                message_error = str(e)
+
+                self.type_log = "error"
+                self.message_error = f"{message_error}. | Operação: {old_message}"
+                self.prt()
+
+                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+                self.append_error(self.bot_data)
+
+                self.message_error = None
 
         self.finalize_execution()
 
@@ -79,12 +121,10 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            search = self.search_bot.search(self.bot_data)
+            search = self.search_bot()
             if search is True:
                 btn_newmove = self.elements.botao_andamento
-                new_move: WebElement = self.wait.until(
-                    ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove))
-                )
+                new_move: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove)))
                 new_move.click()
 
                 self.info_data()
@@ -97,15 +137,14 @@ class Andamentos(CrawJUD):
                 self.save_andamento()
 
             elif search is not True:
-                message = "Processo não encontrado!"
-                type_log = "error"
-                self.prt.print_msg(
-                    message=message, pid=self.pid, row=self.row, type_log=type_log
-                )
-                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), message])
+                self.message = "Processo não encontrado!"
+                self.type_log = "error"
+                self.prt()
+                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def info_data(self) -> None:
         """Inform the date of the andamento.
@@ -117,15 +156,11 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            message = "Informando data"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Informando data"
+            self.type_log = "log"
+            self.prt()
             css_Data = self.elements.input_data  # noqa: N806
-            campo_data: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, css_Data))
-            )
+            campo_data: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, css_Data)))
             campo_data.click()
             campo_data.send_keys(Keys.CONTROL, "a")
             sleep(0.5)
@@ -136,7 +171,8 @@ class Andamentos(CrawJUD):
             self.interact.sleep_load('div[id="j_id_34"]')
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def info_ocorrencia(self) -> None:
         """Inform the occurrence details of the andamento.
@@ -148,25 +184,18 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            message = "Informando ocorrência"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Informando ocorrência"
+            self.type_log = "log"
+            self.prt()
 
-            ocorrencia = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.inpt_ocorrencia
-            )
-            text_andamento = (
-                str(self.bot_data.get("OCORRENCIA"))
-                .replace("\t", "")
-                .replace("\n", "")
-            )
+            ocorrencia = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_ocorrencia)
+            text_andamento = str(self.bot_data.get("OCORRENCIA")).replace("\t", "").replace("\n", "")
 
             self.interact.send_key(ocorrencia, text_andamento)
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def info_observacao(self) -> None:
         """Inform the observation details of the andamento.
@@ -178,25 +207,18 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            message = "Informando observação"
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Informando observação"
+            self.type_log = "log"
+            self.prt()
 
-            observacao = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.inpt_obs
-            )
-            text_andamento = (
-                str(self.bot_data.get("OBSERVACAO"))
-                .replace("\t", "")
-                .replace("\n", "")
-            )
+            observacao = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_obs)
+            text_andamento = str(self.bot_data.get("OBSERVACAO")).replace("\t", "").replace("\n", "")
 
             self.interact.send_key(observacao, text_andamento)
 
         except Exception as e:
-            raise ElawError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def add_anexo(self) -> None:
         """Add attachments to the andamento.
@@ -218,24 +240,17 @@ class Andamentos(CrawJUD):
 
         """
         try:
-            message = "Salvando andamento..."
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Salvando andamento..."
+            self.type_log = "log"
+            self.prt()
             sleep(1)
             self.link = self.driver.current_url
-            save_button = self.driver.find_element(
-                By.ID, self.elements.botao_salvar_andamento
-            )
+            save_button = self.driver.find_element(By.ID, self.elements.botao_salvar_andamento)
             save_button.click()
 
         except Exception as e:
-            raise SaveError(
-                message="Não foi possivel salvar andamento",
-                exception=e,
-                bot_execution_id=self.pid,
-            ) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(message="Não foi possivel salvar andamento", e=e) from e
 
         try:
             check_save: WebElement = WebDriverWait(self.driver, 10).until(
@@ -244,14 +259,7 @@ class Andamentos(CrawJUD):
             if check_save:
                 sleep(3)
 
-                self.append_success(
-                    [self.numproc, "Andamento salvo com sucesso!", ""],
-                    "Andamento salvo com sucesso!",
-                )
+                self.append_success([self.numproc, "Andamento salvo com sucesso!", ""], "Andamento salvo com sucesso!")
 
-        except Exception as e:
-            raise SaveError(
-                message="Aviso: não foi possivel validar salvamento de andamento",
-                exception=e,
-                bot_execution_id=self.pid,
-            ) from e
+        except Exception:
+            raise ExecutionError(message="Aviso: não foi possivel validar salvamento de andamento") from None
