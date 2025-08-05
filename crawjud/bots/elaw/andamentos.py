@@ -19,11 +19,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Andamentos(CrawJUD):
+class Andamentos(ClassBot):
     """The Andamentos class manages the andamento tracking bot."""
 
     @classmethod
@@ -90,7 +90,9 @@ class Andamentos(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -124,7 +126,9 @@ class Andamentos(CrawJUD):
             search = self.search_bot()
             if search is True:
                 btn_newmove = self.elements.botao_andamento
-                new_move: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove)))
+                new_move: WebElement = self.wait.until(
+                    ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove))
+                )
                 new_move.click()
 
                 self.info_data()
@@ -140,7 +144,10 @@ class Andamentos(CrawJUD):
                 self.message = "Processo não encontrado!"
                 self.type_log = "error"
                 self.prt()
-                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
+                self.append_error([
+                    self.bot_data.get("NUMERO_PROCESSO"),
+                    self.message,
+                ])
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
@@ -160,7 +167,9 @@ class Andamentos(CrawJUD):
             self.type_log = "log"
             self.prt()
             css_Data = self.elements.input_data  # noqa: N806
-            campo_data: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, css_Data)))
+            campo_data: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, css_Data))
+            )
             campo_data.click()
             campo_data.send_keys(Keys.CONTROL, "a")
             sleep(0.5)
@@ -188,8 +197,14 @@ class Andamentos(CrawJUD):
             self.type_log = "log"
             self.prt()
 
-            ocorrencia = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_ocorrencia)
-            text_andamento = str(self.bot_data.get("OCORRENCIA")).replace("\t", "").replace("\n", "")
+            ocorrencia = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.inpt_ocorrencia
+            )
+            text_andamento = (
+                str(self.bot_data.get("OCORRENCIA"))
+                .replace("\t", "")
+                .replace("\n", "")
+            )
 
             self.interact.send_key(ocorrencia, text_andamento)
 
@@ -211,8 +226,14 @@ class Andamentos(CrawJUD):
             self.type_log = "log"
             self.prt()
 
-            observacao = self.driver.find_element(By.CSS_SELECTOR, self.elements.inpt_obs)
-            text_andamento = str(self.bot_data.get("OBSERVACAO")).replace("\t", "").replace("\n", "")
+            observacao = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.inpt_obs
+            )
+            text_andamento = (
+                str(self.bot_data.get("OBSERVACAO"))
+                .replace("\t", "")
+                .replace("\n", "")
+            )
 
             self.interact.send_key(observacao, text_andamento)
 
@@ -245,12 +266,16 @@ class Andamentos(CrawJUD):
             self.prt()
             sleep(1)
             self.link = self.driver.current_url
-            save_button = self.driver.find_element(By.ID, self.elements.botao_salvar_andamento)
+            save_button = self.driver.find_element(
+                By.ID, self.elements.botao_salvar_andamento
+            )
             save_button.click()
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
-            raise ExecutionError(message="Não foi possivel salvar andamento", e=e) from e
+            raise ExecutionError(
+                message="Não foi possivel salvar andamento", e=e
+            ) from e
 
         try:
             check_save: WebElement = WebDriverWait(self.driver, 10).until(
@@ -259,7 +284,12 @@ class Andamentos(CrawJUD):
             if check_save:
                 sleep(3)
 
-                self.append_success([self.numproc, "Andamento salvo com sucesso!", ""], "Andamento salvo com sucesso!")
+                self.append_success(
+                    [self.numproc, "Andamento salvo com sucesso!", ""],
+                    "Andamento salvo com sucesso!",
+                )
 
         except Exception:
-            raise ExecutionError(message="Aviso: não foi possivel validar salvamento de andamento") from None
+            raise ExecutionError(
+                message="Aviso: não foi possivel validar salvamento de andamento"
+            ) from None
