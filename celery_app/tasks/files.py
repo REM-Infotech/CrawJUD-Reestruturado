@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Any
 import pandas as pd
 from werkzeug.utils import secure_filename
 
-from addons.storage import Storage
 from celery_app._wrapper import shared_task
 from models.logs import CachedExecution
+from utils.storage import Storage
 
 if TYPE_CHECKING:
     from crawjud.types import BotData

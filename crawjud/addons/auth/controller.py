@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.support.wait import WebDriverWait
 
-    from addons.printlogs import PrintMessage
     from crawjud.types.elements import type_elements
+    from utils.printlogs import PrintMessage
 
 
 class AuthController:  # noqa: B903

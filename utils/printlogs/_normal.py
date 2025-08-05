@@ -13,8 +13,8 @@ from pytz import timezone
 from socketio import Client
 from socketio.exceptions import BadNamespaceError
 
-from addons.printlogs._interface import MessageLog
-from addons.printlogs._master import PrintLogs
+from utils.printlogs._interface import MessageLog
+from utils.printlogs._master import PrintLogs
 
 
 class PrintMessage(PrintLogs):

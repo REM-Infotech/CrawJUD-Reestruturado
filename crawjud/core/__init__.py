@@ -35,13 +35,13 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from werkzeug.utils import secure_filename
 
-from addons.logger import dict_config
-from addons.printlogs import PrintMessage
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
 from crawjud.common.exceptions.bot import ExecutionError, StartError
 from crawjud.types import StrPath, TypeData
 from crawjud.types.elements import type_elements
+from utils.logger import dict_config
+from utils.printlogs import PrintMessage
 
 if TYPE_CHECKING:
     from crawjud.types import BotData

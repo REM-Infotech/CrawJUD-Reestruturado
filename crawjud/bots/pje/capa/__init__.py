@@ -13,7 +13,6 @@ from common.bot import ClassBot
 from dotenv import load_dotenv
 from httpx import Client
 
-from addons.storage import Storage
 from celery_app._wrapper import classmethod_shared_task as classmethod_shared_task
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
@@ -34,6 +33,7 @@ from crawjud.types.bot import (
     MessageTimeoutAutenticacao as MessageTimeoutAutenticacao,
 )
 from crawjud.types.pje import DictReturnDesafio, DictSeparaRegiao
+from utils.storage import Storage
 
 if TYPE_CHECKING:
     from crawjud.types import BotData, T  # noqa: F401

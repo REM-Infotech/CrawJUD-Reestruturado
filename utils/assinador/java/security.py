@@ -3,7 +3,7 @@ from typing import Any, Iterator, Protocol, Self, Type, TypeVar, cast
 
 from jpype import JClass
 
-from addons.assinador.java.io import FileInputStream
+from utils.assinador.java.io import FileInputStream
 
 _TProvider = TypeVar("Provider")
 TFileInputStream = Type[FileInputStream]

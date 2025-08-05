@@ -3,9 +3,9 @@ from contextlib import suppress
 from os import environ
 from pathlib import Path
 
-from addons.logger import dict_config
 from api import check_cors_allowed_origins, create_app, io
 from api.namespaces import register_namespaces
+from utils.logger import dict_config
 
 
 async def main_app() -> None:

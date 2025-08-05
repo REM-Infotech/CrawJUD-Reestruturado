@@ -14,7 +14,7 @@ from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import DictReturnAuth, TReturnAuth
-from webdriver import DriverBot
+from utils.webdriver import DriverBot
 
 
 @shared_task(name="pje.autenticador")

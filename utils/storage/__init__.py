@@ -12,9 +12,9 @@ from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
 
-from addons.storage._bucket import Blob as Blob
-from addons.storage._bucket import Bucket, ListBuckets
-from addons.storage.credentials.providers import GoogleStorageCredentialsProvider
+from utils.storage._bucket import Blob as Blob
+from utils.storage._bucket import Bucket, ListBuckets
+from utils.storage.credentials.providers import GoogleStorageCredentialsProvider
 
 environ = dotenv_values()
 storages = Literal["google", "minio"]

@@ -30,26 +30,26 @@ import jpype.imports  # noqa: F401
 from dotenv import dotenv_values
 from jpype import JArray, JBoolean, JClass, JPackage  # noqa: F401
 
-from addons.assinador import load_jvm  # noqa: F401
-from addons.assinador.java.io import File, FileInputStream
-from addons.assinador.java.lang import Object
-from addons.assinador.java.security import KeyStore, Security
-from addons.assinador.java.util import ArrayList
-from addons.assinador.org.bouncycastle.asn1 import ASN1Primitive
-from addons.assinador.org.bouncycastle.asn1.x509 import Certificate
-from addons.assinador.org.bouncycastle.cert import X509CertificateHolder
-from addons.assinador.org.bouncycastle.cert.jcajce import JcaCertStore
-from addons.assinador.org.bouncycastle.cms import (
+from utils.assinador import load_jvm  # noqa: F401
+from utils.assinador.java.io import File, FileInputStream
+from utils.assinador.java.lang import Object
+from utils.assinador.java.security import KeyStore, Security
+from utils.assinador.java.util import ArrayList
+from utils.assinador.org.bouncycastle.asn1 import ASN1Primitive
+from utils.assinador.org.bouncycastle.asn1.x509 import Certificate
+from utils.assinador.org.bouncycastle.cert import X509CertificateHolder
+from utils.assinador.org.bouncycastle.cert.jcajce import JcaCertStore
+from utils.assinador.org.bouncycastle.cms import (
     CMSProcessableByteArray,
     CMSProcessableFile,
     CMSSignedData,
     CMSSignedDataGenerator,
 )
-from addons.assinador.org.bouncycastle.cms.jcajce import (
+from utils.assinador.org.bouncycastle.cms.jcajce import (
     JcaSimpleSignerInfoGeneratorBuilder as SignerGenerator,
 )
-from addons.assinador.org.bouncycastle.jce.provider import BouncyCastleProvider
-from addons.assinador.org.bouncycastle.operator.jcajce import (
+from utils.assinador.org.bouncycastle.jce.provider import BouncyCastleProvider
+from utils.assinador.org.bouncycastle.operator.jcajce import (
     JcaContentSignerBuilder as JcaContentSignerBuilder,
     JcaDigestCalculatorProviderBuilder as JcaDigestCalculatorProviderBuilder,
 )

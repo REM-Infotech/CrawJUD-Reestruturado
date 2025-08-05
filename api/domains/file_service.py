@@ -13,7 +13,7 @@ from quart import request
 from tqdm import tqdm
 from werkzeug.datastructures import FileStorage
 
-from addons.storage import Storage
+from utils.storage import Storage
 
 workdir_path = Path(__file__).cwd()
 

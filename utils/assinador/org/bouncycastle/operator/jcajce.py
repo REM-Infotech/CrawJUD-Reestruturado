@@ -3,7 +3,7 @@ from typing import Any, Protocol, cast
 
 from jpype import JClass
 
-from addons.assinador.java.lang import Object
+from utils.assinador.java.lang import Object
 
 
 class JcaDigestCalculatorProviderBuilder(Protocol):  # noqa: D101

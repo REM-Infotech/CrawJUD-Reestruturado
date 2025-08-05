@@ -17,7 +17,7 @@ from minio.xml import find, findall, findtext
 from urllib3 import BaseHTTPResponse
 
 if TYPE_CHECKING:
-    from addons.storage import Storage  # noqa: F401
+    from utils.storage import Storage  # noqa: F401
 
 A = TypeVar("A", bound="ListBuckets")
 

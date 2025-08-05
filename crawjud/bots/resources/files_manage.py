@@ -12,10 +12,10 @@ from pathlib import Path
 
 import base91
 
-from addons.storage import Storage
 from celery_app._wrapper import shared_task
 from crawjud import work_dir
 from crawjud.types.bot import DictFiles
+from utils.storage import Storage
 
 
 @shared_task(name="crawjud.download_files")
