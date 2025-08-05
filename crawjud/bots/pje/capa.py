@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from datetime import datetime
 from math import ceil
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Self
+from typing import TYPE_CHECKING, Generic
 
 import psutil
 from dotenv import load_dotenv
@@ -38,11 +37,57 @@ if TYPE_CHECKING:
 load_dotenv()
 
 
+def _enviar_mensagem_log(
+    pid: str,
+    message: str,
+    row: int,
+    type_log: str,
+    total_rows: int,
+    start_time: str,
+) -> None:
+    """
+    Envia mensagem de log para o sistema de tarefas assíncronas.
+
+    Args:
+        pid (str): Identificador do processo.
+        message (str): Mensagem a ser registrada.
+        row (int): Linha atual do processamento.
+        type_log (str): Tipo de log (info, error, etc).
+        total_rows (int): Total de linhas a serem processadas.
+        start_time (str): Horário de início do processamento.
+
+    Returns:
+        None: Não retorna valor.
+
+    """
+    _task_message = subtask("log_message")
+    _task_message.apply_async(
+        kwargs={
+            "pid": pid,
+            "message": message,
+            "row": row,
+            "type_log": type_log,
+            "total_rows": total_rows,
+            "start_time": start_time,
+        }
+    )
+
+
 def _kill_browsermob() -> None:
+    """
+    Finaliza processos relacionados ao BrowserMob Proxy.
+
+    Args:
+        None
+
+    Returns:
+        None: Não retorna valor.
+
+    """
     keyword = "browsermob"
     matching_procs = []
 
-    # Primeira fase: coleta segura
+    # Primeira fase: coleta segura dos processos
     for proc in psutil.process_iter(["pid", "name", "cmdline"]):
         with suppress(
             psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, Exception
@@ -50,7 +95,7 @@ def _kill_browsermob() -> None:
             if any(keyword in part for part in proc.info["cmdline"]):
                 matching_procs.append(proc)
 
-    # Segunda fase: ação
+    # Segunda fase: finalização dos processos encontrados
     for proc in matching_procs:
         with suppress(psutil.NoSuchProcess, psutil.AccessDenied, Exception):
             print(f"Matando PID {proc.pid} ({' '.join(proc.info['cmdline'])})")
@@ -58,63 +103,63 @@ def _kill_browsermob() -> None:
 
 
 @wrap_init
-class Capa(ClassBot):  # noqa: D101
-    task_download_files = subtask("crawjud.download_files")
-    task_autenticacao = subtask("pje.autenticador")
-    task_bot_data = subtask("crawjud.dataFrame")
-    task_separa_regiao = subtask("pje.separar_regiao")
+class Capa(ClassBot):
+    """
+    Classe principal para processamento da capa dos processos PJE.
 
-    bind: Self
-
-    @classmethod
-    def enviar_mensagem_log(  # noqa: D102
-        cls,
-        pid: str,
-        message: str,
-        row: int,
-        type_log: str,
-        total_rows: int,
-        start_time: str,
-    ) -> None:
-        _task_message = subtask("log_message")
-        _task_message.apply_async(
-            kwargs={
-                "pid": pid,
-                "message": message,
-                "row": row,
-                "type_log": type_log,
-                "total_rows": total_rows,
-                "start_time": start_time,
-            }
-        )
+    Gerencia autenticação, separação de regiões e download de arquivos.
+    """
 
     @shared_task(name="pje.capa", bind=True)
-    def pje_capa(  # noqa: D102
+    def pje_capa(
         self,
         storage_folder_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        """
+        Executa o fluxo principal de processamento da capa dos processos PJE.
+
+        Args:
+            storage_folder_name (str): Nome da pasta de armazenamento.
+            *args (Generic[T]): Argumentos variáveis.
+            **kwargs (Generic[T]): Argumentos nomeados variáveis.
+
+        Returns:
+            None: Não retorna valor.
+
+        Raises:
+            ExecutionError: Caso não encontre arquivo Excel.
+
+        """
+        task_download_files = subtask("crawjud.download_files")
+        task_autenticacao = subtask("pje.autenticador")
+        task_bot_data = subtask("crawjud.dataFrame")
+        task_separa_regiao = subtask("pje.separar_regiao")
+
         pid = str(self.request.id)
-        start_time: datetime = formata_tempo(self.request.eta).strftime(
+        start_time: str = formata_tempo(self.request.eta).strftime(
             "%d/%m/%Y, %H:%M:%S"
         )
 
-        files_b64: list[DictFiles] = self.bind.task_download_files.apply_async(
+        # Baixa arquivos da pasta de armazenamento
+        files_b64: list[DictFiles] = task_download_files.apply_async(
             kwargs={"storage_folder_name": storage_folder_name}
         ).wait_ready()
 
+        # Filtra arquivo Excel
         xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
         if not xlsx_key:
             raise ExecutionError(
                 bot_execution_id=pid, message="Nenhum arquivo Excel encontrado."
             )
 
-        bot_data: list[BotData] = self.bind.task_bot_data.apply_async(
+        # Carrega dados da planilha
+        bot_data: list[BotData] = task_bot_data.apply_async(
             kwargs={"base91_planilha": xlsx_key[0]["file_base91str"]}
         ).wait_ready()
 
-        self.bind.enviar_mensagem_log(
+        _enviar_mensagem_log(
             pid=pid,
             message="Planilha carregada!",
             row=0,
@@ -123,7 +168,8 @@ class Capa(ClassBot):  # noqa: D101
             start_time=start_time,
         )
 
-        regioes: DictSeparaRegiao = self.bind.task_separa_regiao.apply_async(
+        # Separa dados por região
+        regioes: DictSeparaRegiao = task_separa_regiao.apply_async(
             kwargs={"frame": bot_data}
         ).wait_ready()
 
@@ -132,7 +178,7 @@ class Capa(ClassBot):  # noqa: D101
 
         total_rows = len(bot_data)
 
-        self.bind.enviar_mensagem_log(
+        _enviar_mensagem_log(
             pid=pid,
             message="Realizando autenticação nos TRTs...",
             row=0,
@@ -141,8 +187,9 @@ class Capa(ClassBot):  # noqa: D101
             start_time=start_time,
         )
 
+        # Autentica e processa cada região
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            self.bind.enviar_mensagem_log(
+            _enviar_mensagem_log(
                 pid=pid,
                 message=f"Autenticando no TRT {regiao}",
                 row=0,
@@ -150,7 +197,7 @@ class Capa(ClassBot):  # noqa: D101
                 total_rows=total_rows,
                 start_time=start_time,
             )
-            autenticacao_data: TReturnAuth = self.bind.task_autenticacao.apply_async(
+            autenticacao_data: TReturnAuth = task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
 
@@ -175,7 +222,7 @@ class Capa(ClassBot):  # noqa: D101
                 _kill_browsermob()
 
                 # Envia mensagem de sucesso
-                self.bind.enviar_mensagem_log(
+                _enviar_mensagem_log(
                     pid=pid,
                     message="Autenticado com sucesso!",
                     row=0,
@@ -187,10 +234,10 @@ class Capa(ClassBot):  # noqa: D101
     @shared_task(name="pje.queue_processos", bind=True)
     def queue_processos(
         self,
-        cookies: dict[str, str],  # noqa: D102
+        cookies: dict[str, str],
         headers: dict[str, str],
         base_url: str,
-        data: list[BotData],
+        data: list["BotData"],
         pid: str,
         start_time: str,
         position_process: dict[str, int],
@@ -198,15 +245,37 @@ class Capa(ClassBot):  # noqa: D101
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        """Enqueue processes for further processing."""
-        task_message = subtask("log_message")
+        """
+        Enfileira processos para processamento e salva resultados.
+
+        Args:
+            cookies (dict[str, str]): Cookies de autenticação.
+            headers (dict[str, str]): Cabeçalhos HTTP.
+            base_url (str): URL base do serviço.
+            data (list[BotData]): Lista de dados dos processos.
+            pid (str): Identificador do processo.
+            start_time (str): Horário de início do processamento.
+            position_process (dict[str, int]): Posições dos processos.
+            total_rows (int): Total de linhas a processar.
+            *args (Generic[T]): Argumentos variáveis.
+            **kwargs (Generic[T]): Argumentos nomeados variáveis.
+
+        Returns:
+            None: Não retorna valor.
+
+        """
         for item in data:
             with suppress(Exception):
-                item["row"] = position_process[item["NUMERO_PROCESSO"]]
-                item["total_rows"] = total_rows
-                item["pid"] = pid
-                item["url_base"] = base_url
-                item["start_time"] = start_time
+                # Atualiza dados do item para processamento
+
+                item.update({
+                    "row": position_process[item["NUMERO_PROCESSO"]],
+                    "total_rows": total_rows,
+                    "pid": pid,
+                    "url_base": base_url,
+                    "start_time": start_time,
+                })
+
                 row = int(item["row"]) + 1
                 start_time = item["start_time"]
                 resultados_busca: DictReturnDesafio = (
@@ -221,22 +290,22 @@ class Capa(ClassBot):  # noqa: D101
                     .wait_ready()
                 )
 
+                # Verifica se houve resultado na busca
                 if not resultados_busca or (
                     isinstance(resultados_busca, str)
                     and "Nenhum processo encontrado" in resultados_busca
                 ):
-                    task_message.apply_async(
-                        kwargs={
-                            "pid": pid,
-                            "message": "Falha ao obter informações do processo ",
-                            "row": row,
-                            "type_log": "error",
-                            "total_rows": item.get("total_rows", 0),
-                            "start_time": start_time,
-                        }
+                    _enviar_mensagem_log(
+                        pid=pid,
+                        message="Falha ao obter informações do processo ",
+                        row=row,
+                        type_log="error",
+                        total_rows=item.get("total_rows", 0),
+                        start_time=start_time,
                     )
                     continue
 
+                # Salva dados em cache
                 subtask("save_cache").apply_async(
                     kwargs={
                         "pid": pid,
@@ -257,21 +326,19 @@ class Capa(ClassBot):  # noqa: D101
                     }
                 )
 
-                task_message.apply_async(
-                    kwargs={
-                        "pid": pid,
-                        "message": f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
-                        "row": row,
-                        "type_log": "success",
-                        "total_rows": item.get("total_rows", 0),
-                        "start_time": start_time,
-                    }
+                _enviar_mensagem_log(
+                    pid=pid,
+                    message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
+                    row=row,
+                    type_log="success",
+                    total_rows=item.get("total_rows", 0),
+                    start_time=start_time,
                 )
 
                 print()
 
     @shared_task(name="pje.capa.copia_integral", bind=True)
-    def download_copia_integral(  # noqa: D102
+    def download_copia_integral(
         self,
         url_base: str,
         headers: dict[str, str],
@@ -282,6 +349,23 @@ class Capa(ClassBot):  # noqa: D101
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        """
+        Realiza o download da cópia integral do processo e salva no storage.
+
+        Args:
+            url_base (str): URL base do serviço.
+            headers (dict[str, str]): Cabeçalhos HTTP.
+            cookies (dict[str, str]): Cookies de autenticação.
+            id_processo (str): Identificador do processo.
+            captchatoken (str): Token do captcha.
+            file_name (str): Nome do arquivo para salvar.
+            *args (Generic[T]): Argumentos variáveis.
+            **kwargs (Generic[T]): Argumentos nomeados variáveis.
+
+        Returns:
+            None: Não retorna valor.
+
+        """
         storage = Storage("minio")
         with suppress(Exception):
             with Client(
@@ -297,6 +381,7 @@ class Capa(ClassBot):  # noqa: D101
                 _path_temp = Path(__file__).cwd().joinpath("temp", id_processo)
                 total_chunks = ceil(len(response.content))
 
+                # Salva arquivo em chunks no storage
                 for _bytes in response.iter_bytes(chunk):
                     content_lenght = len(_bytes)
                     storage.append_object(

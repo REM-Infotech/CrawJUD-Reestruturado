@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 from typing import Any, BinaryIO, Generator, Literal
 
 from dotenv import dotenv_values
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
+from minio.datatypes import Object
 from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
@@ -149,6 +151,24 @@ class Storage(Client):  # noqa: B903, D101
             write_offset,
         )
 
+    def stat_object(  # noqa: D102
+        self,
+        object_name: str,
+        ssec: Any | None = None,
+        version_id: str | None = None,
+        extra_headers: Any | None = None,
+        extra_query_params: Any | None = None,
+    ) -> Object:
+        bucket_name = self.bucket.name
+        return super().stat_object(
+            bucket_name,
+            object_name,
+            ssec,
+            version_id,
+            extra_headers,
+            extra_query_params,
+        )
+
     def append_object(  # noqa: D102
         self,
         object_name: str,
@@ -159,12 +179,13 @@ class Storage(Client):  # noqa: B903, D101
         progress: Any = None,
         extra_headers: Any = None,
     ) -> ObjectWriteResult:
-        return self.bucket.append_object(
+        bucket_name = self.bucket.name
+        return super().append_object(
+            bucket_name,
             object_name,
-            data,
+            io.BytesIO(data),
             length,
             chunk_size,
-            content_type,
             progress,
             extra_headers,
         )

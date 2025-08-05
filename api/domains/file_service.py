@@ -9,7 +9,7 @@ from typing import Any, AnyStr
 
 import aiofiles
 from clear import clear
-from quart import request
+from quart import request, session
 from tqdm import tqdm
 from werkzeug.datastructures import FileStorage
 
@@ -23,36 +23,12 @@ class FileService:
 
     async def save_file(self) -> None:
         """Salva um arquivo enviado para o diretório temporário especificado."""
-        # file_data: MultiDict[
-        #     str, FileStorage | WerkZeugFileStorage
-        # ] = await request.files
-
         storage = Storage("minio")
-        # sid = getattr(session, "sid", None)
-        # _sid = str(sid) if sid else uuid4().hex
-        # path_temp = workdir_path.joinpath("temp", _sid.upper())
-
-        # path_temp.mkdir(exist_ok=True, parents=True)
-        # for _, v in list(file_data.items()):
-        #     file_name = secure_filename(v.filename)
-        #     is_coroutine = iscoroutinefunction(v.save)
-        #     file_path = path_temp.joinpath(file_name)
-
-        #     self.stream = v.stream
-        #     v.save = self.save.__get__(v, WerkZeugFileStorage)
-
-        #     if is_coroutine:
-        #         await v.save(path_temp.joinpath(file_name))
-        #     elif not is_coroutine:
-        #         v.save(path_temp.joinpath(file_name))
-
-        #     path_minio = os.path.join(_sid.upper(), file_name)
-        #     storage.upload_file(path_minio, file_path)
 
         try:
             data = await request.form
             _file = await request.files
-            sid = str(request.sid)
+            sid = str(session.sid)
 
             file_name = str(data.get("name"))
             index = int(data.get("index", 0))
