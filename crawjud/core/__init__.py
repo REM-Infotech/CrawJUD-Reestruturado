@@ -22,6 +22,7 @@ from typing import (
     Any,
     AnyStr,
     Callable,
+    Generic,
     ParamSpec,
     Self,
     TypeVar,
@@ -721,3 +722,45 @@ class CrawJUD(ABC):
         """
         date_like_pattern = r"\d{1,4}[-/]\d{1,2}[-/]\d{1,4}"
         return bool(re.search(date_like_pattern, text))
+
+    def dataFrame(self) -> list[BotData]:  # noqa: N802
+        """Convert an Excel file to a list of dictionaries with formatted data.
+
+        Reads an Excel file, processes the data by formatting dates and floats,
+        and returns the data as a list of dictionaries.
+
+        Returns:
+            list[BotData]: A record list from the processed Excel file.
+
+        Raises:
+            FileNotFoundError: If the target file does not exist.
+            ValueError: For problems reading the file.
+
+        """
+        # buffer_planilha = io.BytesIO(base91.decode(base91_planilha))
+        df = pd.read_excel(self.xlsx)
+        df.columns = df.columns.str.upper()
+
+        def format_data(x: Generic[T]) -> str:
+            if str(x) == "NaT" or str(x) == "nan":
+                return ""
+
+            if isinstance(x, (datetime, pd.Timestamp)):
+                return x.strftime("%d/%m/%Y")
+
+            return x
+
+        def format_float(x: Generic[T]) -> str:
+            return f"{x:.2f}".replace(".", ",")
+
+        for col in df.columns:
+            df[col] = df[col].apply(format_data)
+
+        for col in df.select_dtypes(include=["float"]).columns:
+            df[col] = df[col].apply(format_float)
+
+        to_list = [
+            BotData(list(item.items())) for item in df.to_dict(orient="records")
+        ]
+
+        return to_list
