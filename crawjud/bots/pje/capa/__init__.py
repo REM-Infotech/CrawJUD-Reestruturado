@@ -25,8 +25,10 @@ from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.exceptions.bot import ExecutionError
 from crawjud.types.bot import (
     DictFiles,
-    DictReturnAuth,
     TReturnAuth,
+)
+from crawjud.types.bot import (
+    DictReturnAuth as DictReturnAuth,
 )
 from crawjud.types.bot import (
     MessageTimeoutAutenticacao as MessageTimeoutAutenticacao,
@@ -40,8 +42,6 @@ load_dotenv()
 
 
 def _kill_browsermob() -> None:
-    import psutil
-
     keyword = "browsermob"
     matching_procs = []
 
@@ -62,97 +62,98 @@ def _kill_browsermob() -> None:
 
 @wrap_init
 class Capa(ClassBot):  # noqa: D101
+    task_download_files = subtask("crawjud.download_files")
+    task_autenticacao = subtask("pje.autenticador")
+    task_bot_data = subtask("crawjud.dataFrame")
+    task_separa_regiao = subtask("pje.separar_regiao")
+
+    @classmethod
+    def enviar_mensagem_log(  # noqa: D102
+        cls,
+        pid: str,
+        message: str,
+        row: int,
+        type_log: str,
+        total_rows: int,
+        start_time: str,
+    ) -> None:
+        _task_message = subtask("log_message")
+        _task_message.apply_async(
+            kwargs={
+                "pid": pid,
+                "message": message,
+                "row": row,
+                "type_log": type_log,
+                "total_rows": total_rows,
+                "start_time": start_time,
+            }
+        )
+
     @staticmethod
     @shared_task(name="pje.capa")
     def pje_capa(  # noqa: D102
         current_task: ContextTask,
-        name: str,
-        system: str,
         storage_folder_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        _pid = str(current_task.request.id)
-        _start_time: datetime = formata_tempo(current_task.request.eta).strftime(
+        pid = str(current_task.request.id)
+        start_time: datetime = formata_tempo(current_task.request.eta).strftime(
             "%d/%m/%Y, %H:%M:%S"
         )
-        _keyword_args = kwargs.copy()
-        _task_message = subtask("log_message")
-        _task_download_files = subtask("crawjud.download_files")
-        _task_autenticacao = subtask("pje.autenticador")
-        _task_bot_data = subtask("crawjud.dataFrame")
-        _task_separa_regiao = subtask("pje.separar_regiao")
+        cls = Capa
 
-        _files_b64: list[DictFiles] = _task_download_files.apply_async(
+        files_b64: list[DictFiles] = cls.task_download_files.apply_async(
             kwargs={"storage_folder_name": storage_folder_name}
         ).wait_ready()
 
-        _task_message.apply_async(
-            kwargs={
-                "pid": _pid,
-                "message": "Abrindo planilha Excel...",
-                "row": 0,
-                "type_log": "log",
-                "total_rows": 0,
-                "start_time": _start_time,
-            }
-        )
-
-        xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", _files_b64))
+        xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
         if not xlsx_key:
             raise ExecutionError(
-                bot_execution_id=_pid, message="Nenhum arquivo Excel encontrado."
+                bot_execution_id=pid, message="Nenhum arquivo Excel encontrado."
             )
 
-        _bot_data: list[BotData] = _task_bot_data.apply_async(
+        bot_data: list[BotData] = cls.task_bot_data.apply_async(
             kwargs={"base91_planilha": xlsx_key[0]["file_base91str"]}
         ).wait_ready()
 
-        _task_message.apply_async(
-            kwargs={
-                "pid": _pid,
-                "message": "Planilha carregada!",
-                "row": 0,
-                "type_log": "info",
-                "total_rows": len(_bot_data),
-                "start_time": _start_time,
-            }
+        cls.enviar_mensagem_log(
+            pid=pid,
+            message="Planilha carregada!",
+            row=0,
+            type_log="info",
+            total_rows=len(bot_data),
+            start_time=start_time,
         )
 
-        regioes: DictSeparaRegiao = _task_separa_regiao.apply_async(
-            kwargs={"frame": _bot_data}
+        regioes: DictSeparaRegiao = cls.task_separa_regiao.apply_async(
+            kwargs={"frame": bot_data}
         ).wait_ready()
 
-        _position_process = regioes["position_process"]
-        _regiao_session: dict[str, DictReturnAuth] = {}
-        _tasks_queue_processos: list[AsyncResult] = []
-        _process = list(psutil.process_iter())
+        position_process = regioes["position_process"]
+        tasks_queue_processos: list[AsyncResult] = []
 
-        _total_rows = len(_bot_data)
+        total_rows = len(bot_data)
 
-        _task_message.apply_async(
-            kwargs={
-                "pid": _pid,
-                "message": "Realizando autenticação nos TRTs...",
-                "row": 0,
-                "type_log": "log",
-                "total_rows": len(_bot_data),
-                "start_time": _start_time,
-            }
+        cls.enviar_mensagem_log(
+            pid=pid,
+            message="Realizando autenticação nos TRTs...",
+            row=0,
+            type_log="log",
+            total_rows=len(bot_data),
+            start_time=start_time,
         )
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            _task_message.apply_async(
-                kwargs={
-                    "pid": _pid,
-                    "message": f"Autenticando no TRT {regiao}",
-                    "row": 0,
-                    "type_log": "log",
-                    "total_rows": _total_rows,
-                    "start_time": _start_time,
-                }
+            cls.enviar_mensagem_log(
+                pid=pid,
+                message=f"Autenticando no TRT {regiao}",
+                row=0,
+                type_log="log",
+                total_rows=total_rows,
+                start_time=start_time,
             )
-            autenticacao_data: TReturnAuth = _task_autenticacao.apply_async(
+            autenticacao_data: TReturnAuth = cls.task_autenticacao.apply_async(
                 kwargs={"regiao": regiao}
             ).wait_ready()
 
@@ -160,11 +161,11 @@ class Capa(ClassBot):  # noqa: D101
                 kw_args = dict(autenticacao_data)
                 kw_args.update({
                     "data": data_regiao,
-                    "pid": _pid,
+                    "pid": pid,
                     "regiao": regiao,
-                    "start_time": _start_time,
-                    "total_rows": _total_rows,
-                    "position_process": _position_process,
+                    "start_time": start_time,
+                    "total_rows": total_rows,
+                    "position_process": position_process,
                 })
 
                 # Inicia a fila de tarefas para processar os dados
@@ -173,19 +174,17 @@ class Capa(ClassBot):  # noqa: D101
                 ).apply_async(kwargs=kw_args)
 
                 # Armazena a tarefa na lista de tarefas
-                _tasks_queue_processos.append(_task_queue_processos)
+                tasks_queue_processos.append(_task_queue_processos)
                 _kill_browsermob()
 
                 # Envia mensagem de sucesso
-                _task_message.apply_async(
-                    kwargs={
-                        "pid": _pid,
-                        "message": "Autenticado com sucesso!",
-                        "row": 0,
-                        "type_log": "info",
-                        "total_rows": _total_rows,
-                        "start_time": _start_time,
-                    }
+                cls.enviar_mensagem_log(
+                    pid=pid,
+                    message="Autenticado com sucesso!",
+                    row=0,
+                    type_log="info",
+                    total_rows=total_rows,
+                    start_time=start_time,
                 )
 
     @staticmethod
