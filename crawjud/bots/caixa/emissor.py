@@ -18,12 +18,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
-from crawjud.bot.Utils import OtherUtils
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Emissor(CrawJUD):
+class OtherUtils: ...  # noqa: D101
+
+
+class Emissor(ClassBot):
     """Manage creation and processing of judicial deposit documents using the Emissor bot fully.
 
     Offer a range of functionalities to access deposit pages, handle login flows,
@@ -97,7 +99,9 @@ class Emissor(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -150,10 +154,15 @@ class Emissor(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.driver.get("https://depositojudicial.caixa.gov.br/sigsj_internet/depositos-judiciais/justica-estadual/")
+        self.driver.get(
+            "https://depositojudicial.caixa.gov.br/sigsj_internet/depositos-judiciais/justica-estadual/"
+        )
         sleep(0.5)
         list_opt: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'select[id="j_id5:filtroView:j_id6:tpDeposito"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'select[id="j_id5:filtroView:j_id6:tpDeposito"]',
+            )),
         )
         sleep(0.5)
         list_options = list_opt.find_elements(By.TAG_NAME, "option")
@@ -166,24 +175,35 @@ class Emissor(CrawJUD):
 
         sleep(0.5)
         captchainput: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'input[id="autoCaptcha"')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'input[id="autoCaptcha"',
+            )),
         )
         val_captcha = captchainput.get_attribute("value")
 
         inputcaptcha: WebElement = self.wait.until(
             ec.presence_of_element_located(
-                (By.CSS_SELECTOR, 'input[id="j_id5:filtroView:j_id6:j_id17:captchaView:cpatchaTextBox"]'),
+                (
+                    By.CSS_SELECTOR,
+                    'input[id="j_id5:filtroView:j_id6:j_id17:captchaView:cpatchaTextBox"]',
+                ),
             ),
         )
         inputcaptcha.send_keys(val_captcha.replace(",", ""))
 
-        next_btn = self.driver.find_element(By.CSS_SELECTOR, 'input[class="hand btnConfirmar"]')
+        next_btn = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[class="hand btnConfirmar"]'
+        )
         next_btn.click()
 
         sleep(2)
         next_btn: WebElement = self.wait.until(
             ec.presence_of_element_located(
-                (By.CSS_SELECTOR, 'a[id="j_id5:filtroView:mensagemView:j_id77:btnProsseguir'),
+                (
+                    By.CSS_SELECTOR,
+                    'a[id="j_id5:filtroView:mensagemView:j_id77:btnProsseguir',
+                ),
             ),
         )
         next_btn.click()
@@ -201,7 +221,10 @@ class Emissor(CrawJUD):
 
         lista_tribunal: WebElement = self.wait.until(
             ec.presence_of_element_located(
-                (By.CSS_SELECTOR, 'select[id="j_id5:filtroView:formFormulario:coTribunal"]'),
+                (
+                    By.CSS_SELECTOR,
+                    'select[id="j_id5:filtroView:formFormulario:coTribunal"]',
+                ),
             ),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_tribunal:
@@ -217,7 +240,10 @@ class Emissor(CrawJUD):
         self.prt()
 
         lista_comarca: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'select[id="j_id5:filtroView:formFormulario:coComarca"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'select[id="j_id5:filtroView:formFormulario:coComarca"]',
+            )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_comarca:
             item: WebElement = item
@@ -230,7 +256,10 @@ class Emissor(CrawJUD):
         self.type_log = "log"
         self.prt()
         lista_vara: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'select[id="j_id5:filtroView:formFormulario:coVara"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'select[id="j_id5:filtroView:formFormulario:coVara"]',
+            )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_vara:
             item: WebElement = item
@@ -243,7 +272,10 @@ class Emissor(CrawJUD):
         self.type_log = "log"
         self.prt()
         lista_agencia: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'select[id="j_id5:filtroView:formFormulario:coAgencia"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'select[id="j_id5:filtroView:formFormulario:coAgencia"]',
+            )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_agencia:
             item: WebElement = item
@@ -258,7 +290,9 @@ class Emissor(CrawJUD):
         and default deposit nature.
         """
         numprocess = self.bot_data.get("NUMERO_PROCESSO").split(".")
-        numproc_formated = f"{numprocess[0]}.{numprocess[1]}.{numprocess[3]}.{numprocess[4]}"
+        numproc_formated = (
+            f"{numprocess[0]}.{numprocess[1]}.{numprocess[3]}.{numprocess[4]}"
+        )
 
         self.interact.wait_caixa()
         self.message = "Informando numero do processo"
@@ -266,7 +300,10 @@ class Emissor(CrawJUD):
         self.prt()
         num_process: WebElement = self.wait.until(
             ec.presence_of_element_located(
-                (By.CSS_SELECTOR, 'input[id="j_id5:filtroView:formFormulario:nuProcessoCNJ"]'),
+                (
+                    By.CSS_SELECTOR,
+                    'input[id="j_id5:filtroView:formFormulario:nuProcessoCNJ"]',
+                ),
             ),
         )
         num_process.send_keys(numproc_formated)
@@ -341,7 +378,12 @@ class Emissor(CrawJUD):
             By.CSS_SELECTOR,
             'input[id="j_id5:filtroView:formFormulario:codDocAutor"]',
         )
-        doc_autor = str(self.bot_data.get("CPF_CNPJ_AUTOR")).replace("-", "").replace(".", "").replace("/", "")
+        doc_autor = (
+            str(self.bot_data.get("CPF_CNPJ_AUTOR"))
+            .replace("-", "")
+            .replace(".", "")
+            .replace("/", "")
+        )
         campo_doc_autor.send_keys(doc_autor)
 
         self.interact.wait_caixa()
@@ -381,7 +423,12 @@ class Emissor(CrawJUD):
             By.CSS_SELECTOR,
             'input[id="j_id5:filtroView:formFormulario:codDocReu"]',
         )
-        doc_reu = str(self.bot_data.get("CPF_CNPJ_REU")).replace(".", "").replace("-", "").replace("/", "")
+        doc_reu = (
+            str(self.bot_data.get("CPF_CNPJ_REU"))
+            .replace(".", "")
+            .replace("-", "")
+            .replace("/", "")
+        )
         campo_doc_reu.send_keys(doc_reu)
 
     def info_deposito(self) -> None:
@@ -429,14 +476,18 @@ class Emissor(CrawJUD):
         self.message = "Gerando documento"
         self.type_log = "log"
         self.prt()
-        make_id = self.driver.find_element(By.CSS_SELECTOR, 'input[id="j_id5:filtroView:formFormulario:j_id248"]')
+        make_id = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[id="j_id5:filtroView:formFormulario:j_id248"]'
+        )
         make_id.click()
 
         self.interact.wait_caixa()
         self.message = "Baixando documento"
         self.type_log = "log"
         self.prt()
-        download_pdf = self.driver.find_element(By.CSS_SELECTOR, 'a[id="j_id5:filtroView:formFormulario:j_id554"]')
+        download_pdf = self.driver.find_element(
+            By.CSS_SELECTOR, 'a[id="j_id5:filtroView:formFormulario:j_id554"]'
+        )
         download_pdf.click()
 
     def rename_pdf(self) -> str:
@@ -452,7 +503,9 @@ class Emissor(CrawJUD):
         pgto_name = self.bot_data.get("NOME_CUSTOM", "Guia De Depósito")
 
         numproc = self.bot_data.get("NUMERO_PROCESSO")
-        pdf_name = f"{pgto_name} - {numproc} - {self.bot_data.get('AUTOR')} - {self.pid}.pdf"
+        pdf_name = (
+            f"{pgto_name} - {numproc} - {self.bot_data.get('AUTOR')} - {self.pid}.pdf"
+        )
         sleep(10)
 
         caminho_old_pdf = os.path.join(self.output_dir_path, "guia_boleto.pdf")
