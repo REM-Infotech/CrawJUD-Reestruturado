@@ -6,6 +6,7 @@ Extract and manage process details from Projudi by scraping and formatting data.
 import re
 import shutil
 import time
+import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
@@ -16,8 +17,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError, FileError, ProcNotFoundError
+from crawjud.bot.common import ExecutionError
+from crawjud.bot.core import CrawJUD
 
 # from memory_profiler import profile
 # fp = open("memory_profiler_capa_projudi.log", "+w")
@@ -48,6 +49,25 @@ class Capa(CrawJUD):
         """
         return cls(*args, **kwargs)
 
+    def __init__(
+        self,
+        *args: str | int,
+        **kwargs: str | int,
+    ) -> None:
+        """Initialize the Capa instance and start authentication.
+
+        Args:
+            *args (tuple[str | int]): Positional arguments.
+            **kwargs (dict[str, str | int]): Keyword arguments.
+
+        """
+        super().__init__()
+        self.module_bot = __name__
+
+        super().setup(*args, **kwargs)
+        super().auth_bot()
+        self.start_time = time.perf_counter()
+
     def execution(self) -> None:
         """Execute the main processing loop to extract process information.
 
@@ -59,7 +79,7 @@ class Capa(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.is_stoped:
+            if self.isStoped:
                 break
 
             with suppress(Exception):
@@ -70,7 +90,22 @@ class Capa(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                self.tratamento_erros(exc=e)
+                self.logger.exception(str(e))
+                old_message = None
+
+                if old_message is None:
+                    old_message = self.message
+
+                message_error = str(e)
+
+                self.type_log = "error"
+                self.message_error = f"{message_error}. | Operação: {old_message}"
+                self.prt()
+
+                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+                self.append_error(self.bot_data)
+
+                self.message_error = None
 
         self.finalize_execution()
 
@@ -82,19 +117,10 @@ class Capa(CrawJUD):
 
         """
         try:
-            self.prt.print_msg(
-                f"Buscando processo nº {self.bot_data['NUMERO_PROCESSO']}"
-            )
-            search = self.search_bot.search(self.bot_data)
-            if search is not True:
-                raise ProcNotFoundError(self.pid, message="Processo não encontrado!")
-
-            message = "Processo encontrado"
-            typelog = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=typelog
-            )
+            search = self.search_bot()
             trazer_copia = self.bot_data.get("TRAZER_COPIA", "não")
+            if search is not True:
+                raise ExecutionError(message="Processo não encontrado!")
 
             self.driver.refresh()
             data = self.get_process_informations()
@@ -102,20 +128,16 @@ class Capa(CrawJUD):
             if trazer_copia and trazer_copia.lower() == "sim":
                 data = self.copia_pdf(data)
 
-            self.append_success(
-                [data], "Informações do processo extraidas com sucesso!"
-            )
+            self.append_success([data], "Informações do processo extraidas com sucesso!")
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception(str(e))
+            raise ExecutionError(e=e) from e
 
-    def copia_pdf(
-        self, data: dict[str, str | int | datetime]
-    ) -> dict[str, str | int | datetime]:
+    def copia_pdf(self, data: dict[str, str | int | datetime]) -> dict[str, str | int | datetime]:
         """Extract the movements of the legal proceedings and saves a PDF copy."""
-        id_proc = self.driver.find_element(
-            By.CSS_SELECTOR, 'input[name="id"]'
-        ).get_attribute("value")
+        id_proc = self.driver.find_element(By.CSS_SELECTOR, 'input[name="id"]').get_attribute("value")
 
         btn_exportar = self.wait.until(
             ec.presence_of_element_located((
@@ -153,17 +175,13 @@ class Capa(CrawJUD):
             ).click()
 
         def export() -> None:
-            message = "Baixando cópia integral do processo..."
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = "Baixando cópia integral do processo..."
+            self.type_log = "log"
+            self.prt()
             time.sleep(5)
 
             n_processo = self.bot_data.get("NUMERO_PROCESSO")
-            path_pdf = Path(self.output_dir_path).joinpath(
-                f"Cópia Integral - {n_processo} - {self.pid}.pdf"
-            )
+            path_pdf = Path(self.output_dir_path).joinpath(f"Cópia Integral - {n_processo} - {self.pid}.pdf")
 
             # # Get cookies from ChromeDriver session
             # cookies = {cookie["name"]: cookie["value"] for cookie in self.driver.get_cookies()}
@@ -206,7 +224,16 @@ class Capa(CrawJUD):
             #     response = requests.post(url=self.driver.current_url, data=form_values, cookies=cookies, timeout=60)
 
             # except Exception as e:
-            #   raise e
+            #   self.logger.exception(
+            #     "".join(
+            #         traceback.format_exception(
+            #             e
+            #             value=e,
+            #             tb=e.__traceback__,
+            #         )
+            #     )
+            # )
+            #     raise ExecutionError(f"Erro ao baixar cópia integral do processo: {e}") from e
 
             # if response.status_code == 200:
             #     with open(path_pdf, "wb") as f:
@@ -218,9 +245,7 @@ class Capa(CrawJUD):
             # elif response.status_code != 200:
             # Fallback to ChromeDriver download if requests fails
 
-            btn_exportar = self.driver.find_element(
-                By.CSS_SELECTOR, 'input[name="btnExportar"]'
-            )
+            btn_exportar = self.driver.find_element(By.CSS_SELECTOR, 'input[name="btnExportar"]')
             btn_exportar.click()
 
             count = 0
@@ -235,9 +260,7 @@ class Capa(CrawJUD):
                 count += 1
 
             if not path_copia.exists():
-                raise FileError(
-                    message="Arquivo não encontrado!", bot_execution_id=self.pid
-                )
+                raise ExecutionError(message="Arquivo não encontrado!")
 
             shutil.move(path_copia, path_pdf)
 
@@ -271,9 +294,7 @@ class Capa(CrawJUD):
 
             grau = int(grau)
             process_info: dict[str, str | int | datetime] = {}
-            process_info.update({
-                "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")
-            })
+            process_info.update({"NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")})
 
             def format_vl_causa(valor_causa: str) -> float | str:
                 """Format the value of the cause by removing currency symbols and converting to float.
@@ -326,15 +347,11 @@ class Capa(CrawJUD):
 
                 return valor_causa
 
-            message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
+            self.type_log = "log"
+            self.prt()
 
-            btn_infogeral = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_infogeral
-            )
+            btn_infogeral = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_infogeral)
             btn_infogeral.click()
 
             includecontent: list[WebElement] = []
@@ -346,26 +363,15 @@ class Capa(CrawJUD):
                 element_content = self.elements.segunda_instform
                 element_content2 = element_content
 
-            includecontent.append(
-                self.driver.find_element(By.CSS_SELECTOR, element_content)
-            )
-            includecontent.append(
-                self.wait.until(
-                    ec.presence_of_element_located((
-                        By.CSS_SELECTOR,
-                        element_content2,
-                    ))
-                )
-            )
+            includecontent.append(self.driver.find_element(By.CSS_SELECTOR, element_content))
+            includecontent.append(self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, element_content2))))
 
             for incl in includecontent:
                 with suppress(StaleElementReferenceException):
                     itens = list(
                         filter(
                             lambda x: len(x.find_elements(By.TAG_NAME, "td")) > 1,
-                            incl.find_element(By.TAG_NAME, "tbody").find_elements(
-                                By.TAG_NAME, "tr"
-                            ),
+                            incl.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr"),
                         ),
                     )
 
@@ -373,9 +379,7 @@ class Capa(CrawJUD):
                         labels = list(
                             filter(
                                 lambda x: x.text.strip() != "",
-                                item.find_elements(
-                                    By.CSS_SELECTOR, "td.label, td.labelRadio > label"
-                                ),
+                                item.find_elements(By.CSS_SELECTOR, "td.label, td.labelRadio > label"),
                             ),
                         )
                         # para teste
@@ -384,8 +388,7 @@ class Capa(CrawJUD):
 
                         values = list(
                             filter(
-                                lambda x: x.text.strip() != ""
-                                and not x.get_attribute("class"),
+                                lambda x: x.text.strip() != "" and not x.get_attribute("class"),
                                 item.find_elements(By.TAG_NAME, "td"),
                             ),
                         )
@@ -395,11 +398,7 @@ class Capa(CrawJUD):
                                 continue
 
                             not_formated_label = label.text
-                            label_text = (
-                                self.format_string(label.text)
-                                .upper()
-                                .replace(" ", "_")
-                            )
+                            label_text = self.format_string(label.text).upper().replace(" ", "_")
 
                             indice = labels.index(label)
                             value_text = values[indice].text
@@ -407,18 +406,12 @@ class Capa(CrawJUD):
                             if label_text == "VALOR_DA_CAUSA":
                                 value_text = format_vl_causa(value_text)
 
-                            elif (
-                                "DATA" in label_text
-                                or "DISTRIBUICAO" in label_text
-                                or "AUTUACAO" in label_text
-                            ):
+                            elif "DATA" in label_text or "DISTRIBUICAO" in label_text or "AUTUACAO" in label_text:
                                 if " às " in value_text:
                                     value_text = value_text.split(" às ")[0]
 
                                 if self.text_is_a_date(value_text) is True:
-                                    value_text = datetime.strptime(
-                                        value_text, "%d/%m/%Y"
-                                    )
+                                    value_text = datetime.strptime(value_text, "%d/%m/%Y")
 
                             elif not_formated_label != value_text:
                                 value_text = " ".join(value_text.split(" ")).upper()
@@ -436,50 +429,32 @@ class Capa(CrawJUD):
             btn_partes.click()
 
             try:
-                includecontent = self.driver.find_element(
-                    By.ID, self.elements.includecontent_capa
-                )
+                includecontent = self.driver.find_element(By.ID, self.elements.includecontent_capa)
             except Exception:
                 time.sleep(3)
                 self.driver.refresh()
                 time.sleep(1)
-                includecontent = self.driver.find_element(
-                    By.ID, self.elements.includecontent_capa
-                )
+                includecontent = self.driver.find_element(By.ID, self.elements.includecontent_capa)
 
-            result_table = includecontent.find_elements(
-                By.CLASS_NAME, self.elements.resulttable
-            )
+            result_table = includecontent.find_elements(By.CLASS_NAME, self.elements.resulttable)
 
             for pos, parte_info in enumerate(result_table):
                 h4_name = list(
-                    filter(
-                        lambda x: x.text != "" and x is not None,
-                        includecontent.find_elements(By.TAG_NAME, "h4"),
-                    ),
+                    filter(lambda x: x.text != "" and x is not None, includecontent.find_elements(By.TAG_NAME, "h4")),
                 )
-                tipo_parte = (
-                    self.format_string(h4_name[pos].text).replace(" ", "_").upper()
-                )
+                tipo_parte = self.format_string(h4_name[pos].text).replace(" ", "_").upper()
 
                 nome_colunas = []
 
-                for column in parte_info.find_element(
-                    By.TAG_NAME, "thead"
-                ).find_elements(By.TAG_NAME, "th"):
+                for column in parte_info.find_element(By.TAG_NAME, "thead").find_elements(By.TAG_NAME, "th"):
                     nome_colunas.append(column.text.upper())
 
-                for parte in parte_info.find_element(
-                    By.TAG_NAME, "tbody"
-                ).find_elements(
+                for parte in parte_info.find_element(By.TAG_NAME, "tbody").find_elements(
                     By.XPATH,
                     self.elements.table_moves,
                 ):
                     for pos_, nome_coluna in enumerate(nome_colunas):
-                        key = "_".join((
-                            self.format_string(nome_coluna).replace(" ", "_").upper(),
-                            tipo_parte,
-                        ))
+                        key = "_".join((self.format_string(nome_coluna).replace(" ", "_").upper(), tipo_parte))
                         value = parte.find_elements(By.TAG_NAME, "td")[pos_].text
 
                         if value:
@@ -495,4 +470,5 @@ class Capa(CrawJUD):
             return process_info
 
         except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
             raise e

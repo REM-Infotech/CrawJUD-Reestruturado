@@ -4,19 +4,18 @@ Manage participant processing in the Projudi system by interacting with process 
 """
 
 import os
+import time
+import traceback
 from contextlib import suppress
 from typing import Self
 
-from selenium.common.exceptions import (  # noqa: F401
-    NoSuchElementException,
-    NoSuchWindowException,
-)
+from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException  # noqa: F401
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from urllib3.exceptions import MaxRetryError  # noqa: F401
 
-from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.bot.common import ExecutionError
+from crawjud.bot.core import CrawJUD
 
 
 class ProcParte(CrawJUD):
@@ -44,14 +43,33 @@ class ProcParte(CrawJUD):
         """
         return cls(*args, **kwargs)
 
+    def __init__(
+        self,
+        *args: str | int,
+        **kwargs: str | int,
+    ) -> None:
+        """Initialize the ProcParte instance and start authentication.
+
+        Args:
+            *args (tuple[str | int]): Positional arguments.
+            **kwargs (dict[str, str | int]): Keyword arguments.
+
+        """
+        super().__init__()
+        self.module_bot = __name__
+
+        super().setup(*args, **kwargs)
+        super().auth_bot()
+        self.start_time = time.perf_counter()
+        self.data_append = []
+
     def execution(self) -> None:
         """Execute the main loop for participant processing continuously.
 
         Continuously process queues until stopping, while handling session expirations and errors.
         """
-        self.data_append = []
         self.graphicMode = "bar"
-        while not self.is_stoped:
+        while not self.isStoped:
             with suppress(Exception):
                 if self.driver.title.lower() == "a sessao expirou":
                     self.auth_bot()
@@ -60,7 +78,17 @@ class ProcParte(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                self.tratamento_erros(exc=e)
+                old = self.message
+                message_error = str(e)
+
+                self.type_log = "error"
+                self.message_error = f"{message_error}. | Operação: {old}"
+                self.prt()
+
+                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+                self.append_error(self.bot_data)
+
+                self.message_error = None
 
         self.finalize_execution()
 
@@ -72,10 +100,42 @@ class ProcParte(CrawJUD):
 
         """
         try:
-            self.queue()
+            for vara in self.varas:
+                self.vara: str = vara
+                search = self.search_bot()
+                if search is True:
+                    self.get_process_list()
+
+                with suppress(Exception):
+                    if self.driver.title.lower() == "a sessao expirou":
+                        self.auth_bot()
 
         except Exception as e:
-            self.tratamento_erros(exc=e)
+            self.logger.exception("".join(traceback.format_exception(e)))
+            old_message = None
+
+            # check_window = any([isinstance(e, NoSuchWindowException), isinstance(e, MaxRetryError)])
+            # if check_window:
+            #     with suppress(Exception):
+            #         self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+
+            #         old_message = self.message
+
+            #         self.auth_bot()
+
+            if old_message is None:
+                old_message = self.message
+            message_error = str(e)
+
+            self.type_log = "error"
+            self.message_error = f"{message_error}. | Operação: {old_message}"
+            self.prt()
+
+            self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+            self.append_error(self.bot_data)
+
+            self.message_error = None
+            self.queue()
 
     def get_process_list(self) -> None:
         """Retrieve and process the list of processes from the web interface.
@@ -96,21 +156,20 @@ class ProcParte(CrawJUD):
                     './/tr[contains(@class, "odd") or contains(@class, "even")]',
                 )
 
-            if list_processos and not self.is_stoped:
+            if list_processos and not self.isStoped:
                 self.use_list_process(list_processos)
 
                 with suppress(NoSuchElementException):
-                    next_page = self.driver.find_element(
-                        By.CLASS_NAME, "navRight"
-                    ).find_element(
+                    next_page = self.driver.find_element(By.CLASS_NAME, "navRight").find_element(
                         By.XPATH,
                         self.elements.exception_arrow,
                     )
 
+                self.type_log = "info"
                 self.append_success(
                     self.data_append,
                     "Processos salvos na planilha!",
-                    fileN=os.path.basename(self.planilha_sucesso),
+                    fileN=os.path.basename(self.path),
                 )
                 if next_page:
                     next_page.click()
@@ -121,7 +180,8 @@ class ProcParte(CrawJUD):
                     self.auth_bot()
 
         except Exception as e:
-            raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def use_list_process(self, list_processos: list[WebElement]) -> None:
         """Extract and log details from each process element in the provided list.
@@ -140,11 +200,7 @@ class ProcParte(CrawJUD):
                 anoref = numero_processo.split(".")[1]
 
             try:
-                polo_ativo = (
-                    processo.find_elements(By.TAG_NAME, "td")[2]
-                    .find_elements(By.TAG_NAME, "td")[1]
-                    .text
-                )
+                polo_ativo = processo.find_elements(By.TAG_NAME, "td")[2].find_elements(By.TAG_NAME, "td")[1].text
             except Exception:
                 polo_ativo = "Não consta ou processo em sigilo"
 
@@ -169,8 +225,6 @@ class ProcParte(CrawJUD):
                 },
             )
             self.row += 1
-            message = f"Processo {numero_processo} salvo!"
-            type_log = "success"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.message = f"Processo {numero_processo} salvo!"
+            self.type_log = "success"
+            self.prt()

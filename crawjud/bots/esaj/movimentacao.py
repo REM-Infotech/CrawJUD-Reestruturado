@@ -4,6 +4,8 @@ This module manages movement operations on the Esaj system using the CrawJUD fra
 """
 
 import re
+import time
+import traceback
 from contextlib import suppress
 from datetime import datetime
 from time import sleep
@@ -13,8 +15,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.core import CrawJUD
-from crawjud.exceptions.bot import MoveNotFoundError, ProcNotFoundError
+from crawjud.bot.common import ExecutionError
+from crawjud.bot.core import CrawJUD
 
 
 class Movimentacao(CrawJUD):
@@ -51,6 +53,25 @@ class Movimentacao(CrawJUD):
         """
         return cls(*args, **kwargs)
 
+    def __init__(self, *args: str | int, **kwargs: str | int) -> None:
+        """Construct the Movimentacao instance.
+
+        Sets up the crawler by configuring authentication and environment.
+
+        Args:
+            *args: Positional arguments for setup.
+            **kwargs: Keyword arguments for configuration.
+
+        # Inline: Leverage parent classes for setup and authentication.
+
+        """
+        super().__init__()
+        self.module_bot = __name__
+
+        super().setup(*args, **kwargs)
+        super().auth_bot()
+        self.start_time = time.perf_counter()
+
     def execution(self) -> None:
         """Execute movement processing.
 
@@ -68,7 +89,7 @@ class Movimentacao(CrawJUD):
         for pos, value in enumerate(frame):
             self.row = pos + 1
             self.bot_data = value
-            if self.is_stoped:
+            if self.isStoped:
                 break
 
             with suppress(Exception):
@@ -79,7 +100,29 @@ class Movimentacao(CrawJUD):
                 self.queue()
 
             except Exception as e:
-                self.tratamento_erros(exc=e)
+                old_message = None
+                windows = self.driver.window_handles
+
+                if len(windows) == 0:
+                    with suppress(Exception):
+                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+
+                    old_message = self.message
+
+                    self.auth_bot()
+
+                if old_message is None:
+                    old_message = self.message
+                message_error = str(e)
+
+                self.type_log = "error"
+                self.message_error = f"{message_error}. | Operação: {old_message}"
+                self.prt()
+
+                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
+                self.append_error(self.bot_data)
+
+                self.message_error = None
 
         self.finalize_execution()
 
@@ -90,42 +133,47 @@ class Movimentacao(CrawJUD):
             ExecutionError: If processing fails during movement queue operations.
 
         """
-        self.appends = []
-        self.another_append: list[tuple[dict, str, str]] = []
-        self.resultados = []
+        try:
+            self.appends = []
+            self.another_append: list[tuple[dict, str, str]] = []
+            self.resultados = []
 
-        list_botdata = list(self.bot_data.items())
-        for key, value in list_botdata:
-            if value is None:
-                self.bot_data.pop(key)
+            list_botdata = list(self.bot_data.items())
+            for key, value in list_botdata:
+                if value is None:
+                    self.bot_data.pop(key)
 
-        search = self.search_bot.search(self.bot_data)
+            search = self.search_bot()
 
-        if search is not True:
-            raise ProcNotFoundError(
-                message="Processo não encontrado!", bot_execution_id=self.pid
-            )
+            if search is not True:
+                raise ExecutionError(message="Processo não encontrado!")
 
-        message = "Buscando movimentações"
-        type_log = "log"
-        self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
-        )
+            self.message = "Buscando movimentações"
+            self.type_log = "log"
+            self.prt()
 
-        self.setup_config()
+            self.setup_config()
 
-        if len(self.appends) > 0:
-            type_log = "log"
-            self.append_success(self.appends)
+            if len(self.appends) > 0:
+                self.type_log = "log"
+                self.append_success(self.appends)
 
-        if len(self.another_append) > 0:
-            for data, msg, fileN in self.another_append:  # noqa: N806
-                type_log = "info"
-                self.append_success([data], msg, fileN)
+            if len(self.another_append) > 0:
+                for data, msg, fileN in self.another_append:  # noqa: N806
+                    self.type_log = "info"
+                    self.append_success([data], msg, fileN)
 
-        elif len(self.appends) == 0 and len(self.another_append) == 0:
-            message = "Nenhuma movimentação encontrada"
-            raise MoveNotFoundError(message=message, bot_execution_id=self.pid)
+            elif len(self.appends) == 0 and len(self.another_append) == 0:
+                self.message = "Nenhuma movimentação encontrada"
+                self.type_log = "error"
+                self.prt()
+                data = self.bot_data
+                data.update({"MOTIVO_ERRO": self.message})
+                self.append_error(data)
+
+        except Exception as e:
+            self.logger.exception("".join(traceback.format_exception(e)))
+            raise ExecutionError(e=e) from e
 
     def setup_config(self) -> None:
         """Configure movement scraping by setting page size, table moves, and keywords.
@@ -139,9 +187,7 @@ class Movimentacao(CrawJUD):
         self.set_page_size()
         self.set_tablemoves()
 
-        keyword = self.bot_data.get(
-            "PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*")
-        )
+        keyword = self.bot_data.get("PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*"))
 
         if keyword != "*":
             keywords.extend(keyword.split(",") if "," in keyword else [keyword])
@@ -154,9 +200,7 @@ class Movimentacao(CrawJUD):
             encontrado = self.scrap_moves(keyword)
 
         if encontrado is False:
-            raise ProcNotFoundError(
-                message="Nenhuma movimentação encontrada", bot_execution_id=self.pid
-            )
+            raise ExecutionError(message="Nenhuma movimentação encontrada")
 
     def filter_moves(self, move: WebElement) -> bool:
         """Filter a movement element based on given date and keyword criteria.
@@ -262,10 +306,7 @@ class Movimentacao(CrawJUD):
                     keyword.lower() == text_mov.split("\n")[0].lower(),
                     keyword.lower() == text_mov.lower(),
                     keyword.lower() in text_mov.lower(),
-                    self.similaridade(
-                        keyword.lower(), text_mov.split("\n")[0].lower()
-                    )
-                    > 0.8,
+                    self.similaridade(keyword.lower(), text_mov.split("\n")[0].lower()) > 0.8,
                 ]
             )
 
@@ -292,11 +333,7 @@ class Movimentacao(CrawJUD):
 
             return intimado_chk
 
-        resultados = all([
-            data_check(data_mov),
-            text_check(text_mov),
-            check_intimado(),
-        ])
+        resultados = all([data_check(data_mov), text_check(text_mov), check_intimado()])
 
         return resultados
 
@@ -326,9 +363,7 @@ class Movimentacao(CrawJUD):
 
         message_.append(f'\nPALAVRA_CHAVE: <span class="fw-bold">{keyword}</span>')
         if data_inicio:
-            message_.append(
-                f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>'
-            )
+            message_.append(f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>')
         if data_fim:
             message_.append(f'\nDATA_FIM: <span class="fw-bold">{data_fim}</span>')
 
@@ -353,30 +388,21 @@ class Movimentacao(CrawJUD):
             _msg_ += "\n====================================================\n"
             message_.append(_msg_)
 
-        message = "".join(message_)
+        self.message = "".join(message_)
 
-        type_log = "info"
-        self.prt.print_msg(
-            message=message, pid=self.pid, row=self.row, type_log=type_log
-        )
+        self.type_log = "info"
+        self.prt()
 
         """ Checagens dentro do Loop de movimentações """
 
         def check_others(text_mov: str) -> tuple[bool, bool, str, bool, bool]:
-            save_another_file = (
-                str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
-            )
+            save_another_file = str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
 
             mov = ""
             mov_chk = False
-            trazer_teor = (
-                str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
-            )
+            trazer_teor = str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
 
-            patterns = [
-                r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)",
-                r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)",
-            ]
+            patterns = [r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)", r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)"]
             for pattern in patterns:
                 match = re.match(pattern, text_mov)
 
@@ -397,9 +423,7 @@ class Movimentacao(CrawJUD):
             data_mov = str(itensmove[2].text.split(" ")[0]).replace(" ", "")
 
             """ Outros Checks """
-            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(
-                text_mov
-            )
+            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(text_mov)
 
             nome_mov = str(itensmove[3].find_element(By.TAG_NAME, "b").text)
             movimentador = itensmove[4].text
@@ -440,41 +464,29 @@ class Movimentacao(CrawJUD):
             ms_ = [f'Movimentação "{nome_mov}" salva na planilha!']
             if keyword != "*":
                 ms_.append(f" Parâmetro: {keyword}")
-            message = "".join(ms_)
+            self.message = "".join(ms_)
 
-            type_log = "info"
-            self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
-            )
+            self.type_log = "info"
+            self.prt()
 
             self.appends.append(data)
 
     def set_page_size(self) -> None:
         """Set the page size for movement scraping."""
         try:
-            self.driver.execute_script(
-                'document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"'
-            )
+            self.driver.execute_script('document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"')
 
         except Exception:
-            self.driver.execute_script(
-                'document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"'
-            )
+            self.driver.execute_script('document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"')
 
     def set_tablemoves(self) -> None:
         """Set the table moves element."""
         try:
-            table_moves = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.movimentacoes
-            )
+            table_moves = self.driver.find_element(By.CSS_SELECTOR, self.elements.movimentacoes)
         except Exception:
-            table_moves = self.driver.find_element(
-                By.ID, self.elements.ultimas_movimentacoes
-            )
+            table_moves = self.driver.find_element(By.ID, self.elements.ultimas_movimentacoes)
 
-        self.table_moves = table_moves.find_elements(
-            By.XPATH, self.elements.table_moves
-        )
+        self.table_moves = table_moves.find_elements(By.XPATH, self.elements.table_moves)
 
     def get_moves(self) -> None:
         """Retrieve movement information.
@@ -484,10 +496,7 @@ class Movimentacao(CrawJUD):
         # Inline: Scroll to element, reveal table, then iterate through rows.
         """
         show_all: WebElement = self.wait.until(
-            ec.presence_of_element_located((
-                By.CSS_SELECTOR,
-                'a[id="linkmovimentacoes"]',
-            )),
+            ec.presence_of_element_located((By.CSS_SELECTOR, 'a[id="linkmovimentacoes"]')),
         )
 
         self.interact.scroll_to(show_all)
@@ -501,20 +510,12 @@ class Movimentacao(CrawJUD):
         sleep(0.5)
 
         try:
-            table_moves = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.movimentacoes
-            )
-            self.driver.execute_script(
-                'document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"'
-            )
+            table_moves = self.driver.find_element(By.CSS_SELECTOR, self.elements.movimentacoes)
+            self.driver.execute_script('document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"')
 
         except Exception:
-            table_moves = self.driver.find_element(
-                By.ID, self.elements.ultimas_movimentacoes
-            )
-            self.driver.execute_script(
-                'document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"'
-            )
+            table_moves = self.driver.find_element(By.ID, self.elements.ultimas_movimentacoes)
+            self.driver.execute_script('document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"')
 
         itens = table_moves.find_elements(By.TAG_NAME, "tr")
 
@@ -525,11 +526,9 @@ class Movimentacao(CrawJUD):
             termos = palavra_chave.replace(", ", ",").split(",")
 
         for termo in termos:
-            message = f'Buscando movimentações que contenham "{termo}"'
-            type_log = "log"
-            self.prt.print_msg(
-                message=message, type_log=type_log, row=self.row, pid=self.pid
-            )
+            self.message = f'Buscando movimentações que contenham "{termo}"'
+            self.type_log = "log"
+
             for item in itens:
                 td_tr = item.find_elements(By.TAG_NAME, "td")
                 mov = td_tr[2].text
@@ -539,17 +538,8 @@ class Movimentacao(CrawJUD):
 
                     with suppress(Exception):
                         if type(data_mov) is str:
-                            data_mov = datetime.strptime(
-                                data_mov.replace("/", "-"), "%d-%m-%Y"
-                            )
+                            data_mov = datetime.strptime(data_mov.replace("/", "-"), "%d-%m-%Y")
 
                     name_mov = mov.split("\n")[0]
                     text_mov = td_tr[2].find_element(By.TAG_NAME, "span").text
-                    self.appends.append([
-                        self.bot_data.get("NUMERO_PROCESSO"),
-                        data_mov,
-                        name_mov,
-                        text_mov,
-                        "",
-                        "",
-                    ])
+                    self.appends.append([self.bot_data.get("NUMERO_PROCESSO"), data_mov, name_mov, text_mov, "", ""])
