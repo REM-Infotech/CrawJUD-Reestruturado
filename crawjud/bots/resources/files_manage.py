@@ -11,6 +11,7 @@ from os import path
 from pathlib import Path
 
 import base91
+from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
 from crawjud import work_dir
@@ -47,7 +48,7 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     _data_json: dict[str, str] = json.loads(config_file.data)
 
     if _data_json.get("xlsx"):
-        _xlsx_name = _data_json.get("xlsx")
+        _xlsx_name = secure_filename(_data_json.get("xlsx"))
         _path_minio = path.join(_folder_temp, _xlsx_name)
         file_xlsx = storage.bucket.get_object(_path_minio)
         file_base91str = base91.encode(file_xlsx.data)
@@ -65,6 +66,7 @@ def download_files(storage_folder_name: str) -> list[DictFiles]:
     if _data_json.get("otherfiles"):
         files_list: list[str] = _data_json.get("otherfiles")
         for file in files_list:
+            file = secure_filename(file)
             _path_minio = path.join(_folder_temp, file)
             _file = storage.bucket.get_object(_path_minio)
             _suffix = Path(file).suffix

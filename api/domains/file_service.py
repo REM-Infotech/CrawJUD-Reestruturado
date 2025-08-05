@@ -12,6 +12,7 @@ from clear import clear
 from quart import request, session
 from tqdm import tqdm
 from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 from utils.storage import Storage
 
@@ -66,7 +67,7 @@ class FileService:
             if _end >= file_size:
                 async with aiofiles.open(file_path, "rb") as f:
                     _data = io.BytesIO(await f.read())
-                    dest_path = path.join(sid.upper(), file_name)
+                    dest_path = path.join(sid.upper(), secure_filename(file_name))
                     storage.put_object(
                         object_name=dest_path,
                         data=_data,
