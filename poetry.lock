@@ -2505,14 +2505,14 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.98.0"
+version = "1.99.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "openai-1.98.0-py3-none-any.whl", hash = "sha256:b99b794ef92196829120e2df37647722104772d2a74d08305df9ced5f26eae34"},
-    {file = "openai-1.98.0.tar.gz", hash = "sha256:3ee0fcc50ae95267fd22bd1ad095ba5402098f3df2162592e68109999f685427"},
+    {file = "openai-1.99.0-py3-none-any.whl", hash = "sha256:9d762c299eba9b0b3a55c3905e8457520e73a7601a258b763aa046475fac2b98"},
+    {file = "openai-1.99.0.tar.gz", hash = "sha256:7b985693da4dc9783394b785212bb67a65352cb6b867b1756b0e5e8321b4aba9"},
 ]
 
 [package.dependencies]
@@ -4006,14 +4006,14 @@ wsproto = ">=0.14"
 
 [[package]]
 name = "types-cffi"
-version = "1.17.0.20250801"
+version = "1.17.0.20250805"
 description = "Typing stubs for cffi"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "types_cffi-1.17.0.20250801-py3-none-any.whl", hash = "sha256:67c6b271253efcc7f37938873cb3d56ee47dc3536cfa3dd75e14aec64358abe0"},
-    {file = "types_cffi-1.17.0.20250801.tar.gz", hash = "sha256:3c401b22f45b7873e66586c00c2722415d6138e8e89cdc9b030e68337796d66a"},
+    {file = "types_cffi-1.17.0.20250805-py3-none-any.whl", hash = "sha256:b8e891fc3dcaa41a83f2a20f01ce88ec6e51a058889613306c2690d73b22e8d5"},
+    {file = "types_cffi-1.17.0.20250805.tar.gz", hash = "sha256:0cfb62718c8a1a612d709c4eff186e8fb6f024be0da2bc3f9a8763ebf34772d0"},
 ]
 
 [package.dependencies]
@@ -4156,14 +4156,14 @@ files = [
 
 [[package]]
 name = "virtualenv"
-version = "20.33.0"
+version = "20.33.1"
 description = "Virtual Python Environment builder"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "virtualenv-20.33.0-py3-none-any.whl", hash = "sha256:106b6baa8ab1b526d5a9b71165c85c456fbd49b16976c88e2bc9352ee3bc5d3f"},
-    {file = "virtualenv-20.33.0.tar.gz", hash = "sha256:47e0c0d2ef1801fce721708ccdf2a28b9403fa2307c3268aebd03225976f61d2"},
+    {file = "virtualenv-20.33.1-py3-none-any.whl", hash = "sha256:07c19bc66c11acab6a5958b815cbcee30891cd1c2ccf53785a28651a0d8d8a67"},
+    {file = "virtualenv-20.33.1.tar.gz", hash = "sha256:1b44478d9e261b3fb8baa5e74a0ca3bc0e05f21aa36167bf9cbf850e542765b8"},
 ]
 
 [package.dependencies]
