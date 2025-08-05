@@ -10,7 +10,7 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
-from models.logs import CachedExecution
+from utils.models.logs import CachedExecution
 from utils.storage import Storage
 
 if TYPE_CHECKING:

@@ -11,7 +11,7 @@ import click
 import redis
 from dotenv import load_dotenv
 
-from models.logs import ModelRedisHandler
+from utils.models.logs import ModelRedisHandler
 
 
 class RedisHandler(logging.Handler):

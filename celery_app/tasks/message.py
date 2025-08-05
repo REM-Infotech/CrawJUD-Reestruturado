@@ -31,7 +31,7 @@ from socketio import AsyncSimpleClient
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
-from models.logs import MessageLogDict
+from utils.models.logs import MessageLogDict
 
 if TYPE_CHECKING:
     pass
