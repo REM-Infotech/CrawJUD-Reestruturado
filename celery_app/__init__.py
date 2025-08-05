@@ -1,5 +1,6 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
+import importlib
 import logging
 import re
 from logging.config import dictConfig
@@ -10,7 +11,6 @@ from typing import AnyStr
 from celery.signals import after_setup_logger
 
 from addons.logger import dict_config
-from celery_app.addons import worker_name_generator as worker_name_generator
 from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
 
@@ -70,7 +70,7 @@ def make_celery() -> Celery:
         Celery: Configured Celery instance.
 
     """
-    import tasks  # noqa: F401
+    importlib.import_module("celery_app.tasks", __package__)
 
     config = Config.load_config()
 
