@@ -26,13 +26,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 type_doc = {"11": "cpf", "14": "cnpj"}
 
 
-class Cadastro(CrawJUD):
+class Cadastro(ClassBot):
     """The Cadastro class extends CrawJUD to manage registration tasks within the application.
 
     Attributes:
@@ -109,7 +109,9 @@ class Cadastro(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -151,14 +153,20 @@ class Cadastro(CrawJUD):
             search = self.search_bot()
 
             if search is True:
-                self.append_success([bot_data.get("NUMERO_PROCESSO"), "Processo já cadastrado!", pid])
+                self.append_success([
+                    bot_data.get("NUMERO_PROCESSO"),
+                    "Processo já cadastrado!",
+                    pid,
+                ])
 
             elif search is not True:
                 self.message = "Processo não encontrado, inicializando cadastro..."
                 self.type_log = "log"
                 prt()
 
-                btn_newproc = driver.find_element(By.CSS_SELECTOR, elements.botao_novo)
+                btn_newproc = driver.find_element(
+                    By.CSS_SELECTOR, elements.botao_novo
+                )
                 btn_newproc.click()
 
                 start_time = time.perf_counter()
@@ -191,7 +199,9 @@ class Cadastro(CrawJUD):
                 minutes = int(splitcalc[0])
                 seconds = int(float(f"0.{splitcalc[1]}") * 60)
 
-                self.message = f"Formulário preenchido em {minutes} minutos e {seconds} segundos"
+                self.message = (
+                    f"Formulário preenchido em {minutes} minutos e {seconds} segundos"
+                )
                 self.type_log = "log"
                 prt()
 
@@ -220,7 +230,9 @@ class Cadastro(CrawJUD):
         text = str(self.bot_data.get("AREA_DIREITO"))
         sleep(0.5)
 
-        element_area_direito = wait.until(ec.presence_of_element_located((By.XPATH, self.elements.css_label_area)))
+        element_area_direito = wait.until(
+            ec.presence_of_element_located((By.XPATH, self.elements.css_label_area))
+        )
         self.select2_elaw(element_area_direito, text)
         self.interact.sleep_load('div[id="j_id_47"]')
 
@@ -243,7 +255,9 @@ class Cadastro(CrawJUD):
         text = str(self.bot_data.get("SUBAREA_DIREITO"))
         sleep(0.5)
 
-        element_subarea = wait.until(ec.presence_of_element_located((By.XPATH, self.elements.comboareasub_css)))
+        element_subarea = wait.until(
+            ec.presence_of_element_located((By.XPATH, self.elements.comboareasub_css))
+        )
         self.select2_elaw(element_subarea, text)
 
         self.interact.sleep_load('div[id="j_id_48"]')
@@ -259,7 +273,10 @@ class Cadastro(CrawJUD):
 
         """
         next_page: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_button)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.css_button,
+            )),
             message="Erro ao encontrar elemento",
         )
         next_page.click()
@@ -278,7 +295,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Esfera Informada!"
@@ -302,7 +324,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Estado do processo informado!"
@@ -331,7 +358,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Comarca do processo informado!"
@@ -359,7 +391,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Foro do processo informado!"
@@ -389,7 +426,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Vara do processo informado!"
@@ -418,7 +460,9 @@ class Cadastro(CrawJUD):
 
         self.interact.send_key(campo_processo, self.bot_data.get(key))
 
-        self.driver.execute_script(f'document.querySelector("{css_campo_processo}").blur()')
+        self.driver.execute_script(
+            f'document.querySelector("{css_campo_processo}").blur()'
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Número do processo informado!"
@@ -441,7 +485,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Empresa informada!"
@@ -467,7 +516,12 @@ class Cadastro(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
         self.interact.sleep_load('div[id="j_id_48"]')
 
         self.message = "Classificação da Empresa informada"
@@ -491,10 +545,18 @@ class Cadastro(CrawJUD):
 
         text = self.bot_data.get("TIPO_PARTE_CONTRARIA")
         element_select = self.elements.tipo_parte_contraria_input
-        self.select2_elaw(self.wait.until(ec.presence_of_element_located((By.XPATH, element_select))), text)
+        self.select2_elaw(
+            self.wait.until(
+                ec.presence_of_element_located((By.XPATH, element_select))
+            ),
+            text,
+        )
 
         doc_to_list = list(
-            filter(lambda x: str.isdigit(x), ",".join(self.bot_data.get("DOC_PARTE_CONTRARIA")).split(","))
+            filter(
+                lambda x: str.isdigit(x),
+                ",".join(self.bot_data.get("DOC_PARTE_CONTRARIA")).split(","),
+            )
         )
         tipo_doc = type_doc.get(str(len(doc_to_list)))
         select_tipo_doc = self.elements.select_tipo_doc
@@ -502,7 +564,10 @@ class Cadastro(CrawJUD):
 
         self.interact.sleep_load('div[id="j_id_48"]')
         campo_doc: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_campo_doc)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.css_campo_doc,
+            )),
             message="Erro ao encontrar elemento",
         )
         campo_doc.click()
@@ -513,7 +578,10 @@ class Cadastro(CrawJUD):
         self.interact.sleep_load('div[id="j_id_48"]')
 
         search_button_parte: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_search_button)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.css_search_button,
+            )),
             message="Erro ao encontrar elemento",
         )
         search_button_parte.click()
@@ -529,7 +597,9 @@ class Cadastro(CrawJUD):
 
             except Exception as e:
                 self.logger.exception("".join(traceback.format_exception(e)))
-                raise ExecutionError(message="Não foi possível cadastrar parte", e=e) from e
+                raise ExecutionError(
+                    message="Não foi possível cadastrar parte", e=e
+                ) from e
 
         self.messsage = "Parte adicionada!"
         self.type_log = "info"
@@ -556,7 +626,10 @@ class Cadastro(CrawJUD):
 
         if str(self.bot_data.get("CAPITAL_INTERIOR")).lower() == "outro estado":
             other_location: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_other_location)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.css_other_location,
+                )),
                 message="Erro ao encontrar elemento",
             )
             other_location.click()
@@ -577,13 +650,19 @@ class Cadastro(CrawJUD):
         self.prt()
 
         div_comboProcessoTipo: WebElement = self.wait.until(  # noqa: N806
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.comboProcessoTipo)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.comboProcessoTipo,
+            )),
             message="Erro ao encontrar elemento",
         )
         div_comboProcessoTipo.click()
 
         elemento = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.filtro_processo)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.filtro_processo,
+            )),
             message="Erro ao encontrar elemento",
         )
 
@@ -613,13 +692,18 @@ class Cadastro(CrawJUD):
 
         self.interact.sleep_load('div[id="j_id_48"]')
         data_distribuicao: WebElement = self.wait.until(
-            ec.element_to_be_clickable((By.CSS_SELECTOR, self.elements.css_data_distribuicao)),
+            ec.element_to_be_clickable((
+                By.CSS_SELECTOR,
+                self.elements.css_data_distribuicao,
+            )),
             message="Erro ao encontrar elemento",
         )
 
         self.interact.clear(data_distribuicao)
 
-        self.interact.send_key(data_distribuicao, self.bot_data.get("DATA_DISTRIBUICAO"))
+        self.interact.send_key(
+            data_distribuicao, self.bot_data.get("DATA_DISTRIBUICAO")
+        )
         self.interact.send_key(data_distribuicao, Keys.TAB)
         self.interact.sleep_load('div[id="j_id_48"]')
 
@@ -652,7 +736,9 @@ class Cadastro(CrawJUD):
         input_adv_responsavel.click()
         interact.send_key(input_adv_responsavel, bot_data.get("ADVOGADO_INTERNO"))
 
-        id_input_adv = input_adv_responsavel.get_attribute("id").replace("_input", "_panel")
+        id_input_adv = input_adv_responsavel.get_attribute("id").replace(
+            "_input", "_panel"
+        )
         css_wait_adv = f"span[id='{id_input_adv}'] > ul > li"
 
         wait_adv = None
@@ -670,7 +756,12 @@ class Cadastro(CrawJUD):
         interact.sleep_load('div[id="j_id_48"]')
 
         interact.sleep_load('div[id="j_id_48"]')
-        element_select = wait.until(ec.presence_of_element_located((By.XPATH, elements.select_advogado_responsavel)))
+        element_select = wait.until(
+            ec.presence_of_element_located((
+                By.XPATH,
+                elements.select_advogado_responsavel,
+            ))
+        )
         select2_elaw(element_select, bot_data.get("ADVOGADO_INTERNO"))
 
         id_element = element_select.get_attribute("id")
@@ -725,13 +816,18 @@ class Cadastro(CrawJUD):
             check_adv: WebElement = (
                 WebDriverWait(driver, 15)
                 .until(
-                    ec.presence_of_element_located((By.XPATH, elements.css_check_adv)),
+                    ec.presence_of_element_located((
+                        By.XPATH,
+                        elements.css_check_adv,
+                    )),
                     message="Erro ao encontrar elemento",
                 )
                 .text
             )
             interact.send_key(campo_adv, Keys.ENTER)
-            driver.execute_script(f"document.querySelector('{elements.css_input_adv}').blur()")
+            driver.execute_script(
+                f"document.querySelector('{elements.css_input_adv}').blur()"
+            )
 
         if not check_adv:
             self.cadastro_advogado_contra()
@@ -809,7 +905,9 @@ class Cadastro(CrawJUD):
         sleep(1)
 
         text = bot_data.get("ESCRITORIO_EXTERNO")
-        select_escritorio = wait.until(ec.presence_of_element_located((By.XPATH, elements.select_escritorio)))
+        select_escritorio = wait.until(
+            ec.presence_of_element_located((By.XPATH, elements.select_escritorio))
+        )
         interact.select2_elaw(select_escritorio, text)
         interact.sleep_load('div[id="j_id_48"]')
 
@@ -841,8 +939,12 @@ class Cadastro(CrawJUD):
         if str(bot_data.get("TIPO_EMPRESA")).lower() == "autor":
             text = ["Ativa", "Ativo"]
 
-        select_contigencia = wait.until(ec.presence_of_element_located((By.XPATH, elements.contingencia)))
-        select_polo = wait.until(ec.presence_of_element_located((By.XPATH, elements.tipo_polo)))
+        select_contigencia = wait.until(
+            ec.presence_of_element_located((By.XPATH, elements.contingencia))
+        )
+        select_polo = wait.until(
+            ec.presence_of_element_located((By.XPATH, elements.tipo_polo))
+        )
 
         select2_elaw(select_contigencia, text[0])
         interact.sleep_load('div[id="j_id_48"]')
@@ -877,7 +979,10 @@ class Cadastro(CrawJUD):
             prt()
 
             add_parte: WebElement = wait.until(
-                ec.presence_of_element_located((By.XPATH, elements.btn_novo_advogado_contra)),
+                ec.presence_of_element_located((
+                    By.XPATH,
+                    elements.btn_novo_advogado_contra,
+                )),
                 message="Erro ao encontrar elemento",
             )
             add_parte.click()
@@ -887,7 +992,10 @@ class Cadastro(CrawJUD):
             main_window = driver.current_window_handle
 
             iframe: WebElement = WebDriverWait(driver, 10).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.iframe_cadastro_advogado_contra)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.iframe_cadastro_advogado_contra,
+                )),
                 message="Erro ao encontrar elemento",
             )
             link_iframe = iframe.get_attribute("src")
@@ -897,7 +1005,10 @@ class Cadastro(CrawJUD):
             sleep(0.5)
 
             naoinfomadoc: WebElement = wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_naoinfomadoc)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.css_naoinfomadoc,
+                )),
                 message="Erro ao encontrar elemento",
             )
             naoinfomadoc.click()
@@ -917,7 +1028,10 @@ class Cadastro(CrawJUD):
 
             sleep(0.5)
             continuebutton: WebElement = wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.botao_continuar)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.botao_continuar,
+                )),
                 message="Erro ao encontrar elemento",
             )
             continuebutton.click()
@@ -926,13 +1040,18 @@ class Cadastro(CrawJUD):
             sleep(0.5)
 
             input_nomeadv: WebElement = wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_input_nomeadv)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.css_input_nomeadv,
+                )),
                 message="Erro ao encontrar elemento",
             )
             input_nomeadv.click()
             interact.send_key(input_nomeadv, bot_data.get("ADV_PARTE_CONTRARIA"))
 
-            driver.execute_script(f"document.querySelector('{elements.css_input_nomeadv}').blur()")
+            driver.execute_script(
+                f"document.querySelector('{elements.css_input_nomeadv}').blur()"
+            )
 
             sleep(0.05)
             salvar: WebElement = wait.until(
@@ -948,13 +1067,20 @@ class Cadastro(CrawJUD):
             driver.close()
             driver.switch_to.window(main_window)
 
-            wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, elements.iframe_cadastro_advogado_close_dnv)))
+            wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.iframe_cadastro_advogado_close_dnv,
+                ))
+            )
 
             interact.sleep_load('div[id="j_id_48"]')
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
-            raise ExecutionError(message="Não foi possível cadastrar advogado", e=e) from e
+            raise ExecutionError(
+                message="Não foi possível cadastrar advogado", e=e
+            ) from e
 
     def cadastro_parte_contraria(self) -> None:
         """Register the party information.
@@ -993,7 +1119,10 @@ class Cadastro(CrawJUD):
             main_window = driver.current_window_handle
 
             iframe: WebElement = WebDriverWait(driver, 10).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.iframe_cadastro_parte_contraria)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.iframe_cadastro_parte_contraria,
+                )),
                 message="Erro ao encontrar elemento",
             )
             link_iframe = iframe.get_attribute("src")
@@ -1003,7 +1132,10 @@ class Cadastro(CrawJUD):
             with suppress(TimeoutException, NoSuchElementException):
                 set_infomar_cpf: WebElement = (
                     wait.until(
-                        ec.presence_of_element_located((By.CSS_SELECTOR, elements.cpf_cnpj)),
+                        ec.presence_of_element_located((
+                            By.CSS_SELECTOR,
+                            elements.cpf_cnpj,
+                        )),
                         message="Erro ao encontrar elemento",
                     )
                     .find_elements(By.TAG_NAME, "td")[1]
@@ -1014,11 +1146,16 @@ class Cadastro(CrawJUD):
 
             interact.sleep_load('div[id="j_id_1o"]')
             doc_to_list = list(
-                filter(lambda x: str.isdigit(x), ",".join(bot_data.get("DOC_PARTE_CONTRARIA")).split(","))
+                filter(
+                    lambda x: str.isdigit(x),
+                    ",".join(bot_data.get("DOC_PARTE_CONTRARIA")).split(","),
+                )
             )
             tipo_doc = type_doc.get(str(len(doc_to_list)), "cpf")
             select_tipo_doc = elements.tipo_cpf_cnpj
-            element_select = wait.until(ec.presence_of_element_located((By.XPATH, select_tipo_doc)))
+            element_select = wait.until(
+                ec.presence_of_element_located((By.XPATH, select_tipo_doc))
+            )
             select2_elaw(element_select, tipo_doc.upper())
 
             sleep(2)
@@ -1036,21 +1173,33 @@ class Cadastro(CrawJUD):
             sleep(0.05)
             input_doc.clear()
             interact.send_key(input_doc, bot_data.get("DOC_PARTE_CONTRARIA"))
-            continuar = driver.find_element(By.CSS_SELECTOR, elements.botao_parte_contraria)
+            continuar = driver.find_element(
+                By.CSS_SELECTOR, elements.botao_parte_contraria
+            )
             continuar.click()
 
             interact.sleep_load('div[id="j_id_1o"]')
             name_parte: WebElement = wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_name_parte)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.css_name_parte,
+                )),
                 message="Erro ao encontrar elemento",
             )
             name_parte.click()
             sleep(0.05)
-            interact.send_key(name_parte, bot_data.get("PARTE_CONTRARIA").__str__().upper())
-            driver.execute_script(f"document.querySelector('{elements.css_name_parte}').blur()")
+            interact.send_key(
+                name_parte, bot_data.get("PARTE_CONTRARIA").__str__().upper()
+            )
+            driver.execute_script(
+                f"document.querySelector('{elements.css_name_parte}').blur()"
+            )
 
             save_parte: WebElement = wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_save_button)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    elements.css_save_button,
+                )),
                 message="Erro ao encontrar elemento",
             )
             save_parte.click()
@@ -1063,7 +1212,9 @@ class Cadastro(CrawJUD):
             driver.switch_to.window(main_window)
 
             element_close = elements.iframe_cadastro_parte_close_dnv
-            wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, element_close))).click()
+            wait.until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, element_close))
+            ).click()
 
         except Exception as e:
             logger.exception("".join(traceback.format_exception(e)))
@@ -1083,7 +1234,10 @@ class Cadastro(CrawJUD):
         interact = self.interact
         interact.sleep_load('div[id="j_id_48"]')
         salvartudo: WebElement = wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_salvar_proc)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                elements.css_salvar_proc,
+            )),
             message="Erro ao encontrar elemento",
         )
 
@@ -1104,9 +1258,15 @@ class Cadastro(CrawJUD):
 
         """
         name_comprovante = f"Comprovante Cadastro - {self.bot_data.get('NUMERO_PROCESSO')} - PID {self.pid}.png"
-        savecomprovante = Path(self.output_dir_path).resolve().joinpath(name_comprovante)
+        savecomprovante = (
+            Path(self.output_dir_path).resolve().joinpath(name_comprovante)
+        )
         self.driver.get_screenshot_as_file(savecomprovante)
-        self.append_success([self.bot_data.get("NUMERO_PROCESSO"), name_comprovante, self.pid])
+        self.append_success([
+            self.bot_data.get("NUMERO_PROCESSO"),
+            name_comprovante,
+            self.pid,
+        ])
 
     def check_part_found(self) -> str | None:
         """Check if the opposing party is found.
@@ -1182,7 +1342,10 @@ class Cadastro(CrawJUD):
             with suppress(TimeoutException, NoSuchElementException):
                 mensagem_erro = (
                     wait.until(
-                        ec.presence_of_element_located((By.CSS_SELECTOR, elements.div_messageerro_css)),
+                        ec.presence_of_element_located((
+                            By.CSS_SELECTOR,
+                            elements.div_messageerro_css,
+                        )),
                         message="Erro ao encontrar elemento",
                     )
                     .find_element(By.TAG_NAME, "ul")
@@ -1190,6 +1353,8 @@ class Cadastro(CrawJUD):
                 )
 
             if not mensagem_erro:
-                mensagem_erro = "Cadastro do processo nao finalizado, verificar manualmente"
+                mensagem_erro = (
+                    "Cadastro do processo nao finalizado, verificar manualmente"
+                )
 
             raise ExecutionError(mensagem_erro)
