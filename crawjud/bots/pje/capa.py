@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from datetime import datetime
 from os import path
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic
@@ -9,12 +10,12 @@ from typing import TYPE_CHECKING, Generic
 import psutil
 from dotenv import load_dotenv
 from httpx import Client
+from pytz import timezone
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
-from celery_app.custom._task import ContextTask as ContextTask
+from celery_app.custom._task import ContextTask
 from celery_app.types._celery._canvas import AsyncResult
-from crawjud._wrapper import wrap_init
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
@@ -102,25 +103,35 @@ def _kill_browsermob() -> None:
             proc.kill()
 
 
-@wrap_init
-class Capa(ClassBot):
+@shared_task(name="pje.capa", bind=True, base=ContextTask)
+class Capa(ContextTask, ClassBot):
     """
     Classe principal para processamento da capa dos processos PJE.
 
     Gerencia autenticação, separação de regiões e download de arquivos.
     """
 
-    @shared_task(name="pje.capa", bind=True)
-    def pje_capa(
+    def __init__(  # noqa: D107
         self,
+        current_task: ContextTask,
         storage_folder_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        self.execution(current_task, storage_folder_name, *args, **kwargs)
+
+    def execution(
+        self,
+        current_task: ContextTask,
+        storage_folder_name: str,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:  # noqa: D102
         """
         Executa o fluxo principal de processamento da capa dos processos PJE.
 
         Args:
+            current_task (ContextTask): Tarefa atual do Celery.
             storage_folder_name (str): Nome da pasta de armazenamento.
             *args (Generic[T]): Argumentos variáveis.
             **kwargs (Generic[T]): Argumentos nomeados variáveis.
@@ -133,12 +144,11 @@ class Capa(ClassBot):
 
         """
         task_download_files = subtask("crawjud.download_files")
-        task_autenticacao = subtask("pje.autenticador")
         task_bot_data = subtask("crawjud.dataFrame")
-        task_separa_regiao = subtask("pje.separar_regiao")
-
-        pid = str(self.request.id)
-        start_time: str = formata_tempo(self.request.eta).strftime(
+        current_task: ContextTask = kwargs.get("current_task", self)
+        pid = str(current_task.request.id)
+        current_task.request.eta = datetime.now(timezone("America/Manaus"))
+        start_time: str = formata_tempo(current_task.request.eta).strftime(
             "%d/%m/%Y, %H:%M:%S"
         )
 
@@ -169,15 +179,6 @@ class Capa(ClassBot):
         )
 
         # Separa dados por região
-        regioes: DictSeparaRegiao = task_separa_regiao.apply_async(
-            kwargs={"frame": bot_data}
-        ).wait_ready()
-
-        position_process = regioes["position_process"]
-        tasks_queue_processos: list[AsyncResult] = []
-
-        total_rows = len(bot_data)
-
         _enviar_mensagem_log(
             pid=pid,
             message="Realizando autenticação nos TRTs...",
@@ -187,7 +188,22 @@ class Capa(ClassBot):
             start_time=start_time,
         )
 
+        self.queue(bot_data, pid, start_time)
+
+    def queue(self, bot_data: list[BotData], pid: str, start_time: str) -> None:  # noqa: D102
         # Autentica e processa cada região
+        task_separa_regiao = subtask("pje.separar_regiao")
+        task_autenticacao = subtask("pje.autenticador")
+
+        regioes: DictSeparaRegiao = task_separa_regiao.apply_async(
+            kwargs={"frame": bot_data}
+        ).wait_ready()
+
+        position_process = regioes["position_process"]
+        tasks_queue_processos: list[AsyncResult] = []
+
+        total_rows = len(bot_data)
+
         for regiao, data_regiao in list(regioes["regioes"].items()):
             _enviar_mensagem_log(
                 pid=pid,
@@ -213,9 +229,9 @@ class Capa(ClassBot):
                 })
 
                 # Inicia a fila de tarefas para processar os dados
-                _task_queue_processos = subtask(
-                    "pje.queue_processos",
-                ).apply_async(kwargs=kw_args)
+                _task_queue_processos = self.queue_processos.apply_async(
+                    kwargs=kw_args
+                )
 
                 # Armazena a tarefa na lista de tarefas
                 tasks_queue_processos.append(_task_queue_processos)
