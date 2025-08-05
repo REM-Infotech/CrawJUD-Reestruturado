@@ -19,11 +19,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Download(CrawJUD):
+class Download(ClassBot):
     """The Download class extends CrawJUD to handle download tasks within the application.
 
     Attributes:
@@ -96,7 +96,9 @@ class Download(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -134,7 +136,11 @@ class Download(CrawJUD):
                 self.download_docs()
                 self.message = "Arquivos salvos com sucesso!"
                 self.append_success(
-                    [self.bot_data.get("NUMERO_PROCESSO"), self.message, self.list_docs],
+                    [
+                        self.bot_data.get("NUMERO_PROCESSO"),
+                        self.message,
+                        self.list_docs,
+                    ],
                     "Arquivos salvos com sucesso!",
                 )
 
@@ -142,7 +148,10 @@ class Download(CrawJUD):
                 self.message = "Processo não encontrado!"
                 self.type_log = "error"
                 self.prt()
-                self.append_error([self.bot_data.get("NUMERO_PROCESSO"), self.message])
+                self.append_error([
+                    self.bot_data.get("NUMERO_PROCESSO"),
+                    self.message,
+                ])
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
@@ -159,7 +168,10 @@ class Download(CrawJUD):
         self.type_log = "log"
         self.prt()
         anexosbutton: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.anexosbutton_css)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.anexosbutton_css,
+            )),
         )
         anexosbutton.click()
         sleep(1.5)
@@ -175,12 +187,20 @@ class Download(CrawJUD):
 
         """
         table_doc: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.css_table_doc)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.css_table_doc,
+            )),
         )
         table_doc = table_doc.find_elements(By.TAG_NAME, "tr")
 
         if "," in self.bot_data.get("TERMOS"):
-            termos = str(self.bot_data.get("TERMOS")).replace(", ", ",").replace(" ,", ",").split(",")
+            termos = (
+                str(self.bot_data.get("TERMOS"))
+                .replace(", ", ",")
+                .replace(" ,", ",")
+                .split(",")
+            )
 
         elif "," not in self.bot_data.get("TERMOS"):
             termos = [str(self.bot_data.get("TERMOS"))]
@@ -191,7 +211,11 @@ class Download(CrawJUD):
 
         for item in table_doc:
             item: WebElement = item
-            get_name_file = str(item.find_elements(By.TAG_NAME, "td")[3].find_element(By.TAG_NAME, "a").text)
+            get_name_file = str(
+                item.find_elements(By.TAG_NAME, "td")[3]
+                .find_element(By.TAG_NAME, "a")
+                .text
+            )
 
             for termo in termos:
                 if str(termo).lower() in get_name_file.lower():

@@ -19,11 +19,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Prazos(CrawJUD):
+class Prazos(ClassBot):
     """The Prazos class extends CrawJUD to handle deadline-related tasks within the application.
 
     Attributes:
@@ -91,7 +91,9 @@ class Prazos(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -126,7 +128,9 @@ class Prazos(CrawJUD):
                 raise ExecutionError(message="Não Encontrado!")
 
             comprovante = ""
-            self.data_Concat = f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
+            self.data_Concat = (
+                f"{self.bot_data['DATA_AUDIENCIA']} {self.bot_data['HORA_AUDIENCIA']}"
+            )
             self.message = "Processo Encontrado!"
             self.type_log = "log"
             self.prt()
@@ -137,7 +141,9 @@ class Prazos(CrawJUD):
             if chk_lancamento:
                 self.message = "Já existe lançamento para esta pauta"
                 self.type_log = "info"
-                chk_lancamento.update({"MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"})
+                chk_lancamento.update({
+                    "MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"
+                })
 
                 comprovante = chk_lancamento
 
@@ -146,7 +152,9 @@ class Prazos(CrawJUD):
                 self.save_Prazo()
                 comprovante = self.CheckLancamento()
                 if not comprovante:
-                    raise ExecutionError(message="Não foi possível comprovar lançamento, verificar manualmente")
+                    raise ExecutionError(
+                        message="Não foi possível comprovar lançamento, verificar manualmente"
+                    )
 
                 self.message = "Pauta lançada!"
 
@@ -164,11 +172,15 @@ class Prazos(CrawJUD):
 
         """
         try:
-            switch_pautaandamento = self.driver.find_element(By.CSS_SELECTOR, self.elements.switch_pautaandamento)
+            switch_pautaandamento = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.switch_pautaandamento
+            )
 
             switch_pautaandamento.click()
 
-            self.message = f"Verificando se existem pautas para o dia {self.data_Concat}"
+            self.message = (
+                f"Verificando se existem pautas para o dia {self.data_Concat}"
+            )
             self.type_log = "log"
             self.prt()
 
@@ -189,7 +201,10 @@ class Prazos(CrawJUD):
             self.prt()
 
             btn_novaaudiencia = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.btn_novaaudiencia)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.btn_novaaudiencia,
+                )),
             )
 
             btn_novaaudiencia.click()
@@ -200,14 +215,19 @@ class Prazos(CrawJUD):
             self.prt()
 
             selectortipoaudiencia: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.selectortipoaudiencia)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.selectortipoaudiencia,
+                )),
             )
 
             items = selectortipoaudiencia.find_elements(By.TAG_NAME, "option")
             opt_itens: dict[str, str] = {}
             for item in items:
                 value_item = item.get_attribute("value")
-                text_item = self.driver.execute_script(f"return $(\"option[value='{value_item}']\").text();")
+                text_item = self.driver.execute_script(
+                    f"return $(\"option[value='{value_item}']\").text();"
+                )
 
                 opt_itens.update({text_item.upper(): value_item})
 
@@ -216,7 +236,9 @@ class Prazos(CrawJUD):
                 command = f"$('{self.elements.selectortipoaudiencia}').val(['{value_opt}']);"
                 self.driver.execute_script(command)
 
-                command2 = f"$('{self.elements.selectortipoaudiencia}').trigger('change');"
+                command2 = (
+                    f"$('{self.elements.selectortipoaudiencia}').trigger('change');"
+                )
                 self.driver.execute_script(command2)
 
             # Info Data Audiencia
@@ -225,7 +247,10 @@ class Prazos(CrawJUD):
             self.prt()
 
             DataAudiencia: WebElement = self.wait.until(  # noqa: N806
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.DataAudiencia)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.DataAudiencia,
+                )),
             )
 
             DataAudiencia.send_keys(self.data_Concat)
@@ -246,7 +271,9 @@ class Prazos(CrawJUD):
             self.type_log = "log"
             self.prt()
 
-            btn_salvar = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_salvar)
+            btn_salvar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.btn_salvar
+            )
 
             btn_salvar.click()
 
@@ -266,10 +293,15 @@ class Prazos(CrawJUD):
         """
         try:
             tableprazos: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.tableprazos)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.tableprazos,
+                )),
             )
 
-            tableprazos: list[WebElement] = tableprazos.find_elements(By.TAG_NAME, "tr")
+            tableprazos: list[WebElement] = tableprazos.find_elements(
+                By.TAG_NAME, "tr"
+            )
 
             data = None
             for item in tableprazos:
@@ -289,7 +321,9 @@ class Prazos(CrawJUD):
                     nameComprovante = f"Comprovante - {nProc_pid}.png"  # noqa: N806
                     idPrazo = str(item.find_elements(By.TAG_NAME, "td")[2].text)  # noqa: N806
 
-                    item.screenshot(os.path.join(self.output_dir_path, nameComprovante))
+                    item.screenshot(
+                        os.path.join(self.output_dir_path, nameComprovante)
+                    )
 
                     data = {
                         "NUMERO_PROCESSO": str(self.bot_data["NUMERO_PROCESSO"]),
