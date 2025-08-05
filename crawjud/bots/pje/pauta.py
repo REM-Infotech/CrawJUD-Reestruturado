@@ -19,11 +19,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.bots.pje.resources.varas_dict import varas as varas_pje
+from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.core import CrawJUD
 
 
-class Pauta(CrawJUD):
+class Pauta(ClassBot):
     """Initialize and execute pauta operations for retrieving court hearing data now.
 
     Inherit from CrawJUD and manage the process of fetching pautas.
