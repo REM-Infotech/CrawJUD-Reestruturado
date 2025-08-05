@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from crawjud.addons.auth import AuthController
-from crawjud.exceptions.bot import LoginSystemError
+from crawjud.common.exceptions.bot import LoginSystemError
 
 
 class ProjudiAuth(AuthController):

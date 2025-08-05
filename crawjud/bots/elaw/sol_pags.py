@@ -19,6 +19,7 @@ from datetime import datetime
 from time import sleep
 from typing import Self
 
+from common.bot import ClassBot
 from pytz import timezone
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import Keys
@@ -27,8 +28,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from common.bot import ClassBot
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 

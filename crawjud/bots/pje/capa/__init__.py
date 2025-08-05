@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Generic
 
 import psutil
 from celery import chain  # noqa: F401
+from common.bot import ClassBot
 from dotenv import load_dotenv
 from httpx import Client
 
@@ -19,10 +20,9 @@ from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
 from celery_app.types._celery._canvas import AsyncResult
 from celery_app.types._celery._task import Task as Task
-from common.bot import ClassBot
 from crawjud._wrapper import wrap_init
 from crawjud.bots.resources.formatadores import formata_tempo
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import (
     DictFiles,
     TReturnAuth,

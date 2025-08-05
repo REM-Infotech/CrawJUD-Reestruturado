@@ -16,7 +16,7 @@ from httpx import Client
 
 from addons.recaptcha import captcha_to_image
 from celery_app.custom._canvas import subtask
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types import BotData
 from crawjud.types.bot import MessageNadaEncontrado
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo

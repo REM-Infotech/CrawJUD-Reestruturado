@@ -10,13 +10,13 @@ from contextlib import suppress
 from datetime import datetime  # noqa: F401
 from typing import Self
 
+from common.bot import ClassBot
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
-from common.bot import ClassBot
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 
 
 class Intimacoes(ClassBot):

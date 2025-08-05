@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.addons.search import SearchController
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement

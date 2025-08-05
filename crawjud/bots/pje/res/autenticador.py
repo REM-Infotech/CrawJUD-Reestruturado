@@ -12,7 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import DictReturnAuth, TReturnAuth
 from webdriver import DriverBot
 

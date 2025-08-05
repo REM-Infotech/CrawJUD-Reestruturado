@@ -13,6 +13,7 @@ from time import sleep
 from typing import Self
 
 import dotenv
+from common.bot import ClassBot
 from PIL import Image
 from selenium.common.exceptions import (
     JavascriptException,  # noqa: F401
@@ -26,8 +27,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from common.bot import ClassBot
-from crawjud.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 
 dotenv.load_dotenv()
 
