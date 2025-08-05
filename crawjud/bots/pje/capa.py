@@ -69,42 +69,6 @@ class Capa(ContextTask, ClassBot):
     Gerencia autenticação, separação de regiões e download de arquivos.
     """
 
-    def print_msg(
-        self,
-        pid: str,
-        message: str,
-        row: int,
-        type_log: str,
-        total_rows: int,
-        start_time: str,
-    ) -> None:
-        """
-        Envia mensagem de log para o sistema de tarefas assíncronas.
-
-        Args:
-            pid (str): Identificador do processo.
-            message (str): Mensagem a ser registrada.
-            row (int): Linha atual do processamento.
-            type_log (str): Tipo de log (info, error, etc).
-            total_rows (int): Total de linhas a serem processadas.
-            start_time (str): Horário de início do processamento.
-
-        Returns:
-            None: Não retorna valor.
-
-        """
-        _task_message = subtask("log_message")
-        _task_message.apply_async(
-            kwargs={
-                "pid": pid,
-                "message": message,
-                "row": row,
-                "type_log": type_log,
-                "total_rows": total_rows,
-                "start_time": start_time,
-            }
-        )
-
     def __init__(  # noqa: D107
         self,
         *args: Generic[T],
@@ -220,9 +184,7 @@ class Capa(ContextTask, ClassBot):
                 })
 
                 # Inicia a fila de tarefas para processar os dados
-                _task_queue_processos = self.queue_processos.apply_async(
-                    kwargs=kw_args
-                )
+                _task_queue_processos = QueueProcessos.apply_async(kwargs=kw_args)
 
                 # Armazena a tarefa na lista de tarefas
                 tasks_queue_processos.append(_task_queue_processos)
@@ -238,8 +200,20 @@ class Capa(ContextTask, ClassBot):
                     start_time=start_time,
                 )
 
-    @shared_task(name="pje.queue_processos", bind=True)
-    def queue_processos(
+
+@shared_task(name="pje.queue_processos", base=ContextTask, bind=True)
+class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
+    def __init__(  # noqa: D107
+        self,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:
+        self.queue(*args, **kwargs)
+
+    def execution(self, *args: Generic[T], **kwargs: Generic[T]) -> None:  # noqa: D102
+        pass
+
+    def queue(
         self,
         cookies: dict[str, str],
         headers: dict[str, str],
@@ -326,7 +300,7 @@ class Capa(ContextTask, ClassBot):
                 )
 
                 file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
-                subtask("pje.capa.copia_integral").apply_async(
+                DownloadCopiaIntegral.apply_async(
                     kwargs={
                         "pid": pid,
                         "url_base": base_url,
@@ -349,7 +323,22 @@ class Capa(ContextTask, ClassBot):
 
                 print()
 
-    @shared_task(name="pje.capa.copia_integral", bind=True)
+
+@shared_task(name="pje.capa.copia_integral", bind=True)
+class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
+    def __init__(  # noqa: D107
+        self,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:
+        self.download_copia_integral(*args, **kwargs)
+
+    def queue(self) -> None:  # noqa: D102
+        pass
+
+    def execution(self) -> None:  # noqa: D102
+        pass
+
     def download_copia_integral(
         self,
         pid: str,

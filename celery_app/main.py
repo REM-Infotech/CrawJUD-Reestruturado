@@ -38,7 +38,7 @@ def start_worker() -> None:
         hostname=worker_name,
         task_events=True,
         loglevel="DEBUG",
-        concurrency=2,
+        concurrency=6,
         pool="prefork",
     )
     worker = worker

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from dotenv import load_dotenv
 
@@ -21,17 +21,6 @@ TReturn = TypeVar("TReturn")
 
 
 class ClassBot(CrawJUD):  # noqa:  D101
-    def print_msg(  # noqa: B027, D102
-        self,
-        message: str = "Carregando",
-        pid: str = None,
-        row: int = 0,
-        type_log: str = "log",
-        status: str = "Inicializando",
-        *args: Any,
-        **kwargs: Any,
-    ) -> None: ...  # noqa: D102, E303, N802, B027
-
     @abstractmethod
     async def execution(self) -> None: ...  # noqa: D102
 
