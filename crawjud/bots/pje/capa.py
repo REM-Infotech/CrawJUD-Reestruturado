@@ -392,7 +392,7 @@ class Capa(ClassBot):
                 file_path = _path_temp.joinpath(file_name)
                 # Salva arquivo em chunks no storage
                 for pos, _bytes in enumerate(response.iter_bytes(chunk)):
-                    mode = "ap"
+                    mode = "ab"
                     if pos == 0:
                         mode = "wb"
 

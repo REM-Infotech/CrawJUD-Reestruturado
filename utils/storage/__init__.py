@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 from typing import Any, BinaryIO, Generator, Literal
 
@@ -183,7 +182,7 @@ class Storage(Client):  # noqa: B903, D101
         return super().append_object(
             bucket_name,
             object_name,
-            io.BytesIO(data),
+            data,
             length,
             chunk_size,
             progress,
