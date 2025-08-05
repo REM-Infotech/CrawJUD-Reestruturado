@@ -399,7 +399,7 @@ class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
                 dest_name = path.join(pid.upper(), file_name)
 
                 with file_path.open("rb") as file:
-                    storage.append_object(
+                    storage.put_object(
                         object_name=dest_name,
                         data=file,
                         length=file_size,
