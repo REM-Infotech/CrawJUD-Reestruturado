@@ -14,11 +14,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class BuscaPags(CrawJUD):
+class BuscaPags(ClassBot):
     """Class BuscaPags.
 
     Manages page search and the extraction of cost-related information.
@@ -64,12 +64,13 @@ class BuscaPags(CrawJUD):
         # Inline: Calls parent setup and configures timezone.
 
         """
-        super().__init__()
         self.module_bot = __name__
         super().setup(*args, **kwargs)
         super().auth_bot()
         self.start_time = time.perf_counter()
-        self.datetimeNOW = datetime.now(pytz.timezone("America/Manaus")).strftime("%d-%m-%Y")
+        self.datetimeNOW = datetime.now(pytz.timezone("America/Manaus")).strftime(
+            "%d-%m-%Y"
+        )
 
     def execution(self) -> None:
         """Execute page search.
@@ -100,7 +101,9 @@ class BuscaPags(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -148,7 +151,10 @@ class BuscaPags(CrawJUD):
         # Inline: Use Selenium to get the onclick attribute and redirect.
         """
         generatepdf: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.get_page_custas_pagas)),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                self.elements.get_page_custas_pagas,
+            )),
         )
         onclick_value = generatepdf.get_attribute("onclick")
         url_start = onclick_value.find("'") + 1
@@ -161,13 +167,17 @@ class BuscaPags(CrawJUD):
 
         Extract cost details from tables and append success records.
         """
-        divcustaspagas: list[WebElement] = self.wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, "div")))
+        divcustaspagas: list[WebElement] = self.wait.until(
+            ec.presence_of_all_elements_located((By.TAG_NAME, "div"))
+        )
         total = 0
         for divcorreta in divcustaspagas:
             nomediv = None
 
             with suppress(Exception):
-                nomediv = divcorreta.find_element(By.CLASS_NAME, "tituloGridCustas").text
+                nomediv = divcorreta.find_element(
+                    By.CLASS_NAME, "tituloGridCustas"
+                ).text
 
             if nomediv is None:
                 continue
@@ -177,7 +187,9 @@ class BuscaPags(CrawJUD):
                 self.type_log = "log"
                 self.prt()
 
-                find_table_pgmt = divcorreta.find_element(By.CSS_SELECTOR, 'table[class="spwTabelaGrid"]')
+                find_table_pgmt = divcorreta.find_element(
+                    By.CSS_SELECTOR, 'table[class="spwTabelaGrid"]'
+                )
 
                 tr_rows = find_table_pgmt.find_elements(By.TAG_NAME, "tr")
                 self.roleta = 0
@@ -188,22 +200,34 @@ class BuscaPags(CrawJUD):
                         if checkifclass == "":
                             tipo_custa = rows.find_elements(By.TAG_NAME, "td")[0].text
                             emissor = rows.find_elements(By.TAG_NAME, "td")[1].text
-                            data_calculo = str(rows.find_elements(By.TAG_NAME, "td")[2].text)
+                            data_calculo = str(
+                                rows.find_elements(By.TAG_NAME, "td")[2].text
+                            )
 
                             data_calculo = datetime.strptime(data_calculo, "%d/%m/%Y")
 
                             valor_custa = (
-                                str(rows.find_elements(By.TAG_NAME, "td")[3].text).replace(".", "").replace(",", ".")
+                                str(rows.find_elements(By.TAG_NAME, "td")[3].text)
+                                .replace(".", "")
+                                .replace(",", ".")
                             )
 
                             valor_custa = float(valor_custa)
 
-                            cód_guia = str(rows.find_elements(By.TAG_NAME, "td")[4].text)
-                            parcelaguia = rows.find_elements(By.TAG_NAME, "td")[5].text
+                            cód_guia = str(
+                                rows.find_elements(By.TAG_NAME, "td")[4].text
+                            )
+                            parcelaguia = rows.find_elements(By.TAG_NAME, "td")[
+                                5
+                            ].text
 
-                            data_pagamento = str(rows.find_elements(By.TAG_NAME, "td")[6].text)
+                            data_pagamento = str(
+                                rows.find_elements(By.TAG_NAME, "td")[6].text
+                            )
 
-                            data_pagamento = datetime.strptime(data_pagamento, "%d/%m/%Y")
+                            data_pagamento = datetime.strptime(
+                                data_pagamento, "%d/%m/%Y"
+                            )
 
                             total += valor_custa
 
@@ -225,17 +249,23 @@ class BuscaPags(CrawJUD):
                     except Exception:
                         tipo_custa = rows.find_elements(By.TAG_NAME, "td")[0].text
                         emissor = rows.find_elements(By.TAG_NAME, "td")[1].text
-                        data_calculo = str(rows.find_elements(By.TAG_NAME, "td")[2].text)
+                        data_calculo = str(
+                            rows.find_elements(By.TAG_NAME, "td")[2].text
+                        )
 
                         data_calculo = datetime.strptime(data_calculo, "%d/%m/%Y")
 
-                        valor_custa = str(rows.find_elements(By.TAG_NAME, "td")[3].text)
+                        valor_custa = str(
+                            rows.find_elements(By.TAG_NAME, "td")[3].text
+                        )
 
                         valor_custa = float(valor_custa)
 
                         cód_guia = str(rows.find_elemens(By.TAG_NAME, "td")[4].text)
                         parcelaguia = rows.find_elements(By.TAG_NAME, "td")[5].text
-                        data_pagamento = datetime.strptime(str(rows.find_elements(By.TAG_NAME, "td")[6].text))
+                        data_pagamento = datetime.strptime(
+                            str(rows.find_elements(By.TAG_NAME, "td")[6].text)
+                        )
 
                         data_pagamento = datetime.strptime(data_pagamento, "%d/%m/%Y")
                         self.roleta = self.roleta + 1
@@ -257,4 +287,6 @@ class BuscaPags(CrawJUD):
                 continue
 
             fileN = f"Total - {self.pid} - {self.datetimeNOW}.xlsx"  # noqa: N806
-            self.append_success([self.bot_data.get("NUMERO_PROCESSO"), total], fileN=fileN)
+            self.append_success(
+                [self.bot_data.get("NUMERO_PROCESSO"), total], fileN=fileN
+            )

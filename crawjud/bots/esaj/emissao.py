@@ -20,9 +20,12 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
-from crawjud.bot.Utils import OtherUtils
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
+
+
+class OtherUtils: ...  # noqa: D101
+
 
 type_docscss = {
     "custas_iniciais": {
@@ -52,7 +55,7 @@ type_docscss = {
 }
 
 
-class Emissao(CrawJUD):
+class Emissao(ClassBot):
     """Perform emission tasks by generating docs and extracting PDF barcodes.
 
     This class executes the complete workflow for document emission. It
@@ -133,7 +136,9 @@ class Emissao(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -201,16 +206,22 @@ class Emissao(CrawJUD):
         )
         set_foro.send_keys(self.bot_data.get("FORO"))
 
-        set_classe = self.driver.find_element(By.CSS_SELECTOR, self.elements.tree_selection)
+        set_classe = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.tree_selection
+        )
         set_classe.send_keys(self.bot_data.get("CLASSE"))
 
-        semprecível = self.driver.find_element(By.CSS_SELECTOR, self.elements.civil_selector)
+        semprecível = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.civil_selector
+        )
         semprecível.click()
 
         val_acao = self.driver.find_element(By.CSS_SELECTOR, self.elements.valor_acao)
         val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
-        nameinteressado = self.driver.find_element(By.CSS_SELECTOR, 'input[name="entity.nmInteressado"]')
+        nameinteressado = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[name="entity.nmInteressado"]'
+        )
         nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
         elements: list = type_docscss.get(self.bot_data.get("TIPO_GUIA")).get(
@@ -219,11 +230,15 @@ class Emissao(CrawJUD):
         set_doc = self.driver.find_element(By.CSS_SELECTOR, elements[0])
         set_doc.click()
         sleep(0.5)
-        setcpf_cnpj = self.driver.find_element(By.CSS_SELECTOR, elements[1]).find_element(By.CSS_SELECTOR, elements[2])
+        setcpf_cnpj = self.driver.find_element(
+            By.CSS_SELECTOR, elements[1]
+        ).find_element(By.CSS_SELECTOR, elements[2])
         sleep(0.5)
         setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
-        avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar)
+        avançar = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.botao_avancar
+        )
         avançar.click()
 
         self.valor_doc = ""
@@ -246,14 +261,21 @@ class Emissao(CrawJUD):
             self.driver.get(self.elements.url_preparo_projudi)
 
             set_foro: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.nome_foro)),
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.nome_foro,
+                )),
             )
             set_foro.send_keys(self.bot_data.get("FORO"))
 
-            val_acao = self.driver.find_element(By.CSS_SELECTOR, self.elements.valor_acao)
+            val_acao = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.valor_acao
+            )
             val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
-            nameinteressado = self.driver.find_element(By.CSS_SELECTOR, self.elements.interessado)
+            nameinteressado = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.interessado
+            )
             nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
             elements: list = type_docscss.get(self.bot_data.get("TIPO_GUIA")).get(
@@ -263,22 +285,30 @@ class Emissao(CrawJUD):
             set_doc = self.driver.find_element(By.CSS_SELECTOR, elements[0])
             set_doc.click()
             sleep(0.5)
-            setcpf_cnpj = self.driver.find_element(By.CSS_SELECTOR, elements[1]).find_element(
+            setcpf_cnpj = self.driver.find_element(
+                By.CSS_SELECTOR, elements[1]
+            ).find_element(
                 By.CSS_SELECTOR,
                 elements[2],
             )
             sleep(0.5)
             setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
-            avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar)
+            avançar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.botao_avancar
+            )
             avançar.click()
 
             sleep(1)
-            set_RI: WebElement = self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check)))  # noqa: N806
-            set_RI.click()
+            set_recurso_inominado: WebElement = self.wait.until(
+                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check))
+            )  # noqa: N806
+            set_recurso_inominado.click()
 
             sleep(1)
-            last_avançar = self.driver.find_element(By.CSS_SELECTOR, self.elements.botao_avancar_dois)
+            last_avançar = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.botao_avancar_dois
+            )
             last_avançar.click()
 
             sleep(1)
@@ -288,7 +318,9 @@ class Emissao(CrawJUD):
             ).text
 
         elif portal == "não informado":
-            raise ExecutionError(message="Informar portal do processo na planilha (PROJUDI ou ESAJ)")
+            raise ExecutionError(
+                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)"
+            )
 
     def renajud(self) -> None:
         """Implement Renajud emission process navigation and actions when needed.
@@ -342,7 +374,12 @@ class Emissao(CrawJUD):
         with suppress(TimeoutException):
             check: WebElement = (
                 WebDriverWait(self.driver, 3)
-                .until(ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.mensagem_retorno)))
+                .until(
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        self.elements.mensagem_retorno,
+                    ))
+                )
                 .text
             )
 
@@ -367,9 +404,7 @@ class Emissao(CrawJUD):
         """
         response = requests.get(link_pdf, timeout=60)
 
-        self.nomearquivo = (
-            f"{self.tipodoc} - {self.bot_data.get('NUMERO_PROCESSO')} - {self.nomeparte} - {self.pid}.pdf"
-        )
+        self.nomearquivo = f"{self.tipodoc} - {self.bot_data.get('NUMERO_PROCESSO')} - {self.nomeparte} - {self.pid}.pdf"
 
         if platform.system() == "Windows":
             self.path_pdf = path_pdf = f"{self.output_dir_path}\\{self.nomearquivo}"
@@ -383,7 +418,9 @@ class Emissao(CrawJUD):
         self.driver.close()
         sleep(0.7)
         self.driver.switch_to.window(self.original_window)
-        self.message = f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
+        self.message = (
+            f"Boleto Nº{self.bot_data.get('NUMERO_PROCESSO')} emitido com sucesso!"
+        )
         self.type_log = "log"
         self.prt()
 

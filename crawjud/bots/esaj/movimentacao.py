@@ -15,11 +15,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Movimentacao(CrawJUD):
+class Movimentacao(ClassBot):
     """Class Movimentacao.
 
     Handles all movement-related tasks in the Esaj system.
@@ -105,7 +105,9 @@ class Movimentacao(CrawJUD):
 
                 if len(windows) == 0:
                     with suppress(Exception):
-                        self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
+                        self.driver_launch(
+                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                        )
 
                     old_message = self.message
 
@@ -187,7 +189,9 @@ class Movimentacao(CrawJUD):
         self.set_page_size()
         self.set_tablemoves()
 
-        keyword = self.bot_data.get("PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*"))
+        keyword = self.bot_data.get(
+            "PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*")
+        )
 
         if keyword != "*":
             keywords.extend(keyword.split(",") if "," in keyword else [keyword])
@@ -306,7 +310,10 @@ class Movimentacao(CrawJUD):
                     keyword.lower() == text_mov.split("\n")[0].lower(),
                     keyword.lower() == text_mov.lower(),
                     keyword.lower() in text_mov.lower(),
-                    self.similaridade(keyword.lower(), text_mov.split("\n")[0].lower()) > 0.8,
+                    self.similaridade(
+                        keyword.lower(), text_mov.split("\n")[0].lower()
+                    )
+                    > 0.8,
                 ]
             )
 
@@ -333,7 +340,11 @@ class Movimentacao(CrawJUD):
 
             return intimado_chk
 
-        resultados = all([data_check(data_mov), text_check(text_mov), check_intimado()])
+        resultados = all([
+            data_check(data_mov),
+            text_check(text_mov),
+            check_intimado(),
+        ])
 
         return resultados
 
@@ -363,7 +374,9 @@ class Movimentacao(CrawJUD):
 
         message_.append(f'\nPALAVRA_CHAVE: <span class="fw-bold">{keyword}</span>')
         if data_inicio:
-            message_.append(f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>')
+            message_.append(
+                f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>'
+            )
         if data_fim:
             message_.append(f'\nDATA_FIM: <span class="fw-bold">{data_fim}</span>')
 
@@ -396,13 +409,20 @@ class Movimentacao(CrawJUD):
         """ Checagens dentro do Loop de movimentações """
 
         def check_others(text_mov: str) -> tuple[bool, bool, str, bool, bool]:
-            save_another_file = str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
+            save_another_file = (
+                str(self.bot_data.get("DOC_SEPARADO", "SIM")).upper() == "SIM"
+            )
 
             mov = ""
             mov_chk = False
-            trazer_teor = str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
+            trazer_teor = (
+                str(self.bot_data.get("TRAZER_TEOR", "NÃO")).upper() == "SIM"
+            )
 
-            patterns = [r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)", r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)"]
+            patterns = [
+                r"Referente ao evento (.+?) \((\d{2}/\d{2}/\d{4})\)",
+                r"\) ([A-Z\s]+) \((\d{2}/\d{2}/\d{4})\)",
+            ]
             for pattern in patterns:
                 match = re.match(pattern, text_mov)
 
@@ -423,7 +443,9 @@ class Movimentacao(CrawJUD):
             data_mov = str(itensmove[2].text.split(" ")[0]).replace(" ", "")
 
             """ Outros Checks """
-            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(text_mov)
+            mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(
+                text_mov
+            )
 
             nome_mov = str(itensmove[3].find_element(By.TAG_NAME, "b").text)
             movimentador = itensmove[4].text
@@ -474,19 +496,29 @@ class Movimentacao(CrawJUD):
     def set_page_size(self) -> None:
         """Set the page size for movement scraping."""
         try:
-            self.driver.execute_script('document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"')
+            self.driver.execute_script(
+                'document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"'
+            )
 
         except Exception:
-            self.driver.execute_script('document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"')
+            self.driver.execute_script(
+                'document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"'
+            )
 
     def set_tablemoves(self) -> None:
         """Set the table moves element."""
         try:
-            table_moves = self.driver.find_element(By.CSS_SELECTOR, self.elements.movimentacoes)
+            table_moves = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.movimentacoes
+            )
         except Exception:
-            table_moves = self.driver.find_element(By.ID, self.elements.ultimas_movimentacoes)
+            table_moves = self.driver.find_element(
+                By.ID, self.elements.ultimas_movimentacoes
+            )
 
-        self.table_moves = table_moves.find_elements(By.XPATH, self.elements.table_moves)
+        self.table_moves = table_moves.find_elements(
+            By.XPATH, self.elements.table_moves
+        )
 
     def get_moves(self) -> None:
         """Retrieve movement information.
@@ -496,7 +528,10 @@ class Movimentacao(CrawJUD):
         # Inline: Scroll to element, reveal table, then iterate through rows.
         """
         show_all: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'a[id="linkmovimentacoes"]')),
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                'a[id="linkmovimentacoes"]',
+            )),
         )
 
         self.interact.scroll_to(show_all)
@@ -510,12 +545,20 @@ class Movimentacao(CrawJUD):
         sleep(0.5)
 
         try:
-            table_moves = self.driver.find_element(By.CSS_SELECTOR, self.elements.movimentacoes)
-            self.driver.execute_script('document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"')
+            table_moves = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.movimentacoes
+            )
+            self.driver.execute_script(
+                'document.querySelector("#tabelaTodasMovimentacoes").style.display = "block"'
+            )
 
         except Exception:
-            table_moves = self.driver.find_element(By.ID, self.elements.ultimas_movimentacoes)
-            self.driver.execute_script('document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"')
+            table_moves = self.driver.find_element(
+                By.ID, self.elements.ultimas_movimentacoes
+            )
+            self.driver.execute_script(
+                'document.querySelector("#tabelaUltimasMovimentacoes").style.display = "block"'
+            )
 
         itens = table_moves.find_elements(By.TAG_NAME, "tr")
 
@@ -538,8 +581,17 @@ class Movimentacao(CrawJUD):
 
                     with suppress(Exception):
                         if type(data_mov) is str:
-                            data_mov = datetime.strptime(data_mov.replace("/", "-"), "%d-%m-%Y")
+                            data_mov = datetime.strptime(
+                                data_mov.replace("/", "-"), "%d-%m-%Y"
+                            )
 
                     name_mov = mov.split("\n")[0]
                     text_mov = td_tr[2].find_element(By.TAG_NAME, "span").text
-                    self.appends.append([self.bot_data.get("NUMERO_PROCESSO"), data_mov, name_mov, text_mov, "", ""])
+                    self.appends.append([
+                        self.bot_data.get("NUMERO_PROCESSO"),
+                        data_mov,
+                        name_mov,
+                        text_mov,
+                        "",
+                        "",
+                    ])
