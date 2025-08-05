@@ -291,9 +291,13 @@ class Capa(ClassBot):
                 )
 
                 # Verifica se houve resultado na busca
-                if not resultados_busca or (
-                    isinstance(resultados_busca, str)
-                    and "Nenhum processo encontrado" in resultados_busca
+                if (
+                    not resultados_busca
+                    or (
+                        isinstance(resultados_busca, str)
+                        and "Nenhum processo encontrado" in resultados_busca
+                    )
+                    or "Processo não encontrado" in resultados_busca
                 ):
                     _enviar_mensagem_log(
                         pid=pid,
@@ -381,7 +385,10 @@ class Capa(ClassBot):
                     url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
                 chunk = 65536
-                _path_temp = Path(__file__).cwd().joinpath("temp", id_processo)
+                _path_temp = Path(__file__).cwd().joinpath("temp", pid, id_processo)
+
+                _path_temp.mkdir(exist_ok=True, parents=True)
+
                 file_path = _path_temp.joinpath(file_name)
                 # Salva arquivo em chunks no storage
                 for pos, _bytes in enumerate(response.iter_bytes(chunk)):
