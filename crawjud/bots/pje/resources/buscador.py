@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import json.decoder
 from time import sleep
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from celery import shared_task
 from httpx import Client
 
 from celery_app.custom._canvas import subtask
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.types import BotData
+from crawjud.types import BotData, ReturnFormataTempo
 from crawjud.types.bot import MessageNadaEncontrado
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo
 from utils.recaptcha import captcha_to_image
@@ -30,13 +30,16 @@ pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe
 
 
 # Tipo literal para mensagem de processo não encontrado
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
 
 
 @shared_task(name="pje.buscador")
-def buscar_processo(
+def buscar_processo(  # noqa: D417
     data: BotData,
     headers: dict[str, str],
     cookies: dict[str, str],
+    *args: Generic[T],
+    **kwargs: Generic[T],
 ) -> DictReturnDesafio | MessageNadaEncontrado:
     """
     Realiza a busca de um processo no sistema PJe utilizando os dados fornecidos.

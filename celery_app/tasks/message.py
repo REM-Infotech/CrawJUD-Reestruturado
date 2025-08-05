@@ -136,7 +136,7 @@ async def print_message(
 
 
 @shared_task(name="log_message")
-def log_message(
+def log_message(  # noqa: D417
     pid: str,
     message: str,
     row: int,
@@ -144,6 +144,8 @@ def log_message(
     status: str = "Em Execução",
     total_rows: int = 0,
     start_time: StrTime = None,
+    *args: Generic[T],
+    **kwargs: Generic[T],
 ) -> None:
     """
     Formata e envia mensagem de log para o sistema de monitoramento via Socket.IO.

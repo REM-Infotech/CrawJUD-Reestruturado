@@ -32,7 +32,9 @@ def formata_tempo(item: str | bool) -> Generic[T]:  # noqa: D103
 
 
 @shared_task(name="crawjud.dataFrame")
-def dataFrame(base91_planilha: str) -> list[BotData]:  # noqa: N802
+def dataframe(  # noqa: N802
+    base91_planilha: str, *args: Generic[T], **kwargs: Generic[T]
+) -> list[BotData]:
     """Convert an Excel file to a list of dictionaries with formatted data.
 
     Reads an Excel file, processes the data by formatting dates and floats,

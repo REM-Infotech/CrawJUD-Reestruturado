@@ -41,16 +41,16 @@ class ContextTask(TaskBase):
         #         kwargs.pop("cls")
         #     # Create an instance of the class
 
-        if "current_task" in _annotations:
-            kwargs["current_task"] = self
-
-        elif "task" in _annotations:
-            kwargs["task"] = self
+        kwargs["current_task"] = self
 
         if iscoroutinefunction(self.run):
             return run_async(self.run(*args, **kwargs))  # noqa: B026
 
-        return self.run(*args, **kwargs)  # noqa: B026
+        try:
+            return self.run(*args, **kwargs)  # noqa: B026
+        except Exception:
+            kwargs.pop("current_task")
+            return self.run(*args, **kwargs)  # noqa: B026
 
     def signature(
         self, args: Any = None, *starargs: Any, **starkwargs: Any

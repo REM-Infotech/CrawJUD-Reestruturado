@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import pandas as pd
 from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
+from crawjud.types import ReturnFormataTempo
 from utils.models.logs import CachedExecution
 from utils.storage import Storage
 
@@ -25,10 +26,15 @@ transports = ["websocket"]
 headers = {"Content-Type": "application/json"}
 url_server = environ["SOCKETIO_SERVER_URL"]
 
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
 
 @shared_task(name="save_success")
 async def save_success(  # noqa: D103
-    pid: str, filename: str
+    pid: str,
+    filename: str,
+    *args: Generic[T],
+    **kwargs: Generic[T],
 ) -> None:
     _data_query = CachedExecution.find(CachedExecution.pid == pid).all()
 

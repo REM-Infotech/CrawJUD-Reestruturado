@@ -23,12 +23,6 @@ from crawjud.types.bot import (
     DictFiles,
     TReturnAuth,
 )
-from crawjud.types.bot import (
-    DictReturnAuth as DictReturnAuth,
-)
-from crawjud.types.bot import (
-    MessageTimeoutAutenticacao as MessageTimeoutAutenticacao,
-)
 from crawjud.types.pje import DictReturnDesafio, DictSeparaRegiao
 from utils.storage import Storage
 
@@ -36,42 +30,6 @@ if TYPE_CHECKING:
     from crawjud.types import BotData, T  # noqa: F401
 
 load_dotenv()
-
-
-def _enviar_mensagem_log(
-    pid: str,
-    message: str,
-    row: int,
-    type_log: str,
-    total_rows: int,
-    start_time: str,
-) -> None:
-    """
-    Envia mensagem de log para o sistema de tarefas assíncronas.
-
-    Args:
-        pid (str): Identificador do processo.
-        message (str): Mensagem a ser registrada.
-        row (int): Linha atual do processamento.
-        type_log (str): Tipo de log (info, error, etc).
-        total_rows (int): Total de linhas a serem processadas.
-        start_time (str): Horário de início do processamento.
-
-    Returns:
-        None: Não retorna valor.
-
-    """
-    _task_message = subtask("log_message")
-    _task_message.apply_async(
-        kwargs={
-            "pid": pid,
-            "message": message,
-            "row": row,
-            "type_log": type_log,
-            "total_rows": total_rows,
-            "start_time": start_time,
-        }
-    )
 
 
 def _kill_browsermob() -> None:
@@ -111,19 +69,53 @@ class Capa(ContextTask, ClassBot):
     Gerencia autenticação, separação de regiões e download de arquivos.
     """
 
+    def print_msg(
+        self,
+        pid: str,
+        message: str,
+        row: int,
+        type_log: str,
+        total_rows: int,
+        start_time: str,
+    ) -> None:
+        """
+        Envia mensagem de log para o sistema de tarefas assíncronas.
+
+        Args:
+            pid (str): Identificador do processo.
+            message (str): Mensagem a ser registrada.
+            row (int): Linha atual do processamento.
+            type_log (str): Tipo de log (info, error, etc).
+            total_rows (int): Total de linhas a serem processadas.
+            start_time (str): Horário de início do processamento.
+
+        Returns:
+            None: Não retorna valor.
+
+        """
+        _task_message = subtask("log_message")
+        _task_message.apply_async(
+            kwargs={
+                "pid": pid,
+                "message": message,
+                "row": row,
+                "type_log": type_log,
+                "total_rows": total_rows,
+                "start_time": start_time,
+            }
+        )
+
     def __init__(  # noqa: D107
         self,
-        current_task: ContextTask,
-        storage_folder_name: str,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        self.execution(current_task, storage_folder_name, *args, **kwargs)
+        self.execution(*args, **kwargs)
 
     def execution(
         self,
-        current_task: ContextTask,
-        storage_folder_name: str,
+        current_task: ContextTask = None,
+        storage_folder_name: str = None,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:  # noqa: D102
@@ -145,7 +137,6 @@ class Capa(ContextTask, ClassBot):
         """
         task_download_files = subtask("crawjud.download_files")
         task_bot_data = subtask("crawjud.dataFrame")
-        current_task: ContextTask = kwargs.get("current_task", self)
         pid = str(current_task.request.id)
         current_task.request.eta = datetime.now(timezone("America/Manaus"))
         start_time: str = formata_tempo(current_task.request.eta).strftime(
@@ -169,7 +160,7 @@ class Capa(ContextTask, ClassBot):
             kwargs={"base91_planilha": xlsx_key[0]["file_base91str"]}
         ).wait_ready()
 
-        _enviar_mensagem_log(
+        self.print_msg(
             pid=pid,
             message="Planilha carregada!",
             row=0,
@@ -179,7 +170,7 @@ class Capa(ContextTask, ClassBot):
         )
 
         # Separa dados por região
-        _enviar_mensagem_log(
+        self.print_msg(
             pid=pid,
             message="Realizando autenticação nos TRTs...",
             row=0,
@@ -205,7 +196,7 @@ class Capa(ContextTask, ClassBot):
         total_rows = len(bot_data)
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            _enviar_mensagem_log(
+            self.print_msg(
                 pid=pid,
                 message=f"Autenticando no TRT {regiao}",
                 row=0,
@@ -238,7 +229,7 @@ class Capa(ContextTask, ClassBot):
                 _kill_browsermob()
 
                 # Envia mensagem de sucesso
-                _enviar_mensagem_log(
+                self.print_msg(
                     pid=pid,
                     message="Autenticado com sucesso!",
                     row=0,
@@ -315,7 +306,7 @@ class Capa(ContextTask, ClassBot):
                     )
                     or "Processo não encontrado" in resultados_busca
                 ):
-                    _enviar_mensagem_log(
+                    self.print_msg(
                         pid=pid,
                         message="Falha ao obter informações do processo ",
                         row=row,
@@ -347,7 +338,7 @@ class Capa(ContextTask, ClassBot):
                     }
                 )
 
-                _enviar_mensagem_log(
+                self.print_msg(
                     pid=pid,
                     message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
                     row=row,

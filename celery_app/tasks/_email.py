@@ -2,18 +2,26 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from celery_app._wrapper import shared_task
 from celery_app.addons.mail import Mail
+from crawjud.types import ReturnFormataTempo
 
 if TYPE_CHECKING:
     from celery_app.types import TReturnMessageMail
 
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
 
 @shared_task(name="send_email")
 def send_email(
-    subject: str, to: str, message: str, files_path: list[str] = None
+    subject: str,
+    to: str,
+    message: str,
+    files_path: list[str] = None,
+    *args: Generic[T],
+    **kwargs: Generic[T],
 ) -> TReturnMessageMail:
     """Send an email to the specified recipient."""
     mail = Mail.construct()

@@ -36,6 +36,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from werkzeug.utils import secure_filename
 
+from celery_app.custom._canvas import subtask as subtask
 from crawjud.addons.make_templates import MakeTemplates
 from crawjud.addons.search import SearchController
 from crawjud.common.exceptions.bot import ExecutionError, StartError
@@ -148,14 +149,6 @@ class CrawJUD(ABC):
 
         """
         return self._cities_am
-
-    @property
-    def print_msg(self) -> Callable[PrintParamSpec, PrintTReturn]:  # noqa: D102
-        return self._print_msg
-
-    @print_msg.setter
-    def print_msg(self, new_value: Callable[PrintParamSpec, PrintTReturn]) -> None:
-        self._print_msg = new_value
 
     @property
     def prt(self) -> Callable[PrintParamSpec, PrintTReturn]:  # noqa: D102

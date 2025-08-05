@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from time import sleep
-from typing import Any, cast
+from typing import Generic, TypeVar, cast
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -13,12 +13,15 @@ from selenium.webdriver.support.wait import WebDriverWait
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from crawjud.common.exceptions.bot import ExecutionError
+from crawjud.types import ReturnFormataTempo
 from crawjud.types.bot import DictReturnAuth, TReturnAuth
 from utils.webdriver import DriverBot
 
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
 
 @shared_task(name="pje.autenticador")
-def autenticar(regiao: str, *args: Any, **kwargs: Any) -> TReturnAuth:  # noqa: D417
+def autenticar(regiao: str, *args: Generic[T], **kwargs: Generic[T]) -> TReturnAuth:  # noqa: D417
     r"""
     Realiza a autenticação no sistema PJe utilizando certificado digital.
 

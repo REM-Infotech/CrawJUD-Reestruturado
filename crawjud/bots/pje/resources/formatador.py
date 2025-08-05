@@ -3,24 +3,27 @@
 import re
 from contextlib import suppress
 from datetime import datetime
-from typing import cast
+from typing import Generic, TypeVar, cast
 
 from celery import shared_task
 
 from celery_app.custom._canvas import subtask
 from crawjud.bots.resources.formatadores import formata_tempo
+from crawjud.types import ReturnFormataTempo
 from crawjud.types.bot import BotData
 from crawjud.types.pje import DictSeparaRegiao
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]
 
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
 
 class PJeFormatadores:  # noqa: D101
     @staticmethod
     @shared_task(name="pje.separar_regiao")
-    async def separar_regiao(
-        frame: list[BotData],
+    async def separar_regiao(  # noqa: D417
+        frame: list[BotData], *args: Generic[T], **kwargs: Generic[T]
     ) -> DictSeparaRegiao:
         """
         Separa os processos por região a partir do número do processo.
@@ -94,7 +97,12 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_url_pje")
-    async def formata_url_pje(regiao: str, type_format: str = "login") -> str:  # noqa: D102, D103
+    async def formata_url_pje(  # noqa: D102, D103
+        regiao: str,
+        type_format: str = "login",
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> str:
         formats = {
             "login": f"https://pje.trt{regiao}.jus.br/primeirograu/login.seam",
             "validate_login": f"https://pje.trt{regiao}.jus.br/pjekz/",
@@ -105,7 +113,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_geral")
-    def formata_geral(lista: ListData) -> ListData:  # noqa: D102
+    def formata_geral(  # noqa: D102
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> ListData:
         new_data: ListData = []
         for item in lista:
             formated_data = {
@@ -120,7 +130,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_assuntos")
-    def formata_assuntos(lista: ListData) -> ListData:  # noqa: D102
+    def formata_assuntos(  # noqa: D102
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> ListData:
         items_formatados: ListData = []
 
         for item in lista:
@@ -136,7 +148,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_endereco")
-    def formata_endereco(endr_dict: DictData) -> str:  # noqa: D102
+    def formata_endereco(  # noqa: D102
+        endr_dict: DictData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> str:
         return " | ".join([
             f"{endr_k.upper()}: {endr_v.strip()}"
             for endr_k, endr_v in list(endr_dict.items())
@@ -144,7 +158,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_representantes")
-    def formata_representantes(lista: ListData) -> ListData:  # noqa: D102
+    def formata_representantes(  # noqa: D102
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> ListData:
         list_dict_representantes: ListData = []
         task_formata_endereco = subtask("pje.formata_endereco")
         for item in lista:
@@ -173,7 +189,7 @@ class PJeFormatadores:  # noqa: D101
     @staticmethod
     @shared_task(name="pje.formata_partes")
     def formata_partes(  # noqa: D102
-        lista: ListData,
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
     ) -> tuple[ListData, ListData]:
         new_data: ListData = []
         list_dict_representantes: ListData = []
@@ -223,7 +239,7 @@ class PJeFormatadores:  # noqa: D101
     @staticmethod
     @shared_task(name="pje.formata_partes_terceiros")
     def formata_partes_terceiros(  # noqa: D102
-        lista: ListData,
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
     ) -> tuple[ListData, ListData]:
         list_dict_representantes: ListData = []
         new_data: ListData = []
@@ -275,7 +291,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_anexos")
-    def formata_anexos(lista: ListData) -> ListData:  # noqa: D102
+    def formata_anexos(  # noqa: D102
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> ListData:
         new_data: ListData = []
         new_lista: ListData = []
         for item in lista:
@@ -300,7 +318,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_movimentacao")
-    def formata_movimentacao(lista: ListData) -> ListData:  # noqa: D102
+    def formata_movimentacao(  # noqa: D102
+        lista: ListData, *args: Generic[T], **kwargs: Generic[T]
+    ) -> ListData:
         new_data: ListData = []
 
         for item in lista:
@@ -327,7 +347,9 @@ class PJeFormatadores:  # noqa: D101
 
     @staticmethod
     @shared_task(name="pje.formata_trt")
-    def formata_trt(numero_processo: str) -> str:  # noqa: D102
+    def formata_trt(  # noqa: D102
+        numero_processo: str, *args: Generic[T], **kwargs: Generic[T]
+    ) -> str:
         trt_id = None
         with suppress(Exception):
             trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()

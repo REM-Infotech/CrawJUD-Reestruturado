@@ -9,18 +9,24 @@ import json
 import shutil
 from os import path
 from pathlib import Path
+from typing import Generic, TypeVar
 
 import base91
 from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
 from crawjud import work_dir
+from crawjud.types import ReturnFormataTempo
 from crawjud.types.bot import DictFiles
 from utils.storage import Storage
 
+T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
 
 @shared_task(name="crawjud.download_files")
-def download_files(storage_folder_name: str) -> list[DictFiles]:
+def download_files(  # noqa: D417
+    storage_folder_name: str, *args: Generic[T], **kwargs: Generic[T]
+) -> list[DictFiles]:
     """
     Baixe arquivos de um storage, organize e remova diretórios temporários.
 
