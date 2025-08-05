@@ -9,16 +9,19 @@ import traceback
 from contextlib import suppress
 from typing import Self
 
-from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException  # noqa: F401
+from selenium.common.exceptions import (  # noqa: F401
+    NoSuchElementException,
+    NoSuchWindowException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from urllib3.exceptions import MaxRetryError  # noqa: F401
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class ProcParte(CrawJUD):
+class ProcParte(ClassBot):
     """Handle participant processing in Projudi with detailed queue management and error handling.
 
     This class extends CrawJUD to retrieve process lists, store participant information,
@@ -160,7 +163,9 @@ class ProcParte(CrawJUD):
                 self.use_list_process(list_processos)
 
                 with suppress(NoSuchElementException):
-                    next_page = self.driver.find_element(By.CLASS_NAME, "navRight").find_element(
+                    next_page = self.driver.find_element(
+                        By.CLASS_NAME, "navRight"
+                    ).find_element(
                         By.XPATH,
                         self.elements.exception_arrow,
                     )
@@ -200,7 +205,11 @@ class ProcParte(CrawJUD):
                 anoref = numero_processo.split(".")[1]
 
             try:
-                polo_ativo = processo.find_elements(By.TAG_NAME, "td")[2].find_elements(By.TAG_NAME, "td")[1].text
+                polo_ativo = (
+                    processo.find_elements(By.TAG_NAME, "td")[2]
+                    .find_elements(By.TAG_NAME, "td")[1]
+                    .text
+                )
             except Exception:
                 polo_ativo = "Não consta ou processo em sigilo"
 

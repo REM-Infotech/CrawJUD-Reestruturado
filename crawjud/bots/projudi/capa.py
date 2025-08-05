@@ -17,14 +17,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.bot.common import ExecutionError
-from crawjud.bot.core import CrawJUD
-
-# from memory_profiler import profile
-# fp = open("memory_profiler_capa_projudi.log", "+w")
+from common.bot import ClassBot
+from crawjud.exceptions.bot import ExecutionError
 
 
-class Capa(CrawJUD):
+class Capa(ClassBot):
     """Extract process information from Projudi and populate structured data.
 
     This class extends CrawJUD to click through information panels,
@@ -128,16 +125,22 @@ class Capa(CrawJUD):
             if trazer_copia and trazer_copia.lower() == "sim":
                 data = self.copia_pdf(data)
 
-            self.append_success([data], "Informações do processo extraidas com sucesso!")
+            self.append_success(
+                [data], "Informações do processo extraidas com sucesso!"
+            )
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
             self.logger.exception(str(e))
             raise ExecutionError(e=e) from e
 
-    def copia_pdf(self, data: dict[str, str | int | datetime]) -> dict[str, str | int | datetime]:
+    def copia_pdf(
+        self, data: dict[str, str | int | datetime]
+    ) -> dict[str, str | int | datetime]:
         """Extract the movements of the legal proceedings and saves a PDF copy."""
-        id_proc = self.driver.find_element(By.CSS_SELECTOR, 'input[name="id"]').get_attribute("value")
+        id_proc = self.driver.find_element(
+            By.CSS_SELECTOR, 'input[name="id"]'
+        ).get_attribute("value")
 
         btn_exportar = self.wait.until(
             ec.presence_of_element_located((
@@ -181,7 +184,9 @@ class Capa(CrawJUD):
             time.sleep(5)
 
             n_processo = self.bot_data.get("NUMERO_PROCESSO")
-            path_pdf = Path(self.output_dir_path).joinpath(f"Cópia Integral - {n_processo} - {self.pid}.pdf")
+            path_pdf = Path(self.output_dir_path).joinpath(
+                f"Cópia Integral - {n_processo} - {self.pid}.pdf"
+            )
 
             # # Get cookies from ChromeDriver session
             # cookies = {cookie["name"]: cookie["value"] for cookie in self.driver.get_cookies()}
@@ -245,7 +250,9 @@ class Capa(CrawJUD):
             # elif response.status_code != 200:
             # Fallback to ChromeDriver download if requests fails
 
-            btn_exportar = self.driver.find_element(By.CSS_SELECTOR, 'input[name="btnExportar"]')
+            btn_exportar = self.driver.find_element(
+                By.CSS_SELECTOR, 'input[name="btnExportar"]'
+            )
             btn_exportar.click()
 
             count = 0
@@ -294,7 +301,9 @@ class Capa(CrawJUD):
 
             grau = int(grau)
             process_info: dict[str, str | int | datetime] = {}
-            process_info.update({"NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")})
+            process_info.update({
+                "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")
+            })
 
             def format_vl_causa(valor_causa: str) -> float | str:
                 """Format the value of the cause by removing currency symbols and converting to float.
@@ -351,7 +360,9 @@ class Capa(CrawJUD):
             self.type_log = "log"
             self.prt()
 
-            btn_infogeral = self.driver.find_element(By.CSS_SELECTOR, self.elements.btn_infogeral)
+            btn_infogeral = self.driver.find_element(
+                By.CSS_SELECTOR, self.elements.btn_infogeral
+            )
             btn_infogeral.click()
 
             includecontent: list[WebElement] = []
@@ -363,15 +374,26 @@ class Capa(CrawJUD):
                 element_content = self.elements.segunda_instform
                 element_content2 = element_content
 
-            includecontent.append(self.driver.find_element(By.CSS_SELECTOR, element_content))
-            includecontent.append(self.wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, element_content2))))
+            includecontent.append(
+                self.driver.find_element(By.CSS_SELECTOR, element_content)
+            )
+            includecontent.append(
+                self.wait.until(
+                    ec.presence_of_element_located((
+                        By.CSS_SELECTOR,
+                        element_content2,
+                    ))
+                )
+            )
 
             for incl in includecontent:
                 with suppress(StaleElementReferenceException):
                     itens = list(
                         filter(
                             lambda x: len(x.find_elements(By.TAG_NAME, "td")) > 1,
-                            incl.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr"),
+                            incl.find_element(By.TAG_NAME, "tbody").find_elements(
+                                By.TAG_NAME, "tr"
+                            ),
                         ),
                     )
 
@@ -379,7 +401,9 @@ class Capa(CrawJUD):
                         labels = list(
                             filter(
                                 lambda x: x.text.strip() != "",
-                                item.find_elements(By.CSS_SELECTOR, "td.label, td.labelRadio > label"),
+                                item.find_elements(
+                                    By.CSS_SELECTOR, "td.label, td.labelRadio > label"
+                                ),
                             ),
                         )
                         # para teste
@@ -388,7 +412,8 @@ class Capa(CrawJUD):
 
                         values = list(
                             filter(
-                                lambda x: x.text.strip() != "" and not x.get_attribute("class"),
+                                lambda x: x.text.strip() != ""
+                                and not x.get_attribute("class"),
                                 item.find_elements(By.TAG_NAME, "td"),
                             ),
                         )
@@ -398,7 +423,11 @@ class Capa(CrawJUD):
                                 continue
 
                             not_formated_label = label.text
-                            label_text = self.format_string(label.text).upper().replace(" ", "_")
+                            label_text = (
+                                self.format_string(label.text)
+                                .upper()
+                                .replace(" ", "_")
+                            )
 
                             indice = labels.index(label)
                             value_text = values[indice].text
@@ -406,12 +435,18 @@ class Capa(CrawJUD):
                             if label_text == "VALOR_DA_CAUSA":
                                 value_text = format_vl_causa(value_text)
 
-                            elif "DATA" in label_text or "DISTRIBUICAO" in label_text or "AUTUACAO" in label_text:
+                            elif (
+                                "DATA" in label_text
+                                or "DISTRIBUICAO" in label_text
+                                or "AUTUACAO" in label_text
+                            ):
                                 if " às " in value_text:
                                     value_text = value_text.split(" às ")[0]
 
                                 if self.text_is_a_date(value_text) is True:
-                                    value_text = datetime.strptime(value_text, "%d/%m/%Y")
+                                    value_text = datetime.strptime(
+                                        value_text, "%d/%m/%Y"
+                                    )
 
                             elif not_formated_label != value_text:
                                 value_text = " ".join(value_text.split(" ")).upper()
@@ -429,32 +464,50 @@ class Capa(CrawJUD):
             btn_partes.click()
 
             try:
-                includecontent = self.driver.find_element(By.ID, self.elements.includecontent_capa)
+                includecontent = self.driver.find_element(
+                    By.ID, self.elements.includecontent_capa
+                )
             except Exception:
                 time.sleep(3)
                 self.driver.refresh()
                 time.sleep(1)
-                includecontent = self.driver.find_element(By.ID, self.elements.includecontent_capa)
+                includecontent = self.driver.find_element(
+                    By.ID, self.elements.includecontent_capa
+                )
 
-            result_table = includecontent.find_elements(By.CLASS_NAME, self.elements.resulttable)
+            result_table = includecontent.find_elements(
+                By.CLASS_NAME, self.elements.resulttable
+            )
 
             for pos, parte_info in enumerate(result_table):
                 h4_name = list(
-                    filter(lambda x: x.text != "" and x is not None, includecontent.find_elements(By.TAG_NAME, "h4")),
+                    filter(
+                        lambda x: x.text != "" and x is not None,
+                        includecontent.find_elements(By.TAG_NAME, "h4"),
+                    ),
                 )
-                tipo_parte = self.format_string(h4_name[pos].text).replace(" ", "_").upper()
+                tipo_parte = (
+                    self.format_string(h4_name[pos].text).replace(" ", "_").upper()
+                )
 
                 nome_colunas = []
 
-                for column in parte_info.find_element(By.TAG_NAME, "thead").find_elements(By.TAG_NAME, "th"):
+                for column in parte_info.find_element(
+                    By.TAG_NAME, "thead"
+                ).find_elements(By.TAG_NAME, "th"):
                     nome_colunas.append(column.text.upper())
 
-                for parte in parte_info.find_element(By.TAG_NAME, "tbody").find_elements(
+                for parte in parte_info.find_element(
+                    By.TAG_NAME, "tbody"
+                ).find_elements(
                     By.XPATH,
                     self.elements.table_moves,
                 ):
                     for pos_, nome_coluna in enumerate(nome_colunas):
-                        key = "_".join((self.format_string(nome_coluna).replace(" ", "_").upper(), tipo_parte))
+                        key = "_".join((
+                            self.format_string(nome_coluna).replace(" ", "_").upper(),
+                            tipo_parte,
+                        ))
                         value = parte.find_elements(By.TAG_NAME, "td")[pos_].text
 
                         if value:
