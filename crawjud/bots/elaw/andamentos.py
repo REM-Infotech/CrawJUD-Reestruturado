@@ -19,7 +19,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud.common.bot import ClassBot
+from crawjud.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 
 
