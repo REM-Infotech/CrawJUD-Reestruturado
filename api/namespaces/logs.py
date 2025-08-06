@@ -177,17 +177,6 @@ class LogsNamespace(Namespace):
             message["errors"] = count_error
             message["remaining"] = remaining
 
-        if message["status"] != "Inicializando":
-            # Atualiza os contadores conforme o tipo de mensagem
-            if message.get("type") and message.get("row") > 0:
-                if message.get("type") == "success":
-                    message["success"] = message.get("success", 0) + 1
-                    message["remaining"] = message["remaining"] - 1
-
-                if message.get("type") == "error":
-                    message["errors"] = message.get("errors", 0) + 1
-                    message["remaining"] = message["remaining"] - 1
-
         return message
 
     async def log_redis(
