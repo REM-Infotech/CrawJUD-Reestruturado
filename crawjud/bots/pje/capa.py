@@ -128,7 +128,7 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
         semaforo = threading.Semaphore(4)
 
-        with ThreadPoolExecutor(4) as executor:
+        with ThreadPoolExecutor(8) as executor:
             for regiao, data_regiao in list(regioes["regioes"].items()):
                 if self.stop_bot:
                     break
@@ -392,6 +392,13 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                     chunk = 65536
                     _path_temp = Path(__file__).cwd().joinpath("temp", pid)
 
+                    content_type = response.headers.get(
+                        "Content-Type", headers.get("Content-Type", None)
+                    )
+
+                    if not content_type or content_type.lower() != "application/pdf":
+                        return
+
                     _path_temp.mkdir(exist_ok=True, parents=True)
 
                     file_path = _path_temp.joinpath(file_name)
@@ -422,10 +429,9 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         total_rows=total_rows,
                         start_time=start_time,
                     )
-                except Exception as e:
-                    msg = "Erro ao baixar arquivo: " + "\n".join(
-                        traceback.format_exception(e)
-                    )
+                except Exception:
+                    msg = "Erro ao baixar arquivo"
+
                     self.print_msg(
                         message=msg,
                         pid=pid,
