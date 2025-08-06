@@ -8,13 +8,13 @@ utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceç�
 from __future__ import annotations
 
 import json.decoder
+from contextlib import suppress
 from time import sleep
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from celery import shared_task
 from httpx import Client
 
-from celery_app.tasks.message import PrintMessage
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types import BotData, ReturnFormataTempo
 from crawjud.types.bot import MessageNadaEncontrado
@@ -22,8 +22,8 @@ from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Proce
 from utils.recaptcha import captcha_to_image
 
 if TYPE_CHECKING:
+    from celery_app.custom._task import ContextTask
     from crawjud.types import BotData
-
 
 # Expressão regular para validar URLs de processos PJe
 pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+(#[a-zA-Z0-9]+)?$"
@@ -62,16 +62,21 @@ def buscar_processo(  # noqa: D417
     row = int(data["row"])
     url_base = str(data["url_base"])
     start_time = data["start_time"]
-    PrintMessage.apply_async(
-        kwargs={
-            "pid": pid,
-            "message": f"Buscando processo {data['NUMERO_PROCESSO']}",
-            "row": row,
-            "type_log": "log",
-            "total_rows": data.get("total_rows", 0),
-            "start_time": start_time,
-        }
-    )
+
+    with suppress(Exception):
+        current_task: ContextTask = kwargs.get("current_task")
+        sio = current_task.sio if current_task else None
+        sio.emit(
+            "log_execution",
+            data={
+                "pid": pid,
+                "message": f"Buscando processo {data['NUMERO_PROCESSO']}",
+                "row": row,
+                "type_log": "log",
+                "total_rows": data.get("total_rows", 0),
+                "start_time": start_time,
+            },
+        )
 
     with Client(
         base_url=url_base,
@@ -99,7 +104,10 @@ def buscar_processo(  # noqa: D417
         if data_request.get("id"):
             id_processo = str(data_request["id"])
             resultado = desafio_captcha(
-                data=data, id_processo=id_processo, client=client
+                data=data,
+                id_processo=id_processo,
+                client=client,
+                current_task=current_task,
             )
             return cast(DictReturnDesafio, resultado)
 
@@ -108,7 +116,7 @@ def buscar_processo(  # noqa: D417
 
 
 def desafio_captcha(
-    data: BotData, id_processo: str, client: Client
+    data: BotData, id_processo: str, client: Client, **kwargs: Generic[T]
 ) -> DictReturnDesafio:
     """
     Resolve o desafio captcha para acessar informações do processo no sistema PJe.
@@ -117,6 +125,7 @@ def desafio_captcha(
         data (BotData): Dados do processo a serem consultados.
         id_processo (str): Identificador do processo a ser consultado.
         client (Client): Cliente HTTP para realizar requisições.
+        **kwargs: Argumentos adicionais.
 
     Returns:
         DictReturnDesafio: Dicionário contendo headers, cookies e resultados do processo.
@@ -167,16 +176,21 @@ def desafio_captcha(
             pid = str(data["pid"])
             row = int(data["row"])
             start_time = data["start_time"]
-            PrintMessage.apply_async(
-                kwargs={
-                    "pid": pid,
-                    "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
-                    "row": row,
-                    "type_log": "info",
-                    "total_rows": data.get("total_rows", 0),
-                    "start_time": start_time,
-                }
-            )
+            with suppress(Exception):
+                current_task: ContextTask = kwargs.get("current_task")
+                sio = current_task.sio if current_task else None
+                sio.emit(
+                    "log_execution",
+                    data={
+                        "pid": pid,
+                        "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
+                        "row": row,
+                        "type_log": "info",
+                        "total_rows": data.get("total_rows", 0),
+                        "start_time": start_time,
+                    },
+                )
+
             break
 
         sleep(4)

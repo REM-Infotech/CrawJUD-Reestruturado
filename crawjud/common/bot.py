@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import (
+    TYPE_CHECKING,
     Any,
     AnyStr,
     ParamSpec,
@@ -14,8 +15,10 @@ from typing import (
 from dotenv import dotenv_values
 from pytz import timezone
 
-from celery_app.tasks.message import PrintMessage
 from utils.models.logs import MessageLogDict
+
+if TYPE_CHECKING:
+    from celery_app.custom._task import ContextTask
 
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
@@ -27,6 +30,8 @@ TReturn = TypeVar("TReturn")
 
 
 class ClassBot(ABC):  # noqa:  D101
+    current_task: ContextTask
+
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
 
@@ -59,6 +64,7 @@ class ClassBot(ABC):  # noqa:  D101
             None: Não retorna valor.
 
         """
+        sio = self.current_task.sio
         # Define o total de itens
         total_count = total_rows
         # Obtém o horário atual formatado
@@ -80,14 +86,8 @@ class ClassBot(ABC):  # noqa:  D101
             start_time=start_time,
         )
 
+        sio.emit("log_execution", data=data)
         # Envia a mensagem formatada para o sistema de monitoramento
-        PrintMessage.apply_async(
-            kwargs={
-                "event": "log_execution",
-                "data": data,
-                "room": str(pid),
-            }
-        )
 
     def elawFormats(  # noqa: N802
         self, data: dict[str, str], cities_amazonas: dict[str, AnyStr]

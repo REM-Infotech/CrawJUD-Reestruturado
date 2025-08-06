@@ -70,11 +70,15 @@ class Capa(ContextTask, ClassBot):
     Gerencia autenticação, separação de regiões e download de arquivos.
     """
 
+    current_task: ContextTask
+
     def __init__(  # noqa: D107
         self,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        self.current_task = kwargs.get("current_task")
+
         self.execution(*args, **kwargs)
 
     def execution(
@@ -208,11 +212,14 @@ class Capa(ContextTask, ClassBot):
 
 @shared_task(name="pje.queue_processos", base=ContextTask, bind=True)
 class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
+    current_task: ContextTask
+
     def __init__(  # noqa: D107
         self,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        self.current_task = kwargs.get("current_task")
         self.queue(*args, **kwargs)
 
     def execution(self, *args: Generic[T], **kwargs: Generic[T]) -> None:  # noqa: D102
@@ -255,14 +262,14 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
                 # Atualiza dados do item para processamento
 
                 item.update({
-                    "row": position_process[item["NUMERO_PROCESSO"]],
+                    "row": position_process[item["NUMERO_PROCESSO"]] + 1,
                     "total_rows": total_rows,
                     "pid": pid,
                     "url_base": base_url,
                     "start_time": start_time,
                 })
 
-                row = int(item["row"]) + 1
+                row = int(item["row"])
                 start_time = item["start_time"]
                 resultados_busca: DictReturnDesafio = (
                     subtask("pje.buscador")
@@ -331,11 +338,14 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
 
 @shared_task(name="pje.capa.copia_integral", bind=True)
 class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
+    current_task: ContextTask
+
     def __init__(  # noqa: D107
         self,
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
+        self.current_task = kwargs.get("current_task")
         self.download_copia_integral(*args, **kwargs)
 
     def queue(self) -> None:  # noqa: D102

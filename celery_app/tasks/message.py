@@ -22,12 +22,10 @@ from __future__ import annotations
 import re
 from contextlib import suppress
 from pathlib import Path
-from threading import Thread
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
 
-from celery_app import sio
 from celery_app._wrapper import shared_task
 from celery_app.custom._task import ContextTask
 
@@ -38,13 +36,6 @@ if TYPE_CHECKING:
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
 T = TypeVar("T")
-
-
-server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
-namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
-
-transports = ["websocket"]
-headers = {"Content-Type": "application/json"}
 
 
 class StrTime(str):
@@ -128,14 +119,10 @@ class PrintMessage(ContextTask):
             None: Não retorna valor.
 
         """
+        current_task: ContextTask = kwargs.get("current_task", None)
+        sio = current_task.sio if current_task else self.sio
         if data:
             with suppress(Exception):
-                sio.connect(
-                    url=server,
-                    namespaces=["/logsbot", "/bots"],
-                    headers=headers,
-                    transports=transports,
-                )
                 # Cria uma instância do cliente Socket.IO e conecta ao servidor
                 # com o namespace e cabeçalhos especificados.
                 # Se uma sala for especificada, o cliente se juntará a ela.
@@ -144,14 +131,7 @@ class PrintMessage(ContextTask):
                 # Se uma sala for especificada, o cliente se juntará a ela.
                 if room:
                     join_data = {"data": {"room": room}}
-                    sio.emit("join_room", data=join_data, namespace="/logsbot")
+                    sio.emit("join_room", data=join_data)
 
                 # Emite o evento com os dados fornecidos.
-                sio.emit("log_execution", data={"data": data}, namespace="/logsbot")
-
-                wait_server = Thread(target=sio.wait, daemon=True)
-
-                wait_server.start()
-
-                wait_server.join(30)
-                sio.disconnect()
+                sio.emit("log_execution", data={"data": data})

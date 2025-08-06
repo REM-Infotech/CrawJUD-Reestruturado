@@ -5,6 +5,8 @@ from asyncio import run as run_async
 from typing import Any, AnyStr, Generic, ParamSpec, TypeVar  # noqa: F401
 
 from celery.app.task import Task as TaskBase
+from dotenv import dotenv_values
+from socketio import SimpleClient
 
 from celery_app.custom._canvas import subtask  # noqa: F401
 from celery_app.types._celery._canvas import (  # noqa: F401
@@ -13,22 +15,47 @@ from celery_app.types._celery._canvas import (  # noqa: F401
     Signature,
 )
 
+environ = dotenv_values()
 T = TypeVar("T", bound=AnyStr)
 P = ParamSpec("P")
 R = TypeVar("R")
+
+server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
+namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
+
+transports = ["websocket"]
+headers = {"Content-Type": "application/json"}
 
 
 class ContextTask(TaskBase):
     abstract = True
     contains_classmethod = False
+    sio: SimpleClient
 
     def _run(self, *args: Generic[T], **kwargs: Generic[T]) -> None:
         kwargs["current_task"] = self
 
-        if iscoroutinefunction(self.run):
-            return run_async(self.run(*args, **kwargs))  # noqa: B026
+        with SimpleClient(
+            reconnection_attempts=20,
+            reconnection_delay=5,
+            reconnection_delay_max=10,
+            reconnection=True,
+        ) as sio:
+            self.sio = sio
+            self.sio.connect(
+                url=server,
+                namespace="/logsbot",
+                headers=headers,
+                transports=transports,
+            )
+            self.sio.emit(
+                "join_room", data={"room": kwargs.get("pid", self.request.id)}
+            )
 
-        return self.run(*args, **kwargs)  # noqa: B026
+            if iscoroutinefunction(self.run):
+                return run_async(self.run(*args, **kwargs))  # noqa: B026
+
+            return self.run(*args, **kwargs)  # noqa: B026
 
     def signature(
         self, args: Any = None, *starargs: Any, **starkwargs: Any

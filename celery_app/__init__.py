@@ -9,19 +9,12 @@ from pathlib import Path
 from typing import AnyStr
 
 from celery.signals import after_setup_logger
-from socketio import Client
 
 from celery_app.custom import AsyncCelery as Celery
 from celery_app.resources.load_config import Config
 from utils.logger import dict_config
 
 app = Celery(__name__)
-sio = Client(
-    reconnection_attempts=20,
-    reconnection_delay=5,
-    reconnection_delay_max=10,
-    reconnection=True,
-)
 
 
 @after_setup_logger.connect
