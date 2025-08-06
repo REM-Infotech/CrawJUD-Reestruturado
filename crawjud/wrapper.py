@@ -1,6 +1,6 @@
 # noqa: D100
 from functools import wraps
-from typing import AnyStr, ParamSpec, TypeVar
+from typing import Any, AnyStr, ParamSpec, TypeVar
 from uuid import uuid4
 
 from dotenv import dotenv_values
@@ -57,13 +57,17 @@ def wrap_cls(cls: type[ClassBot]) -> type[TClassBot]:  # noqa: D103
                 headers=headers,
                 transports=transports,
             )
+            cls = original_cls()
+
+            @sio.client.on("stopbot", namespace=namespace)
+            def stop_bot(*args: Any, **kwargs: Any) -> None:
+                cls.stop_bot = True
 
             sio.emit(
                 "join_room",
                 data={"data": {"room": kwargs.get("pid", uuid4().hex)}},
             )
 
-            cls = original_cls()
             cls.sio = sio
             return cls.execution(*args, **kw)
 
