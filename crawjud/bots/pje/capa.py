@@ -160,7 +160,7 @@ class Capa(ContextTask, ClassBot):
         total_rows = len(bot_data)
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            if len(tasks_queue_processos) >= 5:
+            if len(tasks_queue_processos) >= 2:
                 tasks_queue_processos[0].wait_ready()
                 tasks_queue_processos.pop(0)
 
