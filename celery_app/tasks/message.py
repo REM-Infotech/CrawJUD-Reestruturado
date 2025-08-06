@@ -19,15 +19,14 @@ Raises:
 
 from __future__ import annotations
 
-import asyncio
 import re
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
-from socketio import AsyncSimpleClient
 
+from celery_app import sio
 from celery_app._wrapper import shared_task
 from celery_app.custom._task import ContextTask
 
@@ -38,12 +37,6 @@ if TYPE_CHECKING:
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
 T = TypeVar("T")
-server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
-namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
-
-transports = ["websocket"]
-headers = {"Content-Type": "application/json"}
-url_server = environ["SOCKETIO_SERVER_URL"]
 
 
 class StrTime(str):
@@ -103,11 +96,9 @@ class PrintMessage(ContextTask):
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        asyncio.run(
-            self.print_msg(event=event, data=data, room=room, *args, **kwargs)  # noqa: B026
-        )
+        self.print_msg(event=event, data=data, room=room, *args, **kwargs)  # noqa: B026
 
-    async def print_msg(
+    def print_msg(
         self,
         event: str = "log_execution",
         data: dict[str, str] | str = None,
@@ -135,26 +126,12 @@ class PrintMessage(ContextTask):
                 # com o namespace e cabeçalhos especificados.
                 # Se uma sala for especificada, o cliente se juntará a ela.
                 # Em seguida, emite o evento com os dados fornecidos.
-                async with AsyncSimpleClient(
-                    reconnection_attempts=20,
-                    reconnection_delay=5,
-                ) as sio:
-                    # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
 
-                    await sio.connect(
-                        url=server,
-                        namespace=namespace,
-                        headers=headers,
-                        transports=transports,
-                    )
+                # Se uma sala for especificada, o cliente se juntará a ela.
+                if room:
+                    join_data = {"data": {"room": room}}
+                    sio.emit("join_room", data=join_data, namespace="/logsbot")
 
-                    # Se uma sala for especificada, o cliente se juntará a ela.
-                    if room:
-                        join_data = {"data": {"room": room}}
-                        await sio.emit("join_room", data=join_data)
-
-                    # Emite o evento com os dados fornecidos.
-                    await sio.emit(event, data={"data": data})
-
-                    await asyncio.sleep(5)
-                    print("ok")
+                # Emite o evento com os dados fornecidos.
+                sio.emit("log_execution", data={"data": data}, namespace="/logsbot")
+                sio.sleep(15)

@@ -144,8 +144,6 @@ class LogsNamespace(Namespace):
         # Obtém os dados do formulário e atualiza o log no Redis
         _data = dict(list((await request.form).items()))
 
-        tqdm.write(f"Log recebido: {_data}")
-
         try:
             message = await self.log_redis(pid=_data["pid"], message=_data)
             # Emite o log atualizado para a sala do processo
