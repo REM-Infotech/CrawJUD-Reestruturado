@@ -10,6 +10,7 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
+from celery_app.custom._task import ContextTask
 from crawjud.types import ReturnFormataTempo
 from utils.models.logs import CachedExecution
 from utils.storage import Storage
@@ -29,39 +30,43 @@ url_server = environ["SOCKETIO_SERVER_URL"]
 T = TypeVar("AnyValue", bound=ReturnFormataTempo)
 
 
-@shared_task(name="save_success")
-async def save_success(  # noqa: D103
-    pid: str,
-    filename: str,
-    *args: Generic[T],
-    **kwargs: Generic[T],
-) -> None:
-    _data_query = CachedExecution.find(CachedExecution.pid == pid).all()
+@shared_task(name="save_success", bind=True, base=ContextTask)
+class SaveSuccessTask(ContextTask):  # noqa: D101
+    def __init__(  # noqa: D107
+        self,
+        pid: str,
+        filename: str,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:
+        _data_query = CachedExecution.find(CachedExecution.pid == pid).all()
 
-    list_data = []
-    for item in _data_query:
-        list_data.extend(item.data)
+        list_data = []
+        for item in _data_query:
+            list_data.extend(item.data)
 
-    storage = Storage("minio")
-    path_planilha = workdir_path.joinpath("temp", pid, filename)
+        storage = Storage("minio")
+        path_planilha = workdir_path.joinpath("temp", pid, filename)
 
-    path_planilha.parent.mkdir(exist_ok=True, parents=True)
-    df = pd.DataFrame(list_data)
+        path_planilha.parent.mkdir(exist_ok=True, parents=True)
+        df = pd.DataFrame(list_data)
 
-    with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
-        df.to_excel(excel_writer=writter, index=False, sheet_name="Resultados")
+        with pd.ExcelWriter(path_planilha, engine="openpyxl") as writter:
+            df.to_excel(excel_writer=writter, index=False, sheet_name="Resultados")
 
-    file_name = secure_filename(path_planilha.name)
-    storage.upload_file(f"{pid}/{file_name}", path_planilha)
+        file_name = secure_filename(path_planilha.name)
+        storage.upload_file(f"{pid}/{file_name}", path_planilha)
 
 
-@shared_task(name="save_cache")
-async def save_success_cache(  # noqa: D103
-    pid: str,
-    data: list[BotData],
-    processo: str,
-    *args: Any,
-    **kwargs: Any,
-) -> None:
-    _cache = CachedExecution(processo=processo, data=data, pid=pid)
-    _cache.save()
+@shared_task(name="save_cache", bind=True, base=ContextTask)
+class SaveSuccessCache(ContextTask):  # noqa: D101
+    def __init__(  # noqa: D107
+        self,
+        pid: str,
+        data: list[BotData],
+        processo: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        _cache = CachedExecution(processo=processo, data=data, pid=pid)
+        _cache.save()

@@ -15,6 +15,7 @@ from pytz import timezone
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
+from celery_app.tasks.files import SaveSuccessCache
 from celery_app.types._celery._canvas import AsyncResult
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.common.bot import ClassBot
@@ -160,7 +161,7 @@ class Capa(ContextTask, ClassBot):
         total_rows = len(bot_data)
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
-            if len(tasks_queue_processos) >= 2:
+            if len(tasks_queue_processos) >= 5:
                 tasks_queue_processos[0].wait_ready()
                 tasks_queue_processos.pop(0)
 
@@ -295,7 +296,7 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
                     continue
 
                 # Salva dados em cache
-                subtask("save_cache").apply_async(
+                SaveSuccessCache.apply_async(
                     kwargs={
                         "pid": pid,
                         "data": resultados_busca["results"]["data_request"],

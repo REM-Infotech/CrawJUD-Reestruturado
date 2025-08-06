@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 from celery import shared_task
 from httpx import Client
 
-from celery_app.custom._canvas import subtask
+from celery_app.tasks.message import PrintMessage
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types import BotData, ReturnFormataTempo
 from crawjud.types.bot import MessageNadaEncontrado
@@ -62,8 +62,7 @@ def buscar_processo(  # noqa: D417
     row = int(data["row"])
     url_base = str(data["url_base"])
     start_time = data["start_time"]
-    task_message = subtask("log_message")
-    task_message.apply_async(
+    PrintMessage.apply_async(
         kwargs={
             "pid": pid,
             "message": f"Buscando processo {data['NUMERO_PROCESSO']}",
@@ -168,8 +167,7 @@ def desafio_captcha(
             pid = str(data["pid"])
             row = int(data["row"])
             start_time = data["start_time"]
-            task_message = subtask("log_message")
-            task_message.apply_async(
+            PrintMessage.apply_async(
                 kwargs={
                     "pid": pid,
                     "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
