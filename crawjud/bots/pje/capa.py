@@ -160,6 +160,10 @@ class Capa(ContextTask, ClassBot):
         total_rows = len(bot_data)
 
         for regiao, data_regiao in list(regioes["regioes"].items()):
+            if len(tasks_queue_processos) >= 5:
+                tasks_queue_processos[0].wait_ready()
+                tasks_queue_processos.pop(0)
+
             self.print_msg(
                 pid=pid,
                 message=f"Autenticando no TRT {regiao}",
@@ -381,7 +385,7 @@ class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
                     url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
                 chunk = 65536
-                _path_temp = Path(__file__).cwd().joinpath("temp", pid, id_processo)
+                _path_temp = Path(__file__).cwd().joinpath("temp", pid)
 
                 _path_temp.mkdir(exist_ok=True, parents=True)
 
