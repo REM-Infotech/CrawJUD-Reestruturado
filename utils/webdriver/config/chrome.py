@@ -15,6 +15,7 @@ work_dir = Path(__file__).cwd()
 arguments_list: list[str] = [
     "--ignore-ssl-errors=yes",
     "--ignore-certificate-errors",
+    "--display=:0",
     "--window-size=1280,720",
     "--no-sandbox",
     "--kiosk-printing",
