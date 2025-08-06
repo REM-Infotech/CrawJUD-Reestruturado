@@ -154,3 +154,4 @@ class PrintMessage(ContextTask):
                 wait_server.start()
 
                 wait_server.join(30)
+                sio.disconnect()
