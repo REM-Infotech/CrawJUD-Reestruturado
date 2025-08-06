@@ -59,9 +59,6 @@ class ClassBot(ABC):  # noqa:  D101
             None: Não retorna valor.
 
         """
-        # Mantém o pid para referência
-        # Cria subtask para envio da mensagem
-        task_msg = PrintMessage
         # Define o total de itens
         total_count = total_rows
         # Obtém o horário atual formatado
@@ -71,20 +68,20 @@ class ClassBot(ABC):  # noqa:  D101
 
         # Cria objeto de log da mensagem
         data = MessageLogDict(
-            message=prompt,
+            message=str(prompt),
             pid=str(pid),
-            row=row,
-            type=type_log,
-            status=status,
-            total=total_count,
+            row=int(row),
+            type=str(type_log),
+            status=(status),
+            total=int(total_count),
             success=0,
             errors=0,
-            remaining=total_rows,
+            remaining=int(total_rows),
             start_time=start_time,
         )
 
         # Envia a mensagem formatada para o sistema de monitoramento
-        task_msg.apply_async(
+        PrintMessage.apply_async(
             kwargs={
                 "event": "log_execution",
                 "data": data,
