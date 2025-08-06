@@ -38,7 +38,7 @@ def start_worker() -> None:
         hostname=worker_name,
         task_events=True,
         loglevel="DEBUG",
-        concurrency=16,
+        concurrency=int(environ.get("CELERY_CONCURRENCY", "16")),
         pool="prefork",
     )
     worker = worker
