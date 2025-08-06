@@ -16,6 +16,8 @@ func_dict_check = {
 
 
 class AbstractClassBot(ABC):  # noqa: D101
+    tasks_cls = {}
+
     @classmethod
     def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: D105, N803
         if cls is AbstractClassBot:
@@ -27,6 +29,10 @@ class AbstractClassBot(ABC):  # noqa: D101
 
         return True
         # return NotImplementedError("Função não implementada!")
+
+    def __init_subclass__(cls) -> None:  # noqa: D105
+        cls.tasks_cls[cls.__name__] = cls
+        print(f"Registered task classes: {cls.__name__}")
 
     @abstractmethod
     def buscar_processo(  # noqa: D102

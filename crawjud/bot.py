@@ -5,7 +5,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime
 from typing import (
-    TYPE_CHECKING,
     Any,
     AnyStr,
     ParamSpec,
@@ -15,14 +14,10 @@ from typing import (
 from clear import clear
 from dotenv import dotenv_values
 from pytz import timezone
-from socketio import SimpleClient
 
 from celery_app.tasks.files import SaveSuccessCache
 from crawjud.abstract._head import HeadBot
 from utils.models.logs import MessageLogDict
-
-if TYPE_CHECKING:
-    from celery_app.custom._task import ContextTask
 
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
@@ -34,16 +29,8 @@ TReturn = TypeVar("TReturn")
 
 
 class ClassBot(HeadBot):  # noqa:  D101
-    current_task: ContextTask
-    sio: SimpleClient
-    tasks_cls = {}
-
     def __init__(self) -> None:  # noqa: D107
         print("ok")
-
-    def __init_subclass__(cls) -> None:  # noqa: D105
-        cls.tasks_cls[cls.__name__] = cls
-        print(f"Registered task classes: {cls.__name__}")
 
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102

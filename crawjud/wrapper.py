@@ -58,15 +58,14 @@ def wrap_cls(cls: type[ClassBot]) -> type[TClassBot]:  # noqa: D103
                 transports=transports,
             )
             cls = original_cls()
-
-            @sio.client.on("stopbot", namespace=namespace)
-            def stop_bot(*args: Any, **kwargs: Any) -> None:
-                cls.stop_bot = True
-
             sio.emit(
                 "join_room",
                 data={"data": {"room": kwargs.get("pid", uuid4().hex)}},
             )
+
+            @sio.client.on("stopbot", namespace=namespace)
+            def stop_bot(*args: Any, **kwargs: Any) -> None:
+                cls.stop_bot = True
 
             cls.sio = sio
             return cls.execution(*args, **kw)

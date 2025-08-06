@@ -127,6 +127,9 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
         with ThreadPoolExecutor(8) as executor:
             for regiao, data_regiao in list(regioes["regioes"].items()):
+                if self.stop_bot:
+                    break
+
                 try:
                     self.print_msg(
                         pid=pid,
@@ -234,6 +237,8 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
         with ThreadPoolExecutor(5) as executor:
             for item in data:
+                if self.stop_bot:
+                    break
                 try:
                     # Atualiza dados do item para processamento
 

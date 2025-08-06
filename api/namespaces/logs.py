@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import traceback
-from typing import Any, cast
+from typing import Any
 
 import engineio
 import socketio
-from celery.app.control import Control
 from quart import request, session
 from quart_socketio import Namespace
 from tqdm import tqdm
 
-from celery_app import app as app_celery
 from utils.interfaces import ItemMessageList
 from utils.models.logs import MessageLog, MessageLogDict
 
@@ -77,7 +75,7 @@ class LogsNamespace(Namespace):
         """
         # Evento de desconexão não implementado
 
-    async def on_stop_signal(self, *args: Any, **kwargs: Any) -> None:
+    async def on_stopbot(self, *args: Any, **kwargs: Any) -> None:
         """
         Emitissor de sinal de parada para um processo específico.
 
@@ -89,13 +87,9 @@ class LogsNamespace(Namespace):
             None: Apenas emite o evento de parada.
 
         """
-        control = cast(Control, app_celery.control)
-        request_data = await request.data
-        pid = request_data.get("pid")
-        control.revoke(
-            task_id=pid,
-            terminate=True,
-        )
+        data = await request.form
+
+        await self.emit("stopbot", room=data["pid"])
 
     async def on_join_room(self) -> None:
         """
