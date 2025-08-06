@@ -277,6 +277,7 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                     _ft = executor.submit(
                         self.copia_integral,
                         pid=pid,
+                        data=item,
                         total_rows=total_rows,
                         row=row,
                         url_base=base_url,
@@ -309,6 +310,7 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
     def copia_integral(  # noqa: D417
         self,
+        data: BotData,
         pid: str,
         row: int,
         total_rows: int,
@@ -349,6 +351,14 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
             cookies=cookies,
         ) as client:
             try:
+                self.print_msg(
+                    message=f"Baixando arquivo do processo n.{data['NUMERO_PROCESSO']}",
+                    pid=pid,
+                    row=row,
+                    type_log="info",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
                 response = client.get(
                     url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
@@ -376,9 +386,21 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         data=file,
                         length=file_size,
                     )
-            except Exception as e:
+
                 self.print_msg(
-                    message="\n".join(traceback.format_exception(e)),
+                    message=f"Arquivo do processo n.{data['NUMERO_PROCESSO']} baixado com sucesso!",
+                    pid=pid,
+                    row=row,
+                    type_log="success",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
+            except Exception as e:
+                msg = "Erro ao baixar arquivo: " + "\n".join(
+                    traceback.format_exception(e)
+                )
+                self.print_msg(
+                    message=msg,
                     pid=pid,
                     row=row,
                     type_log="error",
