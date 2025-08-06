@@ -7,7 +7,6 @@ from contextlib import suppress
 from datetime import datetime
 from os import path
 from pathlib import Path
-from time import sleep
 from typing import TYPE_CHECKING, Generic
 
 from clear import clear
@@ -129,11 +128,6 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
         with ThreadPoolExecutor(8) as executor:
             for regiao, data_regiao in list(regioes["regioes"].items()):
                 try:
-                    if len(self.tasks_queue_processos) > 4:
-                        while self.tasks_queue_processos[0].done():
-                            sleep(0.005)
-                            self.tasks_queue_processos.pop(0)
-
                     self.print_msg(
                         pid=pid,
                         message=f"Autenticando no TRT {regiao}",
@@ -181,6 +175,10 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         total_rows=total_rows,
                         start_time=start_time,
                     )
+
+        for task in self.tasks_queue_processos:
+            with suppress(Exception):
+                task.result()
 
     def queue_processo(
         self,
