@@ -277,9 +277,12 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                     _ft = executor.submit(
                         self.copia_integral,
                         pid=pid,
+                        total_rows=total_rows,
+                        row=row,
                         url_base=base_url,
                         file_name=file_name,
                         headers=headers,
+                        start_time=start_time,
                         cookies=cookies,
                         id_processo=resultados_busca["results"]["id_processo"],
                         captchatoken=resultados_busca["results"]["captchatoken"],
@@ -304,9 +307,12 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         start_time=start_time,
                     )
 
-    def copia_integral(
+    def copia_integral(  # noqa: D417
         self,
         pid: str,
+        row: int,
+        total_rows: int,
+        start_time: str,
         url_base: str,
         headers: dict[str, str],
         cookies: dict[str, str],
@@ -336,13 +342,13 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
         """
         self.current_task = kwargs.get("current_task")
         storage = Storage("minio")
-        with suppress(Exception):
-            with Client(
-                base_url=url_base,
-                timeout=30,
-                headers=headers,
-                cookies=cookies,
-            ) as client:
+        with Client(
+            base_url=url_base,
+            timeout=30,
+            headers=headers,
+            cookies=cookies,
+        ) as client:
+            try:
                 response = client.get(
                     url=f"/processos/{id_processo}/integra?tokenCaptcha={captchatoken}"
                 )
@@ -370,3 +376,12 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         data=file,
                         length=file_size,
                     )
+            except Exception as e:
+                self.print_msg(
+                    message="\n".join(traceback.format_exception(e)),
+                    pid=pid,
+                    row=row,
+                    type_log="error",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
