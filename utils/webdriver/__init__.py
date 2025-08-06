@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -148,8 +149,10 @@ class DriverBot(WebDriver):  # noqa: D101
         return self._wait
 
     def quit(self) -> None:  # noqa: D102
-        self.options.proxy_server.stop()
-        self.options.proxy_client.close()
+        with suppress(Exception):
+            self.options.proxy_client.close()
+            self.options.proxy_server.stop()
+
         return super().quit()
 
     @wait.setter

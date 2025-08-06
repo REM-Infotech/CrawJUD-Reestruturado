@@ -12,8 +12,10 @@ from typing import (
     TypeVar,
 )
 
+from clear import clear
 from dotenv import dotenv_values
 from pytz import timezone
+from socketio import SimpleClient
 
 from utils.models.logs import MessageLogDict
 
@@ -31,12 +33,18 @@ TReturn = TypeVar("TReturn")
 
 class ClassBot(ABC):  # noqa:  D101
     current_task: ContextTask
+    sio: SimpleClient
+    tasks_cls = {}
+
+    def __init__(self) -> None:  # noqa: D107
+        print("ok")
+
+    def __init_subclass__(cls) -> None:  # noqa: D105
+        cls.tasks_cls[cls.__name__] = cls
+        print(f"Registered task classes: {cls.__name__}")
 
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
-
-    @abstractmethod
-    def queue(self) -> None: ...  # noqa: D102
 
     def print_msg(
         self,
@@ -64,7 +72,7 @@ class ClassBot(ABC):  # noqa:  D101
             None: Não retorna valor.
 
         """
-        sio = self.current_task.sio
+        clear()
         # Define o total de itens
         total_count = total_rows
         # Obtém o horário atual formatado
@@ -88,7 +96,10 @@ class ClassBot(ABC):  # noqa:  D101
             )
         }
 
-        sio.emit("log_execution", data=data)
+        self.sio.emit(
+            event="log_execution",
+            data=data,
+        )
         # Envia a mensagem formatada para o sistema de monitoramento
 
     def elawFormats(  # noqa: N802

@@ -74,13 +74,12 @@ def autenticar(regiao: str, *args: Generic[T], **kwargs: Generic[T]) -> TReturnA
         )
         event_cert = btn_certificado.get_attribute("onclick")
         driver.execute_script(event_cert)
-
-        try:
-            WebDriverWait(driver, 60).until(ec.url_to_be(url_valida_sessao))
-        except TimeoutException:
-            return "Tempo de espera excedido para validação de sessão"
-
         sleep(1)
+        try:
+            WebDriverWait(driver, 15).until(ec.url_to_be(url_valida_sessao))
+        except TimeoutException:
+            if "pjekz" not in driver.current_url:
+                return "Tempo de espera excedido para validação de sessão"
 
         if (
             "pjekz/painel/usuario-externo" in driver.current_url

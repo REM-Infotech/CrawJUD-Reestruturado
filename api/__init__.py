@@ -5,12 +5,15 @@ from importlib import import_module
 from pathlib import Path
 
 import quart_flask_patch  # noqa: F401
+import socketio
+from dotenv import dotenv_values
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from quart import Quart
 from quart_cors import cors
 from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
+from quart_socketio.config.python_socketio import AsyncSocketIOConfig
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 from celery_app import make_celery
@@ -20,11 +23,25 @@ def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
     return True
 
 
+environ = dotenv_values()
 sess = Session()
 app = Quart(__name__)
 jwt = JWTManager()
 db = SQLAlchemy()
-io = SocketIO(async_mode="asgi", launch_mode="uvicorn", cookie="access")
+
+config = AsyncSocketIOConfig(
+    client_manager=socketio.RedisManager(
+        url=environ.get("SOCKETIO_REDIS", "redis://localhost:6379/0")
+    )
+)
+
+
+io = SocketIO(
+    async_mode="asgi",
+    launch_mode="uvicorn",
+    cookie="access",
+    socket_config=config,
+)
 
 
 async def create_app() -> Quart:

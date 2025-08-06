@@ -21,6 +21,7 @@ from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types import BotData, ReturnFormataTempo
 from crawjud.types.bot import MessageNadaEncontrado
 from crawjud.types.pje import DictDesafio, DictResults, DictReturnDesafio, Processo
+from crawjud.wrapper import wrap_cls
 from utils.recaptcha import captcha_to_image
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ T = TypeVar("AnyValue", bound=ReturnFormataTempo)
 
 
 @shared_task(name="pje.buscador", bind=True, base=ContextTask)
+@wrap_cls
 class BuscadorProcesso(ClassBot, ContextTask):  # noqa: D101
     def execution(
         self,

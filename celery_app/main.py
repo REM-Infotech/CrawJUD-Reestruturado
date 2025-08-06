@@ -13,6 +13,7 @@ from typing import Callable
 from celery.apps.beat import Beat  # noqa: F401
 from celery.apps.worker import Worker
 from clear import clear
+from dotenv import dotenv_values
 from inquirer import List, prompt
 from inquirer.themes import GreenPassion
 from tqdm import tqdm
@@ -22,6 +23,7 @@ from celery_app import make_celery
 from celery_app.addons import worker_name_generator
 
 clear()
+envdot = dotenv_values()
 environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
 
 work_dir = Path(__file__).cwd()
@@ -32,6 +34,11 @@ def start_worker() -> None:
     environ.update({"APPLICATION_APP": "worker"})
     worker_name = environ["WORKER_NAME"]
 
+    debug = envdot["DEBUG"].lower() == "true"
+    _pool = "prefork"
+    if debug:
+        _pool = "threads"
+
     celery = make_celery()
     worker = Worker(
         app=celery,
@@ -39,7 +46,7 @@ def start_worker() -> None:
         task_events=True,
         loglevel="DEBUG",
         concurrency=int(environ.get("CELERY_CONCURRENCY", "16")),
-        pool="prefork",
+        pool=_pool,
     )
     worker = worker
 
@@ -73,7 +80,7 @@ def start_beat() -> None:
 
 
 def start_service(call: Callable) -> Process:  # noqa: D103
-    proc = Process(target=call, daemon=True)
+    proc = Process(target=call)
     proc.start()
     return proc
 

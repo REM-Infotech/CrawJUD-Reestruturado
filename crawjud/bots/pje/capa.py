@@ -1,13 +1,16 @@
 # noqa: D100
 from __future__ import annotations
 
+import traceback
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from datetime import datetime
 from os import path
 from pathlib import Path
+from time import sleep
 from typing import TYPE_CHECKING, Generic
 
-import psutil
+from clear import clear
 from dotenv import load_dotenv
 from httpx import Client
 from pytz import timezone
@@ -16,7 +19,6 @@ from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
 from celery_app.tasks.files import SaveSuccessCache
-from celery_app.types._celery._canvas import AsyncResult
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
@@ -25,52 +27,20 @@ from crawjud.types.bot import (
     TReturnAuth,
 )
 from crawjud.types.pje import DictReturnDesafio, DictSeparaRegiao
+from crawjud.wrapper import wrap_cls
 from utils.storage import Storage
 
 if TYPE_CHECKING:
     from crawjud.types import BotData, T  # noqa: F401
 
+
 load_dotenv()
 
 
-def _kill_browsermob() -> None:
-    """
-    Finaliza processos relacionados ao BrowserMob Proxy.
-
-    Args:
-        None
-
-    Returns:
-        None: Não retorna valor.
-
-    """
-    keyword = "browsermob"
-    matching_procs = []
-
-    # Primeira fase: coleta segura dos processos
-    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-        with suppress(
-            psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, Exception
-        ):
-            if any(keyword in part for part in proc.info["cmdline"]):
-                matching_procs.append(proc)
-
-    # Segunda fase: finalização dos processos encontrados
-    for proc in matching_procs:
-        with suppress(psutil.NoSuchProcess, psutil.AccessDenied, Exception):
-            print(f"Matando PID {proc.pid} ({' '.join(proc.info['cmdline'])})")
-            proc.kill()
-
-
 @shared_task(name="pje.capa", bind=True, base=ContextTask)
-class Capa(ContextTask, ClassBot):
-    """
-    Classe principal para processamento da capa dos processos PJE.
-
-    Gerencia autenticação, separação de regiões e download de arquivos.
-    """
-
-    current_task: ContextTask
+@wrap_cls
+class Capa(ClassBot, ContextTask):  # noqa: D101
+    tasks_queue_processos: list[Future] = []
 
     def execution(
         self,
@@ -108,6 +78,8 @@ class Capa(ContextTask, ClassBot):
         files_b64: list[DictFiles] = task_download_files.apply_async(
             kwargs={"storage_folder_name": storage_folder_name}
         ).wait_ready()
+
+        clear()
 
         # Filtra arquivo Excel
         xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
@@ -152,64 +124,66 @@ class Capa(ContextTask, ClassBot):
         ).wait_ready()
 
         position_process = regioes["position_process"]
-        tasks_queue_processos: list[AsyncResult] = []
 
         total_rows = len(bot_data)
 
-        for regiao, data_regiao in list(regioes["regioes"].items()):
-            if len(tasks_queue_processos) >= 5:
-                tasks_queue_processos[0].wait_ready()
-                tasks_queue_processos.pop(0)
+        with ThreadPoolExecutor(8) as executor:
+            for regiao, data_regiao in list(regioes["regioes"].items()):
+                try:
+                    if len(self.tasks_queue_processos) > 4:
+                        while self.tasks_queue_processos[0].done():
+                            sleep(0.005)
+                            self.tasks_queue_processos.pop(0)
 
-            self.print_msg(
-                pid=pid,
-                message=f"Autenticando no TRT {regiao}",
-                row=0,
-                type_log="log",
-                total_rows=total_rows,
-                start_time=start_time,
-            )
-            autenticacao_data: TReturnAuth = task_autenticacao.apply_async(
-                kwargs={"regiao": regiao}
-            ).wait_ready()
+                    self.print_msg(
+                        pid=pid,
+                        message=f"Autenticando no TRT {regiao}",
+                        row=0,
+                        type_log="log",
+                        total_rows=total_rows,
+                        start_time=start_time,
+                    )
 
-            if isinstance(autenticacao_data, dict):
-                kw_args = dict(autenticacao_data)
-                kw_args.update({
-                    "data": data_regiao,
-                    "pid": pid,
-                    "regiao": regiao,
-                    "start_time": start_time,
-                    "total_rows": total_rows,
-                    "position_process": position_process,
-                })
+                    autenticacao_data: TReturnAuth = task_autenticacao.apply_async(
+                        kwargs={"regiao": regiao}
+                    ).wait_ready()
+                    if not isinstance(autenticacao_data, dict):
+                        return
 
-                # Inicia a fila de tarefas para processar os dados
-                _task_queue_processos = QueueProcessos.apply_async(kwargs=kw_args)
+                    # Envia mensagem de sucesso
+                    self.print_msg(
+                        pid=pid,
+                        message="Autenticado com sucesso!",
+                        row=0,
+                        type_log="info",
+                        total_rows=total_rows,
+                        start_time=start_time,
+                    )
 
-                # Armazena a tarefa na lista de tarefas
-                tasks_queue_processos.append(_task_queue_processos)
-                _kill_browsermob()
+                    kw_args = dict(autenticacao_data)
+                    kw_args.update({
+                        "data": data_regiao,
+                        "pid": pid,
+                        "regiao": regiao,
+                        "start_time": start_time,
+                        "total_rows": total_rows,
+                        "position_process": position_process,
+                    })
 
-                # Envia mensagem de sucesso
-                self.print_msg(
-                    pid=pid,
-                    message="Autenticado com sucesso!",
-                    row=0,
-                    type_log="info",
-                    total_rows=total_rows,
-                    start_time=start_time,
-                )
+                    task = executor.submit(self.queue_processo, **kw_args)
+                    self.tasks_queue_processos.append(task)
 
+                except Exception as e:
+                    self.print_msg(
+                        message="\n".join(traceback.format_exception(e)),
+                        pid=pid,
+                        row=0,
+                        type_log="error",
+                        total_rows=total_rows,
+                        start_time=start_time,
+                    )
 
-@shared_task(name="pje.queue_processos", base=ContextTask, bind=True)
-class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
-    current_task: ContextTask
-
-    def queue(self) -> None:  # noqa: D102
-        return
-
-    def execution(
+    def queue_processo(
         self,
         cookies: dict[str, str],
         headers: dict[str, str],
@@ -221,7 +195,7 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
         total_rows: int = 0,
         *args: Generic[T],
         **kwargs: Generic[T],
-    ) -> None:
+    ) -> str:
         """
         Enfileira processos para processamento e salva resultados.
 
@@ -241,94 +215,93 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
             None: Não retorna valor.
 
         """
-        self.current_task = kwargs.get("current_task")
-        for item in data:
-            with suppress(Exception):
-                # Atualiza dados do item para processamento
+        with ThreadPoolExecutor(5) as executor:
+            for item in data:
+                try:
+                    # Atualiza dados do item para processamento
 
-                item.update({
-                    "row": position_process[item["NUMERO_PROCESSO"]] + 1,
-                    "total_rows": total_rows,
-                    "pid": pid,
-                    "url_base": base_url,
-                    "start_time": start_time,
-                })
+                    item.update({
+                        "row": position_process[item["NUMERO_PROCESSO"]] + 1,
+                        "total_rows": total_rows,
+                        "pid": pid,
+                        "url_base": base_url,
+                        "start_time": start_time,
+                    })
 
-                row = int(item["row"])
-                start_time = item["start_time"]
-                resultados_busca: DictReturnDesafio = (
-                    subtask("pje.buscador")
-                    .apply_async(
+                    row = int(item["row"])
+                    start_time = item["start_time"]
+                    resultados_busca: DictReturnDesafio = (
+                        subtask("pje.buscador")
+                        .apply_async(
+                            kwargs={
+                                "data": item,
+                                "headers": headers,
+                                "cookies": cookies,
+                            }
+                        )
+                        .wait_ready()
+                    )
+
+                    # Verifica se houve resultado na busca
+                    if (
+                        not resultados_busca
+                        or (
+                            isinstance(resultados_busca, str)
+                            and "Nenhum processo encontrado" in resultados_busca
+                        )
+                        or "Processo não encontrado" in resultados_busca
+                    ):
+                        self.print_msg(
+                            pid=pid,
+                            message="Falha ao obter informações do processo ",
+                            row=row,
+                            type_log="error",
+                            total_rows=item.get("total_rows", 0),
+                            start_time=start_time,
+                        )
+                        continue
+
+                    # Salva dados em cache
+                    SaveSuccessCache.apply_async(
                         kwargs={
-                            "data": item,
-                            "headers": headers,
-                            "cookies": cookies,
+                            "pid": pid,
+                            "data": resultados_busca["results"]["data_request"],
+                            "processo": item["NUMERO_PROCESSO"],
                         }
                     )
-                    .wait_ready()
-                )
 
-                # Verifica se houve resultado na busca
-                if (
-                    not resultados_busca
-                    or (
-                        isinstance(resultados_busca, str)
-                        and "Nenhum processo encontrado" in resultados_busca
+                    file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
+                    _ft = executor.submit(
+                        self.copia_integral,
+                        pid=pid,
+                        url_base=base_url,
+                        file_name=file_name,
+                        headers=headers,
+                        cookies=cookies,
+                        id_processo=resultados_busca["results"]["id_processo"],
+                        captchatoken=resultados_busca["results"]["captchatoken"],
                     )
-                    or "Processo não encontrado" in resultados_busca
-                ):
+
                     self.print_msg(
                         pid=pid,
-                        message="Falha ao obter informações do processo ",
+                        message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
+                        row=row,
+                        type_log="success",
+                        total_rows=item.get("total_rows", 0),
+                        start_time=start_time,
+                    )
+
+                except Exception as e:
+                    self.print_msg(
+                        message="\n".join(traceback.format_exception(e)),
+                        pid=pid,
                         row=row,
                         type_log="error",
                         total_rows=item.get("total_rows", 0),
                         start_time=start_time,
                     )
-                    continue
 
-                # Salva dados em cache
-                SaveSuccessCache.apply_async(
-                    kwargs={
-                        "pid": pid,
-                        "data": resultados_busca["results"]["data_request"],
-                        "processo": item["NUMERO_PROCESSO"],
-                    }
-                )
-
-                file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
-                DownloadCopiaIntegral.apply_async(
-                    kwargs={
-                        "pid": pid,
-                        "url_base": base_url,
-                        "file_name": file_name,
-                        "headers": headers,
-                        "cookies": cookies,
-                        "id_processo": resultados_busca["results"]["id_processo"],
-                        "captchatoken": resultados_busca["results"]["captchatoken"],
-                    }
-                )
-
-                self.print_msg(
-                    pid=pid,
-                    message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
-                    row=row,
-                    type_log="success",
-                    total_rows=item.get("total_rows", 0),
-                    start_time=start_time,
-                )
-
-                print()
-
-
-@shared_task(name="pje.capa.copia_integral", bind=True)
-class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
-    current_task: ContextTask
-
-    def queue(self) -> None:  # noqa: D102
-        pass
-
-    def execution(
+    def copia_integral(
         self,
         pid: str,
         url_base: str,
