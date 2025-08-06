@@ -18,9 +18,8 @@ from pytz import timezone
 from celery_app._wrapper import shared_task
 from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
-from celery_app.tasks.files import SaveSuccessCache
+from crawjud.bot import ClassBot
 from crawjud.bots.resources.formatadores import formata_tempo
-from crawjud.common.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import (
     DictFiles,
@@ -215,6 +214,17 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
             None: Não retorna valor.
 
         """
+
+        def print_erro() -> None:
+            self.print_msg(
+                pid=pid,
+                message="Falha ao obter informações do processo ",
+                row=row,
+                type_log="error",
+                total_rows=item.get("total_rows", 0),
+                start_time=start_time,
+            )
+
         with ThreadPoolExecutor(5) as executor:
             for item in data:
                 try:
@@ -243,27 +253,22 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                     )
 
                     # Verifica se houve resultado na busca
-                    if (
-                        not resultados_busca
-                        or (
-                            isinstance(resultados_busca, str)
-                            and "Nenhum processo encontrado" in resultados_busca
-                        )
-                        or "Processo não encontrado" in resultados_busca
-                    ):
-                        self.print_msg(
-                            pid=pid,
-                            message="Falha ao obter informações do processo ",
-                            row=row,
-                            type_log="error",
-                            total_rows=item.get("total_rows", 0),
-                            start_time=start_time,
-                        )
+
+                    # Verifica se resultados_busca é válido e possui dados
+                    results = (
+                        resultados_busca.get("results")
+                        if isinstance(resultados_busca, dict)
+                        else None
+                    )
+                    data_request = results.get("data_request") if results else None
+
+                    if not data_request:
+                        print_erro()
                         continue
 
                     # Salva dados em cache
-                    SaveSuccessCache.apply_async(
-                        kwargs={
+                    self.save_success_cache(
+                        data={
                             "pid": pid,
                             "data": resultados_busca["results"]["data_request"],
                             "processo": item["NUMERO_PROCESSO"],

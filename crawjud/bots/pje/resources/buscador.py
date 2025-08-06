@@ -16,7 +16,7 @@ from celery import shared_task
 from httpx import Client
 
 from celery_app.custom._task import ContextTask
-from crawjud.common.bot import ClassBot
+from crawjud.bot import ClassBot
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types import BotData, ReturnFormataTempo
 from crawjud.types.bot import MessageNadaEncontrado

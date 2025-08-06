@@ -6,7 +6,7 @@ from uuid import uuid4
 from dotenv import dotenv_values
 from socketio import SimpleClient
 
-from crawjud.common.bot import ClassBot
+from crawjud.bot import ClassBot
 
 TClassBot = TypeVar("TClassBot", bound=object)
 TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
