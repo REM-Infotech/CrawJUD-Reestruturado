@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
-from socketio import AsyncSimpleClient
+from socketio import SimpleClient
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._task import ContextTask
@@ -94,7 +94,7 @@ class PrintMessage(ContextTask):
     a comunicação em tempo real com o sistema de monitoramento.
     """
 
-    async def __init__(
+    def __init__(
         self,
         event: str = "log_execution",
         data: dict[str, str] | str = None,
@@ -121,13 +121,13 @@ class PrintMessage(ContextTask):
             # com o namespace e cabeçalhos especificados.
             # Se uma sala for especificada, o cliente se juntará a ela.
             # Em seguida, emite o evento com os dados fornecidos.
-            async with AsyncSimpleClient(
+            with SimpleClient(
                 reconnection_attempts=20,
                 reconnection_delay=5,
             ) as sio:
                 # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
 
-                await sio.connect(
+                sio.connect(
                     url=server,
                     namespace=namespace,
                     headers=headers,
@@ -137,7 +137,7 @@ class PrintMessage(ContextTask):
                 # Se uma sala for especificada, o cliente se juntará a ela.
                 if room:
                     join_data = {"data": {"room": room}}
-                    await sio.emit("join_room", data=join_data)
+                    sio.emit("join_room", data=join_data)
 
                 # Emite o evento com os dados fornecidos.
-                await sio.emit(event, data={"data": data})
+                sio.emit(event, data={"data": data})
