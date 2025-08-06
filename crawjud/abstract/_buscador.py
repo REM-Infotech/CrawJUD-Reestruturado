@@ -8,6 +8,7 @@ utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceç�
 from __future__ import annotations
 
 import json.decoder
+import secrets
 from contextlib import suppress
 from time import sleep
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
@@ -108,6 +109,8 @@ class BuscadorProcesso(AbstractClassBot):  # noqa: D101
                 return cast(DictReturnDesafio, resultado)
 
             # Caso não encontre, retorna mensagem padrão
+            _sleep = secrets.randbelow(5) + 3
+            sleep(_sleep)
             return "Nenhum processo encontrado"
 
     def desafio_captcha(
