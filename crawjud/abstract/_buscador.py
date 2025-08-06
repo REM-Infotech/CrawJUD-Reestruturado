@@ -109,8 +109,7 @@ class BuscadorProcesso(AbstractClassBot):  # noqa: D101
                 return cast(DictReturnDesafio, resultado)
 
             # Caso não encontre, retorna mensagem padrão
-            _sleep = secrets.randbelow(5) + 3
-            sleep(_sleep)
+
             return "Nenhum processo encontrado"
 
     def desafio_captcha(
@@ -188,7 +187,8 @@ class BuscadorProcesso(AbstractClassBot):  # noqa: D101
 
                 break
 
-            sleep(4)
+            _sleep = secrets.randbelow(5) + 3
+            sleep(_sleep)
             img = data_request.get("imagem")
             token_desafio = data_request.get("tokenDesafio")
             tries += 1
