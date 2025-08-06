@@ -32,6 +32,8 @@ class ContextTask(TaskBase):
     contains_classmethod = False
     sio: SimpleClient
 
+    tasks_cls = {}
+
     def _run(self, *args: Generic[T], **kwargs: Generic[T]) -> None:
         kwargs["current_task"] = self
 
@@ -55,7 +57,12 @@ class ContextTask(TaskBase):
             if iscoroutinefunction(self.run):
                 return run_async(self.run(*args, **kwargs))  # noqa: B026
 
-            return self.run(*args, **kwargs)  # noqa: B026
+            try:
+                if self.tasks_cls.get(self.run.__name__):
+                    _class = self.run()
+                    return _class.execution(*args, **kwargs)
+            except (AttributeError, TypeError):
+                return self.run(*args, **kwargs)  # noqa: B026
 
     def signature(
         self, args: Any = None, *starargs: Any, **starkwargs: Any
@@ -107,3 +114,7 @@ class ContextTask(TaskBase):
 
     def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
         return self._run(*args, **kwargs)
+
+    def __init_subclass__(cls) -> None:
+        cls.tasks_cls[cls.__name__] = cls
+        print(f"Registered task classes: {cls.__name__}")

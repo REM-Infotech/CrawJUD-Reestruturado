@@ -72,15 +72,6 @@ class Capa(ContextTask, ClassBot):
 
     current_task: ContextTask
 
-    def __init__(  # noqa: D107
-        self,
-        *args: Generic[T],
-        **kwargs: Generic[T],
-    ) -> None:
-        self.current_task = kwargs.get("current_task")
-
-        self.execution(*args, **kwargs)
-
     def execution(
         self,
         current_task: ContextTask = None,
@@ -104,6 +95,7 @@ class Capa(ContextTask, ClassBot):
             ExecutionError: Caso não encontre arquivo Excel.
 
         """
+        self.current_task = current_task
         task_download_files = subtask("crawjud.download_files")
         task_bot_data = subtask("crawjud.dataFrame")
         pid = str(current_task.request.id)
@@ -214,18 +206,10 @@ class Capa(ContextTask, ClassBot):
 class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
     current_task: ContextTask
 
-    def __init__(  # noqa: D107
-        self,
-        *args: Generic[T],
-        **kwargs: Generic[T],
-    ) -> None:
-        self.current_task = kwargs.get("current_task")
-        self.queue(*args, **kwargs)
+    def queue(self) -> None:  # noqa: D102
+        return
 
-    def execution(self, *args: Generic[T], **kwargs: Generic[T]) -> None:  # noqa: D102
-        pass
-
-    def queue(
+    def execution(
         self,
         cookies: dict[str, str],
         headers: dict[str, str],
@@ -257,6 +241,7 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
             None: Não retorna valor.
 
         """
+        self.current_task = kwargs.get("current_task")
         for item in data:
             with suppress(Exception):
                 # Atualiza dados do item para processamento
@@ -340,21 +325,10 @@ class QueueProcessos(ContextTask, ClassBot):  # noqa: D101
 class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
     current_task: ContextTask
 
-    def __init__(  # noqa: D107
-        self,
-        *args: Generic[T],
-        **kwargs: Generic[T],
-    ) -> None:
-        self.current_task = kwargs.get("current_task")
-        self.download_copia_integral(*args, **kwargs)
-
     def queue(self) -> None:  # noqa: D102
         pass
 
-    def execution(self) -> None:  # noqa: D102
-        pass
-
-    def download_copia_integral(
+    def execution(
         self,
         pid: str,
         url_base: str,
@@ -384,6 +358,7 @@ class DownloadCopiaIntegral(ContextTask, ClassBot):  # noqa: D101
             None: Não retorna valor.
 
         """
+        self.current_task = kwargs.get("current_task")
         storage = Storage("minio")
         with suppress(Exception):
             with Client(

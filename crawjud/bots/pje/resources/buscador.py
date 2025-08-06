@@ -36,7 +36,7 @@ T = TypeVar("AnyValue", bound=ReturnFormataTempo)
 
 @shared_task(name="pje.buscador", bind=True, base=ContextTask)
 class BuscadorProcesso(ClassBot, ContextTask):  # noqa: D101
-    def __init__(
+    def execution(
         self,
         data: BotData,
         headers: dict[str, str],
@@ -215,7 +215,4 @@ class BuscadorProcesso(ClassBot, ContextTask):  # noqa: D101
         return return_data
 
     def queue(self) -> None:  # noqa: D102
-        pass
-
-    def execution(self) -> None:  # noqa: D102
         pass
