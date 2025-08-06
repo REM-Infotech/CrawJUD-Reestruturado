@@ -247,16 +247,8 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
                     row = int(item["row"])
                     start_time = item["start_time"]
-                    resultados_busca: DictReturnDesafio = (
-                        subtask("pje.buscador")
-                        .apply_async(
-                            kwargs={
-                                "data": item,
-                                "headers": headers,
-                                "cookies": cookies,
-                            }
-                        )
-                        .wait_ready()
+                    resultados_busca: DictReturnDesafio = self.buscar_processo(
+                        data=item, headers=headers, cookies=cookies
                     )
 
                     # Verifica se houve resultado na busca

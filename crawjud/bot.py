@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -18,6 +18,7 @@ from pytz import timezone
 from socketio import SimpleClient
 
 from celery_app.tasks.files import SaveSuccessCache
+from crawjud.abstract._head import HeadBot
 from utils.models.logs import MessageLogDict
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ environ = dotenv_values()
 TReturn = TypeVar("TReturn")
 
 
-class ClassBot(ABC):  # noqa:  D101
+class ClassBot(HeadBot):  # noqa:  D101
     current_task: ContextTask
     sio: SimpleClient
     tasks_cls = {}
