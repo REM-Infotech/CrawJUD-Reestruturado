@@ -20,12 +20,6 @@ T = TypeVar("T", bound=AnyStr)
 P = ParamSpec("P")
 R = TypeVar("R")
 
-server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
-namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
-
-transports = ["websocket"]
-headers = {"Content-Type": "application/json"}
-
 
 class ContextTask(TaskBase):
     abstract = True
@@ -43,10 +37,14 @@ class ContextTask(TaskBase):
             reconnection_delay_max=10,
             reconnection=True,
         ) as sio:
+            server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
+            namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
+            transports = ["websocket"]
+            headers = {"Content-Type": "application/json"}
             self.sio = sio
             self.sio.connect(
                 url=server,
-                namespace="/logsbot",
+                namespace=namespace,
                 headers=headers,
                 transports=transports,
             )
