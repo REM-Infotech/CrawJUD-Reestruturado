@@ -141,7 +141,15 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         kwargs={"regiao": regiao}
                     ).wait_ready()
                     if not isinstance(autenticacao_data, dict):
-                        return
+                        self.print_msg(
+                            message=str(autenticacao_data),
+                            pid=pid,
+                            row=0,
+                            type_log="error",
+                            total_rows=total_rows,
+                            start_time=start_time,
+                        )
+                        continue
 
                     # Envia mensagem de sucesso
                     self.print_msg(
