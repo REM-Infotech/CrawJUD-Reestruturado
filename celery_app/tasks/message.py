@@ -22,6 +22,7 @@ from __future__ import annotations
 import re
 from contextlib import suppress
 from pathlib import Path
+from threading import Thread
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
@@ -37,6 +38,13 @@ if TYPE_CHECKING:
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
 T = TypeVar("T")
+
+
+server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
+namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
+
+transports = ["websocket"]
+headers = {"Content-Type": "application/json"}
 
 
 class StrTime(str):
@@ -122,6 +130,12 @@ class PrintMessage(ContextTask):
         """
         if data:
             with suppress(Exception):
+                sio.connect(
+                    url=server,
+                    namespaces=["/logsbot", "/bots"],
+                    headers=headers,
+                    transports=transports,
+                )
                 # Cria uma instância do cliente Socket.IO e conecta ao servidor
                 # com o namespace e cabeçalhos especificados.
                 # Se uma sala for especificada, o cliente se juntará a ela.
@@ -134,4 +148,9 @@ class PrintMessage(ContextTask):
 
                 # Emite o evento com os dados fornecidos.
                 sio.emit("log_execution", data={"data": data}, namespace="/logsbot")
-                sio.sleep(15)
+
+                wait_server = Thread(target=sio.wait, daemon=True)
+
+                wait_server.start()
+
+                wait_server.join(30)

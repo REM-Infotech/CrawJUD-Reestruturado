@@ -3,11 +3,9 @@
 import importlib
 import logging
 import re
-from contextlib import suppress
 from logging.config import dictConfig
 from os import environ, getenv
 from pathlib import Path
-from threading import Thread
 from typing import AnyStr
 
 from celery.signals import after_setup_logger
@@ -24,22 +22,6 @@ sio = Client(
     reconnection_delay_max=10,
     reconnection=True,
 )
-
-server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
-namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
-
-transports = ["websocket"]
-headers = {"Content-Type": "application/json"}
-
-with suppress(Exception):
-    sio.connect(
-        url=server,
-        namespaces=["/logsbot", "/bots"],
-        headers=headers,
-        transports=transports,
-    )
-
-    Thread(target=sio.wait, daemon=True).start()
 
 
 @after_setup_logger.connect
