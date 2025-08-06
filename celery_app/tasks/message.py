@@ -22,10 +22,10 @@ from __future__ import annotations
 import re
 from contextlib import suppress
 from datetime import datetime
-from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
+from dotenv import dotenv_values
 from pytz import timezone
 from socketio import AsyncSimpleClient
 
@@ -36,6 +36,8 @@ from utils.models.logs import MessageLogDict
 if TYPE_CHECKING:
     pass
 
+
+environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
 T = TypeVar("T")
 server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")
