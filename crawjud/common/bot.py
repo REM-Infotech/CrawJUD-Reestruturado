@@ -73,18 +73,20 @@ class ClassBot(ABC):  # noqa:  D101
         prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
 
         # Cria objeto de log da mensagem
-        data = MessageLogDict(
-            message=str(prompt),
-            pid=str(pid),
-            row=int(row),
-            type=str(type_log),
-            status=(status),
-            total=int(total_count),
-            success=0,
-            errors=0,
-            remaining=int(total_rows),
-            start_time=start_time,
-        )
+        data = {
+            "data": MessageLogDict(
+                message=str(prompt),
+                pid=str(pid),
+                row=int(row),
+                type=str(type_log),
+                status=(status),
+                total=int(total_count),
+                success=0,
+                errors=0,
+                remaining=int(total_rows),
+                start_time=start_time,
+            )
+        }
 
         sio.emit("log_execution", data=data)
         # Envia a mensagem formatada para o sistema de monitoramento

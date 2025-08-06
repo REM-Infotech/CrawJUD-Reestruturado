@@ -69,12 +69,14 @@ def buscar_processo(  # noqa: D417
         sio.emit(
             "log_execution",
             data={
-                "pid": pid,
-                "message": f"Buscando processo {data['NUMERO_PROCESSO']}",
-                "row": row,
-                "type_log": "log",
-                "total_rows": data.get("total_rows", 0),
-                "start_time": start_time,
+                "data": {
+                    "pid": pid,
+                    "message": f"Buscando processo {data['NUMERO_PROCESSO']}",
+                    "row": row,
+                    "type_log": "log",
+                    "total_rows": data.get("total_rows", 0),
+                    "start_time": start_time,
+                }
             },
         )
 
@@ -182,12 +184,14 @@ def desafio_captcha(
                 sio.emit(
                     "log_execution",
                     data={
-                        "pid": pid,
-                        "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
-                        "row": row,
-                        "type_log": "info",
-                        "total_rows": data.get("total_rows", 0),
-                        "start_time": start_time,
+                        "data": {
+                            "pid": pid,
+                            "message": f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados...",
+                            "row": row,
+                            "type_log": "info",
+                            "total_rows": data.get("total_rows", 0),
+                            "start_time": start_time,
+                        }
                     },
                 )
 
