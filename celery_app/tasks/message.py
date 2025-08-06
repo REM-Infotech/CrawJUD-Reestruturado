@@ -129,31 +129,32 @@ class PrintMessage(ContextTask):
             None: Não retorna valor.
 
         """
-        with suppress(Exception):
-            # Cria uma instância do cliente Socket.IO e conecta ao servidor
-            # com o namespace e cabeçalhos especificados.
-            # Se uma sala for especificada, o cliente se juntará a ela.
-            # Em seguida, emite o evento com os dados fornecidos.
-            async with AsyncSimpleClient(
-                reconnection_attempts=20,
-                reconnection_delay=5,
-            ) as sio:
-                # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
-
-                await sio.connect(
-                    url=server,
-                    namespace=namespace,
-                    headers=headers,
-                    transports=transports,
-                )
-
+        if data:
+            with suppress(Exception):
+                # Cria uma instância do cliente Socket.IO e conecta ao servidor
+                # com o namespace e cabeçalhos especificados.
                 # Se uma sala for especificada, o cliente se juntará a ela.
-                if room:
-                    join_data = {"data": {"room": room}}
-                    await sio.emit("join_room", data=join_data)
+                # Em seguida, emite o evento com os dados fornecidos.
+                async with AsyncSimpleClient(
+                    reconnection_attempts=20,
+                    reconnection_delay=5,
+                ) as sio:
+                    # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
 
-                # Emite o evento com os dados fornecidos.
-                await sio.emit(event, data={"data": data})
+                    await sio.connect(
+                        url=server,
+                        namespace=namespace,
+                        headers=headers,
+                        transports=transports,
+                    )
 
-                await asyncio.sleep(5)
-                print("ok")
+                    # Se uma sala for especificada, o cliente se juntará a ela.
+                    if room:
+                        join_data = {"data": {"room": room}}
+                        await sio.emit("join_room", data=join_data)
+
+                    # Emite o evento com os dados fornecidos.
+                    await sio.emit(event, data={"data": data})
+
+                    await asyncio.sleep(5)
+                    print("ok")
