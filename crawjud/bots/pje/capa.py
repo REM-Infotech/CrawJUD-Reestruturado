@@ -318,9 +318,9 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                             start_time=start_time,
                         )
 
-                    except Exception as e:
+                    except Exception:
                         self.print_msg(
-                            message="\n".join(traceback.format_exception(e)),
+                            message="Erro ao buscar processo",
                             pid=pid,
                             row=row,
                             type_log="error",
