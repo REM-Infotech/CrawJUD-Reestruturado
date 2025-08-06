@@ -47,7 +47,7 @@ class ClassBot(ABC):  # noqa:  D101
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
 
-    def print_msg(
+    def print_msg(  # noqa: D417
         self,
         pid: str,
         message: str,
@@ -55,6 +55,7 @@ class ClassBot(ABC):  # noqa:  D101
         type_log: str,
         total_rows: int,
         start_time: str,
+        errors: int = 0,
         status: str = "Em Execução",
     ) -> None:
         """
@@ -91,7 +92,7 @@ class ClassBot(ABC):  # noqa:  D101
                 status=(status),
                 total=int(total_count),
                 success=0,
-                errors=0,
+                errors=errors,
                 remaining=int(total_rows),
                 start_time=start_time,
             )

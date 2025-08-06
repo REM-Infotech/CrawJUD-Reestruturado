@@ -144,10 +144,11 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         self.print_msg(
                             message=str(autenticacao_data),
                             pid=pid,
-                            row=0,
+                            row=len(data_regiao),
                             type_log="error",
                             total_rows=total_rows,
                             start_time=start_time,
+                            errors=len(data_regiao),
                         )
                         continue
 
