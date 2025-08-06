@@ -34,7 +34,7 @@ def start_worker() -> None:
     environ.update({"APPLICATION_APP": "worker"})
     worker_name = environ["WORKER_NAME"]
 
-    debug = envdot["DEBUG"].lower() == "true"
+    debug = envdot.get("DEBUG", "false").lower() == "true"
     _pool = "prefork"
     if debug:
         _pool = "threads"
