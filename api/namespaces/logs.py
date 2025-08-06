@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import traceback
 from typing import Any, cast
 
 import engineio
@@ -9,6 +10,7 @@ import socketio
 from celery.app.control import Control
 from quart import request, session
 from quart_socketio import Namespace
+from tqdm import tqdm
 
 from celery_app import app as app_celery
 from utils.interfaces import ItemMessageList
@@ -141,9 +143,18 @@ class LogsNamespace(Namespace):
         """
         # Obtém os dados do formulário e atualiza o log no Redis
         _data = dict(list((await request.form).items()))
-        message = await self.log_redis(pid=_data["pid"], message=_data)
-        # Emite o log atualizado para a sala do processo
-        await self.emit("log_execution", data=message, room=_data["pid"])
+
+        tqdm.write(f"Log recebido: {_data}")
+
+        try:
+            message = await self.log_redis(pid=_data["pid"], message=_data)
+            # Emite o log atualizado para a sala do processo
+            await self.emit("log_execution", data=message, room=_data["pid"])
+
+        except KeyError as e:
+            tqdm.write(
+                f"Erro ao processar log: {'\n'.join(traceback.format_exception(e))}"
+            )
 
     async def _calc_success_errors(  # noqa: D417
         self, message: MessageLogDict, log: MessageLog = None
