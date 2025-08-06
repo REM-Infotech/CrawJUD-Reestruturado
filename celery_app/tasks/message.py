@@ -21,17 +21,14 @@ from __future__ import annotations
 
 import re
 from contextlib import suppress
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
-from pytz import timezone
 from socketio import AsyncSimpleClient
 
 from celery_app._wrapper import shared_task
-from celery_app.custom._canvas import subtask
-from utils.models.logs import MessageLogDict
+from celery_app.custom._task import ContextTask
 
 if TYPE_CHECKING:
     pass
@@ -88,113 +85,59 @@ class StrTime(str):
         return False
 
 
-@shared_task(name="print_message")
-async def print_message(
-    event: str = "log_execution",
-    data: dict[str, str] | str = None,
-    room: str = None,
-    *args: Generic[T],
-    **kwargs: Generic[T],
-) -> None:
+@shared_task(name="print_message", bind=True, base=ContextTask)
+class PrintMessage(ContextTask):
     """
-    Envia mensagem assíncrona para o sistema de monitoramento via Socket.IO.
+    Classe responsável por enviar mensagens de log para o sistema de monitoramento.
 
-    Args:
-        event (str): Evento a ser emitido (padrão: "log_execution").
-        data (dict[str, str] | str): Dados da mensagem a ser enviada.
-        room (str): Sala para envio da mensagem (opcional).
-        *args: Argumentos posicionais adicionais.
-        **kwargs: Argumentos nomeados adicionais.
-
-    Returns:
-        None: Não retorna valor.
-
+    Esta classe utiliza o Socket.IO para enviar mensagens de log assíncronas, permitindo
+    a comunicação em tempo real com o sistema de monitoramento.
     """
-    with suppress(Exception):
-        # Cria uma instância do cliente Socket.IO e conecta ao servidor
-        # com o namespace e cabeçalhos especificados.
-        # Se uma sala for especificada, o cliente se juntará a ela.
-        # Em seguida, emite o evento com os dados fornecidos.
-        async with AsyncSimpleClient(
-            reconnection_attempts=20,
-            reconnection_delay=5,
-        ) as sio:
-            # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
 
-            await sio.connect(
-                url=server,
-                namespace=namespace,
-                headers=headers,
-                transports=transports,
-            )
+    async def __init__(
+        self,
+        event: str = "log_execution",
+        data: dict[str, str] | str = None,
+        room: str = None,
+        *args: Generic[T],
+        **kwargs: Generic[T],
+    ) -> None:
+        """
+        Envia mensagem assíncrona para o sistema de monitoramento via Socket.IO.
 
+        Args:
+            event (str): Evento a ser emitido (padrão: "log_execution").
+            data (dict[str, str] | str): Dados da mensagem a ser enviada.
+            room (str): Sala para envio da mensagem (opcional).
+            *args: Argumentos posicionais adicionais.
+            **kwargs: Argumentos nomeados adicionais.
+
+        Returns:
+            None: Não retorna valor.
+
+        """
+        with suppress(Exception):
+            # Cria uma instância do cliente Socket.IO e conecta ao servidor
+            # com o namespace e cabeçalhos especificados.
             # Se uma sala for especificada, o cliente se juntará a ela.
-            if room:
-                join_data = {"data": {"room": room}}
-                await sio.emit("join_room", data=join_data)
+            # Em seguida, emite o evento com os dados fornecidos.
+            async with AsyncSimpleClient(
+                reconnection_attempts=20,
+                reconnection_delay=5,
+            ) as sio:
+                # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
 
-            # Emite o evento com os dados fornecidos.
-            await sio.emit(event, data={"data": data})
+                await sio.connect(
+                    url=server,
+                    namespace=namespace,
+                    headers=headers,
+                    transports=transports,
+                )
 
+                # Se uma sala for especificada, o cliente se juntará a ela.
+                if room:
+                    join_data = {"data": {"room": room}}
+                    await sio.emit("join_room", data=join_data)
 
-@shared_task(name="log_message")
-def log_message(  # noqa: D417
-    pid: str,
-    message: str,
-    row: int,
-    type_log: str = "log",
-    status: str = "Em Execução",
-    total_rows: int = 0,
-    start_time: StrTime = None,
-    *args: Generic[T],
-    **kwargs: Generic[T],
-) -> None:
-    """
-    Formata e envia mensagem de log para o sistema de monitoramento via Socket.IO.
-
-    Args:
-        pid (str): Identificador do processo.
-        message (str): Mensagem a ser registrada.
-        row (int): Linha ou índice relacionado à execução.
-        type_log (str): Tipo do log (padrão: "log").
-        status (str): Status da execução (padrão: "Em Execução").
-        total_rows (int): Total de linhas ou itens processados (padrão: 0).
-        start_time (StrTime): Momento de início da execução.
-
-    Returns:
-        None: Não retorna valor.
-
-    """
-    # Mantém o pid para referência
-    pid = pid
-    # Cria subtask para envio da mensagem
-    task_msg = subtask("print_message")
-    # Define o total de itens
-    total_count = total_rows
-    # Obtém o horário atual formatado
-    time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
-    # Monta o prompt da mensagem
-    prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
-
-    # Cria objeto de log da mensagem
-    data = MessageLogDict(
-        message=prompt,
-        pid=str(pid),
-        row=row,
-        type=type_log,
-        status=status,
-        total=total_count,
-        success=0,
-        errors=0,
-        remaining=total_rows,
-        start_time=start_time,
-    )
-
-    # Envia a mensagem formatada para o sistema de monitoramento
-    task_msg.apply_async(
-        kwargs={
-            "event": "log_execution",
-            "data": data,
-            "room": str(pid),
-        }
-    )
+                # Emite o evento com os dados fornecidos.
+                await sio.emit(event, data={"data": data})

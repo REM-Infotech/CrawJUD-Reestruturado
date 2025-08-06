@@ -12,6 +12,7 @@ from typing import (
 
 from celery.canvas import Signature as __Signature
 from celery.result import AsyncResult as __AsyncResult
+from celery.result import EagerResult as __EagerResult
 from celery.result import states
 
 if TYPE_CHECKING:
@@ -26,6 +27,73 @@ class_set = set()
 
 
 class AsyncResult(__AsyncResult):
+    """Celery AsyncResult.
+
+    Class that wraps the result of a task execution.
+
+    Used to check the status of a task, retrieve its result,
+    and perform other operations related to task results.
+
+    See Also:
+        :ref:`guide-results` for the complete guide.
+
+    """
+
+    _app: AsyncCelery = None
+
+    def get(
+        self,
+        timeout: int = None,
+        propagate: bool = True,
+        interval: float = 0.5,
+        no_ack: bool = True,
+        follow_parents: bool = True,
+        callback: Any = None,
+        on_message: Any = None,
+        on_interval: Any = None,
+        disable_sync_subtasks: bool = True,
+        EXCEPTION_STATES: Exception = states.EXCEPTION_STATES,  # noqa: N803
+        PROPAGATE_STATES: Exception = states.PROPAGATE_STATES,  # noqa: N803
+    ) -> Generic[R]:
+        return super().get(
+            timeout,
+            propagate,
+            interval,
+            no_ack,
+            follow_parents,
+            callback,
+            on_message,
+            on_interval,
+            disable_sync_subtasks,
+            EXCEPTION_STATES,
+            PROPAGATE_STATES,
+        )
+
+    def __getattr__(self, item: str) -> Any:
+        """Get attribute from AsyncResult."""
+        if item == "_app" and not hasattr(self, "_app"):
+            from celery import current_app
+
+            self._app = current_app
+
+        return super().__getattr__(item)
+
+    def wait_ready(self, timeout: float = None) -> Generic[R]:
+        """Wait until the result is ready."""
+        while not self.ready():
+            if timeout is not None:
+                timeout -= 0.5
+                if timeout <= 0:
+                    return None
+            self._app.control.ping(timeout=0.5)
+
+        if self.failed():
+            return None
+
+        return self.result
+
+
+class EagerResult(__EagerResult):
     """Celery AsyncResult.
 
     Class that wraps the result of a task execution.

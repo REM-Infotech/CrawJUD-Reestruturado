@@ -8,7 +8,11 @@ from typing import Any, AnyStr, Generic, ParamSpec, TypeVar  # noqa: F401
 from celery.app.task import Task as TaskBase
 
 from celery_app.custom._canvas import subtask  # noqa: F401
-from celery_app.types._celery._canvas import Signature  # noqa: F401
+from celery_app.types._celery._canvas import (  # noqa: F401
+    AsyncResult,
+    EagerResult,
+    Signature,
+)
 
 T = TypeVar("T", bound=AnyStr)
 P = ParamSpec("P")
@@ -84,6 +88,21 @@ class ContextTask(TaskBase):
         star_kwarg = starkwargs
 
         return subtask(self, args, *star_arg, **star_kwarg)
+
+    def apply_async(
+        self,
+        args: tuple[str, Any] = None,
+        kwargs: dict[str, Any] = None,
+        task_id: str = None,
+        producer: str = None,
+        link: str = None,
+        link_error: str = None,
+        shadow: str = None,
+        **options: Any,
+    ) -> AsyncResult | EagerResult:
+        return super().apply_async(
+            args, kwargs, task_id, producer, link, link_error, shadow, **options
+        )
 
     def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:
         return self._run(*args, **kwargs)

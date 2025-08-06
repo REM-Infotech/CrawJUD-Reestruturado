@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import (
     Any,
     AnyStr,
@@ -11,8 +12,10 @@ from typing import (
 )
 
 from dotenv import dotenv_values
+from pytz import timezone
 
-from celery_app.custom._canvas import subtask
+from celery_app.tasks.message import PrintMessage
+from utils.models.logs import MessageLogDict
 
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
@@ -38,6 +41,7 @@ class ClassBot(ABC):  # noqa:  D101
         type_log: str,
         total_rows: int,
         start_time: str,
+        status: str = "Em Execução",
     ) -> None:
         """
         Envia mensagem de log para o sistema de tarefas assíncronas.
@@ -49,20 +53,42 @@ class ClassBot(ABC):  # noqa:  D101
             type_log (str): Tipo de log (info, error, etc).
             total_rows (int): Total de linhas a serem processadas.
             start_time (str): Horário de início do processamento.
+            status (str): Status atual do processamento (default: "Em Execução").
 
         Returns:
             None: Não retorna valor.
 
         """
-        _task_message = subtask("log_message")
-        _task_message.apply_async(
+        # Mantém o pid para referência
+        # Cria subtask para envio da mensagem
+        task_msg = PrintMessage
+        # Define o total de itens
+        total_count = total_rows
+        # Obtém o horário atual formatado
+        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
+        # Monta o prompt da mensagem
+        prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
+
+        # Cria objeto de log da mensagem
+        data = MessageLogDict(
+            message=prompt,
+            pid=str(pid),
+            row=row,
+            type=type_log,
+            status=status,
+            total=total_count,
+            success=0,
+            errors=0,
+            remaining=total_rows,
+            start_time=start_time,
+        )
+
+        # Envia a mensagem formatada para o sistema de monitoramento
+        task_msg.apply_async(
             kwargs={
-                "pid": pid,
-                "message": message,
-                "row": row,
-                "type_log": type_log,
-                "total_rows": total_rows,
-                "start_time": start_time,
+                "event": "log_execution",
+                "data": data,
+                "room": str(pid),
             }
         )
 
