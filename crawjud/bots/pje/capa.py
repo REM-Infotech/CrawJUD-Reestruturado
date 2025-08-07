@@ -364,7 +364,7 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         message=f"Baixando arquivo do processo n.{data['NUMERO_PROCESSO']}",
                         pid=pid,
                         row=row,
-                        type_log="info",
+                        type_log="log",
                         total_rows=total_rows,
                         start_time=start_time,
                     )
