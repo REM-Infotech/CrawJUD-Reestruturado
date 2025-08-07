@@ -96,22 +96,6 @@ class PJeFormatadores:  # noqa: D101
         )
 
     @staticmethod
-    @shared_task(name="pje.formata_url_pje")
-    async def formata_url_pje(  # noqa: D102, D103
-        regiao: str,
-        type_format: str = "login",
-        *args: Generic[T],
-        **kwargs: Generic[T],
-    ) -> str:
-        formats = {
-            "login": f"https://pje.trt{regiao}.jus.br/primeirograu/login.seam",
-            "validate_login": f"https://pje.trt{regiao}.jus.br/pjekz/",
-            "search": f"https://pje.trt{regiao}.jus.br/consultaprocessual/",
-        }
-
-        return formats[type_format]
-
-    @staticmethod
     @shared_task(name="pje.formata_geral")
     def formata_geral(  # noqa: D102
         lista: ListData, *args: Generic[T], **kwargs: Generic[T]
