@@ -23,7 +23,7 @@ class HeadBot[T](PropertyBot):
         if not xlsx_key:
             raise ExecutionError("Nenhum arquivo Excel encontrado.")
 
-        self._xlsx_data = xlsx_key
+        self._xlsx_data = xlsx_key[-1]
         self._downloaded_files = files_b64
 
     def data_frame(self) -> None:

@@ -84,7 +84,7 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
         data = {
             "data": MessageLogDict(
                 message=str(prompt),
-                pid=str(self._pi),
+                pid=str(self._pid),
                 row=int(row),
                 type=type_log,
                 status="Em Execução",
