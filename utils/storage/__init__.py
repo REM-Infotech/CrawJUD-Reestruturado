@@ -155,7 +155,6 @@ class Storage(Client):  # noqa: B903, D101
         data: bytes,
         length: int,
         chunk_size: int = None,
-        content_type: str = "application/octet-stream",
         progress: Any = None,
         extra_headers: Any = None,
     ) -> ObjectWriteResult:

@@ -1,5 +1,6 @@
 preview = true
 exclude = [
+    "examples",
     ".bzr",
     ".direnv",
     ".eggs",

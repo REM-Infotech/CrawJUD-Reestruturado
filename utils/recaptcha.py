@@ -100,7 +100,9 @@ def captcha_to_image(im_b: str) -> str:
     """
     # Define nome do arquivo para debug do processamento
     _process_dbg = "process_dbg.png"
-    im_b = io.BytesIO(base64.b64decode(im_b)).read()
+    im_b = io.BytesIO(
+        base64.b64decode(im_b).replace(" ", "").replace("data:image/png;base64,", "")
+    ).read()
     # Pré-processa a imagem
     thresh = load_img_blur_apply(im_b=im_b)
     thresh = cv2.bitwise_not(thresh)
