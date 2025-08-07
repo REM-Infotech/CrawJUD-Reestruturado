@@ -12,7 +12,6 @@ from typing import (
 
 from dotenv import dotenv_values
 
-from celery_app.tasks.files import SaveSuccessCache
 from crawjud.abstract._head import HeadBot
 
 T = TypeVar("AnyValue", bound=str)
@@ -79,6 +78,3 @@ class ClassBot(HeadBot):  # noqa:  D101
                 data["CNPJ_FAVORECIDO"] = "04.812.509/0001-90"
 
         return data
-
-    def save_success_cache(self, data: dict) -> None:  # noqa: D102
-        SaveSuccessCache.apply_async(kwargs=data)
