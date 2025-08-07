@@ -1,4 +1,6 @@
-# CrawJUD-Reestruturado
+# CrawJUD
+
+[![Quality Gate Status](https://sonar.robotz.dev/api/project_badges/measure?project=REM-Infotech_CrawJUD-Reestruturado_9dae535d-6359-43cc-bdea-9d270cb528ce&metric=alert_status&token=sqb_f805bd2b1e570f147292c4dd8b69fed196d068af)](https://sonar.robotz.dev/dashboard?id=REM-Infotech_CrawJUD-Reestruturado_9dae535d-6359-43cc-bdea-9d270cb528ce)
 
 CrawJUD é uma plataforma modular para automação de rotinas jurídicas, integrando robôs, APIs, tarefas assíncronas e comunicação em tempo real. O projeto prioriza escalabilidade, manutenção e integração com sistemas judiciais diversos.
 
