@@ -33,7 +33,7 @@ class DictSeparaRegiao(TypedDict):
     position_process: dict[str, int]
 
 
-class DictReturnDesafio(TypedDict):
+class Resultados(TypedDict):
     """
     Define o retorno do desafio contendo headers, cookies e resultados.
 
@@ -43,7 +43,7 @@ class DictReturnDesafio(TypedDict):
         results (DictResults): Resultados do desafio.
 
     Returns:
-        DictReturnDesafio: Dicionário com informações do retorno do desafio.
+        Resultados: Dicionário com informações do retorno do desafio.
 
     """
 

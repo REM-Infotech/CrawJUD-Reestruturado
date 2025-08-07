@@ -1,15 +1,12 @@
 # noqa: D100
 from functools import wraps
-from typing import Any, AnyStr, ParamSpec, TypeVar
+from typing import Any
 from uuid import uuid4
 
 from dotenv import dotenv_values
 from socketio import SimpleClient
 
 from crawjud.bot import ClassBot
-
-TClassBot = TypeVar("TClassBot", bound=object)
-TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 
 environ = dotenv_values()
 
@@ -20,14 +17,14 @@ transports = ["websocket"]
 headers = {"Content-Type": "application/json"}
 
 
-def wrap_init(cls: type[ClassBot]) -> type[TClassBot]:  # noqa: D103
+def wrap_init[T](cls: type[ClassBot]) -> type[T]:  # noqa: D103
     original_init = cls.__init__
 
     @wraps(original_init)
     def novo_init(
-        self: TClassBot,
-        *args: TBotSpec.args,
-        **kwargs: TBotSpec.kwargs,
+        self: T,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         print(f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}")
         original_init(self)
@@ -36,14 +33,14 @@ def wrap_init(cls: type[ClassBot]) -> type[TClassBot]:  # noqa: D103
     return cls
 
 
-def wrap_cls(cls: type[ClassBot]) -> type[TClassBot]:  # noqa: D103
+def wrap_cls[T](cls: T) -> type[T]:  # noqa: D103
     original_cls = cls
 
     @wraps(wrap_cls)
     def novo_init(
-        self: TClassBot = None,
-        *args: TBotSpec.args,
-        **kwargs: TBotSpec.kwargs,
+        self: T = None,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         with SimpleClient(
             reconnection_attempts=20,

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from datetime import datetime
 from typing import (
     Any,
     AnyStr,
@@ -11,13 +10,10 @@ from typing import (
     TypeVar,
 )
 
-from clear import clear
 from dotenv import dotenv_values
-from pytz import timezone
 
 from celery_app.tasks.files import SaveSuccessCache
 from crawjud.abstract._head import HeadBot
-from utils.models.logs import MessageLogDict
 
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
@@ -34,63 +30,6 @@ class ClassBot(HeadBot):  # noqa:  D101
 
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
-
-    def print_msg(  # noqa: D417
-        self,
-        pid: str,
-        message: str,
-        row: int,
-        type_log: str,
-        total_rows: int,
-        start_time: str,
-        errors: int = 0,
-        status: str = "Em Execução",
-    ) -> None:
-        """
-        Envia mensagem de log para o sistema de tarefas assíncronas.
-
-        Args:
-            pid (str): Identificador do processo.
-            message (str): Mensagem a ser registrada.
-            row (int): Linha atual do processamento.
-            type_log (str): Tipo de log (info, error, etc).
-            total_rows (int): Total de linhas a serem processadas.
-            start_time (str): Horário de início do processamento.
-            status (str): Status atual do processamento (default: "Em Execução").
-
-        Returns:
-            None: Não retorna valor.
-
-        """
-        clear()
-        # Define o total de itens
-        total_count = total_rows
-        # Obtém o horário atual formatado
-        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
-        # Monta o prompt da mensagem
-        prompt = f"[({pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
-
-        # Cria objeto de log da mensagem
-        data = {
-            "data": MessageLogDict(
-                message=str(prompt),
-                pid=str(pid),
-                row=int(row),
-                type=str(type_log),
-                status=(status),
-                total=int(total_count),
-                success=0,
-                errors=errors,
-                remaining=int(total_rows),
-                start_time=start_time,
-            )
-        }
-
-        self.sio.emit(
-            event="log_execution",
-            data=data,
-        )
-        # Envia a mensagem formatada para o sistema de monitoramento
 
     def elawFormats(  # noqa: N802
         self, data: dict[str, str], cities_amazonas: dict[str, AnyStr]

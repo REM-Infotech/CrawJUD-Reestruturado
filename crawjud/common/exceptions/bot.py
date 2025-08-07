@@ -2,6 +2,7 @@
 
 import logging
 import traceback
+from uuid import uuid4
 
 from crawjud.common.exceptions import BaseCrawJUDError
 
@@ -39,20 +40,24 @@ class ExecutionError(BaseCrawJUDError):
 
     def __init__(
         self,
-        bot_execution_id: str,
-        exception: Exception = None,
         message: str = "Erro ao executar operaçao: ",
+        bot_execution_id: str = None,
+        exc: Exception = None,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message
 
-        if exception:
+        if not bot_execution_id:
+            bot_execution_id = uuid4().hex
+
+        if exc:
             self.message += "\n Exception: " + "\n".join(
-                traceback.format_exception_only(exception)
+                traceback.format_exception_only(exc)
             )
 
-        logger = logging.getLogger(bot_execution_id)
-        logger.error(message)
+        if message == "Erro ao executar operaçao: " and exc:
+            self.message = message + "\n".join(traceback.format_exception(exc))
+
         super().__init__(message)
 
     def __str__(self) -> str:

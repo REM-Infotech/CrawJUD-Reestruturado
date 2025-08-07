@@ -5,22 +5,30 @@ from __future__ import annotations
 import io
 import re
 from datetime import datetime
-from typing import (
-    Generic,
-    TypeVar,
-)
 
 import base91
 import pandas as pd
 
 from celery_app._wrapper import shared_task
-from crawjud.types import ReturnFormataTempo
 from crawjud.types.bot import BotData
 
-T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
+def formata_url_pje[T](  # noqa: D102, D103
+    regiao: str,
+    type_format: str = "login",
+    *args: T,
+    **kwargs: T,
+) -> T:
+    formats = {
+        "login": f"https://pje.trt{regiao}.jus.br/primeirograu/login.seam",
+        "validate_login": f"https://pje.trt{regiao}.jus.br/pjekz/",
+        "search": f"https://pje.trt{regiao}.jus.br/consultaprocessual/",
+    }
+
+    return formats[type_format]
 
 
-def formata_tempo(item: str | bool) -> Generic[T]:  # noqa: D103
+def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103
     if isinstance(item, str):
         if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item.split(".")[0]):
             return datetime.strptime(item.split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -32,8 +40,8 @@ def formata_tempo(item: str | bool) -> Generic[T]:  # noqa: D103
 
 
 @shared_task(name="crawjud.dataFrame")
-def dataframe(  # noqa: N802
-    base91_planilha: str, *args: Generic[T], **kwargs: Generic[T]
+def dataframe[T](  # noqa: N802
+    base91_planilha: str, *args: T, **kwargs: T
 ) -> list[BotData]:
     """Convert an Excel file to a list of dictionaries with formatted data.
 
@@ -52,7 +60,7 @@ def dataframe(  # noqa: N802
     df = pd.read_excel(buffer_planilha)
     df.columns = df.columns.str.upper()
 
-    def format_data(x: Generic[T]) -> str:
+    def format_data(x: T) -> str:
         if str(x) == "NaT" or str(x) == "nan":
             return ""
 
@@ -61,7 +69,7 @@ def dataframe(  # noqa: N802
 
         return x
 
-    def format_float(x: Generic[T]) -> str:
+    def format_float(x: T) -> str:
         return f"{x:.2f}".replace(".", ",")
 
     for col in df.columns:
