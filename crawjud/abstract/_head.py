@@ -48,6 +48,6 @@ class HeadBot[T](PropertyBot):
     @abstractmethod
     def buscar_processo(self, *args: T, **kwargs: T) -> bool: ...
 
-    @abstractmethod
     @property
+    @abstractmethod
     def storage(self) -> Storage: ...
