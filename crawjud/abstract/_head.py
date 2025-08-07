@@ -9,7 +9,7 @@ from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
-    pass
+    from utils.storage import Storage
 
 
 class HeadBot[T](PropertyBot):
@@ -47,3 +47,7 @@ class HeadBot[T](PropertyBot):
 
     @abstractmethod
     def buscar_processo(self, *args: T, **kwargs: T) -> bool: ...
+
+    @abstractmethod
+    @property
+    def storage(self) -> Storage: ...

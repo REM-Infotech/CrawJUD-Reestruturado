@@ -4,15 +4,19 @@ from __future__ import annotations
 import re
 import secrets
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from datetime import datetime
 from os import path, remove
 from pathlib import Path
+from threading import Semaphore
 from time import sleep
 from typing import TYPE_CHECKING, Any, Generator, cast
 from uuid import uuid4
 
+import pandas as pd
 from httpx import Client
+from pytz import timezone
 from tqdm import tqdm
 
 from celery_app.custom._task import ContextTask
@@ -20,6 +24,7 @@ from crawjud.abstract._head import HeadBot
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.bot import BotData
 from crawjud.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
+from utils.models.logs import CachedExecution
 from utils.recaptcha import captcha_to_image
 from utils.storage import Storage
 
@@ -32,10 +37,16 @@ DictData = dict[str, str | datetime]
 ListData = list[DictData]
 
 workdir = Path(__file__).cwd()
-path_temp = workdir.joinpath("temp", uuid4().hex)
 
 
 class PjeBot[T](HeadBot, ContextTask):
+    semaforo_save = Semaphore(1)
+    _storage = Storage("minio")
+
+    @property
+    def storage(self) -> Storage:
+        return self._storage
+
     def buscar_processo(self, data: BotData, row: int, client: Client) -> DictResults:
         cls_search = self.subclasses_search[f"{self.system.lower()}search"]
         return cls_search.search(self, data=data, row=row, client=client)
@@ -68,8 +79,9 @@ class PjeBot[T](HeadBot, ContextTask):
         row: int,
     ) -> None:
         try:
+            path_temp = workdir.joinpath("temp", uuid4().hex)
+
             chunk = 8 * 1024 * 1024
-            storage = Storage("minio")
             file_path = path_temp.joinpath(file_name)
             # Salva arquivo em chunks no storage
             size: int = response.headers.get("Content-Length")
@@ -80,14 +92,14 @@ class PjeBot[T](HeadBot, ContextTask):
                     f.write(_bytes)
                     try:
                         upload_file = True
-                        storage.append_object(dest_name, _bytes, chunk, size)
+                        self.storage.append_object(dest_name, _bytes, chunk, size)
                     except Exception as e:
                         tqdm.write("\n".join(traceback.format_exception(e)))
 
             if not upload_file:
                 file_size = path.getsize(file_path)
                 with file_path.open("rb") as file:
-                    storage.put_object(
+                    self.storage.put_object(
                         object_name=dest_name,
                         data=file,
                         length=file_size,
@@ -114,6 +126,11 @@ class PjeBot[T](HeadBot, ContextTask):
                 message=message,
                 type_log="info",
             )
+
+    def save_success_cache(self, data: Processo, processo: str) -> None:
+        with suppress(Exception):
+            _cache = CachedExecution(processo=processo, data=data, pid=self.pid)
+            _cache.save()
 
     def desafio_captcha(
         self,
@@ -264,3 +281,421 @@ class PjeBot[T](HeadBot, ContextTask):
             regioes_dict[regiao].append(item)
 
         return {"regioes": regioes_dict, "position_process": position_process}
+
+    def salva_sucesso(self) -> None:
+        try:
+            path_temp = workdir.joinpath("temp", uuid4().hex)
+
+            path_temp.mkdir(parents=True, exist_ok=True)
+
+            _data = datetime.now(timezone("America/Manaus")).strftime(
+                "%d-%m-%Y_%H-%M-%S"
+            )
+            path_planilha = path_temp.parent.joinpath(
+                f"EXECUÇÃO {self.pid.upper()} - {_data}.xlsx"
+            )
+
+            xlsx_writer = pd.ExcelWriter(str(path_planilha), "openpyxl", mode="w")
+            with self.semaforo_save:
+                with ThreadPoolExecutor(max_workers=5) as pool:
+                    with xlsx_writer as writer:
+                        semaforo_planilha = Semaphore(1)
+                        data_query = CachedExecution.all_data()
+
+                        list_dict_representantes: list[dict[str, str]] = []
+
+                        def formata_assuntos(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, datetime | str], Any, None]:
+                            for item in lista:
+                                formated_data = {
+                                    f"{k}".upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    or not k.lower() == "id"
+                                }
+
+                                yield formated_data
+
+                        def formata_endereco(endr_dict: dict[str, str]) -> str:
+                            return " | ".join([
+                                f"{endr_k.upper()}: {endr_v.strip()}"
+                                for endr_k, endr_v in list(endr_dict.items())
+                            ])
+
+                        def formata_representantes(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, datetime | str], Any, None]:
+                            for item in lista:
+                                tipo_parte = item.pop("tipo")
+                                if item.get("endereco"):
+                                    item.update({
+                                        "endereco".upper(): formata_endereco(
+                                            item.get("endereco")
+                                        )
+                                    })
+
+                                formated_data = {
+                                    f"{k}_{tipo_parte}".upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    and not k.lower() == "utilizaLoginSenha".lower()
+                                    and not k.lower() == "situacao".lower()
+                                    and not k.lower() == "login".lower()
+                                    and not k.lower() == "idPessoa".lower()
+                                }
+
+                                yield formated_data
+
+                        def formata_partes(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, datetime | str], Any, None]:
+                            for item in lista:
+                                polo_parte = item.pop("polo")
+                                representantes: list[dict[str, str]] = []
+
+                                if item.get("endereco"):
+                                    item.update({
+                                        "endereco".upper(): formata_endereco(
+                                            item.get("endereco")
+                                        )
+                                    })
+
+                                if item.get("representantes"):
+                                    representantes = item.pop("representantes")
+
+                                if item.get("papeis"):
+                                    item.pop("papeis")
+
+                                formated_data = {
+                                    f"{k}_polo_{polo_parte}".upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    and not k.lower() == "utilizaLoginSenha".lower()
+                                    and not k.lower() == "situacao".lower()
+                                    and not k.lower() == "login".lower()
+                                    and not k.lower() == "idPessoa".lower()
+                                }
+
+                                for adv in list(
+                                    formata_representantes(representantes)
+                                ):
+                                    _new_data = {"REPRESENTADO": item.get("nome")}
+                                    _new_data.update(adv)
+                                    list_dict_representantes.append(_new_data)
+
+                                yield formated_data
+
+                        def formata_partes_terceiros(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, str], Any, None]:
+                            for item in lista:
+                                polo_parte = item.pop("polo")
+                                representantes: list[dict[str, str]] = []
+
+                                if item.get("endereco"):
+                                    item.update({
+                                        "endereco".upper(): formata_endereco(
+                                            item.get("endereco")
+                                        )
+                                    })
+
+                                if item.get("representantes"):
+                                    representantes = item.pop("representantes")
+
+                                if item.get("papeis"):
+                                    item.pop("papeis")
+
+                                formated_data = {
+                                    f"{k}_{polo_parte}".upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    and not k.lower() == "utilizaLoginSenha".lower()
+                                    and not k.lower() == "situacao".lower()
+                                    and not k.lower() == "login".lower()
+                                    and not k.lower() == "idPessoa".lower()
+                                }
+
+                                for adv in list(
+                                    formata_representantes(representantes)
+                                ):
+                                    _new_data = {"REPRESENTADO": item.get("nome")}
+                                    _new_data.update(adv)
+                                    list_dict_representantes.append(_new_data)
+
+                                yield formated_data
+
+                        def formata_tempo(
+                            item: str | bool,
+                        ) -> datetime | float | int | bool | str:
+                            if isinstance(item, str):
+                                if re.match(
+                                    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item
+                                ):
+                                    return datetime.strptime(
+                                        item.split(".")[0], "%Y-%m-%dT%H:%M:%S"
+                                    )
+
+                                elif re.match(
+                                    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$",
+                                    item,
+                                ):
+                                    return datetime.strptime(
+                                        item, "%Y-%m-%dT%H:%M:%S.%f"
+                                    )
+
+                            return item
+
+                        def formata_anexos(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, str], Any, None]:
+                            new_lista: list[dict[str, str]] = []
+                            for item in lista:
+                                new_lista.extend(item.pop("anexos"))
+
+                            for item in new_lista:
+                                formated_data = {
+                                    k.upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    and (
+                                        k.lower() == "id"
+                                        or k.lower() == "titulo"
+                                        or k.lower() == "idUnicoDocumento".lower()
+                                        or k.lower() == "data"
+                                    )
+                                }
+
+                                yield formated_data
+
+                        def formata_movimentacao(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, str], Any, None]:
+                            for item in lista:
+                                if item.get("anexos"):
+                                    item.pop("anexos")
+
+                                formated_data = {
+                                    k.upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                    and (
+                                        k.lower() == "id"
+                                        or k.lower() == "titulo"
+                                        or k.lower() == "idUnicoDocumento".lower()
+                                        or k.lower() == "data"
+                                        or k.lower() == "usuarioCriador".lower()
+                                        or k.lower() == "tipoConteudo".lower()
+                                    )
+                                }
+
+                                yield formated_data
+
+                        def save_in_batches(
+                            _data_list: list[dict], _sheet_name: str
+                        ) -> None:
+                            """
+                            Salva os dados em lotes no arquivo Excel para evitar exceder o limite de linhas.
+
+                            Returns:
+                                None: Não retorna valor.
+
+                            """
+                            with semaforo_planilha:
+                                df = pd.DataFrame(_data_list)
+                                max_rows = int(writer.book[_sheet_name].max_row)
+                                df.to_excel(
+                                    writer, _sheet_name, startrow=max_rows + 1
+                                )
+
+                        def formata_geral(
+                            lista: list[dict[str, str]],
+                        ) -> Generator[dict[str, datetime | str], Any, None]:
+                            for item in lista:
+                                formated_data = {
+                                    k.upper(): formata_tempo(v)
+                                    for k, v in list(dict(item).items())
+                                    if not isinstance(v, list)
+                                }
+
+                                yield formated_data
+
+                        def load_data() -> tuple[list, list, list]:
+                            pbar = tqdm(enumerate(data_query))
+                            data_save: list[dict[str, str]] = []
+                            advogados: list[dict[str, str]] = []
+                            outras_partes_list: list[dict[str, str]] = []
+                            lista_partes_ativo: list[dict[str, str]] = []
+                            lista_partes_passivo: list[dict[str, str]] = []
+                            list_assuntos: list[dict[str, str]] = []
+                            list_anexos: list[dict[str, str]] = []
+                            list_movimentacoes: list[dict[str, str]] = []
+                            list_expedientes: list[dict[str, str]] = []
+                            contagem = 0
+                            divide_5 = 0
+
+                            for _, _item in pbar:
+                                if not pbar.total:
+                                    pbar.total = int(_item.total_pks) + 1
+                                    pbar.display()
+                                    divide_5 = int(pbar.total / 5)
+
+                                _pk = _item.processo
+                                _data_item = _item.model_dump()["data"]
+
+                                if not _data_item.get("numero"):
+                                    print(_data_item)
+                                    continue
+
+                                _data_item.pop("numero")
+
+                                if _data_item.get("expedientes"):
+                                    list_expedientes.extend([
+                                        {"NUMERO_PROCESSO": _pk, **item}
+                                        for item in list(
+                                            formata_geral(
+                                                list(_data_item.pop("expedientes"))
+                                            )
+                                        )
+                                    ])
+
+                                if _data_item.get("itensProcesso"):
+                                    itens_processo: list[dict[str, str]] = (
+                                        _data_item.pop("itensProcesso")
+                                    )
+                                    list_anexos.extend([
+                                        {"NUMERO_PROCESSO": _pk, **item}
+                                        for item in list(
+                                            formata_anexos(
+                                                list(
+                                                    filter(
+                                                        lambda x: x.get("anexos"),
+                                                        itens_processo,
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    ])
+                                    list_movimentacoes.extend([
+                                        {"NUMERO_PROCESSO": _pk, **item}
+                                        for item in formata_movimentacao(
+                                            list(itens_processo)
+                                        )
+                                    ])
+
+                                list_assuntos.extend([
+                                    {"NUMERO_PROCESSO": _pk, **item}
+                                    for item in list(
+                                        formata_assuntos(_data_item.pop("assuntos"))
+                                    )
+                                ])
+                                lista_partes_passivo.extend([
+                                    {"NUMERO_PROCESSO": _pk, **item}
+                                    for item in list(
+                                        formata_partes(_data_item.pop("poloPassivo"))
+                                    )
+                                ])
+                                lista_partes_ativo.extend([
+                                    {"NUMERO_PROCESSO": _pk, **item}
+                                    for item in list(
+                                        formata_partes(_data_item.pop("poloAtivo"))
+                                    )
+                                ])
+
+                                if _data_item.get("poloOutros"):
+                                    outras_partes_list.extend([
+                                        {"NUMERO_PROCESSO": _pk, **item}
+                                        for item in list(
+                                            formata_partes_terceiros(
+                                                _data_item.pop("poloOutros")
+                                            )
+                                        )
+                                    ])
+
+                                global list_dict_representantes
+                                advogados.extend([
+                                    {"NUMERO_PROCESSO": _pk, **item}
+                                    for item in list_dict_representantes
+                                ])
+
+                                data_save.extend([
+                                    {"NUMERO_PROCESSO": _pk, **item}
+                                    for item in list(formata_geral([_data_item]))
+                                ])
+
+                                if (
+                                    contagem == int(divide_5)
+                                    or int(pbar.n) + 1 == pbar.total
+                                ):
+                                    saves = [
+                                        (data_save, "Processos"),
+                                        (list_assuntos, "Assuntos"),
+                                        (outras_partes_list, "Outras Partes"),
+                                        (lista_partes_ativo, "Autores"),
+                                        (lista_partes_passivo, "Réus"),
+                                        (advogados, "Advogados"),
+                                        (list_movimentacoes, "Movimentações"),
+                                        (list_anexos, "Anexos Movimentações"),
+                                        (list_expedientes, "Expedientes"),
+                                    ]
+                                    for save in saves:
+                                        save_in_batches(*save)
+                                        save[0].clear()
+
+                                    data_save: list[dict[str, str]] = []
+                                    advogados = []
+                                    outras_partes_list = []
+                                    lista_partes_ativo = []
+                                    lista_partes_passivo = []
+                                    list_assuntos: list[dict[str, str]] = []
+                                    list_anexos: list[dict[str, str]] = []
+                                    list_movimentacoes: list[dict[str, str]] = []
+                                    list_expedientes: list[dict[str, str]] = []
+
+                                    contagem = 0
+
+                                contagem += 1
+                                list_dict_representantes = []
+
+                            if len(data_save) > 0:
+                                saves = [
+                                    (data_save, "Processos"),
+                                    (list_assuntos, "Assuntos"),
+                                    (outras_partes_list, "Outras Partes"),
+                                    (lista_partes_ativo, "Autores"),
+                                    (lista_partes_passivo, "Réus"),
+                                    (advogados, "Advogados"),
+                                    (list_movimentacoes, "Movimentações"),
+                                    (list_anexos, "Anexos Movimentações"),
+                                    (list_expedientes, "Expedientes"),
+                                ]
+                                for save in saves:
+                                    pool.submit(
+                                        save_in_batches,
+                                        _data_item=save[0],
+                                        _sheet_name=save[1],
+                                    )
+                                    save[0].clear()
+
+                                data_save: list[dict[str, str]] = []
+                                advogados = []
+                                outras_partes_list = []
+                                lista_partes_ativo = []
+                                lista_partes_passivo = []
+                                list_assuntos: list[dict[str, str]] = []
+                                list_anexos: list[dict[str, str]] = []
+                                list_movimentacoes: list[dict[str, str]] = []
+                                list_expedientes: list[dict[str, str]] = []
+
+                        load_data()
+
+                        with suppress(Exception):
+                            dest_path = path.join(
+                                self.pid.upper(), path_planilha.name
+                            )
+                            self.storage.fput_object(
+                                object_name=dest_path, file_path=str(path_planilha)
+                            )
+
+        except Exception as e:
+            self.print_msg("\n".join(traceback.format_exception_only(e)))

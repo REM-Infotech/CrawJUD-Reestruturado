@@ -8,6 +8,7 @@ from typing import Any, BinaryIO, Generator, Literal
 from dotenv import dotenv_values
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
+from minio.datatypes import Object
 from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
@@ -20,7 +21,7 @@ environ = dotenv_values()
 storages = Literal["google", "minio"]
 
 
-class Storage(Client):  # noqa: B903, D101
+class Storage[T](Client):  # noqa: B903, D101
     def __init__(self, storage: storages) -> None:  # noqa: D107
         server_url = environ["MINIO_URL_SERVER"]
         if storage == "google":
@@ -113,6 +114,60 @@ class Storage(Client):  # noqa: B903, D101
                         break
                     pbar.update(len(chunk))
                     self.bucket.append_object(file_name, chunk, 0)
+
+    def fget_object(  # noqa: D102
+        self,
+        object_name: str,
+        file_path: str,
+        request_headers: T | None = None,
+        ssec: T | None = None,
+        version_id: str | None = None,
+        extra_query_params: T | None = None,
+        tmp_file_path: str | None = None,
+        progress: T | None = None,
+    ) -> Object:
+        bucket_name = self.bucket.name
+        return super().fget_object(
+            bucket_name,
+            object_name,
+            file_path,
+            request_headers,
+            ssec,
+            version_id,
+            extra_query_params,
+            tmp_file_path,
+            progress,
+        )
+
+    def fput_object(  # noqa: D102
+        self,
+        object_name: str,
+        file_path: str,
+        content_type: str = "application/octet-stream",
+        metadata: T | None = None,
+        sse: T | None = None,
+        progress: T | None = None,
+        part_size: int = 0,
+        num_parallel_uploads: int = 3,
+        tags: T | None = None,
+        retention: T | None = None,
+        legal_hold: bool = False,
+    ) -> ObjectWriteResult:
+        bucket_name = self.bucket.name
+        return super().fput_object(
+            bucket_name,
+            object_name,
+            file_path,
+            content_type,
+            metadata,
+            sse,
+            progress,
+            part_size,
+            num_parallel_uploads,
+            tags,
+            retention,
+            legal_hold,
+        )
 
     def put_object(  # noqa: D102
         self,

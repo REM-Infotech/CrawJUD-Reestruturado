@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 import pandas as pd
 from werkzeug.utils import secure_filename
@@ -16,7 +16,7 @@ from utils.models.logs import CachedExecution
 from utils.storage import Storage
 
 if TYPE_CHECKING:
-    from crawjud.types import BotData
+    pass
 
 workdir_path = Path(__file__).cwd()
 
@@ -56,17 +56,3 @@ class SaveSuccessTask(ContextTask):  # noqa: D101
 
         file_name = secure_filename(path_planilha.name)
         storage.upload_file(f"{pid}/{file_name}", path_planilha)
-
-
-@shared_task(name="save_cache", bind=True, base=ContextTask)
-class SaveSuccessCache(ContextTask):  # noqa: D101
-    def __init__(  # noqa: D107
-        self,
-        pid: str,
-        data: list[BotData],
-        processo: str,
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        _cache = CachedExecution(processo=processo, data=data, pid=pid)
-        _cache.save()
