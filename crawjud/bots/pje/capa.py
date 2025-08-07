@@ -1,9 +1,11 @@
 # noqa: D100
 from __future__ import annotations
 
+import os
 import threading
 import traceback
 from concurrent.futures import Future, ThreadPoolExecutor
+from contextlib import suppress
 from datetime import datetime
 from os import path
 from pathlib import Path
@@ -409,6 +411,10 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         total_rows=total_rows,
                         start_time=start_time,
                     )
+
+                    with suppress(Exception):
+                        os.remove(file_path)
+
                 except Exception:
                     msg = "Erro ao baixar arquivo"
 
