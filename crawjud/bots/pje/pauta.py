@@ -20,7 +20,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from celery_app._wrapper import shared_task
 from celery_app.custom._task import ContextTask
 from crawjud.bot import ClassBot
-from crawjud.bots.pje.resources.varas_dict import varas as varas_pje
+from crawjud.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud.common.exceptions.bot import ExecutionError
 
 

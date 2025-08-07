@@ -1,9 +1,11 @@
 # noqa: D104
 from __future__ import annotations
 
+import re
 import secrets
 import traceback
 from contextlib import suppress
+from datetime import datetime
 from os import path, remove
 from pathlib import Path
 from time import sleep
@@ -13,10 +15,10 @@ from uuid import uuid4
 from httpx import Client
 from tqdm import tqdm
 
-from celery_app.custom._canvas import subtask
 from celery_app.custom._task import ContextTask
 from crawjud.abstract._head import HeadBot
 from crawjud.common.exceptions.bot import ExecutionError
+from crawjud.types.bot import BotData
 from crawjud.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
 from utils.recaptcha import captcha_to_image
 from utils.storage import Storage
@@ -26,6 +28,8 @@ if TYPE_CHECKING:
 
     from crawjud.types.bot import BotData
 
+DictData = dict[str, str | datetime]
+ListData = list[DictData]
 
 workdir = Path(__file__).cwd()
 path_temp = workdir.joinpath("temp", uuid4().hex)
@@ -42,11 +46,7 @@ class PjeBot[T](HeadBot, ContextTask):
     def regioes(self) -> Generator[tuple[str, str], Any, None]:
         self.carregar_arquivos()
 
-        task_separa_regiao = subtask("pje.separar_regiao")
-
-        dict_processo_separado: DictSeparaRegiao = task_separa_regiao.apply_async(
-            kwargs={"frame": self.bot_data}
-        ).wait_ready()
+        dict_processo_separado: DictSeparaRegiao = self.separar_regiao()
 
         posicoes_processos_planilha = dict_processo_separado["position_process"]
         regioes = dict_processo_separado["regioes"]
@@ -202,3 +202,65 @@ class PjeBot[T](HeadBot, ContextTask):
             return
 
         return None
+
+    def formata_trt(self, numero_processo: str) -> None | tuple[str, str]:  # noqa: D102
+        # Remove letras, símbolos e pontuações, mantendo apenas números
+
+        # Verifica se o número do processo está no formato CNJ (NNNNNNN-DD.AAAA.J.TR.NNNN)
+        padrao_cnj = r"^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$"
+        # Remove caracteres especiais e letras, mantendo apenas números, pontuação, "-" e "_"
+        numero_processo = re.sub(r"[^\d\-\._]", "", numero_processo)
+
+        if not re.match(padrao_cnj, numero_processo):
+            return
+
+        numero_processo = re.sub(
+            r"(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})",
+            r"\1-\2.\3.\4.\5.\6",
+            numero_processo,
+        )
+        with suppress(Exception):
+            trt_id = re.search(r"(?<=5\.)\d{2}", numero_processo).group()
+            if trt_id.startswith("0"):
+                trt_id = trt_id.replace("0", "")
+
+            return trt_id, numero_processo
+
+    def separar_regiao(self) -> DictSeparaRegiao:
+        """
+        Separa os processos por região a partir do número do processo.
+
+        Returns:
+            dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
+            posição de cada processo.
+
+        """
+        regioes_dict: dict[str, list[BotData]] = {}
+        position_process: dict[str, int] = {}
+
+        for item in self.bot_data:
+            numero_processo = item["NUMERO_PROCESSO"]
+            format_item = self.formata_trt(numero_processo)
+
+            if not format_item:
+                continue
+
+            # Extrai a região e o número do processo formatado
+            regiao = format_item[0]
+            numero_processo = format_item[1]
+
+            # Atualiza o número do processo no item
+            item["NUMERO_PROCESSO"] = numero_processo
+
+            # Adiciona a posição do processo na lista original no dicionário de posições
+            position_process[numero_processo] = len(position_process)
+
+            # Caso a região não exista no dicionário, cria uma nova lista
+            if not regioes_dict.get(regiao):
+                regioes_dict[regiao] = [item]
+                continue
+
+            # Caso a região já exista, adiciona o item à lista correspondente
+            regioes_dict[regiao].append(item)
+
+        return {"regioes": regioes_dict, "position_process": position_process}

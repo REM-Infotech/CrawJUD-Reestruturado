@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import traceback
 from concurrent.futures import Future, ThreadPoolExecutor
+from contextlib import suppress
 from datetime import datetime
 from threading import Semaphore  # noqa: F401
 from typing import TYPE_CHECKING
@@ -11,13 +12,13 @@ from dotenv import load_dotenv
 from httpx import Client
 
 from celery_app._wrapper import shared_task
+from celery_app.custom._task import ContextTask
 from crawjud.bots.pje._controler import PjeBot
 from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.types.pje import DictResults
 from crawjud.wrapper import wrap_cls
 
 if TYPE_CHECKING:
-    from celery_app.custom._task import ContextTask
     from crawjud.types import BotData, T  # noqa: F401
 
 load_dotenv()
@@ -122,6 +123,9 @@ class Capa[T](PjeBot):  # noqa: D101
             cookies=cookies,
             follow_redirects=True,
         )
+
+        list_tasks: list[Future] = []
+
         with cl as client:
             with ThreadPoolExecutor(max_workers=4) as pool:
                 for item in data:
@@ -146,14 +150,16 @@ class Capa[T](PjeBot):  # noqa: D101
                                     }
                                 )
 
-                                pool.submit(
-                                    self.copia_integral,
-                                    row=row,
-                                    data=item,
-                                    client=client,
-                                    semaforo=semaforo_file,
-                                    id_processo=resultado["id_processo"],
-                                    captchatoken=resultado["captchatoken"],
+                                list_tasks.append(
+                                    pool.submit(
+                                        self.copia_integral,
+                                        row=row,
+                                        data=item,
+                                        client=client,
+                                        semaforo=semaforo_file,
+                                        id_processo=resultado["id_processo"],
+                                        captchatoken=resultado["captchatoken"],
+                                    )
                                 )
 
                                 message = f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!"
@@ -169,6 +175,10 @@ class Capa[T](PjeBot):  # noqa: D101
                             row=row,
                             type_log="error",
                         )
+
+                for future in list_tasks:
+                    with suppress(Exception):
+                        future.result()
 
     def copia_integral(  # noqa: D417
         self,

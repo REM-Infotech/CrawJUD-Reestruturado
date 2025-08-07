@@ -13,21 +13,6 @@ from celery_app._wrapper import shared_task
 from crawjud.types.bot import BotData
 
 
-def formata_url_pje[T](  # noqa: D102, D103
-    regiao: str,
-    type_format: str = "login",
-    *args: T,
-    **kwargs: T,
-) -> T:
-    formats = {
-        "login": f"https://pje.trt{regiao}.jus.br/primeirograu/login.seam",
-        "validate_login": f"https://pje.trt{regiao}.jus.br/pjekz/",
-        "search": f"https://pje.trt{regiao}.jus.br/consultaprocessual/",
-    }
-
-    return formats[type_format]
-
-
 def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103
     if isinstance(item, str):
         if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item.split(".")[0]):

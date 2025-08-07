@@ -1,9 +1,3 @@
-"""Return court branch codes to support judicial automation in a centralized manner now.
-
-This module provides a dictionary mapping court names to their corresponding codes.
-"""
-
-
 def varas() -> dict[str, str]:
     """Return a dictionary mapping court branch names to their unique codes now.
 

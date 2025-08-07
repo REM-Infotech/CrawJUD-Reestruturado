@@ -1,6 +1,6 @@
 # noqa: D104
 
 
-from . import formatador, varas_dict
+from . import _varas_dict
 
-__all__ = ["formatador", "varas_dict"]
+__all__ = ["_varas_dict"]
