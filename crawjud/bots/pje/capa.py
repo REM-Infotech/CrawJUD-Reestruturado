@@ -407,7 +407,7 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
                         message=f"Arquivo do processo n.{data['NUMERO_PROCESSO']} baixado com sucesso!",
                         pid=pid,
                         row=row,
-                        type_log="success",
+                        type_log="info",
                         total_rows=total_rows,
                         start_time=start_time,
                     )
