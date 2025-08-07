@@ -1,64 +1,61 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Any, Generic, Literal, TypeVar
+from abc import ABC, abstractmethod  # noqa: F401
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar  # noqa: F401
 
-from crawjud.types.bot import BotData, MessageNadaEncontrado
-from crawjud.types.pje import DictReturnDesafio
+from pytz import timezone
 
-T = TypeVar("Class", bound=object)
-
+from crawjud.types.bot import BotData, MessageNadaEncontrado  # noqa: F401
+from crawjud.types.pje import Resultados  # noqa: F401
+from utils.models.logs import MessageLogDict
 
 func_dict_check = {
     "bot": ["execution"],
     "search": ["buscar_processo"],
 }
 
+if TYPE_CHECKING:
+    from crawjud.addons.auth.controller import AuthController
+    from crawjud.addons.search.controller import SearchController
 
-class AbstractClassBot(ABC):  # noqa: D101
+
+class AbstractClassBot[T](ABC):  # noqa: B024, D101
     tasks_cls = {}
+    subclasses_auth: dict[str, type[AuthController]] = {}
+    subclasses_search: dict[str, type[SearchController]] = {}
+    # Atributos Globais
+    _pid: str = None
+    _total_rows: int = 0
+    _start_time: str = None
+    _regiao: str = None
+    _data_regiao: list[BotData]
+    _cookies: dict[str, str]
+    _headers: dict[str, str]
+    _base_url: str
 
-    @classmethod
-    def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: D105, N803
-        if cls is AbstractClassBot:
-            subclass_functions = func_dict_check[cls.subclass_type]
+    @property
+    def data_regiao(self) -> list[BotData]:
+        return self._data_regiao
 
-            for item in subclass_functions:
-                if any(item in B.__dict__ for B in C.__mro__):
-                    return True
+    @data_regiao.setter
+    def data_regiao(self, _data_regiao: str) -> None:
+        self._data_regiao = _data_regiao
 
-        return True
-        # return NotImplementedError("Função não implementada!")
+    @property
+    def regiao(self) -> str:
+        return self._regiao
 
-    def __init_subclass__(cls) -> None:  # noqa: D105
-        cls.tasks_cls[cls.__name__] = cls
-        print(f"Registered task classes: {cls.__name__}")
-
-    @abstractmethod
-    def buscar_processo(  # noqa: D102
-        self,
-        data: BotData,
-        headers: dict[str, str],
-        cookies: dict[str, str],
-        *args: Generic[T],
-        **kwargs: Generic[T],
-    ) -> DictReturnDesafio | MessageNadaEncontrado:
-        return NotImplementedError("Função não implementada!")
-
-    @abstractmethod
-    def execution(self, *args: Generic[T], **kwargs: Generic[T]) -> None:  # noqa: D102
-        return NotImplementedError("Função não implementada!")
+    @regiao.setter
+    def regiao(self, _data_regiao: str) -> None:
+        self._data_regiao = _data_regiao
 
     def print_msg(  # noqa: D417
         self,
-        pid: str,
         message: str,
-        row: int,
-        type_log: str,
-        total_rows: int,
-        start_time: str,
+        row: int = 0,
         errors: int = 0,
-        status: str = "Em Execução",
+        type_log: str = "log",
     ) -> None:
         """
         Envia mensagem de log para o sistema de tarefas assíncronas.
@@ -76,7 +73,49 @@ class AbstractClassBot(ABC):  # noqa: D101
             None: Não retorna valor.
 
         """
-        return NotImplementedError("Função não implementada!")
+        # Obtém o horário atual formatado
+        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
+        # Monta o prompt da mensagem
+        prompt = (
+            f"[({self._pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
+        )
+
+        # Cria objeto de log da mensagem
+        data = {
+            "data": MessageLogDict(
+                message=str(prompt),
+                pid=str(self._pi),
+                row=int(row),
+                type=type_log,
+                status="Em Execução",
+                total=int(self._total_rows),
+                success=0,
+                errors=errors,
+                remaining=int(self._total_rows),
+                start_time=self._start_time,
+            )
+        }
+
+        self.sio.emit(
+            event="log_execution",
+            data=data,
+        )
+        # Envia a mensagem formatada para o sistema de monitoramento
+
+    @classmethod
+    def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: D105, N803
+        if cls is AbstractClassBot:
+            subclass_functions = func_dict_check[cls.subclass_type]
+
+            for item in subclass_functions:
+                if any(item in B.__dict__ for B in C.__mro__):
+                    return True
+
+        return True
+        # return NotImplementedError("Função não implementada!")
+
+    def __init_subclass__(cls) -> None:  # noqa: D105
+        cls.tasks_cls[cls.__name__] = cls
 
     def elawFormats(  # noqa: N802
         self, data: dict[str, str], cities_amazonas: dict[str, Any]

@@ -1,24 +1,49 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from crawjud.abstract._buscador import BuscadorProcesso
+from celery_app.custom._canvas import subtask
+from crawjud.abstract._properties import PropertyBot
+from crawjud.common.exceptions.bot import ExecutionError
+from crawjud.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
-    from socketio import SimpleClient
-
-    from celery_app.custom._task import ContextTask
+    pass
 
 
-class HeadBot(BuscadorProcesso):
-    current_task: ContextTask
-    sio: SimpleClient
-    _stop_bot: bool = False
+class HeadBot[T](PropertyBot):
+    def download_files(self) -> None:
+        files_b64: list[DictFiles] = (
+            subtask("crawjud.download_files")
+            .apply_async(kwargs={"storage_folder_name": self.folder_storage})
+            .wait_ready()
+        )
+        xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
+        if not xlsx_key:
+            raise ExecutionError("Nenhum arquivo Excel encontrado.")
 
-    @property
-    def stop_bot(self) -> bool:  # noqa: D102
-        return self._stop_bot
+        self._xlsx_data = xlsx_key
+        self._downloaded_files = files_b64
 
-    @stop_bot.setter
-    def stop_bot(self, new_value: bool) -> None:
-        self._stop_bot = new_value
+    def data_frame(self) -> None:
+        bot_data: list[BotData] = self.crawjud_dataframe.apply_async(
+            kwargs={"base91_planilha": self.xlsx_data["file_base91str"]}
+        ).wait_ready()
+
+        self._bot_data = bot_data
+
+    def carregar_arquivos(self) -> None:
+        self.download_files()
+        self.data_frame()
+
+        self.print_msg(
+            message="Planilha carregada!",
+            type_log="info",
+        )
+
+    @abstractmethod
+    def autenticar(self, *args: T, **kwargs: T) -> bool: ...
+
+    @abstractmethod
+    def buscar_processo(self, *args: T, **kwargs: T) -> bool: ...
