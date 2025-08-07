@@ -4,7 +4,6 @@ from __future__ import annotations
 import threading
 import traceback
 from concurrent.futures import Future, ThreadPoolExecutor
-from contextlib import suppress
 from datetime import datetime
 from os import path
 from pathlib import Path
@@ -126,79 +125,69 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
         total_rows = len(bot_data)
 
-        semaforo = threading.Semaphore(3)
+        for regiao, data_regiao in list(regioes["regioes"].items()):
+            if self.stop_bot:
+                break
 
-        with ThreadPoolExecutor(3) as executor:
-            for regiao, data_regiao in list(regioes["regioes"].items()):
-                if self.stop_bot:
-                    break
+            try:
+                self.print_msg(
+                    pid=pid,
+                    message=f"Autenticando no TRT {regiao}",
+                    row=0,
+                    type_log="log",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
 
-                try:
+                autenticacao_data: TReturnAuth = task_autenticacao.apply_async(
+                    kwargs={"regiao": regiao}
+                ).wait_ready()
+                if not isinstance(autenticacao_data, dict):
                     self.print_msg(
+                        message=str(autenticacao_data),
                         pid=pid,
-                        message=f"Autenticando no TRT {regiao}",
-                        row=0,
-                        type_log="log",
-                        total_rows=total_rows,
-                        start_time=start_time,
-                    )
-
-                    autenticacao_data: TReturnAuth = task_autenticacao.apply_async(
-                        kwargs={"regiao": regiao}
-                    ).wait_ready()
-                    if not isinstance(autenticacao_data, dict):
-                        self.print_msg(
-                            message=str(autenticacao_data),
-                            pid=pid,
-                            row=len(data_regiao),
-                            type_log="error",
-                            total_rows=total_rows,
-                            start_time=start_time,
-                            errors=len(data_regiao),
-                        )
-                        continue
-
-                    # Envia mensagem de sucesso
-                    self.print_msg(
-                        pid=pid,
-                        message="Autenticado com sucesso!",
-                        row=0,
-                        type_log="info",
-                        total_rows=total_rows,
-                        start_time=start_time,
-                    )
-
-                    kw_args = dict(autenticacao_data)
-                    kw_args.update({
-                        "data": data_regiao,
-                        "pid": pid,
-                        "regiao": regiao,
-                        "start_time": start_time,
-                        "total_rows": total_rows,
-                        "position_process": position_process,
-                        "semaforo": semaforo,
-                    })
-
-                    task = executor.submit(self.queue_processo, **kw_args)
-                    self.tasks_queue_processos.append(task)
-
-                except Exception as e:
-                    self.print_msg(
-                        message="\n".join(traceback.format_exception(e)),
-                        pid=pid,
-                        row=0,
+                        row=len(data_regiao),
                         type_log="error",
                         total_rows=total_rows,
                         start_time=start_time,
+                        errors=len(data_regiao),
                     )
+                    continue
 
-        for task in self.tasks_queue_processos:
-            with suppress(Exception):
-                task.result()
+                # Envia mensagem de sucesso
+                self.print_msg(
+                    pid=pid,
+                    message="Autenticado com sucesso!",
+                    row=0,
+                    type_log="info",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
+
+                kw_args = dict(autenticacao_data)
+                kw_args.update({
+                    "data": data_regiao,
+                    "pid": pid,
+                    "regiao": regiao,
+                    "start_time": start_time,
+                    "total_rows": total_rows,
+                    "position_process": position_process,
+                })
+
+                self.queue_processo(**kw_args)
+
+            except Exception as e:
+                self.print_msg(
+                    message="\n".join(traceback.format_exception(e)),
+                    pid=pid,
+                    row=0,
+                    type_log="error",
+                    total_rows=total_rows,
+                    start_time=start_time,
+                )
 
     def queue_processo(  # noqa: D417
         self,
-        semaforo: threading.Semaphore,
         cookies: dict[str, str],
         headers: dict[str, str],
         base_url: str,
@@ -229,107 +218,98 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
             None: Não retorna valor.
 
         """
-        try:
-            semaforo.acquire()
 
-            def print_erro() -> None:
-                self.print_msg(
-                    pid=pid,
-                    message="Falha ao obter informações do processo ",
-                    row=row,
-                    type_log="error",
-                    total_rows=item.get("total_rows", 0),
-                    start_time=start_time,
-                )
+        def print_erro() -> None:
+            self.print_msg(
+                pid=pid,
+                message="Falha ao obter informações do processo ",
+                row=row,
+                type_log="error",
+                total_rows=item.get("total_rows", 0),
+                start_time=start_time,
+            )
 
-            semaforo2 = threading.Semaphore(4)
+        semaforo2 = threading.Semaphore(4)
 
-            with ThreadPoolExecutor(4) as executor:
-                for item in data:
-                    if self.stop_bot:
-                        break
-                    try:
-                        # Atualiza dados do item para processamento
+        with ThreadPoolExecutor(4) as executor:
+            for item in data:
+                if self.stop_bot:
+                    break
+                try:
+                    # Atualiza dados do item para processamento
 
-                        item.update({
-                            "row": position_process[item["NUMERO_PROCESSO"]] + 1,
-                            "total_rows": total_rows,
+                    item.update({
+                        "row": position_process[item["NUMERO_PROCESSO"]] + 1,
+                        "total_rows": total_rows,
+                        "pid": pid,
+                        "url_base": base_url,
+                        "start_time": start_time,
+                    })
+
+                    row = int(item["row"])
+                    start_time = item["start_time"]
+                    resultados_busca: DictReturnDesafio = self.buscar_processo(
+                        data=item, headers=headers, cookies=cookies
+                    )
+
+                    # Verifica se houve resultado na busca
+
+                    # Verifica se resultados_busca é válido e possui dados
+                    results = (
+                        resultados_busca.get("results")
+                        if isinstance(resultados_busca, dict)
+                        else None
+                    )
+                    data_request = results.get("data_request") if results else None
+
+                    if not data_request:
+                        print_erro()
+                        continue
+
+                    # Salva dados em cache
+                    self.save_success_cache(
+                        data={
                             "pid": pid,
-                            "url_base": base_url,
-                            "start_time": start_time,
-                        })
+                            "data": resultados_busca["results"]["data_request"],
+                            "processo": item["NUMERO_PROCESSO"],
+                        }
+                    )
 
-                        row = int(item["row"])
-                        start_time = item["start_time"]
-                        resultados_busca: DictReturnDesafio = self.buscar_processo(
-                            data=item, headers=headers, cookies=cookies
-                        )
+                    file_name = f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
+                    _ft = executor.submit(
+                        self.copia_integral,
+                        semaforo=semaforo2,
+                        pid=pid,
+                        data=item,
+                        total_rows=total_rows,
+                        row=row,
+                        url_base=base_url,
+                        file_name=file_name,
+                        headers=headers,
+                        start_time=start_time,
+                        cookies=cookies,
+                        id_processo=resultados_busca["results"]["id_processo"],
+                        captchatoken=resultados_busca["results"]["captchatoken"],
+                    )
 
-                        # Verifica se houve resultado na busca
+                    self.print_msg(
+                        pid=pid,
+                        message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
+                        row=row,
+                        type_log="success",
+                        total_rows=item.get("total_rows", 0),
+                        start_time=start_time,
+                    )
 
-                        # Verifica se resultados_busca é válido e possui dados
-                        results = (
-                            resultados_busca.get("results")
-                            if isinstance(resultados_busca, dict)
-                            else None
-                        )
-                        data_request = (
-                            results.get("data_request") if results else None
-                        )
-
-                        if not data_request:
-                            print_erro()
-                            continue
-
-                        # Salva dados em cache
-                        self.save_success_cache(
-                            data={
-                                "pid": pid,
-                                "data": resultados_busca["results"]["data_request"],
-                                "processo": item["NUMERO_PROCESSO"],
-                            }
-                        )
-
-                        file_name = (
-                            f"COPIA INTEGRAL {item['NUMERO_PROCESSO']} {pid}.pdf"
-                        )
-                        _ft = executor.submit(
-                            self.copia_integral,
-                            semaforo=semaforo2,
-                            pid=pid,
-                            data=item,
-                            total_rows=total_rows,
-                            row=row,
-                            url_base=base_url,
-                            file_name=file_name,
-                            headers=headers,
-                            start_time=start_time,
-                            cookies=cookies,
-                            id_processo=resultados_busca["results"]["id_processo"],
-                            captchatoken=resultados_busca["results"]["captchatoken"],
-                        )
-
-                        self.print_msg(
-                            pid=pid,
-                            message=f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!",
-                            row=row,
-                            type_log="success",
-                            total_rows=item.get("total_rows", 0),
-                            start_time=start_time,
-                        )
-
-                    except Exception:
-                        self.print_msg(
-                            message="Erro ao buscar processo",
-                            pid=pid,
-                            row=row,
-                            type_log="error",
-                            total_rows=item.get("total_rows", 0),
-                            start_time=start_time,
-                        )
-
-        finally:
-            semaforo.release()
+                except Exception:
+                    self.print_msg(
+                        message="Erro ao buscar processo",
+                        pid=pid,
+                        row=row,
+                        type_log="error",
+                        total_rows=item.get("total_rows", 0),
+                        start_time=start_time,
+                    )
 
     def copia_integral(  # noqa: D417
         self,
