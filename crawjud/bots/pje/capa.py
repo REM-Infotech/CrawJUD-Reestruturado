@@ -126,9 +126,9 @@ class Capa(ClassBot, ContextTask):  # noqa: D101
 
         total_rows = len(bot_data)
 
-        semaforo = threading.Semaphore(8)
+        semaforo = threading.Semaphore(3)
 
-        with ThreadPoolExecutor(8) as executor:
+        with ThreadPoolExecutor(3) as executor:
             for regiao, data_regiao in list(regioes["regioes"].items()):
                 if self.stop_bot:
                     break
