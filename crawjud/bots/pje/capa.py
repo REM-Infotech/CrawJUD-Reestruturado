@@ -91,8 +91,6 @@ class Capa[T](PjeBot):  # noqa: D101
         base_url: str,
         headers: str,
         cookies: str,
-        *args: T,
-        **kwargs: T,
     ) -> str:
         """
         Enfileira processos para processamento e salva resultados.
@@ -186,8 +184,6 @@ class Capa[T](PjeBot):  # noqa: D101
         semaforo: Semaphore,
         id_processo: str,
         captchatoken: str,
-        *args: T,
-        **kwargs: T,
     ) -> None:
         """
         Realiza o download da cópia integral do processo e salva no storage.
