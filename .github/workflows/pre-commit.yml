@@ -1,14 +1,14 @@
-name:  🚀 Checagem de Pull Request com Pre-Commit
+# name:  🚀 Checagem de Pull Request com Pre-Commit
 
-on:
-  pull_request:
-  push:
-    branches: [Main]
+# on:
+#   pull_request:
+#   push:
+#     branches: [Main]
 
-jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
-    - uses: pre-commit/action@v3.0.1
+# jobs:
+#   pre-commit:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v3
+#     - uses: actions/setup-python@v3
+#     - uses: pre-commit/action@v3.0.1
