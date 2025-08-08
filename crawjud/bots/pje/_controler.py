@@ -127,7 +127,7 @@ class PjeBot[T](HeadBot, ContextTask):
                 type_log="info",
             )
 
-    def save_success_cache(self, data: Processo, processo: str) -> None:
+    def save_success_cache(self, data: Processo, processo: str = None) -> None:
         with suppress(Exception):
             _cache = CachedExecution(processo=processo, data=data, pid=self.pid)
             _cache.save()
