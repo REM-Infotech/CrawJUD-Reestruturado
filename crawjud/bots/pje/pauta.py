@@ -26,9 +26,6 @@ from crawjud.common.exceptions.bot import ExecutionError
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)
 class Pauta(ContextTask, ClassBot):  # noqa: D101
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D107
-        return self.execution()
-
     def execution(self) -> None:
         """Execute the main process loop to retrieve pautas until data range is covered now.
 
@@ -70,7 +67,7 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
                     self.auth_bot()
 
             try:
-                self.queue()
+                self.queue(vara)
 
             except Exception as e:
                 self.tratamento_erros(exc=e)
@@ -107,17 +104,19 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
 
                 elif len(data_append) > 0:
                     vara = vara.replace("#", "").upper()
-                    fileN = f"{vara} - {date.replace('-', '.')} - {self.pid}.xlsx"  # noqa: N806
-                    self.append_success(data=data_append, fileN=fileN)
+                    _file_name = (
+                        f"{vara} - {date.replace('-', '.')} - {self.pid}.xlsx"  # noqa: N806
+                    )
+                    self.append_success(data=data_append, _file_name=_file_name)
 
                 self.current_date += timedelta(days=1)
 
             data_append = self.group_date_all(self.data_append)
-            fileN = os.path.basename(self.planilha_sucesso)  # noqa: N806
+            _file_name = os.path.basename(self.planilha_sucesso)  # noqa: N806
             if len(data_append) > 0:
                 self.append_success(
                     data=[data_append],
-                    fileN=fileN,
+                    _file_name=_file_name,
                     message="Dados extraídos com sucesso!",
                 )
 
@@ -145,7 +144,7 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
         try:
             self.driver.implicitly_wait(10)
             times = 4
-            itens_pautas = None
+            itens_pautas: WebElement = None
             table_pautas: WebElement = self.wait.until(
                 ec.all_of(
                     ec.presence_of_element_located((
@@ -181,7 +180,6 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
                         'span[class="ng-tns-c11-1 ng-star-inserted"]',
                     ).text
                     with suppress(StaleElementReferenceException):
-                        item: WebElement = item
                         itens_tr = item.find_elements(By.TAG_NAME, "td")
 
                         appends = {

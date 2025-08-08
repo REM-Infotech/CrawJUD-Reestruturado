@@ -33,8 +33,6 @@ class Capa[T](PjeBot):  # noqa: D101
         self,
         current_task: ContextTask = None,
         storage_folder_name: str = None,
-        *args: T,
-        **kwargs: T,
     ) -> None:  # noqa: D102
         """
         Executa o fluxo principal de processamento da capa dos processos PJE.
