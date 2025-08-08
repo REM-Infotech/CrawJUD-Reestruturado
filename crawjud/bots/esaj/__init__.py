@@ -8,12 +8,12 @@ import logging
 import traceback
 from typing import Callable, Union
 
-from crawjud.bot.common import StartError
-from crawjud.bot.scripts.esaj.busca_pags import BuscaPags as Busca_pags
-from crawjud.bot.scripts.esaj.capa import Capa
-from crawjud.bot.scripts.esaj.emissao import Emissao
-from crawjud.bot.scripts.esaj.movimentacao import Movimentacao
-from crawjud.bot.scripts.esaj.protocolo import Protocolo
+from crawjud.bots.esaj.busca_pags import BuscaPags as Busca_pags
+from crawjud.bots.esaj.capa import Capa
+from crawjud.bots.esaj.emissao import Emissao
+from crawjud.bots.esaj.movimentacao import Movimentacao
+from crawjud.bots.esaj.protocolo import Protocolo
+from crawjud.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
 
@@ -44,7 +44,12 @@ class Esaj:
             system = kwargs.get("system")
             typebot = kwargs.get("typebot")
             logger = kwargs.get("logger", logger_)
-            logger.info("Starting bot %s with system %s and type %s", display_name, system, typebot)
+            logger.info(
+                "Starting bot %s with system %s and type %s",
+                display_name,
+                system,
+                typebot,
+            )
 
             self.typebot_ = typebot
 

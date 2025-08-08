@@ -7,8 +7,8 @@ import logging
 import traceback
 from typing import Callable, Union
 
-from crawjud.bot.common import StartError
-from crawjud.bot.scripts.calculadoras.tjdft import Tjdft
+from crawjud.bots.calculadoras.tjdft import Tjdft
+from crawjud.common.exceptions.bot import StartError
 
 __all__ = ["Tjdft"]
 logger_ = logging.getLogger(__name__)
@@ -45,7 +45,12 @@ class Calculadoras:
             system = kwargs.get("system")
             typebot = kwargs.get("typebot")
             logger = kwargs.get("logger", logger_)
-            logger.info("Starting bot %s with system %s and type %s", display_name, system, typebot)
+            logger.info(
+                "Starting bot %s with system %s and type %s",
+                display_name,
+                system,
+                typebot,
+            )
 
             self.typebot_ = typebot
 
@@ -72,7 +77,6 @@ class Calculadoras:
         """
         bot_call: Callable[[], None] = globals().get(self.typebot_.capitalize())
 
-        # rb = self.bots.get(self.typebot)
         if not bot_call:
             raise AttributeError("Robô não encontrado!!")
 
