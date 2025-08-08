@@ -30,8 +30,8 @@ class DictFiles(TypedDict):
 class BotData(TypedDict):
     """TypedDict for bot data."""
 
-    NUMERO_PROCESSO: str  # TODOS
-    GRAU: int | str  # TODOS
+    NUMERO_PROCESSO: str
+    GRAU: int | str
 
     FORO: str  # ESAJ EMISSAO | ELAW CADASTRO
     VALOR_CALCULADO: str  # CAIXA | CALCULADORA TJDFT
