@@ -18,17 +18,19 @@ import logging
 import traceback
 from typing import Callable, Union
 
-from crawjud.bot.common import StartError
-from crawjud.bot.scripts.elaw.andamentos import Andamentos
-from crawjud.bot.scripts.elaw.cadastro import Cadastro
-from crawjud.bot.scripts.elaw.complement import Complement
-from crawjud.bot.scripts.elaw.download import Download
-from crawjud.bot.scripts.elaw.prazos import Prazos
-from crawjud.bot.scripts.elaw.provisao import Provisao
-from crawjud.bot.scripts.elaw.sol_pags import SolPags as Sol_pags
+from crawjud.bots.elaw.andamentos import Andamentos
+from crawjud.bots.elaw.cadastro import Cadastro
+from crawjud.bots.elaw.complement import Complement
+from crawjud.bots.elaw.download import Download
+from crawjud.bots.elaw.prazos import Prazos
+from crawjud.bots.elaw.provisao import Provisao
+from crawjud.bots.elaw.sol_pags import SolPags as Sol_pags
+from crawjud.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
-ClassBots = Union[Andamentos, Cadastro, Complement, Download, Prazos, Provisao, Sol_pags]
+ClassBots = Union[
+    Andamentos, Cadastro, Complement, Download, Prazos, Provisao, Sol_pags
+]
 
 __all__ = [Andamentos, Cadastro, Complement, Download, Prazos, Provisao, Sol_pags]
 
@@ -65,7 +67,12 @@ class Elaw:
             system = kwargs.get("system")
             typebot = kwargs.get("typebot")
             logger = kwargs.get("logger", logger_)
-            logger.info("Starting bot %s with system %s and type %s", display_name, system, typebot)
+            logger.info(
+                "Starting bot %s with system %s and type %s",
+                display_name,
+                system,
+                typebot,
+            )
 
             self.typebot_ = typebot
 
@@ -92,7 +99,6 @@ class Elaw:
         """
         bot_call: Callable[[], None] = globals().get(self.typebot_.capitalize())
 
-        # rb = self.bots.get(self.typebot)
         if not bot_call:
             raise AttributeError("Robô não encontrado!!")
 

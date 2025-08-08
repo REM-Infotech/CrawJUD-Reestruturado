@@ -65,7 +65,7 @@ class PjeBot[T](HeadBot, ContextTask):
         self._posicoes_processos = posicoes_processos_planilha
         self.total_rows = len(posicoes_processos_planilha.values())
 
-        for regiao, data_regiao in list(regioes.items()):
+        for regiao, data_regiao in regioes.items():
             self.regiao = regiao
             self.data_regiao = data_regiao
 
@@ -310,9 +310,8 @@ class PjeBot[T](HeadBot, ContextTask):
                             for item in lista:
                                 formated_data = {
                                     f"{k}".upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
-                                    if not isinstance(v, list)
-                                    or not k.lower() == "id"
+                                    for k, v in dict(item).items()
+                                    if not isinstance(v, list) or k.lower() != "id"
                                 }
 
                                 yield formated_data
@@ -320,7 +319,7 @@ class PjeBot[T](HeadBot, ContextTask):
                         def formata_endereco(endr_dict: dict[str, str]) -> str:
                             return " | ".join([
                                 f"{endr_k.upper()}: {endr_v.strip()}"
-                                for endr_k, endr_v in list(endr_dict.items())
+                                for endr_k, endr_v in endr_dict.items()
                             ])
 
                         def formata_representantes(
@@ -337,12 +336,14 @@ class PjeBot[T](HeadBot, ContextTask):
 
                                 formated_data = {
                                     f"{k}_{tipo_parte}".upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
-                                    and not k.lower() == "utilizaLoginSenha".lower()
-                                    and not k.lower() == "situacao".lower()
-                                    and not k.lower() == "login".lower()
-                                    and not k.lower() == "idPessoa".lower()
+                                    and all([
+                                        k.lower() != "utilizaLoginSenha".lower(),
+                                        k.lower() != "situacao".lower(),
+                                        k.lower() != "login".lower(),
+                                        k.lower() != "idPessoa".lower(),
+                                    ])
                                 }
 
                                 yield formated_data
@@ -369,17 +370,17 @@ class PjeBot[T](HeadBot, ContextTask):
 
                                 formated_data = {
                                     f"{k}_polo_{polo_parte}".upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
-                                    and not k.lower() == "utilizaLoginSenha".lower()
-                                    and not k.lower() == "situacao".lower()
-                                    and not k.lower() == "login".lower()
-                                    and not k.lower() == "idPessoa".lower()
+                                    and all([
+                                        k.lower() != "utilizaLoginSenha".lower(),
+                                        k.lower() != "situacao".lower(),
+                                        k.lower() != "login".lower(),
+                                        k.lower() != "idPessoa".lower(),
+                                    ])
                                 }
 
-                                for adv in list(
-                                    formata_representantes(representantes)
-                                ):
+                                for adv in formata_representantes(representantes):
                                     _new_data = {"REPRESENTADO": item.get("nome")}
                                     _new_data.update(adv)
                                     list_dict_representantes.append(_new_data)
@@ -408,17 +409,17 @@ class PjeBot[T](HeadBot, ContextTask):
 
                                 formated_data = {
                                     f"{k}_{polo_parte}".upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
-                                    and not k.lower() == "utilizaLoginSenha".lower()
-                                    and not k.lower() == "situacao".lower()
-                                    and not k.lower() == "login".lower()
-                                    and not k.lower() == "idPessoa".lower()
+                                    and all([
+                                        k.lower() != "id".lower(),
+                                        k.lower() != "nome".lower(),
+                                        k.lower() != "tipo".lower(),
+                                        k.lower() != "endereco".lower(),
+                                    ])
                                 }
 
-                                for adv in list(
-                                    formata_representantes(representantes)
-                                ):
+                                for adv in formata_representantes(representantes):
                                     _new_data = {"REPRESENTADO": item.get("nome")}
                                     _new_data.update(adv)
                                     list_dict_representantes.append(_new_data)
@@ -456,13 +457,16 @@ class PjeBot[T](HeadBot, ContextTask):
                             for item in new_lista:
                                 formated_data = {
                                     k.upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
-                                    and (
-                                        k.lower() == "id"
-                                        or k.lower() == "titulo"
-                                        or k.lower() == "idUnicoDocumento".lower()
-                                        or k.lower() == "data"
+                                    and any(
+                                        k.lower() == x.lower()
+                                        for x in (
+                                            "id",
+                                            "titulo",
+                                            "idUnicoDocumento",
+                                            "data",
+                                        )
                                     )
                                 }
 
@@ -477,15 +481,18 @@ class PjeBot[T](HeadBot, ContextTask):
 
                                 formated_data = {
                                     k.upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
-                                    and (
-                                        k.lower() == "id"
-                                        or k.lower() == "titulo"
-                                        or k.lower() == "idUnicoDocumento".lower()
-                                        or k.lower() == "data"
-                                        or k.lower() == "usuarioCriador".lower()
-                                        or k.lower() == "tipoConteudo".lower()
+                                    and any(
+                                        k.lower() == x.lower()
+                                        for x in (
+                                            "id",
+                                            "titulo",
+                                            "idUnicoDocumento",
+                                            "data",
+                                            "usuarioCriador",
+                                            "tipoConteudo",
+                                        )
                                     )
                                 }
 
@@ -514,7 +521,7 @@ class PjeBot[T](HeadBot, ContextTask):
                             for item in lista:
                                 formated_data = {
                                     k.upper(): formata_tempo(v)
-                                    for k, v in list(dict(item).items())
+                                    for k, v in item.items()
                                     if not isinstance(v, list)
                                 }
 
@@ -552,10 +559,8 @@ class PjeBot[T](HeadBot, ContextTask):
                                 if _data_item.get("expedientes"):
                                     list_expedientes.extend([
                                         {"NUMERO_PROCESSO": _pk, **item}
-                                        for item in list(
-                                            formata_geral(
-                                                list(_data_item.pop("expedientes"))
-                                            )
+                                        for item in formata_geral(
+                                            list(_data_item.pop("expedientes"))
                                         )
                                     ])
 
@@ -565,13 +570,11 @@ class PjeBot[T](HeadBot, ContextTask):
                                     )
                                     list_anexos.extend([
                                         {"NUMERO_PROCESSO": _pk, **item}
-                                        for item in list(
-                                            formata_anexos(
-                                                list(
-                                                    filter(
-                                                        lambda x: x.get("anexos"),
-                                                        itens_processo,
-                                                    )
+                                        for item in formata_anexos(
+                                            list(
+                                                filter(
+                                                    lambda x: x.get("anexos"),
+                                                    itens_processo,
                                                 )
                                             )
                                         )
@@ -579,36 +582,34 @@ class PjeBot[T](HeadBot, ContextTask):
                                     list_movimentacoes.extend([
                                         {"NUMERO_PROCESSO": _pk, **item}
                                         for item in formata_movimentacao(
-                                            list(itens_processo)
+                                            itens_processo
                                         )
                                     ])
 
                                 list_assuntos.extend([
                                     {"NUMERO_PROCESSO": _pk, **item}
-                                    for item in list(
-                                        formata_assuntos(_data_item.pop("assuntos"))
+                                    for item in formata_assuntos(
+                                        _data_item.pop("assuntos")
                                     )
                                 ])
                                 lista_partes_passivo.extend([
                                     {"NUMERO_PROCESSO": _pk, **item}
-                                    for item in list(
-                                        formata_partes(_data_item.pop("poloPassivo"))
+                                    for item in formata_partes(
+                                        _data_item.pop("poloPassivo")
                                     )
                                 ])
                                 lista_partes_ativo.extend([
                                     {"NUMERO_PROCESSO": _pk, **item}
-                                    for item in list(
-                                        formata_partes(_data_item.pop("poloAtivo"))
+                                    for item in formata_partes(
+                                        _data_item.pop("poloAtivo")
                                     )
                                 ])
 
                                 if _data_item.get("poloOutros"):
                                     outras_partes_list.extend([
                                         {"NUMERO_PROCESSO": _pk, **item}
-                                        for item in list(
-                                            formata_partes_terceiros(
-                                                _data_item.pop("poloOutros")
-                                            )
+                                        for item in formata_partes_terceiros(
+                                            _data_item.pop("poloOutros")
                                         )
                                     ])
 
@@ -620,7 +621,7 @@ class PjeBot[T](HeadBot, ContextTask):
 
                                 data_save.extend([
                                     {"NUMERO_PROCESSO": _pk, **item}
-                                    for item in list(formata_geral([_data_item]))
+                                    for item in formata_geral([_data_item])
                                 ])
 
                                 if (

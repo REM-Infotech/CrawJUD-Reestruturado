@@ -9,12 +9,12 @@ import logging
 import traceback
 from typing import Callable, Union
 
-from crawjud.bot.common.exceptions import StartError
-from crawjud.bot.scripts.projudi.capa import Capa
-from crawjud.bot.scripts.projudi.intimacoes import Intimacoes
-from crawjud.bot.scripts.projudi.movimentacao import Movimentacao
-from crawjud.bot.scripts.projudi.proc_parte import ProcParte as Proc_parte
-from crawjud.bot.scripts.projudi.protocolo import Protocolo
+from crawjud.bots.projudi.capa import Capa
+from crawjud.bots.projudi.intimacoes import Intimacoes
+from crawjud.bots.projudi.movimentacao import Movimentacao
+from crawjud.bots.projudi.proc_parte import ProcParte as Proc_parte
+from crawjud.bots.projudi.protocolo import Protocolo
+from crawjud.common.exceptions import StartError
 
 ClassBots = Union[Capa, Intimacoes, Movimentacao, Proc_parte, Protocolo]
 logger_ = logging.getLogger(__name__)
@@ -39,7 +39,12 @@ class Projudi:
             system = kwargs.get("system")
             typebot = kwargs.get("typebot")
             logger = kwargs.get("logger", logger_)
-            logger.info("Starting bot %s with system %s and type %s", display_name, system, typebot)
+            logger.info(
+                "Starting bot %s with system %s and type %s",
+                display_name,
+                system,
+                typebot,
+            )
 
             self.typebot_ = typebot
 
@@ -64,7 +69,6 @@ class Projudi:
         """
         bot_call: Callable[[], None] = globals().get(self.typebot_.capitalize())
 
-        # rb = self.bots.get(self.typebot)
         if not bot_call:
             raise AttributeError("Robô não encontrado!!")
 
