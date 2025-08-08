@@ -188,68 +188,6 @@ class Capa(ClassBot):
                 f"Cópia Integral - {n_processo} - {self.pid}.pdf"
             )
 
-            # # Get cookies from ChromeDriver session
-            # cookies = {cookie["name"]: cookie["value"] for cookie in self.driver.get_cookies()}
-
-            # form = self.driver.find_element(
-            #     By.CSS_SELECTOR,
-            #     'form[id="processoExportarForm"]',
-            # )
-            # form_path = form.get_attribute("action")
-            # url = form_path
-            # value_achives: list[str] = []
-            # for file_ in form.find_elements(
-            #     By.CSS_SELECTOR,
-            #     'input[name="arquivos"]',
-            # ):
-            #     value_achives.append(file_.get_attribute("value"))
-
-            # archives = ",".join(value_achives)
-
-            # form_values = {
-            #     "selectedItems": archives,
-            # }
-
-            # other_inputs = form.find_elements(
-            #     By.XPATH,
-            #     ".//input[not(contains(@name, 'arquivos'))][not(contains(@name, 'selectedItems'))]",
-            # )
-            # for input_ in other_inputs:
-            #     if input_.get_attribute("name") and input_.get_attribute("value"):
-            #         if input_.get_attribute("name") == "adicionarCapa":
-            #             form_values.update({input_.get_attribute("name"): "true"})
-            #             continue
-
-            #         form_values.update(
-            #             {input_.get_attribute("name"): input_.get_attribute("value")},
-            #         )
-
-            # # Download using requests
-            # try:
-            #     response = requests.post(url=self.driver.current_url, data=form_values, cookies=cookies, timeout=60)
-
-            # except Exception as e:
-            #   self.logger.exception(
-            #     "".join(
-            #         traceback.format_exception(
-            #             e
-            #             value=e,
-            #             tb=e.__traceback__,
-            #         )
-            #     )
-            # )
-            #     raise ExecutionError(f"Erro ao baixar cópia integral do processo: {e}") from e
-
-            # if response.status_code == 200:
-            #     with open(path_pdf, "wb") as f:
-            #         f.write(response.content)
-
-            #     is_pdf = mimetypes.guess_type(path_pdf)[0]
-            #     if is_pdf != "application/pdf":
-
-            # elif response.status_code != 200:
-            # Fallback to ChromeDriver download if requests fails
-
             btn_exportar = self.driver.find_element(
                 By.CSS_SELECTOR, 'input[name="btnExportar"]'
             )
@@ -281,247 +219,294 @@ class Capa(ClassBot):
         return data
 
     def get_process_informations(self) -> dict[str, str | int | datetime]:
-        """Extract detailed process information from the current web page.
+        """
+        Extrai informações detalhadas do processo da página atual do Projudi.
 
         Returns:
-            list: A list of dictionaries containing formatted process information.
+            dict[str, str | int | datetime]: Dicionário com informações formatadas do processo.
 
         Raises:
-            Exception: If extraction encounters an error.
+            Exception: Se ocorrer erro na extração.
 
         """
         try:
-            grau = self.bot_data.get("GRAU", 1)
-
-            if grau is None:
-                grau = 1
-
-            if isinstance(grau, str):
-                grau = grau.strip()
-
-            grau = int(grau)
-            process_info: dict[str, str | int | datetime] = {}
-            process_info.update({
+            grau = self._get_grau()
+            process_info: dict[str, str | int | datetime] = {
                 "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")
-            })
+            }
 
-            def format_vl_causa(valor_causa: str) -> float | str:
-                """Format the value of the cause by removing currency symbols and converting to float.
+            self._log_obtendo_informacoes()
 
-                Args:
-                    valor_causa (str): The raw value string.
-
-                Returns:
-                    float | str: The formatted value as float or original string if no match.
-
-                """
-                if "¤" in valor_causa:
-                    valor_causa = valor_causa.replace("¤", "")
-
-                pattern = r"(?<!\S)(?:US\$[\s]?|R\$[\s]?|[\$]?)\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?(?!\S)"
-                matches = re.findall(pattern, valor_causa)
-                if len(matches) > 0:
-
-                    def convert_to_float(value: str) -> float:
-                        """Convert a formatted string to float.
-
-                        Args:
-                            value (str): The string to convert.
-
-                        Returns:
-                            float: The converted float value.
-
-                        """
-                        # Remover símbolos de moeda e espaços
-                        value = re.sub(r"[^\d.,]", "", value)
-
-                        # Identificar se o formato é BRL (com vírgula para decimais) ou USD (com ponto para decimais)
-                        if "," in value and "." in value:
-                            # Assumir formato USD se houver tanto ',' quanto '.'
-                            parts = value.split(".")
-                            if len(parts[-1]) == 2:
-                                value = value.replace(",", "")
-                            elif not len(parts[-1]) == 2:
-                                value = value.replace(".", "").replace(",", ".")
-                        elif "," in value:
-                            # Assumir formato BRL
-                            value = value.replace(".", "").replace(",", ".")
-                        elif "." in value:
-                            # Assumir formato USD
-                            value = value.replace(",", "")
-
-                        return float(value)
-
-                    return convert_to_float(matches[0])
-
-                return valor_causa
-
-            self.message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
-            self.type_log = "log"
-            self.prt()
-
-            btn_infogeral = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_infogeral
-            )
-            btn_infogeral.click()
-
-            includecontent: list[WebElement] = []
-
-            element_content = self.elements.primeira_instform1
-            element_content2 = self.elements.primeira_instform2
-
-            if grau == 2:
-                element_content = self.elements.segunda_instform
-                element_content2 = element_content
-
-            includecontent.append(
-                self.driver.find_element(By.CSS_SELECTOR, element_content)
-            )
-            includecontent.append(
-                self.wait.until(
-                    ec.presence_of_element_located((
-                        By.CSS_SELECTOR,
-                        element_content2,
-                    ))
-                )
-            )
-
-            for incl in includecontent:
-                with suppress(StaleElementReferenceException):
-                    itens = list(
-                        filter(
-                            lambda x: len(x.find_elements(By.TAG_NAME, "td")) > 1,
-                            incl.find_element(By.TAG_NAME, "tbody").find_elements(
-                                By.TAG_NAME, "tr"
-                            ),
-                        ),
-                    )
-
-                    for item in itens:
-                        labels = list(
-                            filter(
-                                lambda x: x.text.strip() != "",
-                                item.find_elements(
-                                    By.CSS_SELECTOR, "td.label, td.labelRadio > label"
-                                ),
-                            ),
-                        )
-                        # para teste
-                        # for value in item.find_elements(By.CSS_SELECTOR, "td"):
-                        #     print(value.text.strip())
-
-                        values = list(
-                            filter(
-                                lambda x: x.text.strip() != ""
-                                and not x.get_attribute("class"),
-                                item.find_elements(By.TAG_NAME, "td"),
-                            ),
-                        )
-
-                        for _, label in enumerate(labels):
-                            if len(labels) != len(values):
-                                continue
-
-                            not_formated_label = label.text
-                            label_text = (
-                                self.format_string(label.text)
-                                .upper()
-                                .replace(" ", "_")
-                            )
-
-                            indice = labels.index(label)
-                            value_text = values[indice].text
-
-                            if label_text == "VALOR_DA_CAUSA":
-                                value_text = format_vl_causa(value_text)
-
-                            elif (
-                                "DATA" in label_text
-                                or "DISTRIBUICAO" in label_text
-                                or "AUTUACAO" in label_text
-                            ):
-                                if " às " in value_text:
-                                    value_text = value_text.split(" às ")[0]
-
-                                if self.text_is_a_date(value_text) is True:
-                                    value_text = datetime.strptime(
-                                        value_text, "%d/%m/%Y"
-                                    )
-
-                            elif not_formated_label != value_text:
-                                value_text = " ".join(value_text.split(" ")).upper()
-
-                            else:
-                                continue
-
-                            process_info.update({label_text: value_text})
-
-            btn_partes = self.elements.btn_partes
-            if grau == 2:
-                btn_partes = btn_partes.replace("2", "1")
-
-            btn_partes = self.driver.find_element(By.CSS_SELECTOR, btn_partes)
-            btn_partes.click()
-
-            try:
-                includecontent = self.driver.find_element(
-                    By.ID, self.elements.includecontent_capa
-                )
-            except Exception:
-                time.sleep(3)
-                self.driver.refresh()
-                time.sleep(1)
-                includecontent = self.driver.find_element(
-                    By.ID, self.elements.includecontent_capa
-                )
-
-            result_table = includecontent.find_elements(
-                By.CLASS_NAME, self.elements.resulttable
-            )
-
-            for pos, parte_info in enumerate(result_table):
-                h4_name = list(
-                    filter(
-                        lambda x: x.text != "" and x is not None,
-                        includecontent.find_elements(By.TAG_NAME, "h4"),
-                    ),
-                )
-                tipo_parte = (
-                    self.format_string(h4_name[pos].text).replace(" ", "_").upper()
-                )
-
-                nome_colunas = []
-
-                for column in parte_info.find_element(
-                    By.TAG_NAME, "thead"
-                ).find_elements(By.TAG_NAME, "th"):
-                    nome_colunas.append(column.text.upper())
-
-                for parte in parte_info.find_element(
-                    By.TAG_NAME, "tbody"
-                ).find_elements(
-                    By.XPATH,
-                    self.elements.table_moves,
-                ):
-                    for pos_, nome_coluna in enumerate(nome_colunas):
-                        key = "_".join((
-                            self.format_string(nome_coluna).replace(" ", "_").upper(),
-                            tipo_parte,
-                        ))
-                        value = parte.find_elements(By.TAG_NAME, "td")[pos_].text
-
-                        if value:
-                            " ".join(value.split(" "))
-
-                            if "\n" in value:
-                                value = " | ".join(value.split("\n"))
-                                process_info.update({key: value})
-                                continue
-
-                            process_info.update({key: value})
+            self._extrai_info_geral(process_info, grau)
+            self._extrai_partes(process_info, grau)
 
             return process_info
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
+
+    def _get_grau(self) -> int:
+        """
+        Obtém e formata o grau do processo.
+
+        Returns:
+            int: Grau do processo.
+
+        """
+        grau = self.bot_data.get("GRAU", 1)
+        if grau is None:
+            grau = 1
+        if isinstance(grau, str):
+            grau = grau.strip()
+        return int(grau)
+
+    def _log_obtendo_informacoes(self) -> None:
+        """Exibe log de obtenção de informações do processo."""
+        self.message = f"Obtendo informações do processo {self.bot_data.get('NUMERO_PROCESSO')}..."
+        self.type_log = "log"
+        self.prt()
+
+    def _extrai_info_geral(
+        self, process_info: dict[str, str | int | datetime], grau: int
+    ) -> None:
+        """
+        Extrai informações gerais do processo.
+
+        Args:
+            process_info (dict): Dicionário de informações do processo.
+            grau (int): Grau do processo.
+
+        """
+        btn_infogeral = self.driver.find_element(
+            By.CSS_SELECTOR, self.elements.btn_infogeral
+        )
+        btn_infogeral.click()
+
+        element_content = self.elements.primeira_instform1
+        element_content2 = self.elements.primeira_instform2
+        if grau == 2:
+            element_content = self.elements.segunda_instform
+            element_content2 = element_content
+
+        includecontent = [
+            self.driver.find_element(By.CSS_SELECTOR, element_content),
+            self.wait.until(
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    element_content2,
+                ))
+            ),
+        ]
+
+        for incl in includecontent:
+            self._extrai_tabela_info_geral(incl, process_info)
+
+    def _extrai_tabela_info_geral(
+        self, incl: WebElement, process_info: dict[str, str | int | datetime]
+    ) -> None:
+        """
+        Extrai dados das tabelas de informações gerais.
+
+        Args:
+            incl (WebElement): Elemento da tabela.
+            process_info (dict): Dicionário de informações do processo.
+
+        """
+        with suppress(StaleElementReferenceException):
+            itens = [
+                x
+                for x in incl.find_element(By.TAG_NAME, "tbody").find_elements(
+                    By.TAG_NAME, "tr"
+                )
+                if len(x.find_elements(By.TAG_NAME, "td")) > 1
+            ]
+            for item in itens:
+                labels = [
+                    x
+                    for x in item.find_elements(
+                        By.CSS_SELECTOR, "td.label, td.labelRadio > label"
+                    )
+                    if x.text.strip() != ""
+                ]
+                values = [
+                    x
+                    for x in item.find_elements(By.TAG_NAME, "td")
+                    if x.text.strip() != "" and not x.get_attribute("class")
+                ]
+                if len(labels) != len(values):
+                    continue
+                for idx, label in enumerate(labels):
+                    not_formated_label = label.text
+                    label_text = (
+                        self.format_string(label.text).upper().replace(" ", "_")
+                    )
+                    value_text = values[idx].text
+                    value_text = self._format_value(
+                        label_text, not_formated_label, value_text
+                    )
+                    if value_text is not None:
+                        process_info.update({label_text: value_text})
+
+    def _format_value(
+        self, label_text: str, not_formated_label: str, value_text: str
+    ) -> str | float | datetime | None:
+        """
+        Formata o valor extraído conforme o tipo de campo.
+
+        Args:
+            label_text (str): Texto do label formatado.
+            not_formated_label (str): Texto original do label.
+            value_text (str): Valor extraído.
+
+        Returns:
+            str | float | datetime | None: Valor formatado ou None.
+
+        """
+        if label_text == "VALOR_DA_CAUSA":
+            return self._format_vl_causa(value_text)
+        elif (
+            "DATA" in label_text
+            or "DISTRIBUICAO" in label_text
+            or "AUTUACAO" in label_text
+        ):
+            if " às " in value_text:
+                value_text = value_text.split(" às ")[0]
+            if self.text_is_a_date(value_text):
+                return datetime.strptime(value_text, "%d/%m/%Y")
+        elif not_formated_label != value_text:
+            return " ".join(value_text.split(" ")).upper()
+        return None
+
+    def _format_vl_causa(self, valor_causa: str) -> float | str:
+        """
+        Formata o valor da causa removendo símbolos e convertendo para float.
+
+        Args:
+            valor_causa (str): Valor bruto.
+
+        Returns:
+            float | str: Valor formatado ou original.
+
+        """
+        if "¤" in valor_causa:
+            valor_causa = valor_causa.replace("¤", "")
+        pattern = r"(US\$|R\$|\$)?\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?"
+        matches = re.findall(pattern, valor_causa)
+        if matches:
+            return self._convert_to_float(matches[0])
+        return valor_causa
+
+    def _convert_to_float(self, value: str) -> float:
+        """
+        Convert string formatada para float.
+
+        Args:
+            value (str): Valor em string.
+
+        Returns:
+            float: Valor convertido.
+
+        """
+        value = re.sub(r"[^\d.,]", "", value)
+        if "," in value and "." in value:
+            parts = value.split(".")
+            if len(parts[-1]) == 2:
+                value = value.replace(",", "")
+            else:
+                value = value.replace(".", "").replace(",", ".")
+        elif "," in value:
+            value = value.replace(".", "").replace(",", ".")
+        elif "." in value:
+            value = value.replace(",", "")
+        return float(value)
+
+    def _extrai_partes(
+        self, process_info: dict[str, str | int | datetime], grau: int
+    ) -> None:
+        """
+        Extrai informações das partes do processo.
+
+        Args:
+            process_info (dict): Dicionário de informações do processo.
+            grau (int): Grau do processo.
+
+        """
+        btn_partes = self.elements.btn_partes
+        if grau == 2:
+            btn_partes = btn_partes.replace("2", "1")
+        btn_partes = self.driver.find_element(By.CSS_SELECTOR, btn_partes)
+        btn_partes.click()
+
+        includecontent = self._get_includecontent_capa()
+        result_table = includecontent.find_elements(
+            By.CLASS_NAME, self.elements.resulttable
+        )
+        h4_names = [
+            x
+            for x in includecontent.find_elements(By.TAG_NAME, "h4")
+            if x.text != "" and x is not None
+        ]
+        for pos, parte_info in enumerate(result_table):
+            tipo_parte = (
+                self.format_string(h4_names[pos].text).replace(" ", "_").upper()
+            )
+            nome_colunas = [
+                column.text.upper()
+                for column in parte_info.find_element(
+                    By.TAG_NAME, "thead"
+                ).find_elements(By.TAG_NAME, "th")
+            ]
+            self._extrai_tabela_partes(
+                parte_info, nome_colunas, tipo_parte, process_info
+            )
+
+    def _get_includecontent_capa(self) -> WebElement:
+        """
+        Obtém o elemento de conteúdo da capa.
+
+        Returns:
+            WebElement: Elemento de conteúdo.
+
+        """
+        try:
+            return self.driver.find_element(By.ID, self.elements.includecontent_capa)
+        except Exception:
+            time.sleep(3)
+            self.driver.refresh()
+            time.sleep(1)
+            return self.driver.find_element(By.ID, self.elements.includecontent_capa)
+
+    def _extrai_tabela_partes(
+        self,
+        parte_info: WebElement,
+        nome_colunas: list[str],
+        tipo_parte: str,
+        process_info: dict[str, str | int | datetime],
+    ) -> None:
+        """
+        Extrai dados das tabelas de partes.
+
+        Args:
+            parte_info (WebElement): Elemento da tabela de partes.
+            nome_colunas (list[str]): Lista de nomes das colunas.
+            tipo_parte (str): Tipo da parte.
+            process_info (dict): Dicionário de informações do processo.
+
+        """
+        linhas = parte_info.find_element(By.TAG_NAME, "tbody").find_elements(
+            By.XPATH, self.elements.table_moves
+        )
+        for parte in linhas:
+            tds = parte.find_elements(By.TAG_NAME, "td")
+            for pos_, nome_coluna in enumerate(nome_colunas):
+                key = "_".join((
+                    self.format_string(nome_coluna).replace(" ", "_").upper(),
+                    tipo_parte,
+                ))
+                value = tds[pos_].text if pos_ < len(tds) else ""
+                if value:
+                    value = " ".join(value.split(" "))
+                    if "\n" in value:
+                        value = " | ".join(value.split("\n"))
+                    process_info.update({key: value})
