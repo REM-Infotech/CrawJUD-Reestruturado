@@ -14,8 +14,7 @@ from httpx import Client
 from crawjud_app.bots.pje._controler import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
 from crawjud_app.custom._task import ContextTask
-from crawjud_app.decorators import shared_task
-from crawjud_app.decorators.bot import wrap_cls
+from crawjud_app.decorators import shared_task, wrap_cls
 from crawjud_app.types.pje import DictResults
 
 if TYPE_CHECKING:

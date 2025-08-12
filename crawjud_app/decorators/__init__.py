@@ -11,6 +11,8 @@ from celery import shared_task as share
 
 from crawjud_app.types._celery._task import Task
 
+from ._bot import wrap_cls, wrap_init
+
 P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("SharedTask", bound=Any)
@@ -75,3 +77,11 @@ def classmethod_shared_task(
         return classmethod_shared_task(*args, **kwargs)(args[0])
 
     return decorator
+
+
+__all__ = [
+    "shared_task",
+    "classmethod_shared_task",
+    "wrap_cls",
+    "wrap_init",
+]
