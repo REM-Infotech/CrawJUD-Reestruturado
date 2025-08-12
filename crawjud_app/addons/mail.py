@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from os import environ
 from pathlib import Path
 from smtplib import SMTP, SMTP_SSL
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from dotenv import load_dotenv
 
@@ -72,7 +72,16 @@ class Mail:
 
     @classmethod
     def construct(cls, **kwrgs: str | bool | int) -> Self:
-        """Construct a Mail object with the given keyword arguments."""
+        """Crie uma instância da classe Mail com os parâmetros fornecidos.
+
+        Args:
+            **kwrgs (str | bool | int): Parâmetros de configuração do servidor
+            de e-mail.
+
+        Returns:
+            Self: Instância configurada da classe Mail.
+
+        """
         return cls(**kwrgs)
 
     @property
@@ -85,16 +94,14 @@ class Mail:
         """
         return self._message
 
-    def attach_file(self, file_path: str | Path) -> None:
+    def attach_file(self, file_path: str | Path) -> Literal["File attached"]:
         """Anexa um arquivo ao corpo da mensagem.
 
         Args:
             file_path (str | Path): Caminho do arquivo a ser anexado.
 
-
-
-        Raises:
-            FileNotFoundError: Caso o arquivo não seja encontrado.
+        Returns:
+            str: Mensagem de sucesso.
 
         """
         # Resolve o caminho do arquivo e obtém o nome
@@ -120,28 +127,44 @@ class Mail:
         self.server = SMTP(self.MAIL_SERVER, self.MAIL_PORT)
 
         if self.MAIL_USE_SSL:
+            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
             self.server = SMTP_SSL(
                 self.MAIL_SERVER,
                 self.MAIL_PORT,
-                context=ssl.create_default_context(),
+                context=context,
             )
 
         elif self.MAIL_USE_TLS:
             self.server = SMTP(self.MAIL_SERVER, self.MAIL_PORT)
-            self.server.starttls(context=ssl.create_default_context())
+            # Cria contexto SSL seguro, valida certificado e força TLS 1.2+
+            tls_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+            tls_context.check_hostname = True
+            tls_context.verify_mode = ssl.CERT_REQUIRED
+            tls_context.minimum_version = ssl.TLSVersion.TLSv1_2
+            self.server.starttls(context=tls_context)
 
     def login(self) -> None:
         """Server authentication."""
         self.server.login(self.MAIL_USERNAME, self.MAIL_PASSWORD)
 
     def send_message(self, to: str) -> None:
-        """Send message to recipient.
+        """Envie uma mensagem de e-mail para o destinatário especificado.
 
-        Arguments:
-            message_object (MIMEMultipart): Message object.
-            to (str): Recipient email address.
+        Args:
+            to (str): Endereço de e-mail do destinatário.
+
+        Returns:
+            str: Mensagem de sucesso ao enviar o e-mail.
+
+        Raises:
+            MailError: Erro ao enviar o e-mail.
 
         """
+        message: str | None = None
+
         try:
             self.login()
 
@@ -153,8 +176,9 @@ class Mail:
             )
             self.server.quit()
 
-            return "Message sent successfully"
-
+            message = "Message sent successfully"
         except Exception as e:
             self.server.quit()
-            raise MailError(f"Error sending email: {e}") from e
+            raise MailError(e) from e
+
+        return message
