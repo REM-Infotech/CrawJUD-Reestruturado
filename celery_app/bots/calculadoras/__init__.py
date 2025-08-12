@@ -7,8 +7,8 @@ import logging
 import traceback
 from typing import Callable, Union
 
+from celery_app.common.exceptions.bot import StartError
 from crawjud.bots.calculadoras.tjdft import Tjdft
-from crawjud.common.exceptions.bot import StartError
 
 __all__ = ["Tjdft"]
 logger_ = logging.getLogger(__name__)
