@@ -24,8 +24,10 @@ class ClassBot[T](HeadBot):  # noqa:  D101
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
 
-    def elawFormats(  # noqa: N802
-        self, data: dict[str, str], cities_amazonas: dict[str, AnyStr]
+    def elaw_formats(
+        self,
+        data: dict[str, str],
+        cities_amazonas: dict[str, AnyStr],
     ) -> dict[str, str]:
         """Format a legal case dictionary according to pre-defined rules.
 

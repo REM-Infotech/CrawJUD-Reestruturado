@@ -48,8 +48,7 @@ class SolPags(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -84,7 +83,7 @@ class SolPags(ClassBot):
         self.driver.maximize_window()
         for pos, value in enumerate(frame):
             self.row = pos + 1
-            self.bot_data = self.elawFormats(value)
+            self.bot_data = self.elaw_formats(value)
             if self.isStoped:
                 break
 
@@ -102,7 +101,7 @@ class SolPags(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -259,7 +258,7 @@ class SolPags(ClassBot):
             element.send_keys(Keys.BACKSPACE)
             self.interact.send_key(element, text)
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_element}').blur()"
+                f"document.querySelector('{self.elements.css_element}').blur()",
             )
 
             self.interact.sleep_load('div[id="j_id_2x"]')
@@ -332,14 +331,16 @@ class SolPags(ClassBot):
             if tipo_condenacao.lower() == "sentença":
                 sleep(0.5)
                 sentenca = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.valor_sentenca
+                    By.CSS_SELECTOR,
+                    self.elements.valor_sentenca,
                 )
                 sentenca.click()
 
             elif tipo_condenacao.lower() == "acórdão":
                 sleep(0.5)
                 acordao = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.valor_acordao
+                    By.CSS_SELECTOR,
+                    self.elements.valor_acordao,
                 )
                 acordao.click()
 
@@ -365,7 +366,7 @@ class SolPags(ClassBot):
             sleep(0.5)
 
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_desc_pgto}').blur()"
+                f"document.querySelector('{self.elements.css_desc_pgto}').blur()",
             )
 
             self.message = "Informando data para pagamento"
@@ -379,7 +380,7 @@ class SolPags(ClassBot):
             data_lancamento.send_keys(self.bot_data.get("DATA_LANCAMENTO"))
             data_lancamento.send_keys(Keys.TAB)
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_data}').blur()"
+                f"document.querySelector('{self.elements.css_data}').blur()",
             )
 
             self.interact.sleep_load('div[id="j_id_2x"]')
@@ -398,7 +399,7 @@ class SolPags(ClassBot):
             sleep(2)
 
             input_favorecido.send_keys(
-                self.bot_data.get("CNPJ_FAVORECIDO", "00.360.305/0001-04")
+                self.bot_data.get("CNPJ_FAVORECIDO", "00.360.305/0001-04"),
             )
 
             result_favorecido: WebElement = WebDriverWait(self.driver, 10).until(
@@ -415,7 +416,8 @@ class SolPags(ClassBot):
             self.prt()
 
             label_forma_pgto = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.valor_processo
+                By.CSS_SELECTOR,
+                self.elements.valor_processo,
             )
             label_forma_pgto.click()
 
@@ -437,7 +439,7 @@ class SolPags(ClassBot):
             cod_barras = str(self.bot_data.get("COD_BARRAS"))
             campo_cod_barras.send_keys(cod_barras.replace("\t", "").replace("\n", ""))
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_cod_bars}').blur()"
+                f"document.querySelector('{self.elements.css_cod_bars}').blur()",
             )
 
             self.interact.sleep_load('div[id="j_id_2x"]')
@@ -455,7 +457,7 @@ class SolPags(ClassBot):
             centro_custas.send_keys("A906030100")
 
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_centro_custas}').blur()"
+                f"document.querySelector('{self.elements.css_centro_custas}').blur()",
             )
 
             sleep(1)
@@ -509,7 +511,7 @@ class SolPags(ClassBot):
             element.send_keys(valor_doc)
 
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.valor_guia}').blur()"
+                f"document.querySelector('{self.elements.valor_guia}').blur()",
             )
 
             sleep(0.5)
@@ -549,7 +551,7 @@ class SolPags(ClassBot):
                         ec.presence_of_element_located((
                             By.CSS_SELECTOR,
                             self.elements.editar_pagamentofile,
-                        ))
+                        )),
                     )
                     .find_element(By.TAG_NAME, "table")
                     .find_element(By.TAG_NAME, "tbody")
@@ -569,7 +571,7 @@ class SolPags(ClassBot):
                 )
                 desc_pgto.send_keys(self.bot_data.get("DESC_PAGAMENTO"))
                 self.driver.execute_script(
-                    f"document.querySelector('{self.elements.css_desc_pgto}').blur()"
+                    f"document.querySelector('{self.elements.css_desc_pgto}').blur()",
                 )
 
             self.message = "Informando tipo de guia"
@@ -577,7 +579,8 @@ class SolPags(ClassBot):
             self.prt()
 
             div_tipo_custa = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.css_tipocusta
+                By.CSS_SELECTOR,
+                self.elements.css_tipocusta,
             )
             div_tipo_custa.click()
             sleep(1)
@@ -603,17 +606,19 @@ class SolPags(ClassBot):
             self.prt()
 
             data_vencimento = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.css_data
+                By.CSS_SELECTOR,
+                self.elements.css_data,
             )
             data_vencimento.click()
             data_vencimento.send_keys(self.bot_data.get("DATA_LANCAMENTO"))
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_data}').blur()"
+                f"document.querySelector('{self.elements.css_data}').blur()",
             )
             self.interact.sleep_load('div[id="j_id_2x"]')
 
             label_forma_pgto = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.valor_processo
+                By.CSS_SELECTOR,
+                self.elements.valor_processo,
             )
             label_forma_pgto.click()
 
@@ -633,7 +638,7 @@ class SolPags(ClassBot):
             sleep(0.5)
             campo_cod_barras.send_keys(self.bot_data.get("COD_BARRAS"))
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_cod_bars}').blur()"
+                f"document.querySelector('{self.elements.css_cod_bars}').blur()",
             )
 
             self.message = "Informando favorecido"
@@ -652,7 +657,7 @@ class SolPags(ClassBot):
             input_favorecido.clear()
 
             input_favorecido.send_keys(
-                self.bot_data.get("CNPJ_FAVORECIDO", "04.812.509/0001-90")
+                self.bot_data.get("CNPJ_FAVORECIDO", "04.812.509/0001-90"),
             )
 
             result_favorecido: WebElement = self.wait.until(
@@ -663,7 +668,7 @@ class SolPags(ClassBot):
             )
             result_favorecido.click()
             self.driver.execute_script(
-                f"document.querySelector('{self.elements.css_inputfavorecido}').blur()"
+                f"document.querySelector('{self.elements.css_inputfavorecido}').blur()",
             )
 
             self.message = "Informando centro de custas"
@@ -698,13 +703,15 @@ class SolPags(ClassBot):
 
             if solicitante == "jec":
                 conta_debito = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.custas_civis
+                    By.CSS_SELECTOR,
+                    self.elements.custas_civis,
                 )
                 conta_debito.click()
 
             elif solicitante == "monitoria" or solicitante == "monitória":
                 conta_debito = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.custas_monitorias
+                    By.CSS_SELECTOR,
+                    self.elements.custas_monitorias,
                 )
                 conta_debito.click()
 
@@ -751,7 +758,7 @@ class SolPags(ClassBot):
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.valor_resultado,
-                    ))
+                    )),
                 )
                 .find_element(By.TAG_NAME, "table")
                 .find_element(By.TAG_NAME, "tbody")
@@ -769,7 +776,8 @@ class SolPags(ClassBot):
 
                 sleep(2)
                 open_details = item.find_element(
-                    By.CSS_SELECTOR, self.elements.botao_ver
+                    By.CSS_SELECTOR,
+                    self.elements.botao_ver,
                 )
                 open_details.click()
 
@@ -797,11 +805,11 @@ class SolPags(ClassBot):
                 cod_bars = ""
                 tipoCondenacao = ""  # noqa: N806
                 now = datetime.now(timezone("America/Manaus")).strftime(
-                    "%d-%m-%Y %H.%M.%S"
+                    "%d-%m-%Y %H.%M.%S",
                 )
                 Name_Comprovante1 = f"COMPROVANTE 1 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
                 cod_bars_xls = str(
-                    self.bot_data.get("COD_BARRAS").replace(".", "").replace(" ", "")
+                    self.bot_data.get("COD_BARRAS").replace(".", "").replace(" ", ""),
                 )
 
                 with suppress(TimeoutException):
@@ -841,14 +849,14 @@ class SolPags(ClassBot):
                     )
 
                 namedef = self.format_string(
-                    self.bot_data.get("TIPO_PAGAMENTO")
+                    self.bot_data.get("TIPO_PAGAMENTO"),
                 ).lower()
 
                 chk_bars = cod_bars == cod_bars_xls
 
                 if namedef == "condenacao":
                     tipo_condenacao_xls = str(
-                        self.bot_data.get("TIPO_CONDENACAO", "")
+                        self.bot_data.get("TIPO_CONDENACAO", ""),
                     )
                     match_condenacao = (
                         tipo_condenacao_xls.lower() == tipoCondenacao.lower()
@@ -869,7 +877,7 @@ class SolPags(ClassBot):
                     closeContext.click()
                     Name_Comprovante2 = f"COMPROVANTE 2 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806
                     item.screenshot(
-                        os.path.join(self.output_dir_path, Name_Comprovante2)
+                        os.path.join(self.output_dir_path, Name_Comprovante2),
                     )
 
                     info_sucesso.extend([
@@ -904,6 +912,6 @@ class SolPags(ClassBot):
         self.driver.switch_to.new_window("tab")
         self.driver.get(url_page)
         self.driver.save_screenshot(
-            os.path.join(self.output_dir_path, Name_Comprovante1)
+            os.path.join(self.output_dir_path, Name_Comprovante1),
         )
         self.driver.close()

@@ -2,25 +2,20 @@
 
 from __future__ import annotations
 
-import re  # noqa: F401
-import traceback  # noqa: F401
 from contextlib import suppress
 from time import sleep
 from typing import TYPE_CHECKING, Self
 
-from selenium.common.exceptions import (  # noqa: F401
+from selenium.common.exceptions import (
     NoSuchElementException,
-    TimeoutException,
 )
 from selenium.webdriver import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as ec  # noqa: F401
-from selenium.webdriver.support.wait import WebDriverWait  # noqa: F401
 
 if TYPE_CHECKING:
-    from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
+    from selenium.webdriver.remote.webdriver import WebDriver
 
 
 class WebElementBot(WebElement):  # noqa: D101
@@ -190,9 +185,9 @@ class WebElementBot(WebElement):  # noqa: D101
         # items = selector.find_elements(By.TAG_NAME, "option")
         # opt_itens: dict[str, str] = {}
 
-        # elementsSelecting = element_select.replace("'", "'")  # noqa: N806
+        # elementsSelecting = element_select.replace("'", "'")
         # if '"' in elementsSelecting:
-        #     elementsSelecting = element_select.replace('"', "'")  # noqa: N806
+        #     elementsSelecting = element_select.replace('"', "'")
 
         # for item in items:
         #     value_item = item.get_attribute("value")

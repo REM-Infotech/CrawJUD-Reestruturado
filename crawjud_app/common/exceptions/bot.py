@@ -7,7 +7,7 @@ from crawjud_app.common.exceptions import BaseCrawJUDError
 MessageError = "Erro ao executar operaçao: "
 
 
-def formata_msg(exc: Exception = None) -> str:  # noqa: D103
+def formata_msg(exc: Exception | None = None) -> str:  # noqa: D103
     if exc:
         return "\n Exception: " + "\n".join(traceback.format_exception_only(exc))
 
@@ -20,7 +20,7 @@ class StartError(Exception):
     def __init__(
         self,
         message: str = MessageError,
-        exc: Exception = None,
+        exc: Exception | None = None,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message + formata_msg(exc)
@@ -28,7 +28,12 @@ class StartError(Exception):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -38,7 +43,7 @@ class ExecutionError(BaseCrawJUDError):
     def __init__(
         self,
         message: str = MessageError,
-        exc: Exception = None,
+        exc: Exception | None = None,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message + formata_msg(exc)
@@ -49,7 +54,12 @@ class ExecutionError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -59,14 +69,19 @@ class LoginSystemError(BaseCrawJUDError):
     def __init__(
         self,
         message: str = MessageError,
-        exc: Exception = None,
+        exc: Exception | None = None,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
         self.message = message + formata_msg(exc)
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -75,7 +90,7 @@ class ProcNotFoundError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -86,7 +101,12 @@ class ProcNotFoundError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -103,7 +123,12 @@ class GrauIncorretoError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -113,7 +138,6 @@ class SaveError(BaseCrawJUDError):
     def __init__(
         self,
         exc: Exception,
-        bot_execution_id: str,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -124,7 +148,12 @@ class SaveError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -133,7 +162,7 @@ class FileError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de envio de arquivos."""
@@ -144,7 +173,12 @@ class FileError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -153,7 +187,7 @@ class CadastroParteError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -162,7 +196,12 @@ class CadastroParteError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -171,7 +210,7 @@ class MoveNotFoundError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -180,7 +219,12 @@ class MoveNotFoundError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -189,7 +233,7 @@ class PasswordError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de senha."""
@@ -198,7 +242,12 @@ class PasswordError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message
 
 
@@ -207,7 +256,7 @@ class NotFoundError(BaseCrawJUDError):
 
     def __init__(
         self,
-        exc: Exception = None,
+        exc: Exception | None = None,
         message: str = MessageError,
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -218,5 +267,35 @@ class NotFoundError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
+        return self.message
+
+
+class FileUploadError(BaseCrawJUDError):
+    """Exception para erros de upload de arquivos."""
+
+    def __init__(
+        self,
+        exc: Exception | None = None,
+        message: str = MessageError,
+    ) -> None:
+        """Exception para erros de upload de arquivos."""
+        self.message = message
+
+        self.message = message + formata_msg(exc)
+
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        """Retorna a mensagem de erro.
+
+        Returns:
+            str: Mensagem de erro formatada.
+
+        """
         return self.message

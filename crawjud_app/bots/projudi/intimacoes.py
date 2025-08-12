@@ -3,11 +3,9 @@
 Extract and manage process intimation information from the Projudi system.
 """
 
-import re  # noqa: F401
 import time
 import traceback
 from contextlib import suppress
-from datetime import datetime  # noqa: F401
 from typing import Self
 
 from selenium.webdriver.common.by import By
@@ -124,7 +122,7 @@ class Intimacoes(ClassBot):
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.btn_aba_intimacoes,
-            ))
+            )),
         )
         self.driver.execute_script(self.elements.tab_intimacoes_script)
         time.sleep(1)
@@ -137,7 +135,7 @@ class Intimacoes(ClassBot):
 
         """
         return self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, 'div[id="tabprefix1"]'))
+            ec.presence_of_element_located((By.CSS_SELECTOR, 'div[id="tabprefix1"]')),
         )
 
     def set_page_size(self) -> None:
@@ -146,7 +144,7 @@ class Intimacoes(ClassBot):
             self.wait.until(
                 ec.presence_of_element_located(
                     (By.CSS_SELECTOR, self.elements.select_page_size_intimacoes),
-                )
+                ),
             ),
         )
         select.select_by_value("100")
@@ -162,7 +160,8 @@ class Intimacoes(ClassBot):
 
         """
         info_count = aba_intimacoes.find_element(
-            By.CSS_SELECTOR, 'div[class="navLeft"]'
+            By.CSS_SELECTOR,
+            'div[class="navLeft"]',
         ).text.split(" ")[0]
         info_count = int(info_count)
         calculate = info_count // 100
@@ -192,7 +191,8 @@ class Intimacoes(ClassBot):
 
             if self.total_rows > 1:
                 self.driver.find_element(
-                    By.CSS_SELECTOR, 'a[class="arrowNextOn"]'
+                    By.CSS_SELECTOR,
+                    'a[class="arrowNextOn"]',
                 ).click()
 
         except Exception as e:
@@ -201,7 +201,9 @@ class Intimacoes(ClassBot):
             raise ExecutionError(e=e) from e
 
     def get_intimacao_information(
-        self, name_colunas: list[WebElement], intimacoes: list[WebElement]
+        self,
+        name_colunas: list[WebElement],
+        intimacoes: list[WebElement],
     ) -> dict:
         """Extract detailed intimation information from table rows.
 
@@ -217,13 +219,13 @@ class Intimacoes(ClassBot):
         for item in intimacoes:
             data: dict[str, str] = {}
             itens: tuple[str] = tuple(
-                item.find_elements(By.TAG_NAME, "td")[0].text.split("\n")
+                item.find_elements(By.TAG_NAME, "td")[0].text.split("\n"),
             )
             itens2: tuple[str] = tuple(
-                item.find_elements(By.TAG_NAME, "td")[1].text.split("\n")
+                item.find_elements(By.TAG_NAME, "td")[1].text.split("\n"),
             )
             itens3: tuple[str] = tuple(
-                item.find_elements(By.TAG_NAME, "td")[2].text.split("\n")
+                item.find_elements(By.TAG_NAME, "td")[2].text.split("\n"),
             )
 
             self.message = "Intimação do processo %s encontrada!" % itens[0]
@@ -248,7 +250,8 @@ class Intimacoes(ClassBot):
         return list_data
 
     def get_intimacoes(
-        self, aba_intimacoes: WebElement
+        self,
+        aba_intimacoes: WebElement,
     ) -> tuple[list[WebElement], list[WebElement]]:
         """Retrieve the header and row elements from the intimações table.
 
@@ -260,14 +263,17 @@ class Intimacoes(ClassBot):
 
         """
         table_intimacoes = aba_intimacoes.find_element(
-            By.CSS_SELECTOR, 'table[class="resultTable"]'
+            By.CSS_SELECTOR,
+            'table[class="resultTable"]',
         )
 
         thead_table = table_intimacoes.find_element(
-            By.TAG_NAME, "thead"
+            By.TAG_NAME,
+            "thead",
         ).find_elements(By.TAG_NAME, "th")
         tbody_table = table_intimacoes.find_element(
-            By.TAG_NAME, "tbody"
+            By.TAG_NAME,
+            "tbody",
         ).find_elements(By.TAG_NAME, "tr")
 
         return thead_table, tbody_table

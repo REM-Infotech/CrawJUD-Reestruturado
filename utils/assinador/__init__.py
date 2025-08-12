@@ -25,11 +25,11 @@ from typing import (
     Union,
 )
 
-import jpype.imports  # noqa: F401
+import jpype.imports
 from dotenv import dotenv_values
-from jpype import JArray, JBoolean, JClass, JPackage  # noqa: F401
+from jpype import JArray, JBoolean, JClass, JPackage
 
-from utils.assinador import load_jvm  # noqa: F401
+from utils.assinador import load_jvm as load_jvm
 from utils.assinador.java.io import File, FileInputStream
 from utils.assinador.java.lang import Object
 from utils.assinador.java.security import KeyStore, Security

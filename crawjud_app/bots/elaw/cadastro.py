@@ -21,7 +21,6 @@ from typing import Self
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
@@ -47,8 +46,7 @@ class Cadastro(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -110,7 +108,7 @@ class Cadastro(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -144,7 +142,7 @@ class Cadastro(ClassBot):
 
         """
         try:
-            self.bot_data = self.elawFormats(self.bot_data)
+            self.bot_data = self.elaw_formats(self.bot_data)
             pid = self.pid
             prt = self.prt
             driver = self.driver
@@ -165,7 +163,8 @@ class Cadastro(ClassBot):
                 prt()
 
                 btn_newproc = driver.find_element(
-                    By.CSS_SELECTOR, elements.botao_novo
+                    By.CSS_SELECTOR,
+                    elements.botao_novo,
                 )
                 btn_newproc.click()
 
@@ -231,7 +230,7 @@ class Cadastro(ClassBot):
         sleep(0.5)
 
         element_area_direito = wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.css_label_area))
+            ec.presence_of_element_located((By.XPATH, self.elements.css_label_area)),
         )
         self.select2_elaw(element_area_direito, text)
         self.interact.sleep_load('div[id="j_id_47"]')
@@ -256,7 +255,10 @@ class Cadastro(ClassBot):
         sleep(0.5)
 
         element_subarea = wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.comboareasub_css))
+            ec.presence_of_element_located((
+                By.XPATH,
+                self.elements.comboareasub_css,
+            )),
         )
         self.select2_elaw(element_subarea, text)
 
@@ -297,7 +299,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -326,7 +328,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -360,7 +362,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -393,7 +395,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -428,7 +430,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -461,7 +463,7 @@ class Cadastro(ClassBot):
         self.interact.send_key(campo_processo, self.bot_data.get(key))
 
         self.driver.execute_script(
-            f'document.querySelector("{css_campo_processo}").blur()'
+            f'document.querySelector("{css_campo_processo}").blur()',
         )
         self.interact.sleep_load('div[id="j_id_48"]')
 
@@ -487,7 +489,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -518,7 +520,7 @@ class Cadastro(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -547,7 +549,7 @@ class Cadastro(ClassBot):
         element_select = self.elements.tipo_parte_contraria_input
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -556,7 +558,7 @@ class Cadastro(ClassBot):
             filter(
                 lambda x: str.isdigit(x),
                 ",".join(self.bot_data.get("DOC_PARTE_CONTRARIA")).split(","),
-            )
+            ),
         )
         tipo_doc = type_doc.get(str(len(doc_to_list)))
         select_tipo_doc = self.elements.select_tipo_doc
@@ -598,7 +600,8 @@ class Cadastro(ClassBot):
             except Exception as e:
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(
-                    message="Não foi possível cadastrar parte", e=e
+                    message="Não foi possível cadastrar parte",
+                    e=e,
                 ) from e
 
         self.messsage = "Parte adicionada!"
@@ -702,7 +705,8 @@ class Cadastro(ClassBot):
         self.interact.clear(data_distribuicao)
 
         self.interact.send_key(
-            data_distribuicao, self.bot_data.get("DATA_DISTRIBUICAO")
+            data_distribuicao,
+            self.bot_data.get("DATA_DISTRIBUICAO"),
         )
         self.interact.send_key(data_distribuicao, Keys.TAB)
         self.interact.sleep_load('div[id="j_id_48"]')
@@ -737,7 +741,8 @@ class Cadastro(ClassBot):
         interact.send_key(input_adv_responsavel, bot_data.get("ADVOGADO_INTERNO"))
 
         id_input_adv = input_adv_responsavel.get_attribute("id").replace(
-            "_input", "_panel"
+            "_input",
+            "_panel",
         )
         css_wait_adv = f"span[id='{id_input_adv}'] > ul > li"
 
@@ -760,7 +765,7 @@ class Cadastro(ClassBot):
             ec.presence_of_element_located((
                 By.XPATH,
                 elements.select_advogado_responsavel,
-            ))
+            )),
         )
         select2_elaw(element_select, bot_data.get("ADVOGADO_INTERNO"))
 
@@ -799,11 +804,11 @@ class Cadastro(ClassBot):
         campo_adv.clear()
         sleep(0.02)
 
-        text = str(bot_data.get("ADV_PARTE_CONTRARIA"))  # noqa: N806
+        text = str(bot_data.get("ADV_PARTE_CONTRARIA"))
 
         for i in ["\t", "\n"]:
             if i in text:
-                text = text.split(i)[0]  # noqa: N806
+                text = text.split(i)[0]
                 break
 
         interact.send_key(campo_adv, text)
@@ -826,7 +831,7 @@ class Cadastro(ClassBot):
             )
             interact.send_key(campo_adv, Keys.ENTER)
             driver.execute_script(
-                f"document.querySelector('{elements.css_input_adv}').blur()"
+                f"document.querySelector('{elements.css_input_adv}').blur()",
             )
 
         if not check_adv:
@@ -906,7 +911,7 @@ class Cadastro(ClassBot):
 
         text = bot_data.get("ESCRITORIO_EXTERNO")
         select_escritorio = wait.until(
-            ec.presence_of_element_located((By.XPATH, elements.select_escritorio))
+            ec.presence_of_element_located((By.XPATH, elements.select_escritorio)),
         )
         interact.select2_elaw(select_escritorio, text)
         interact.sleep_load('div[id="j_id_48"]')
@@ -940,10 +945,10 @@ class Cadastro(ClassBot):
             text = ["Ativa", "Ativo"]
 
         select_contigencia = wait.until(
-            ec.presence_of_element_located((By.XPATH, elements.contingencia))
+            ec.presence_of_element_located((By.XPATH, elements.contingencia)),
         )
         select_polo = wait.until(
-            ec.presence_of_element_located((By.XPATH, elements.tipo_polo))
+            ec.presence_of_element_located((By.XPATH, elements.tipo_polo)),
         )
 
         select2_elaw(select_contigencia, text[0])
@@ -1050,7 +1055,7 @@ class Cadastro(ClassBot):
             interact.send_key(input_nomeadv, bot_data.get("ADV_PARTE_CONTRARIA"))
 
             driver.execute_script(
-                f"document.querySelector('{elements.css_input_nomeadv}').blur()"
+                f"document.querySelector('{elements.css_input_nomeadv}').blur()",
             )
 
             sleep(0.05)
@@ -1071,7 +1076,7 @@ class Cadastro(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.iframe_cadastro_advogado_close_dnv,
-                ))
+                )),
             )
 
             interact.sleep_load('div[id="j_id_48"]')
@@ -1079,7 +1084,8 @@ class Cadastro(ClassBot):
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
-                message="Não foi possível cadastrar advogado", e=e
+                message="Não foi possível cadastrar advogado",
+                e=e,
             ) from e
 
     def cadastro_parte_contraria(self) -> None:
@@ -1149,12 +1155,12 @@ class Cadastro(ClassBot):
                 filter(
                     lambda x: str.isdigit(x),
                     ",".join(bot_data.get("DOC_PARTE_CONTRARIA")).split(","),
-                )
+                ),
             )
             tipo_doc = type_doc.get(str(len(doc_to_list)), "cpf")
             select_tipo_doc = elements.tipo_cpf_cnpj
             element_select = wait.until(
-                ec.presence_of_element_located((By.XPATH, select_tipo_doc))
+                ec.presence_of_element_located((By.XPATH, select_tipo_doc)),
             )
             select2_elaw(element_select, tipo_doc.upper())
 
@@ -1174,7 +1180,8 @@ class Cadastro(ClassBot):
             input_doc.clear()
             interact.send_key(input_doc, bot_data.get("DOC_PARTE_CONTRARIA"))
             continuar = driver.find_element(
-                By.CSS_SELECTOR, elements.botao_parte_contraria
+                By.CSS_SELECTOR,
+                elements.botao_parte_contraria,
             )
             continuar.click()
 
@@ -1189,10 +1196,11 @@ class Cadastro(ClassBot):
             name_parte.click()
             sleep(0.05)
             interact.send_key(
-                name_parte, bot_data.get("PARTE_CONTRARIA").__str__().upper()
+                name_parte,
+                bot_data.get("PARTE_CONTRARIA").__str__().upper(),
             )
             driver.execute_script(
-                f"document.querySelector('{elements.css_name_parte}').blur()"
+                f"document.querySelector('{elements.css_name_parte}').blur()",
             )
 
             save_parte: WebElement = wait.until(
@@ -1213,7 +1221,7 @@ class Cadastro(ClassBot):
 
             element_close = elements.iframe_cadastro_parte_close_dnv
             wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, element_close))
+                ec.presence_of_element_located((By.CSS_SELECTOR, element_close)),
             ).click()
 
         except Exception as e:

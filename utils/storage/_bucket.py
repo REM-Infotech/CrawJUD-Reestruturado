@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import io
 import xml.etree.ElementTree as ET  # noqa: S405
+from collections.abc import Generator
 from contextlib import suppress
 from datetime import datetime
 from os import path
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Self, TypeVar, cast
 
 from minio.datatypes import Bucket as __Bucket
 from minio.datatypes import ListAllMyBucketsResult
@@ -17,7 +18,7 @@ from minio.xml import find, findall, findtext
 from urllib3 import BaseHTTPResponse
 
 if TYPE_CHECKING:
-    from utils.storage import Storage  # noqa: F401
+    from utils.storage import Storage
 
 A = TypeVar("A", bound="ListBuckets")
 
@@ -27,19 +28,19 @@ class ListBuckets(ListAllMyBucketsResult):
         super().__init__(buckets=buckets)
 
     @classmethod
-    def fromxml(cls: Type[A], element: ET.Element) -> A:
+    def fromxml(cls, element: ET.Element) -> Self:
         """Create new object with values from XML element."""
-        element = cast(ET.Element, find(element, "Buckets", True))
+        element = cast("ET.Element", find(element, "Buckets", True))
         buckets = []
         elements = findall(element, "Bucket")
         for bucket in elements:
-            name = cast(str, findtext(bucket, "Name", True))
+            name = cast("str", findtext(bucket, "Name", True))
             creation_date = findtext(bucket, "CreationDate")
             buckets.append(
                 Bucket(
                     name,
                     from_iso8601utc(creation_date) if creation_date else None,
-                )
+                ),
             )
 
         return cls(buckets=buckets)
@@ -80,7 +81,7 @@ class Bucket(__Bucket):
         ):
             yield Blob.from_object(ob, self.client, self)
 
-    def get_object(  # noqa: ANN202
+    def get_object(
         self,
         object_name: str,
         offset: int = 0,

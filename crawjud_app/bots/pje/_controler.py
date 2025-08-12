@@ -1,26 +1,20 @@
-# noqa: D104
 from __future__ import annotations
 
 import re
 import secrets
 import traceback
-from concurrent.futures import ThreadPoolExecutor  # noqa: F401
 from contextlib import suppress
 from datetime import datetime
-from os import path, remove
 from pathlib import Path
 from threading import Semaphore
 from time import sleep
-from typing import TYPE_CHECKING, Any, Generator, cast
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
-import pandas as pd  # noqa: F401
-from httpx import Client
-from pytz import timezone  # noqa: F401
 from tqdm import tqdm
 
 from crawjud_app.abstract._head import HeadBot
-from crawjud_app.common.exceptions.bot import ExecutionError
+from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud_app.custom._task import ContextTask
 from crawjud_app.types.bot import BotData
 from crawjud_app.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
@@ -29,7 +23,9 @@ from utils.recaptcha import captcha_to_image
 from utils.storage import Storage
 
 if TYPE_CHECKING:
-    from httpx import Response
+    from collections.abc import Generator
+
+    from httpx import Client, Response
 
     from crawjud_app.types.bot import BotData
 
@@ -37,6 +33,9 @@ DictData = dict[str, str | datetime]
 ListData = list[DictData]
 
 workdir = Path(__file__).cwd()
+
+HTTP_STATUS_FORBIDDEN = 403  # Constante para status HTTP Forbidden
+COUNT_TRYS = 15
 
 
 class PjeBot[T](HeadBot, ContextTask):
@@ -85,7 +84,7 @@ class PjeBot[T](HeadBot, ContextTask):
             file_path = path_temp.joinpath(file_name)
             # Salva arquivo em chunks no storage
             size: int = response.headers.get("Content-Length")
-            dest_name = path.join(self.pid.upper(), file_name)
+            dest_name = str(Path(self.pid.upper()) / file_name)
             upload_file = False
             with file_path.open("wb") as f:
                 for _bytes in response.iter_bytes(chunk):
@@ -93,11 +92,11 @@ class PjeBot[T](HeadBot, ContextTask):
                     try:
                         upload_file = True
                         self.storage.append_object(dest_name, _bytes, chunk, size)
-                    except Exception as e:
+                    except (FileUploadError, Exception) as e:
                         tqdm.write("\n".join(traceback.format_exception(e)))
 
             if not upload_file:
-                file_size = path.getsize(file_path)
+                file_size = file_path.stat().st_size
                 with file_path.open("rb") as file:
                     self.storage.put_object(
                         object_name=dest_name,
@@ -106,9 +105,9 @@ class PjeBot[T](HeadBot, ContextTask):
                     )
 
             with suppress(Exception):
-                remove(file_path)
+                file_path.unlink()
 
-        except Exception as e:
+        except (FileUploadError, Exception) as e:
             str_exc = "\n".join(traceback.format_exception_only(e))
             message = "Não foi possível baixar o arquivo. " + str_exc
             self.print_msg(
@@ -119,7 +118,7 @@ class PjeBot[T](HeadBot, ContextTask):
 
         finally:
             message = "Arquivo do processo n.{proc} baixado com sucesso!".format(
-                proc=data["NUMERO_PROCESSO"]
+                proc=data["NUMERO_PROCESSO"],
             )
             self.print_msg(
                 row=row,
@@ -127,10 +126,10 @@ class PjeBot[T](HeadBot, ContextTask):
                 type_log="info",
             )
 
-    def save_success_cache(self, data: Processo, processo: str = None) -> None:
+    def save_success_cache(self, data: Processo, processo: str | None = None) -> None:
         with suppress(Exception):
-            _cache = CachedExecution(processo=processo, data=data, pid=self.pid)
-            _cache.save()
+            cache = CachedExecution(processo=processo, data=data, pid=self.pid)
+            cache.save()
 
     def desafio_captcha(
         self,
@@ -139,14 +138,14 @@ class PjeBot[T](HeadBot, ContextTask):
         id_processo: str,
         client: Client,
     ) -> DictResults:
-        """
-        Resolve o desafio captcha para acessar informações do processo no sistema PJe.
+        """Resolve o desafio captcha para acessar informações do processo no PJe.
 
         Returns:
             Resultados: Dicionário contendo headers, cookies e resultados do processo.
 
         Raises:
-            ExecutionError: Caso não seja possível obter informações do processo após 15 tentativas.
+            ExecutionError: Caso não seja possível obter informações do processo
+            após 15 tentativas.
 
         """
         count_try: int = 0
@@ -154,12 +153,12 @@ class PjeBot[T](HeadBot, ContextTask):
         data_request: DictDesafio = {}
 
         def formata_data_result() -> DictDesafio:
-            _request_json = response_desafio.json()
+            request_json = response_desafio.json()
 
-            if isinstance(_request_json, list):
-                _request_json = _request_json[-1]
+            if isinstance(request_json, list):
+                request_json = request_json[-1]
 
-            return cast(DictDesafio, _request_json)
+            return cast("DictDesafio", request_json)
 
         def args_desafio() -> tuple[str, str]:
             if count_try == 0:
@@ -176,19 +175,23 @@ class PjeBot[T](HeadBot, ContextTask):
 
             return img, token_desafio
 
-        while count_try <= 15:
+        while count_try <= COUNT_TRYS:
             with suppress(Exception):
                 img, token_desafio = args_desafio()
                 text = captcha_to_image(img)
 
-                link = f"/processos/{id_processo}?tokenDesafio={token_desafio}&resposta={text}"
+                link = (
+                    f"/processos/{id_processo}"
+                    f"?tokenDesafio={token_desafio}"
+                    f"&resposta={text}"
+                )
                 response_desafio = client.get(url=link, timeout=60)
 
-                _sleep = secrets.randbelow(5) + 3
+                sleep_time = secrets.randbelow(5) + 3
 
-                if response_desafio.status_code == 403:
+                if response_desafio.status_code == HTTP_STATUS_FORBIDDEN:
                     raise ExecutionError(
-                        message="Erro ao obter informações do processo"
+                        message="Erro ao obter informações do processo",
                     )
 
                 data_request = response_desafio.json()
@@ -196,40 +199,49 @@ class PjeBot[T](HeadBot, ContextTask):
 
                 if imagem:
                     count_try += 1
-                    sleep(_sleep)
+                    sleep(sleep_time)
                     continue
 
-                msg = f"Processo {data['NUMERO_PROCESSO']} encontrado! Salvando dados..."
-                self.print_msg(message=msg, row=row, type_log="info")
+                msg = (
+                    f"Processo {data['NUMERO_PROCESSO']} encontrado! "
+                    "Salvando dados..."
+                )
+                self.print_msg(
+                    message=msg,
+                    row=row,
+                    type_log="info",
+                )
 
                 captcha_token = response_desafio.headers.get("captchatoken", "")
                 return DictResults(
                     id_processo=id_processo,
                     captchatoken=str(captcha_token),
                     text=text,
-                    data_request=cast(Processo, data_request),
+                    data_request=cast("Processo", data_request),
                 )
 
-        if count_try > 15:
+        if count_try > COUNT_TRYS:
             self.print_msg(
                 message="Erro ao obter informações do processo",
                 row=row,
                 type_log="error",
             )
-            return
+            return None
 
         return None
 
-    def formata_trt(self, numero_processo: str) -> None | tuple[str, str]:  # noqa: D102
+    def formata_trt(self, numero_processo: str) -> tuple[str, str] | None:
         # Remove letras, símbolos e pontuações, mantendo apenas números
 
-        # Verifica se o número do processo está no formato CNJ (NNNNNNN-DD.AAAA.J.TR.NNNN)
+        # Verifica se o número do processo está no formato CNJ
+        # Formato CNJ: (NNNNNNN-DD.AAAA.J.TR.NNNN)
         padrao_cnj = r"^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$"
-        # Remove caracteres especiais e letras, mantendo apenas números, pontuação, "-" e "_"
+        # Remove caracteres especiais e letras, mantendo apenas números, pontuação,
+        # "-" e "_"
         numero_processo = re.sub(r"[^\d\-\._]", "", numero_processo)
 
         if not re.match(padrao_cnj, numero_processo):
-            return
+            return None
 
         numero_processo = re.sub(
             r"(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})",
@@ -244,8 +256,7 @@ class PjeBot[T](HeadBot, ContextTask):
             return trt_id, numero_processo
 
     def separar_regiao(self) -> DictSeparaRegiao:
-        """
-        Separa os processos por região a partir do número do processo.
+        """Separa os processos por região a partir do número do processo.
 
         Returns:
             dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
@@ -269,7 +280,8 @@ class PjeBot[T](HeadBot, ContextTask):
             # Atualiza o número do processo no item
             item["NUMERO_PROCESSO"] = numero_processo
 
-            # Adiciona a posição do processo na lista original no dicionário de posições
+            # Adiciona a posição do processo na
+            # lista original no dicionário de posições
             position_process[numero_processo] = len(position_process)
 
             # Caso a região não exista no dicionário, cria uma nova lista

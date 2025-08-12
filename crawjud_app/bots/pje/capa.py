@@ -25,7 +25,7 @@ from crawjud_app.decorators import shared_task, wrap_cls
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from crawjud_app.types import BotData, T  # noqa: F401
+    from crawjud_app.types import BotData
     from crawjud_app.types.pje import DictResults
 load_dotenv()
 

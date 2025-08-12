@@ -3,9 +3,9 @@
 This module exposes all available namespaces for direct import.
 """
 
-from typing import AnyStr  # noqa: F401
+from typing import AnyStr
 
-from quart import current_app, request, websocket  # noqa: F401
+from quart import current_app, request, websocket
 from quart_socketio import Namespace, SocketIO
 
 from api.namespaces.bots import BotsNamespace
@@ -36,7 +36,7 @@ class MasterNamespace(Namespace):
         It can be overridden in subclasses to implement specific logic.
 
         """
-        session = self.server.session(websocket.sid, self.namespace)  # noqa: B018, F841
+        session = self.server.session(websocket.sid, self.namespace)  # noqa: F841
         print(request)  # noqa: T201
 
     async def on_disconnect(self) -> None:

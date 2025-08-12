@@ -5,11 +5,12 @@ Inclui decorador para validação de token JWT em conexões WebSocket.
 
 from __future__ import annotations
 
-import functools  # noqa: D100
+import functools
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import timedelta
 from functools import update_wrapper
-from typing import Any, AnyStr, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, AnyStr, ParamSpec, TypeVar
 
 from quart import (
     Response,
@@ -21,16 +22,14 @@ from quart import (
 from quart_jwt_extended import decode_token
 
 from api import io
-from api.addons.make_models import MakeModels  # noqa: F401
 from crawjud_app.types import WrappedFnReturnT
 
 BotParamSpec = ParamSpec("BotParamSpec", bound=AnyStr)
 BotTypeVar = TypeVar("BotTypeVar", bound=Response)
 
 
-def verify_jwt_websocket(func: Callable) -> WrappedFnReturnT:  # noqa: ANN001, D103
-    """
-    Valida o token JWT presente nos cookies da requisição WebSocket.
+def verify_jwt_websocket(func: Callable) -> WrappedFnReturnT:
+    """Valida o token JWT presente nos cookies da requisição WebSocket.
 
     Args:
         func (Callable): Função assíncrona a ser decorada.
@@ -44,7 +43,7 @@ def verify_jwt_websocket(func: Callable) -> WrappedFnReturnT:  # noqa: ANN001, D
     """
 
     @functools.wraps(func)
-    async def decorated_function(*args, **kwargs) -> Any:  # noqa: ANN002, ANN003, ANN202
+    async def decorated_function(*args, **kwargs) -> Any:  # noqa: ANN002, ANN003
         valid = False
         with suppress(Exception):
             decode_token(
@@ -88,7 +87,7 @@ def crossdomain(  # noqa: D103
 
     def decorator(
         f: Callable[BotParamSpec, BotTypeVar],
-    ) -> Callable[BotParamSpec, Optional[BotTypeVar]]:
+    ) -> Callable[BotParamSpec, BotTypeVar | None]:
         async def wrapped_function(
             *args: BotParamSpec.args,
             **kwargs: BotParamSpec.kwargs,
@@ -102,10 +101,10 @@ def crossdomain(  # noqa: D103
                 and _name == "quart_jwt_extended.view_decorators"
             ):
                 cookie_xsrf_name = current_app.config.get(
-                    "JWT_ACCESS_CSRF_COOKIE_NAME"
+                    "JWT_ACCESS_CSRF_COOKIE_NAME",
                 )
                 header_xsrf_name = current_app.config.get(
-                    "JWT_ACCESS_CSRF_HEADER_NAME"
+                    "JWT_ACCESS_CSRF_HEADER_NAME",
                 )
                 xsrf_token = request.cookies.get(cookie_xsrf_name, None)
                 if not xsrf_token:

@@ -14,13 +14,13 @@ Attributes:
 
 import time
 import traceback
+from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
-from typing import Callable, Self
+from typing import Self
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from selenium.webdriver import Keys  # noqa: F401
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
@@ -64,8 +64,7 @@ class Complement(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -112,7 +111,7 @@ class Complement(ClassBot):
 
 
         """
-        frame = [self.elawFormats(item) for item in self.dataFrame()]
+        frame = [self.elaw_formats(item) for item in self.dataFrame()]
         self.max_rows = len(frame)
 
         for pos, value in enumerate(frame):
@@ -135,7 +134,7 @@ class Complement(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -286,7 +285,7 @@ class Complement(ClassBot):
         self.prt()
 
         validar: dict[str, str] = {
-            "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")
+            "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO"),
         }
         message_campo: list[str] = []
 
@@ -300,7 +299,7 @@ class Complement(ClassBot):
                     raise ExecutionError(message=f'Campo "{campo}" não preenchido')
 
                 message_campo.append(
-                    f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>'
+                    f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>',
                 )
                 validar.update({campo.upper(): element})
 
@@ -350,7 +349,7 @@ class Complement(ClassBot):
 
         if not element or element.lower() == "selecione":
             raise ExecutionError(
-                message='Campo "Advogado Responsável" não preenchido'
+                message='Campo "Advogado Responsável" não preenchido',
             )
 
         self.message = f'Campo "Advogado Responsável" | Texto: {element}'
@@ -377,7 +376,7 @@ class Complement(ClassBot):
 
         if not adv_name.strip():
             raise ExecutionError(
-                message="Necessário advogado interno para validação!"
+                message="Necessário advogado interno para validação!",
             )
 
         self.message = "Validando advogados participantes"
@@ -385,8 +384,9 @@ class Complement(ClassBot):
         self.prt()
 
         tabela_advogados = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.tabela_advogados_resp
-        )  # noqa: N806
+            By.CSS_SELECTOR,
+            self.elements.tabela_advogados_resp,
+        )
 
         not_adv = None
         with suppress(NoSuchElementException):
@@ -405,7 +405,7 @@ class Complement(ClassBot):
 
         else:
             raise ExecutionError(
-                message="Advogado responsável não encontrado na lista de advogados participantes!"
+                message="Advogado responsável não encontrado na lista de advogados participantes!",
             )
 
         self.message = "Advogados participantes validados"
@@ -504,7 +504,8 @@ class Complement(ClassBot):
         )
         input_adv_responsavel.click()
         self.interact.send_key(
-            input_adv_responsavel, self.bot_data.get("ADVOGADO_INTERNO")
+            input_adv_responsavel,
+            self.bot_data.get("ADVOGADO_INTERNO"),
         )
 
         css_wait_adv = f"{input_adv_responsavel.get_attribute('id')} > ul > li"
@@ -528,7 +529,7 @@ class Complement(ClassBot):
             ec.presence_of_element_located((
                 By.XPATH,
                 self.elements.select_advogado_responsavel,
-            ))
+            )),
         )
         self.select2_elaw(element_select, self.bot_data.get("ADVOGADO_INTERNO"))
 
@@ -570,7 +571,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -605,7 +606,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -639,7 +640,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -673,7 +674,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -706,7 +707,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -773,7 +774,8 @@ class Complement(ClassBot):
         localidade = self.bot_data.get("LOCALIDADE")
 
         input_localidade = self.driver.find_element(
-            By.XPATH, self.elements.localidade
+            By.XPATH,
+            self.elements.localidade,
         )
         input_localidade.click()
         self.interact.clear(input_localidade)
@@ -849,7 +851,7 @@ class Complement(ClassBot):
         element_select = self.elements.divisao_select
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -917,7 +919,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -950,7 +952,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -1024,7 +1026,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -1089,7 +1091,7 @@ class Complement(ClassBot):
 
         self.select2_elaw(
             self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select))
+                ec.presence_of_element_located((By.XPATH, element_select)),
             ),
             text,
         )
@@ -1119,7 +1121,7 @@ class Complement(ClassBot):
         self.prt()
 
         element_select = self.wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.contingencia))
+            ec.presence_of_element_located((By.XPATH, self.elements.contingencia)),
         )
 
         text = ["Passiva", "Passivo"]
@@ -1130,7 +1132,7 @@ class Complement(ClassBot):
         self.interact.sleep_load('div[id="j_id_48"]')
 
         element_select = self.wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.tipo_polo))
+            ec.presence_of_element_located((By.XPATH, self.elements.tipo_polo)),
         )
 
         text = ["Passiva", "Passivo"]

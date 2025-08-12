@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod  # noqa: F401
+from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar  # noqa: F401
+from typing import TYPE_CHECKING, Any
 
 from pytz import timezone
 
-from crawjud_app.types.pje import Resultados  # noqa: F401
 from utils.models.logs import MessageLogDict
 
 func_dict_check = {
@@ -15,24 +14,28 @@ func_dict_check = {
 }
 
 if TYPE_CHECKING:
+    from typing import ClassVar
+
     from crawjud_app.addons.auth.controller import AuthController
     from crawjud_app.addons.search.controller import SearchController
     from crawjud_app.types.bot import BotData
 
 
 class AbstractClassBot[T](ABC):
-    tasks_cls = {}
-    subclasses_auth: dict[str, type[AuthController]] = {}
-    subclasses_search: dict[str, type[SearchController]] = {}
+    # Adiciona importação para ClassVar
+
+    tasks_cls: ClassVar[dict] = {}
+    subclasses_auth: ClassVar[dict[str, type[AuthController]]] = {}
+    subclasses_search: ClassVar[dict[str, type[SearchController]]] = {}
     # Atributos Globais
-    _pid: str = None
+    _pid: str | None = None
     _total_rows: int = 0
-    _start_time: str = None
-    _regiao: str = None
-    _data_regiao: list[BotData]
-    _cookies: dict[str, str]
-    _headers: dict[str, str]
-    _base_url: str
+    _start_time: str | None = None
+    _regiao: str | None = None
+    _data_regiao: list[BotData] | None = None
+    _cookies: dict[str, str] | None = None
+    _headers: dict[str, str] | None = None
+    _base_url: str | None = None
 
     @property
     def data_regiao(self) -> list[BotData]:
@@ -101,21 +104,36 @@ class AbstractClassBot[T](ABC):
         # Envia a mensagem formatada para o sistema de monitoramento
 
     @classmethod
-    def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: N803
+    def __subclasshook__(cls, subclass: type) -> bool:
+        """Verifica se a subclasse implementa todos os métodos obrigatórios.
+
+        Args:
+            subclass (type): Classe a ser verificada.
+
+        Returns:
+            bool: True se todos os métodos obrigatórios estiverem presentes,
+            False caso contrário.
+
+        """
+        # Verifica se está sendo chamado para AbstractClassBot
         if cls is AbstractClassBot:
-            subclass_functions = func_dict_check[cls.subclass_type]
-
-            for item in subclass_functions:
-                if any(item in B.__dict__ for B in C.__mro__):
-                    return True
-
-        return True
-        # return NotImplementedError("Função não implementada!")
+            # Obtém os métodos obrigatórios do dict de funções
+            subclass_type = getattr(cls, "subclass_type", None)
+            if subclass_type is None or subclass_type not in func_dict_check:
+                return False
+            required_methods = func_dict_check[subclass_type]
+            # Verifica se todos os métodos obrigatórios estão presentes
+            for method in required_methods:
+                if not any(method in B.__dict__ for B in subclass.__mro__):
+                    return False
+            return True
+        return NotImplemented
 
     def __init_subclass__(cls) -> None:
         cls.tasks_cls[cls.__name__] = cls
 
-    def elawFormats(  # noqa: N802
+    @abstractmethod
+    def elaw_formats(
         self,
         data: dict[str, str],
         cities_amazonas: dict[str, Any],
@@ -129,16 +147,13 @@ class AbstractClassBot[T](ABC):
         Returns:
             dict[str, str]: The data formatted with proper types and values.
 
-        :Rules:
-            :
-                - If the key is "TIPO_EMPRESA" and its value is "RÉU", update "TIPO_PARTE_CONTRARIA" to "Autor".
-                - If the key is "COMARCA", update "CAPITAL_INTERIOR" based on the value using the cities_Amazonas method.
-                - If the key is "DATA_LIMITE" and "DATA_INICIO" is not present, set "DATA_INICIO" to the value of "DATA_LIMITE".
-                - If the value is an integer or float, format it to two decimal places and replace the decimal point with a clcomma.
-                - If the key is "CNPJ_FAVORECIDO" and its value is empty, set it to "04.812.509/0001-90".
+        """
+
+    @abstractmethod
+    def save_success_cache(self, data: dict) -> None:
+        """Save the successful cache data.
+
+        Args:
+            data (dict): The data to be saved in the cache.
 
         """
-        return NotImplementedError("Função não implementada!")
-
-    def save_success_cache(self, data: dict) -> None:
-        return NotImplementedError("Função não implementada!")

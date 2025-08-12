@@ -4,7 +4,6 @@ Provides functionality to load configuration from an object.
 """
 
 from os import environ
-from pathlib import Path  # noqa: F401
 from typing import AnyStr, Self, TypedDict
 
 from dotenv import load_dotenv
@@ -40,12 +39,12 @@ class Config:
     task_create_missing_queues: bool
     broker_connection_retry_on_startup: bool
     timezone: str
-    # CELERY_QUEUES = (  # noqa: N806
+    # CELERY_QUEUES = (
     #     Queue("default"),
     #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
     #     Queue("projudi_queue", routing_key="crawjud.bot.projudi_launcher"),
     # )
-    # CELERY_ROUTES = {  # noqa: N806
+    # CELERY_ROUTES = {
     #     "crawjud.bot.caixa_launcher": {"queue": "caixa_queue"},
     #     "crawjud.bot.projudi_launcher": {"queue": "projudi_queue"},
     # }

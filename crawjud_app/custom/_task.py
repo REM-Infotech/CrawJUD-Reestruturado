@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from asyncio import iscoroutinefunction
 from asyncio import run as run_async
-from typing import Any, AnyStr, Generic, ParamSpec, TypeVar  # noqa: F401
+from typing import Any, AnyStr, Generic, ParamSpec, TypeVar
 
 from celery.app.task import Task as TaskBase
 from dotenv import dotenv_values
 
-from crawjud_app.custom._canvas import subtask  # noqa: F401
-from crawjud_app.types._celery._canvas import (  # noqa: F401
+from crawjud_app.custom._canvas import subtask
+from crawjud_app.types._celery._canvas import (
     AsyncResult,
     EagerResult,
     Signature,
@@ -30,12 +30,15 @@ class ContextTask(TaskBase):
         kwargs["current_task"] = self
 
         if iscoroutinefunction(self.run):
-            return run_async(self.run(*args, **kwargs))  # noqa: B026
+            return run_async(self.run(*args, **kwargs))
 
-        return self.run(*args, **kwargs)  # noqa: B026
+        return self.run(*args, **kwargs)
 
     def signature(
-        self, args: Any = None, *starargs: Any, **starkwargs: Any
+        self,
+        args: Any = None,
+        *starargs: Any,
+        **starkwargs: Any,
     ) -> Signature:
         """Create signature.
 
@@ -79,7 +82,14 @@ class ContextTask(TaskBase):
         **options: Any,
     ) -> AsyncResult | EagerResult:
         return super().apply_async(
-            args, kwargs, task_id, producer, link, link_error, shadow, **options
+            args,
+            kwargs,
+            task_id,
+            producer,
+            link,
+            link_error,
+            shadow,
+            **options,
         )
 
     def __call__(self, *args: AnyStr, **kwargs: AnyStr) -> None:

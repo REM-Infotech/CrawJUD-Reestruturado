@@ -2,16 +2,16 @@
 
 import argparse
 import platform
+from collections.abc import Callable
 from contextlib import suppress
-from multiprocessing import Process  # noqa: F401
+from multiprocessing import Process
 from os import environ
 from pathlib import Path
 from platform import node
 from sys import argv
 from time import sleep
-from typing import Callable
 
-from celery.apps.beat import Beat  # noqa: F401
+from celery.apps.beat import Beat
 from celery.apps.worker import Worker
 from clear import clear
 from dotenv import dotenv_values
@@ -73,7 +73,9 @@ def start_beat() -> None:
         max_interval=5,
         loglevel="INFO",
         logfile=work_dir.joinpath(
-            "temp", "logs", f"{environ['WORKER_NAME']}_beat.log"
+            "temp",
+            "logs",
+            f"{environ['WORKER_NAME']}_beat.log",
         ),
         no_color=False,
     )
@@ -131,7 +133,7 @@ def main() -> None:
                         opt_2,
                     ],
                     default=opt_1,
-                )
+                ),
             ]
 
             result = prompt(questions, theme=GreenPassion())

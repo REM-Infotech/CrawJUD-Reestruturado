@@ -4,12 +4,12 @@ import json
 import re
 from typing import Any, Union
 
-from celery import Celery  # noqa: F401
-from celery.app.utils import Settings  # noqa: F401
+from celery import Celery
+from celery.app.utils import Settings
 from celery.beat import ScheduleEntry, Scheduler
-from celery.loaders.base import BaseLoader  # noqa: F401
+from celery.loaders.base import BaseLoader
 from celery.schedules import crontab
-from quart import current_app as app  # noqa: F401
+from quart import current_app as app
 
 
 class DatabaseScheduler(Scheduler):
@@ -144,7 +144,7 @@ class DatabaseScheduler(Scheduler):
         """
         self._schedule = self.get_schedule()
 
-    def tick(self) -> Union[int, Any]:
+    def tick(self) -> int | Any:
         """Process scheduled tasks and determine the next execution time.
 
         Processes any due tasks, updates the schedule from the database, and calculates

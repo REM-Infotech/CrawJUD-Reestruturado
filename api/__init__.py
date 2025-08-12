@@ -4,7 +4,7 @@ import re
 from importlib import import_module
 from pathlib import Path
 
-import quart_flask_patch  # noqa: F401
+import quart_flask_patch
 import socketio
 from dotenv import dotenv_values
 from flask_session import Session
@@ -31,8 +31,8 @@ db = SQLAlchemy()
 
 config = AsyncSocketIOConfig(
     client_manager=socketio.RedisManager(
-        url=environ.get("SOCKETIO_REDIS", "redis://localhost:6379/0")
-    )
+        url=environ.get("SOCKETIO_REDIS", "redis://localhost:6379/0"),
+    ),
 )
 
 
@@ -45,8 +45,7 @@ io = SocketIO(
 
 
 async def create_app() -> Quart:
-    """
-    Create and configure the Quart application instance.
+    """Create and configure the Quart application instance.
 
     Args:
         confg (object): The configuration object to load settings from.
@@ -77,8 +76,7 @@ async def create_app() -> Quart:
 
 
 async def database_start(app: Quart) -> None:
-    """
-    Initialize and configure the application database.
+    """Initialize and configure the application database.
 
     This function performs the following tasks:
     1. Checks if the current server exists in the database
@@ -100,8 +98,7 @@ async def database_start(app: Quart) -> None:
 
 
 async def register_routes(app: Quart) -> None:
-    """
-    Register application's blueprints and error handlers with the Quart instance.
+    """Register application's blueprints and error handlers with the Quart instance.
 
     This function manages the application's routing configuration by:
     1. Dynamically importing required route modules
@@ -134,8 +131,7 @@ async def register_routes(app: Quart) -> None:
 
 
 async def init_extensions(app: Quart) -> None:
-    """
-    Initialize and configure the application extensions.
+    """Initialize and configure the application extensions.
 
     Args:
         app (Quart): The Quart application instance

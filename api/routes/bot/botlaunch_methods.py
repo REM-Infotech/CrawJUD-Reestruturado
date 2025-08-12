@@ -3,39 +3,31 @@
 from __future__ import annotations
 
 import io
-import json  # noqa: F401
+import json
 import shutil
 import traceback
 from os import path
 from pathlib import Path
-from traceback import format_exception  # noqa: F401
-from typing import TYPE_CHECKING, Any, List, Self, TypedDict
+from typing import TYPE_CHECKING, Any, Self, TypedDict
 from uuid import uuid4
 
 import aiofiles
 import chardet
 from celery import Celery
 from quart import (
-    Response,  # noqa: F401
     abort,
-    current_app,  # noqa: F401
-    jsonify,  # noqa: F401
-    make_response,  # noqa: F401
-    render_template,  # noqa: F401
-    request,  # noqa: F401
-    session,  # noqa: F401
+    current_app,
+    request,
+    session,
 )
-from quart import current_app as app  # noqa: F401
-from quart_jwt_extended import get_jwt_identity, jwt_required  # noqa: F401
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
-from api.addons.make_models import MakeModels  # noqa: F401
-from api.interface.formbot import FormDict  # noqa: F401
+from api.interface.formbot import FormDict
 from api.interface.session import SessionDict
-from api.models import BotsCrawJUD  # noqa: F401
-from api.models.bots import Credentials  # noqa: F401
-from api.models.users import LicensesUsers, Users  # noqa: F401
+from api.models import BotsCrawJUD
+from api.models.bots import Credentials
+from api.models.users import LicensesUsers
 from utils.storage import Storage
 
 if TYPE_CHECKING:
@@ -74,8 +66,8 @@ class FormData(TypedDict):  # noqa: D101
 
 class LoadForm:  # noqa: D101
     db: SQLAlchemy
-    credentials: List[Credentials]
-    bots: List[BotsCrawJUD]
+    credentials: list[Credentials]
+    bots: list[BotsCrawJUD]
     bot: BotsCrawJUD
     license_user: LicensesUsers
     sid: str
@@ -102,7 +94,7 @@ class LoadForm:  # noqa: D101
         self.credentials = license_user.credentials
         self.upload_folder = workdir.joinpath("temp", self.sid.upper())
 
-    async def loadform(  # noqa: D102, D103
+    async def loadform(  # noqa: D102
         self,
     ) -> str:
         try:
@@ -143,7 +135,7 @@ class LoadForm:  # noqa: D101
                 self.db.session.query(LicensesUsers)
                 .filter(
                     LicensesUsers.license_token
-                    == sess["license_object"]["license_token"]
+                    == sess["license_object"]["license_token"],
                 )
                 .first()
             )
@@ -152,7 +144,8 @@ class LoadForm:  # noqa: D101
 
     async def _get_annotations(self) -> dict[str, Any]:
         return FormDict.get_annotations(
-            self.bot.classification.upper(), self.bot.form_cfg
+            self.bot.classification.upper(),
+            self.bot.form_cfg,
         )
 
     async def _files_task_kwargs(self, data: FormDict) -> tuple[str, str]:
@@ -168,7 +161,7 @@ class LoadForm:  # noqa: D101
 
         storage = Storage("minio")
         sid = getattr(session, "sid", None)
-        _sid = sid if sid else uuid4().hex
+        _sid = sid or uuid4().hex
 
         path_minio = path.join(_sid.upper(), json_file.name)
 
@@ -203,15 +196,15 @@ class LoadForm:  # noqa: D101
 
     async def _query_credentials(self, credential_id: int) -> Credentials:
         filtered_creds = list(
-            filter(lambda x: x.id == credential_id, self.credentials)
+            filter(lambda x: x.id == credential_id, self.credentials),
         )
         return filtered_creds[-1] if len(filtered_creds) > 0 else abort(500)
 
-    async def _detect_encoding(self, data: bytes) -> str:  # noqa: D103
+    async def _detect_encoding(self, data: bytes) -> str:
         get_encode = chardet.detect(data)
         encode = get_encode.get("encoding", "utf-8")
 
-        return encode if encode else "utf-8"
+        return encode or "utf-8"
 
     async def _format_credential(self, query: Credentials) -> dict[str, str]:
         val = {}

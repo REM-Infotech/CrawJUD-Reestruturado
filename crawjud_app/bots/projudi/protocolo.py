@@ -15,7 +15,6 @@ from typing import Self
 import dotenv
 from PIL import Image
 from selenium.common.exceptions import (
-    JavascriptException,  # noqa: F401
     NoSuchElementException,
     StaleElementReferenceException,
     TimeoutException,
@@ -157,7 +156,7 @@ class Protocolo(ClassBot):
                 {
                     "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO"),
                     "tested": "true",
-                }
+                },
             ]
 
             if debug is False:
@@ -165,14 +164,14 @@ class Protocolo(ClassBot):
                 if not confirm_protocol:
                     if self.set_parte() is not True:
                         raise ExecutionError(
-                            message="Nao foi possivel confirmar protocolo"
+                            message="Nao foi possivel confirmar protocolo",
                         )
 
                     self.finish_move()
                     confirm_protocol = self.confirm_protocol()
                     if not confirm_protocol:
                         raise ExecutionError(
-                            message="Nao foi possivel confirmar protocolo"
+                            message="Nao foi possivel confirmar protocolo",
                         )
 
                 data = self.screenshot_sucesso()
@@ -198,7 +197,7 @@ class Protocolo(ClassBot):
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         "#successMessages",
-                    ))
+                    )),
                 )
                 .text.split("Protocolo:")[1]
                 .replace(" ", "")
@@ -222,10 +221,12 @@ class Protocolo(ClassBot):
         self.prt()
 
         table_partes = self.driver.find_element(
-            By.CSS_SELECTOR, "#juntarDocumentoForm > table:nth-child(28)"
+            By.CSS_SELECTOR,
+            "#juntarDocumentoForm > table:nth-child(28)",
         )
         table_partes = table_partes.find_element(By.TAG_NAME, "tbody").find_elements(
-            By.TAG_NAME, "tr"
+            By.TAG_NAME,
+            "tr",
         )
 
         selected_parte = False
@@ -249,7 +250,8 @@ class Protocolo(ClassBot):
                         == self.bot_data.get("PARTE_PETICIONANTE").upper()
                     ):
                         radio_item = item.find_element(
-                            By.CSS_SELECTOR, "input[type='radio']"
+                            By.CSS_SELECTOR,
+                            "input[type='radio']",
                         )
                         id_radio = radio_item.get_attribute("id")
 
@@ -270,7 +272,7 @@ class Protocolo(ClassBot):
                             return_cmd = self.driver.execute_script(cmd2)
                             if return_cmd is False:
                                 raise ExecutionError(
-                                    message="Não é possivel selecionar parte"
+                                    message="Não é possivel selecionar parte",
                                 )
 
                         selected_parte = True
@@ -278,7 +280,8 @@ class Protocolo(ClassBot):
 
             elif chk_info:
                 radio_item = item.find_element(
-                    By.CSS_SELECTOR, self.elements.input_radio
+                    By.CSS_SELECTOR,
+                    self.elements.input_radio,
                 )
                 radio_item.click()
 
@@ -293,7 +296,7 @@ class Protocolo(ClassBot):
                     return_cmd = self.driver.execute_script(cmd2)
                     if return_cmd is False:
                         raise ExecutionError(
-                            message="Não é possivel selecionar parte"
+                            message="Não é possivel selecionar parte",
                         )
 
                 selected_parte = True
@@ -321,7 +324,7 @@ class Protocolo(ClassBot):
             alert = None
             with suppress(TimeoutException):
                 alert: type[Alert] = WebDriverWait(self.driver, 5).until(
-                    ec.alert_is_present()
+                    ec.alert_is_present(),
                 )
 
             if alert:
@@ -382,14 +385,15 @@ class Protocolo(ClassBot):
             self.type_log = "log"
             self.prt()
             button_new_file = self.driver.find_element(
-                By.CSS_SELECTOR, 'input#editButton[value="Adicionar"]'
+                By.CSS_SELECTOR,
+                'input#editButton[value="Adicionar"]',
             )
             button_new_file.click()
 
             sleep(2.5)
 
             self.driver.switch_to.frame(
-                self.driver.find_element(By.CSS_SELECTOR, self.elements.border)
+                self.driver.find_element(By.CSS_SELECTOR, self.elements.border),
             )
             self.message = f"Enviando arquivo '{file}'"
             self.type_log = "log"
@@ -403,7 +407,8 @@ class Protocolo(ClassBot):
             file_to_upload = self.format_string(file)
 
             path_file = os.path.join(
-                Path(self.path_args).parent.resolve(), file_to_upload
+                Path(self.path_args).parent.resolve(),
+                file_to_upload,
             )
 
             input_file_element.send_keys(path_file)
@@ -416,7 +421,7 @@ class Protocolo(ClassBot):
 
             sleep(1)
             type_file: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.ID, "tipo0"))
+                ec.presence_of_element_located((By.ID, "tipo0")),
             )
             type_file.click()
             sleep(0.25)
@@ -439,10 +444,11 @@ class Protocolo(ClassBot):
         """
         try:
             tablefiles: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CLASS_NAME, "resultTable"))
+                ec.presence_of_element_located((By.CLASS_NAME, "resultTable")),
             )
             checkfiles = tablefiles.find_element(By.TAG_NAME, "tbody").find_elements(
-                By.TAG_NAME, "tr"
+                By.TAG_NAME,
+                "tr",
             )[0]
             radiobutton = checkfiles.find_elements(By.TAG_NAME, "td")[0].find_element(
                 By.CSS_SELECTOR,
@@ -489,10 +495,11 @@ class Protocolo(ClassBot):
 
             sleep(3)
             tablefiles: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CLASS_NAME, "resultTable"))
+                ec.presence_of_element_located((By.CLASS_NAME, "resultTable")),
             )
             checkfiles = tablefiles.find_element(By.TAG_NAME, "tbody").find_elements(
-                By.TAG_NAME, "tr"
+                By.TAG_NAME,
+                "tr",
             )
 
             for pos, _ in enumerate(checkfiles):
@@ -532,14 +539,17 @@ class Protocolo(ClassBot):
             password_input.send_keys(senhatoken)
 
             sign_button = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.botao_assinar
+                By.CSS_SELECTOR,
+                self.elements.botao_assinar,
             )
             sign_button.click()
 
             check_p_element = ""
             with suppress(TimeoutException):
                 check_p_element: WebElement = WebDriverWait(
-                    self.driver, 5, 0.01
+                    self.driver,
+                    5,
+                    0.01,
                 ).until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
@@ -559,7 +569,8 @@ class Protocolo(ClassBot):
             """ PARA CORRIGIR """
 
             confirm_button = self.driver.find_element(
-                By.CSS_SELECTOR, 'input#closeButton[value="Confirmar Inclusão"]'
+                By.CSS_SELECTOR,
+                'input#closeButton[value="Confirmar Inclusão"]',
             )
             confirm_button.click()
             sleep(1)
@@ -590,7 +601,8 @@ class Protocolo(ClassBot):
         #         self.driver.find_element(By.ID, self.id_part).click()
 
         finish_button = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.botao_concluir
+            By.CSS_SELECTOR,
+            self.elements.botao_concluir,
         )
         finish_button.click()
 
@@ -614,7 +626,8 @@ class Protocolo(ClassBot):
             table_moves[0].screenshot(os.path.join(self.output_dir_path, "tr_0.png"))
 
             expand = table_moves[0].find_element(
-                By.CSS_SELECTOR, self.elements.expand_btn_projudi
+                By.CSS_SELECTOR,
+                self.elements.expand_btn_projudi,
             )
             expand.click()
 
@@ -647,7 +660,7 @@ class Protocolo(ClassBot):
 
             filename = f"Protocolo - {self.bot_data.get('NUMERO_PROCESSO')} - PID{self.pid}.png"
             self.driver.get_screenshot_as_file(
-                os.path.join(self.output_dir_path, filename)
+                os.path.join(self.output_dir_path, filename),
             )
 
             self.message = f"Peticionamento do processo Nº{self.bot_data.get('NUMERO_PROCESSO')} concluído com sucesso!"
@@ -677,7 +690,8 @@ class Protocolo(ClassBot):
         if tablefiles:
             sleep(1)
             checkfiles = tablefiles.find_element(By.TAG_NAME, "tbody").find_elements(
-                By.TAG_NAME, "tr"
+                By.TAG_NAME,
+                "tr",
             )
 
             for file in checkfiles:
@@ -691,14 +705,15 @@ class Protocolo(ClassBot):
                     radiobutton.click()
 
                     delete_file = self.driver.find_element(
-                        By.CSS_SELECTOR, self.elements.botao_deletar
+                        By.CSS_SELECTOR,
+                        self.elements.botao_deletar,
                     )
                     delete_file.click()
 
                     alert = None
                     with suppress(TimeoutException):
                         alert: type[Alert] = WebDriverWait(self.driver, 5).until(
-                            ec.alert_is_present()
+                            ec.alert_is_present(),
                         )
 
                     if alert:
@@ -717,7 +732,8 @@ class Protocolo(ClassBot):
                     )),
                 )
                 divprogressbar = divprogressbar.find_element(
-                    By.CSS_SELECTOR, self.elements.css_divprogressbar
+                    By.CSS_SELECTOR,
+                    self.elements.css_divprogressbar,
                 )
                 sleep(1)
                 try:

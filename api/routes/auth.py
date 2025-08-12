@@ -37,15 +37,12 @@ from quart import (
     request,
     session,
 )
-from quart_jwt_extended import (  # noqa: F401
+from quart_jwt_extended import (
     create_access_token,
     create_refresh_token,
-    decode_token,
-    get_csrf_token,
     get_jwt_identity,
     jwt_refresh_token_required,
     set_access_cookies,
-    set_refresh_cookies,
     unset_jwt_cookies,
 )
 
@@ -64,8 +61,7 @@ usr = None
 
 @dataclass
 class LoginForm:
-    """
-    Represents the data required for user login.
+    """Represents the data required for user login.
 
     Attributes:
         login (str): The user's login identifier (e.g., username or email).
@@ -83,8 +79,7 @@ class LoginForm:
 
 @auth.route("/login", methods=["GET", "POST", "OPTIONS"])
 async def login() -> Response:
-    """
-    Authenticate the user and start a session.
+    """Authenticate the user and start a session.
 
     Returns:
         Response: HTTP response redirecting on success or rendering the login template.
@@ -103,7 +98,8 @@ async def login() -> Response:
 
         if not request_json:
             return await make_response(
-                jsonify({"message": "Erro ao efetuar login!"}), 400
+                jsonify({"message": "Erro ao efetuar login!"}),
+                400,
             )
 
         username = request_json.get("login", request_json.get("email"))
@@ -161,8 +157,7 @@ async def login() -> Response:
 
 @auth.route("/logout", methods=["POST"])
 async def logout() -> Response:
-    """
-    Log out the current user and clear session cookies.
+    """Log out the current user and clear session cookies.
 
     Returns:
         Response: Redirect response to the login page.
@@ -181,8 +176,7 @@ async def logout() -> Response:
 @auth.route("/refresh", methods=["POST"])
 @jwt_refresh_token_required
 async def refresh() -> Response:
-    """
-    Refresh the access token.
+    """Refresh the access token.
 
     Returns:
         Response: JSON response with new access and refresh tokens.
@@ -194,5 +188,6 @@ async def refresh() -> Response:
     session.clear()
 
     return await make_response(
-        jsonify(access_token=new_access_token, refresh_token=new_refresh_token), 200
+        jsonify(access_token=new_access_token, refresh_token=new_refresh_token),
+        200,
     )

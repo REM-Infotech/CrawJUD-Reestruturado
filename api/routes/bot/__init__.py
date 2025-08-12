@@ -14,7 +14,7 @@ from quart import (
 from quart_jwt_extended import jwt_required
 from werkzeug.exceptions import HTTPException
 
-from api.addons.make_models import MakeModels  # noqa: F401
+from api.addons.make_models import MakeModels as MakeModels
 from api.routes.bot.botlaunch_methods import (
     LoadForm,
 )
@@ -39,8 +39,7 @@ async def start_bot() -> None:  # noqa: D103
 
 @bot.errorhandler(401)
 async def handle_http_exception(error: HTTPException) -> Response:
-    """
-    Handle HTTP exceptions and render a custom error page.
+    """Handle HTTP exceptions and render a custom error page.
 
     Args:
         error (HTTPException): The raised HTTP exception.

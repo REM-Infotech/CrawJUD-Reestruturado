@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from contextlib import suppress
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     AnyStr,
-    Generator,
     ParamSpec,
     TypeVar,
     Union,
 )
 
 from browsermobproxy import Client
-from selenium.webdriver.remote.webdriver import WebDriver  # noqa: F401
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.driver_cache import DriverCacheManager
@@ -101,7 +101,8 @@ class DriverBot(WebDriver):  # noqa: D101
         _manager = driver_config["manager"](
             download_manager=WDMDownloadManager(),
             cache_manager=DriverCacheManager(
-                file_manager=file_manager, root_dir=root_dir
+                file_manager=file_manager,
+                root_dir=root_dir,
             ),
             os_system_manager=system_manager,
         )
@@ -120,10 +121,11 @@ class DriverBot(WebDriver):  # noqa: D101
         self._service.start()
 
     def _configure_executor(
-        self, driver_config: ChromeConfig | FirefoxConfig
+        self,
+        driver_config: ChromeConfig | FirefoxConfig,
     ) -> None:
         driver_config["args_executor"].update({
-            "remote_server_addr": self._service.service_url
+            "remote_server_addr": self._service.service_url,
         })
         self._executor = driver_config["executor"](**driver_config["args_executor"])
 
@@ -137,7 +139,7 @@ class DriverBot(WebDriver):  # noqa: D101
         self._options.enable_downloads = True
 
     @property
-    def options(self) -> Union[FirefoxOptions, ChromeOptions]:  # noqa: D102
+    def options(self) -> FirefoxOptions | ChromeOptions:  # noqa: D102
         return self._options
 
     @property

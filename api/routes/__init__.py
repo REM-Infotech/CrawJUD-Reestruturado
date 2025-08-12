@@ -1,5 +1,4 @@
-"""
-Module for main application routes.
+"""Module for main application routes.
 
 This module defines global routes, context processors, and custom error handling.
 """
@@ -8,7 +7,7 @@ This module defines global routes, context processors, and custom error handling
 
 import json
 
-import quart_flask_patch  # noqa: F401
+import quart_flask_patch
 
 # import requests
 from quart import (
@@ -25,7 +24,7 @@ from werkzeug.exceptions import HTTPException
 
 
 # @app.route("/pjeOffice/requisicao/", methods=["GET", "POST"])
-# async def teste() -> Response:  # noqa: D103
+# async def teste() -> Response:
 #     with suppress(Exception):
 #         pje_data = app.json.loads(request.args.get("r"))
 #         pje_data.update({"u": request.args.get("u", "0")})
@@ -60,7 +59,7 @@ from werkzeug.exceptions import HTTPException
 #         key, value = tuple(item.split("="))
 #         cookie.update({key: value})
 
-#     _req = requests.post(  # noqa: ASYNC210
+#     _req = requests.post(
 #         url,
 #         cookies=cookie,
 #         json=data_json,
@@ -91,7 +90,7 @@ from werkzeug.exceptions import HTTPException
 #     print(f"Body: {await request.data}")
 
 #     proxied_url = f"http://127.0.0.1:8800/{path}"
-#     response = requests.request(  # noqa: S113
+#     response = requests.request(
 #         method=request.method,
 #         url=proxied_url,
 #         headers={k: v for k, v in request.headers if k.lower() != "host"},
@@ -108,8 +107,7 @@ from werkzeug.exceptions import HTTPException
 @app.route("/", methods=["GET"], websocket=True)
 @jwt_required
 async def index() -> Response:
-    """
-    Redirect to the authentication login page.
+    """Redirect to the authentication login page.
 
     Returns:
         Response: A Quart redirect response to the login page.
@@ -120,8 +118,7 @@ async def index() -> Response:
 
 @app.errorhandler(401)
 async def handle_http_exception(error: HTTPException) -> Response:
-    """
-    Handle HTTP exceptions and render a custom error page.
+    """Handle HTTP exceptions and render a custom error page.
 
     Args:
         error (HTTPException): The raised HTTP exception.
@@ -145,8 +142,7 @@ async def handle_http_exception(error: HTTPException) -> Response:
 
 @app.after_request
 async def after_request(response: Response) -> Response:
-    """
-    Adicione cabeçalhos CORS e exiba mensagem de erro 401.
+    """Adicione cabeçalhos CORS e exiba mensagem de erro 401.
 
     Args:
         response (Response): Objeto de resposta HTTP.
