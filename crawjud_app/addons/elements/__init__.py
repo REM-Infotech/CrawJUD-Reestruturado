@@ -1,73 +1,17 @@
-"""Module for ElementsBot.
+"""Inicialize o pacote de elementos dos addons.
 
-Configure and retrieve an elements bot instance based on system attributes.
+Este módulo importa e expõe os submódulos principais do pacote 'elements',
+permitindo o acesso centralizado às funcionalidades de caixa, calculadoras,
+elaw, esaj, pje e projudi.
+"""
 
-Classes:
-    ElementsBot: A class that configures and retrieves an elements bot instance.
+from . import caixa, calculadoras, elaw, esaj, pje, projudi
 
-Methods:
-    __init__: Initializes the ElementsBot instance.
-    Config: Configures the elements_bot attribute by dynamically importing a module based on the system and state_or_client attributes.
-    bot_elements: Retrieves the elements bot instance.
-
-Attributes:
-    elements_bot: Stores the elements bot instance.
-
-"""  # noqa: E501
-
-from __future__ import annotations
-
-from importlib import import_module
-from typing import AnyStr, Self
-
-
-class ElementsBot[T]:
-    """Configure and retrieve elements bot instance.
-
-    Inherit from CrawJUD and dynamically set the elements bot based on system
-    and state_or_client attributes.
-
-    Attributes:
-        elements_bot (Optional[Union[ElawAme, EsajAm, PJeAm, ProjudiAm]):
-            The current elements bot instance.
-
-    """
-
-    system: str
-    state_or_client: str
-
-    def __init__(self, **kwargs: str) -> None:
-        """Initialize the ElementsBot instance.
-
-        Call the parent initialization if required.
-        """
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-        self.elements_bot = getattr(
-            import_module(f".{self.system.lower()}", __package__),
-            f"{self.system.upper()}_{self.state_or_client.upper()}",
-        )
-
-    @classmethod
-    def config(cls, **kwrgs: AnyStr) -> Self:
-        """Configure o atributo elements_bot.
-
-        Args:
-            **kwrgs (str): Parâmetros para configuração do bot.
-
-        Returns:
-            Self: Instância configurada de ElementsBot.
-
-        """
-        return cls(**kwrgs)
-
-    @property
-    def bot_elements(self) -> T:
-        """Retrieve the configured elements bot instance.
-
-        Returns:
-            Union[ElawAme, EsajAm, PJeAm, ProjudiAm]: The active elements bot.
-
-        """
-        return self.elements_bot
+__all__ = [
+    "caixa",
+    "calculadoras",
+    "elaw",
+    "esaj",
+    "pje",
+    "projudi",
+]
