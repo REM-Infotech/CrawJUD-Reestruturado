@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import (
     TYPE_CHECKING,
-    Any,
     AnyStr,
     Generic,
     ParamSpec,
@@ -26,7 +25,7 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-class AsyncResult(__AsyncResult):
+class AsyncResult[T](__AsyncResult):
     """Celery AsyncResult.
 
     Class that wraps the result of a task execution.
@@ -43,18 +42,19 @@ class AsyncResult(__AsyncResult):
 
     def get(
         self,
-        timeout: int = None,
-        propagate: bool = True,
+        timeout: int | None = None,
         interval: float = 0.5,
+        callback: T = None,
+        on_message: T = None,
+        on_interval: T = None,
+        *,
+        propagate: bool = True,
         no_ack: bool = True,
         follow_parents: bool = True,
-        callback: Any = None,
-        on_message: Any = None,
-        on_interval: Any = None,
         disable_sync_subtasks: bool = True,
         EXCEPTION_STATES: Exception = states.EXCEPTION_STATES,  # noqa: N803
         PROPAGATE_STATES: Exception = states.PROPAGATE_STATES,  # noqa: N803
-    ) -> Generic[R]:
+    ) -> T:
         return super().get(
             timeout,
             propagate,
@@ -69,8 +69,7 @@ class AsyncResult(__AsyncResult):
             PROPAGATE_STATES,
         )
 
-    def __getattr__(self, item: str) -> Any:
-        """Get attribute from AsyncResult."""
+    def __getattr__(self, item: str) -> T:
         if item == "_app" and not hasattr(self, "_app"):
             from celery import current_app
 
@@ -78,8 +77,7 @@ class AsyncResult(__AsyncResult):
 
         return super().__getattr__(item)
 
-    def wait_ready(self, timeout: float = None) -> Generic[R]:
-        """Wait until the result is ready."""
+    def wait_ready(self, timeout: float | None = None) -> T:
         while not self.ready():
             if timeout is not None:
                 timeout -= 0.5
@@ -93,7 +91,7 @@ class AsyncResult(__AsyncResult):
         return self.result
 
 
-class EagerResult(__EagerResult):
+class EagerResult[T](__EagerResult):
     """Celery AsyncResult.
 
     Class that wraps the result of a task execution.
@@ -110,17 +108,18 @@ class EagerResult(__EagerResult):
 
     def get(
         self,
-        timeout: int = None,
-        propagate: bool = True,
+        timeout: int | None = None,
         interval: float = 0.5,
+        callback: T = None,
+        on_message: T = None,
+        on_interval: T = None,
+        *,
+        propagate: bool = True,
         no_ack: bool = True,
         follow_parents: bool = True,
-        callback: Any = None,
-        on_message: Any = None,
-        on_interval: Any = None,
         disable_sync_subtasks: bool = True,
-        EXCEPTION_STATES: Exception = states.EXCEPTION_STATES,  # noqa: N803
-        PROPAGATE_STATES: Exception = states.PROPAGATE_STATES,  # noqa: N803
+        exception_states: Exception = states.EXCEPTION_STATES,
+        propagate_states: Exception = states.PROPAGATE_STATES,
     ) -> Generic[R]:
         return super().get(
             timeout,
@@ -132,12 +131,11 @@ class EagerResult(__EagerResult):
             on_message,
             on_interval,
             disable_sync_subtasks,
-            EXCEPTION_STATES,
-            PROPAGATE_STATES,
+            exception_states,
+            propagate_states,
         )
 
-    def __getattr__(self, item: str) -> Any:
-        """Get attribute from AsyncResult."""
+    def __getattr__(self, item: str) -> T:
         if item == "_app" and not hasattr(self, "_app"):
             from celery import current_app
 
@@ -145,8 +143,7 @@ class EagerResult(__EagerResult):
 
         return super().__getattr__(item)
 
-    def wait_ready(self, timeout: float = None) -> Generic[R]:
-        """Wait until the result is ready."""
+    def wait_ready(self, timeout: float | None = None) -> T:
         while not self.ready():
             if timeout is not None:
                 timeout -= 0.5
@@ -160,7 +157,7 @@ class EagerResult(__EagerResult):
         return self.result
 
 
-class Signature(__Signature):
+class Signature[T](__Signature):
     """Task Signature.
 
     Class that wraps the arguments and execution options
@@ -222,29 +219,34 @@ class Signature(__Signature):
 
     def __init__(
         self,
-        task: Any = None,
-        args: Any = None,
-        kwargs: Any = None,
-        options: Any = None,
-        type: Any = None,  # noqa: A002
-        subtask_type: Any = None,
-        immutable: Any = False,
+        task: T = None,
+        args: T = None,
+        kwargs: T = None,
+        options: T = None,
+        type: T = None,  # noqa: A002
+        subtask_type: T = None,
+        *,
+        immutable: bool = False,
         app: AsyncCelery = None,
-        **ex: Any,
+        **ex: T,
     ) -> None:
         if isinstance(task, str):
             task = app.tasks[task]
 
         super().__init__(
-            task, args, kwargs, options, type, subtask_type, immutable, app, **ex
+            task,
+            args,
+            kwargs,
+            options,
+            type,
+            subtask_type,
+            immutable,
+            app,
+            **ex,
         )
 
     @classmethod
     def from_dict(cls, d, app=None):  # noqa: ANN001, ANN206
-        """Create a new signature from a dict.
-        Subclasses can override this method to customize how are
-        they created from a dict.
-        """  # noqa: D205
         typ = d.get("subtask_type")
         if typ:
             target_cls = cls.TYPES[typ]
@@ -254,9 +256,9 @@ class Signature(__Signature):
 
     def apply_async(
         self,
-        args: AnyStr = None,
-        kwargs: AnyStr = None,
-        route_name: str = None,
+        args: AnyStr | None = None,
+        kwargs: AnyStr | None = None,
+        route_name: str | None = None,
         **options: AnyStr,
     ) -> AsyncResult | None:
         """Apply this task asynchronously.
@@ -277,10 +279,11 @@ class Signature(__Signature):
 
         """
         async_result = cast(
-            AsyncResult,
+            "AsyncResult",
             super().apply_async(args, kwargs, route_name=route_name, **options),
         )
         async_result._app = self._app  # noqa: SLF001
         async_result.wait_ready = AsyncResult.wait_ready.__get__(async_result)
         if async_result:
             return async_result
+        return None
