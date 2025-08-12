@@ -37,18 +37,20 @@ def wrap_init[T](cls: type[ClassBot]) -> type[T]:
 
     @wraps(original_init)
     def novo_init(
-        self: T,
+        self: T = None,
         *args: T,
         **kwargs: T,
     ) -> None:
-        tqdm.write(f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}")
-        original_init(self)
+        tqdm.write(
+            f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}",
+        )
+        return original_init(self, *args, **kwargs)
 
     cls.__init__ = novo_init
     return cls
 
 
-def wrap_cls[T](cls: T) -> type[T]:
+def wrap_cls[T](cls: type[ClassBot]) -> type[T]:
     """Decora uma classe bot para executar métodos sob controle de conexão Socket.IO.
 
     Args:
@@ -72,7 +74,6 @@ def wrap_cls[T](cls: T) -> type[T]:
         ) as sio:
             # Conecta ao servidor Socket.IO com o URL,
             # namespace e cabeçalhos especificados.
-            kw = kwargs.copy()
             sio.connect(
                 url=server,
                 namespace=namespace,
@@ -94,9 +95,6 @@ def wrap_cls[T](cls: T) -> type[T]:
 
             cls.sio = sio
 
-            if self:
-                return cls.execution(self, *args, **kwargs)
-
-            return cls.execution(*args, **kw)
+            return cls.execution(self, *args, **kwargs)
 
     return novo_init

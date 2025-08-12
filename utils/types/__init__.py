@@ -1,10 +1,10 @@
 """Módulo de tipos do celery app."""
 
 from os import PathLike
-from typing import Literal, Union
+from typing import Literal
 
 # Definição do tipo "StrPath"
-StrPath = Union[str, PathLike]
+StrPath = str | PathLike
 
 
 TReturnMessageMail = Literal["E-mail enviado com sucesso!"]
