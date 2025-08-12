@@ -50,7 +50,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
                 "()": "utils.logger.handlers.JsonFormatter",
             },
             "color": {
-                "()": "utils.logger.handlers._ColorFormatter",
+                "()": "utils.logger.handlers.ColorFormatter",
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
