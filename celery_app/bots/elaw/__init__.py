@@ -18,6 +18,7 @@ import logging
 import traceback
 from typing import Callable, Union
 
+from celery_app.common.exceptions.bot import StartError
 from crawjud.bots.elaw.andamentos import Andamentos
 from crawjud.bots.elaw.cadastro import Cadastro
 from crawjud.bots.elaw.complement import Complement
@@ -25,7 +26,6 @@ from crawjud.bots.elaw.download import Download
 from crawjud.bots.elaw.prazos import Prazos
 from crawjud.bots.elaw.provisao import Provisao
 from crawjud.bots.elaw.sol_pags import SolPags as Sol_pags
-from crawjud.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
 ClassBots = Union[
