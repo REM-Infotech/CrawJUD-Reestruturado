@@ -5,7 +5,19 @@ from typing import Any
 
 
 def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
-    """Gerador de configurações do logging."""
+    """Gera configuração de dicionário para o sistema de logging.
+
+    Args:
+        **kwargs (str | int): Parâmetros de configuração como nível de log,
+        nome do logger e caminho do arquivo de log.
+
+    Returns:
+        tuple[dict[str, Any], str]: Retorna uma tupla contendo o dicionário de
+        configuração do logger e o nome do logger.
+
+
+
+    """
     _log_level: int = kwargs.get("LOG_LEVEL", logging.INFO)
     logger_name: str = kwargs.get("LOGGER_NAME", __name__)
 
