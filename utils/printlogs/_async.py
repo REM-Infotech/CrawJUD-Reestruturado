@@ -14,7 +14,7 @@ from pytz import timezone
 from socketio import AsyncClient
 from socketio.exceptions import BadNamespaceError
 
-from celery_app import app
+from crawjud_app import app
 from utils.printlogs._interface import MessageLog
 from utils.printlogs._master import PrintLogs
 
@@ -130,7 +130,7 @@ class AsyncPrintMessage(PrintLogs):
         self.logger.info(prompt)
 
         app.send_task(
-            "celery_app.tasks.bot.print_message",
+            "crawjud_app.tasks.bot.print_message",
             kwargs={
                 "data": data,
                 "server": self.url_server,

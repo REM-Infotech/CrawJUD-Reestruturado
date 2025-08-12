@@ -117,7 +117,7 @@ class LoadForm:  # noqa: D101
 
             name_file_config, _ = await self._files_task_kwargs(form)
 
-            celery_app: Celery = current_app.extensions["celery"]
+            crawjud_app: Celery = current_app.extensions["celery"]
 
             args_task = {
                 "name": self.bot.type.lower(),
@@ -125,7 +125,7 @@ class LoadForm:  # noqa: D101
                 "storage_folder_name": name_file_config,
             }
 
-            _task = celery_app.send_task(
+            _task = crawjud_app.send_task(
                 f"{self.bot.system}.{self.bot.type}".lower(),
                 kwargs=args_task,
                 countdown=1,

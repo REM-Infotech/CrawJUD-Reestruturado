@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from socketio import AsyncClient, Client
 
 if TYPE_CHECKING:
-    from crawjud.bot import ClassBot
+    from crawjud_app.abstract.bot import ClassBot
 
 _namespace = environ["SOCKETIO_SERVER_NAMESPACE"]
 

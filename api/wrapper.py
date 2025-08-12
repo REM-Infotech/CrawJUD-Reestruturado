@@ -22,7 +22,7 @@ from quart_jwt_extended import decode_token
 
 from api import io
 from api.addons.make_models import MakeModels  # noqa: F401
-from crawjud.types import WrappedFnReturnT
+from crawjud_app.types import WrappedFnReturnT
 
 BotParamSpec = ParamSpec("BotParamSpec", bound=AnyStr)
 BotTypeVar = TypeVar("BotTypeVar", bound=Response)
