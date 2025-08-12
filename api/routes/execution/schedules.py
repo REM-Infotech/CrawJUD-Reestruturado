@@ -18,11 +18,10 @@ if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
 
 
-@exe.route("/schedules", methods=["GET", "POST"])
+@exe.get("/schedules")
 @jwt_required
 async def schedules() -> Response:
-    """
-    Display a list of executions filtered by search criteria.
+    """Display a list of executions filtered by search criteria.
 
     Returns:
         Response: A Quart response rendering the executions page.
@@ -52,7 +51,8 @@ async def schedules() -> Response:
             )
 
             executions = executions.join(
-                alias, ScheduleModel.license_id == alias.licenseus_id
+                alias,
+                ScheduleModel.license_id == alias.licenseus_id,
             )
 
             chk_admin = (
@@ -77,7 +77,7 @@ async def schedules() -> Response:
             ),
         )
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
 
@@ -85,8 +85,7 @@ async def schedules() -> Response:
 @exe.post("/delete_schedule/<int:id_>")
 @jwt_required
 async def delete_schedule(id_: int) -> Response:
-    """
-    Delete a schedule from the database.
+    """Delete a schedule from the database.
 
     Args:
         id_ (int): The id of the schedule to be deleted.
@@ -99,7 +98,7 @@ async def delete_schedule(id_: int) -> Response:
         db: SQLAlchemy = app.extensions["sqlalchemy"]
         db.session.query(ScheduleModel).filter(ScheduleModel.id == id_).delete()
         db.session.commit()
-    except (ValueError, Exception):
+    except ValueError:
         abort(500)
 
     message = "Tarefa deletada!"
