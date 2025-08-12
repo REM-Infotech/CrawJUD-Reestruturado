@@ -34,7 +34,6 @@ class MasterNamespace(Namespace):
         It can be overridden in subclasses to implement specific logic.
 
         """
-        session = self.server.session(websocket.sid, self.namespace)  # noqa: F841
         print(request)  # noqa: T201
 
     async def on_disconnect(self) -> None:
