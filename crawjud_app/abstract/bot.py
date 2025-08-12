@@ -4,26 +4,20 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import (
-    Any,
     AnyStr,
     ParamSpec,
-    TypeVar,
 )
 
 from dotenv import dotenv_values
 
 from crawjud_app.abstract._head import HeadBot
 
-T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
-PrintTReturn = TypeVar("PrintTReturn", bound=Any)
 
 environ = dotenv_values()
 
-TReturn = TypeVar("TReturn")
 
-
-class ClassBot(HeadBot):  # noqa:  D101
+class ClassBot[T](HeadBot):  # noqa:  D101
     def __init__(self) -> None:  # noqa: D107
         print("ok")
 
