@@ -66,8 +66,9 @@ class ClassBot[T](HeadBot):  # noqa:  D101
 
     def _remove_empty_keys(self, data: dict[str, str]) -> None:
         """Remove chaves com valores vazios ou None."""
-        for key in list(data.keys()):
-            value = data[key]
+        dict_data = data.copy()
+        for key in dict_data:
+            value = dict_data[key]
             if (isinstance(value, str) and not value.strip()) or value is None:
                 data.pop(key)
 
@@ -96,7 +97,7 @@ class ClassBot[T](HeadBot):  # noqa:  D101
     def _format_numeric_values(self, data: dict[str, str]) -> None:
         """Formata valores numéricos para duas casas decimais."""
         loop_data = data.items()
-        for key, value in list(loop_data):
+        for key, value in loop_data:
             if isinstance(value, (int, float)):
                 data[key] = f"{value:.2f}".replace(".", ",")
 
