@@ -8,8 +8,8 @@ import logging
 import traceback
 from typing import Callable, Union
 
+from celery_app.common.exceptions.bot import StartError
 from crawjud.bots.caixa.emissor import Emissor
-from crawjud.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
 ClassBots = Union[Emissor]
