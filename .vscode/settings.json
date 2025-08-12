@@ -55,6 +55,6 @@
     "projectKey": "REM-Infotech_CrawJUD-Reestruturado_e3fe9c30-c5d7-41d7-b7bd-66b10317a92f"
   },
   "sonarlint.analyzerProperties": {
-    "sonar.exclusions": "**/bin/**, **/.venv/**, **/__pycache__/**, **/tests/**, **/.vscode/**"
+    "sonar.exclusions": "**/bin/**, **/.venv/**, **/__pycache__/**, **/tests/**, **/.vscode/**, **/Lib/**, **/lib/**"
   }
 }

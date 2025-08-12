@@ -5,7 +5,7 @@ em funções e métodos de classe, garantindo integração com type annotations.
 """
 
 from collections.abc import Callable
-from typing import AnyStr, ParamSpec, TypeVar
+from typing import ParamSpec
 
 from celery import shared_task as share
 
@@ -14,8 +14,6 @@ from crawjud_app.types._celery._task import Task
 from .bot import wrap_cls, wrap_init
 
 P = ParamSpec("P")
-TClassBot = TypeVar("TClassBot", bound=object)
-TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 
 class_set = set()
 
