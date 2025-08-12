@@ -25,8 +25,7 @@ if TYPE_CHECKING:
 
 
 def license_(usr: int) -> LicensesUsers | None:
-    """
-    Get the user's license.
+    """Get the user's license.
 
     Returns:
         LicensesUsers | None: License of the user or None if not found.
@@ -67,8 +66,7 @@ class InsertError(Exception):
 
 
 def cadastro_user(form: dict) -> None:
-    """
-    User registration.
+    """User registration.
 
     Args:
         form (dict): user info.
@@ -89,13 +87,12 @@ def cadastro_user(form: dict) -> None:
         db.session.add(usr)
         db.session.commit()
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         raise InsertError(message=f"Erro ao inserir usuário: {e!s}") from e
 
 
 def update_user(form: dict) -> None:
-    """
-    Update user.
+    """Update user.
 
     Args:
         form (dict): user info.
@@ -115,13 +112,12 @@ def update_user(form: dict) -> None:
             usr.senhacrip = str(password)
 
         db.session.commit()
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         raise UpdateError(message=f"Erro ao atualizar usuário: {e!s}") from e
 
 
 def delete_user(form: dict) -> None:
-    """
-    Delete user.
+    """Delete user.
 
     Args:
         form (dict): user info.\
@@ -143,11 +139,10 @@ def delete_user(form: dict) -> None:
 action = {"INSERT": cadastro_user, "UPDATE": update_user, "DELETE": delete_user}
 
 
-@admin.route("/users", methods=["GET", "POST"])
+@admin.get("/users")
 @jwt_required
 async def users() -> Response:
-    """
-    Render the users list template.
+    """Render the users list template.
 
     Returns:
         Response: HTTP response with rendered template.
@@ -173,7 +168,7 @@ async def users() -> Response:
                     message = "Deletado com sucesso!"
 
                 return await make_response(jsonify(message=message), 200)
-            except (InsertError, UpdateError, DeleteError, Exception) as e:
+            except (InsertError, UpdateError, DeleteError) as e:
                 return await make_response(jsonify({"message": str(e)}, 400))
 
         if request.method == "GET":
@@ -203,6 +198,6 @@ async def users() -> Response:
 
             return await make_response(jsonify(database=data))
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.exception("\n".join(format_exception(e)))
         abort(500, description="Erro interno do servidor")
