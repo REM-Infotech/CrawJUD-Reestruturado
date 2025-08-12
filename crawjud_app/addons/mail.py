@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 
-from crawjud_app.exceptions.mail import MailError
+from crawjud_app.common.exceptions.mail import MailError
 
 if TYPE_CHECKING:
     from typing import Self

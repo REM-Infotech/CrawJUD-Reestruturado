@@ -15,3 +15,7 @@ class AuthenticationError(BaseCrawJUDError):
     def __init__(self, message: str = "Erro de autenticação.") -> None:
         """Inicializa a mensagem de erro."""
         super().__init__(message)
+
+
+class BaseExceptionCeleryAppError(Exception):
+    """Base exception class for Celery app errors."""
