@@ -19,9 +19,9 @@ from httpx import Client
 from pytz import timezone  # noqa: F401
 from tqdm import tqdm
 
+from celery_app.abstract._head import HeadBot
 from celery_app.custom._task import ContextTask
 from celery_app.types.bot import BotData
-from crawjud.abstract._head import HeadBot
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
 from utils.models.logs import CachedExecution

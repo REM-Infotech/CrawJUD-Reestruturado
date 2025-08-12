@@ -12,7 +12,7 @@ from typing import (
 
 from dotenv import dotenv_values
 
-from crawjud.abstract._head import HeadBot
+from celery_app.abstract._head import HeadBot
 
 T = TypeVar("AnyValue", bound=str)
 PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from crawjud.abstract._master import AbstractClassBot
+from celery_app.abstract._master import AbstractClassBot
 
 
 class AuthController[T](AbstractClassBot):  # noqa: B903

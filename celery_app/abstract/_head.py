@@ -3,10 +3,11 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
+from crawjud.common.exceptions.bot import ExecutionError
+
+from celery_app.abstract._properties import PropertyBot
 from celery_app.custom._canvas import subtask
 from celery_app.types.bot import BotData, DictFiles
-from crawjud.abstract._properties import PropertyBot
-from crawjud.common.exceptions.bot import ExecutionError
 
 if TYPE_CHECKING:
     from utils.storage import Storage
