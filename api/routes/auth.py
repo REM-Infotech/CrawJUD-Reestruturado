@@ -15,7 +15,6 @@ Classes:
 Dependencies:
     - Quart
     - quart_jwt_extended
-    - pytz
     - SQLAlchemy (for database access)
     - api.models.users (for user and token blocklist models)
 
@@ -66,7 +65,8 @@ class LoginForm:
     Attributes:
         login (str): The user's login identifier (e.g., username or email).
         password (str): The user's password.
-        remember_me (bool): Indicates whether the user should remain logged in across sessions.
+        remember_me (bool): Indicates whether the user should remain
+            logged in across sessions.
 
     """
 
@@ -82,7 +82,8 @@ async def login() -> Response:
     """Authenticate the user and start a session.
 
     Returns:
-        Response: HTTP response redirecting on success or rendering the login template.
+        Response: HTTP response redirecting on success or rendering
+            the login template.
 
     """
     try:
@@ -119,14 +120,14 @@ async def login() -> Response:
 
             session["license_object"] = LicenseUserDict(**{
                 k: v
-                for k, v in list(usr.licenseusr.__dict__.items())
+                for k, v in usr.licenseusr.__dict__.items()
                 if not k.startswith("_") and not isinstance(v, list)
             })
 
             session["current_user"] = CurrentUser(**{
                 k: v
                 for k, v in usr.__dict__.items()
-                if k.lower() in CurrentUser.__annotations__.keys()
+                if k.lower() in CurrentUser.__annotations__
             })
 
             resp = await make_response(
@@ -150,7 +151,7 @@ async def login() -> Response:
             resp.headers = {"Content-Type": "application/json"}
             return resp
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         current_app.logger.error("\n".join(format_exception(e)))
         return await make_response(jsonify({"message": "Erro ao efetuar login!"}))
 
@@ -167,7 +168,7 @@ async def logout() -> Response:
     try:
         unset_jwt_cookies(response)
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         current_app.logger.exception("\n".join(format_exception(e)))
     return response
 
