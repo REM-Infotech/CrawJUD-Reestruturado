@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud.addons.search import SearchController
+from celery_app.addons.search import SearchController
 
 
 class ElawSearch(SearchController):

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Self
 import openpyxl
 from openpyxl.styles import Font, PatternFill
 
-from crawjud.addons.make_templates.appends import Listas
+from celery_app.addons.make_templates.appends import Listas
 
 if TYPE_CHECKING:
     from celery_app.types import StrPath

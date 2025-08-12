@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from crawjud.addons.auth import AuthController
+from celery_app.addons.auth import AuthController
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement

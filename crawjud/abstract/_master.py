@@ -16,8 +16,8 @@ func_dict_check = {
 }
 
 if TYPE_CHECKING:
-    from crawjud.addons.auth.controller import AuthController
-    from crawjud.addons.search.controller import SearchController
+    from celery_app.addons.auth.controller import AuthController
+    from celery_app.addons.search.controller import SearchController
 
 
 class AbstractClassBot[T](ABC):  # noqa: B024, D101

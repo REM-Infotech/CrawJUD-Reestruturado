@@ -3,7 +3,7 @@
 This module provides selectors for automating ELAW operations.
 """
 
-from crawjud.addons.elements.properties import Configuracao
+from celery_app.addons.elements.properties import Configuracao
 
 
 class ELAW_AME(Configuracao):  # noqa: N801
