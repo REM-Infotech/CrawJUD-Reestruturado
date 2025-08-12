@@ -5,6 +5,7 @@ from typing import (
     AnyStr,
     Generic,
     ParamSpec,
+    Self,
     TypeVar,
     cast,
 )
@@ -246,7 +247,7 @@ class Signature[T](__Signature):
         )
 
     @classmethod
-    def from_dict(cls, d, app=None):  # noqa: ANN001, ANN206
+    def from_dict(cls, d: T, app: T | None = None) -> Self:
         typ = d.get("subtask_type")
         if typ:
             target_cls = cls.TYPES[typ]
