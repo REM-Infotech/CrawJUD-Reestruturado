@@ -5,17 +5,15 @@ em funções e métodos de classe, garantindo integração com type annotations.
 """
 
 from collections.abc import Callable
-from typing import Any, AnyStr, ParamSpec, TypeVar
+from typing import AnyStr, ParamSpec, TypeVar
 
 from celery import shared_task as share
 
 from crawjud_app.types._celery._task import Task
 
-from ._bot import wrap_cls, wrap_init
+from .bot import wrap_cls, wrap_init
 
 P = ParamSpec("P")
-R = TypeVar("R")
-T = TypeVar("SharedTask", bound=Any)
 TClassBot = TypeVar("TClassBot", bound=object)
 TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 
@@ -34,7 +32,7 @@ def shared_task[T](*args: T, **kwargs: T) -> Task | Callable[..., Task]:
 
     """
 
-    def decorator(func: Callable[P, R]) -> Task:
+    def decorator[T](func: Callable[P, T]) -> Task:
         # Aplica o shared_task na função
         task = share(*args, **kwargs)(func)
         task.contains_classmethod = True
@@ -63,7 +61,7 @@ def classmethod_shared_task[T](
 
     """
 
-    def decorator(func: Callable[P, R]) -> Task:
+    def decorator[T](func: Callable[P, T]) -> Task:
         # Aplica o shared_task na função
         task = share(*args, **kwargs)(func)
         task.contains_classmethod = True
