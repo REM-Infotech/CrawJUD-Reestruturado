@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from crawjud.types.pje import DictResults
 from httpx import Client
 
 from celery_app.abstract._master import AbstractClassBot
 from celery_app.types.bot import BotData
+from celery_app.types.pje import DictResults
 
 
 class SearchController[T](AbstractClassBot):

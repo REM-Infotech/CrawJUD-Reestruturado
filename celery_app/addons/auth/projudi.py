@@ -3,7 +3,6 @@
 from contextlib import suppress
 from time import sleep
 
-from crawjud.common.exceptions.bot import LoginSystemError
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
@@ -12,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from celery_app.addons.auth import AuthController
+from celery_app.common.exceptions.bot import LoginSystemError
 
 
 class ProjudiAuth(AuthController):

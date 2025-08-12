@@ -10,11 +10,11 @@ from __future__ import annotations
 import json.decoder
 from typing import TYPE_CHECKING, Literal
 
-from crawjud.types.pje import DictResults
 from httpx import Client
 
 from celery_app.addons.search import SearchController
 from celery_app.types import BotData
+from celery_app.types.pje import DictResults
 
 if TYPE_CHECKING:
     from celery_app.types import BotData

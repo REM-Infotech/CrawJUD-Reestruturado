@@ -5,7 +5,6 @@ from __future__ import annotations
 from contextlib import suppress
 from time import sleep
 
-from crawjud.common.exceptions.bot import ExecutionError
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -13,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from celery_app.addons.search import SearchController
+from celery_app.common.exceptions.bot import ExecutionError
 
 
 class EsajSearch(SearchController):
