@@ -15,9 +15,9 @@ import base91
 from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
+from celery_app.types.bot import DictFiles
 from crawjud import work_dir
 from crawjud.types import ReturnFormataTempo
-from crawjud.types.bot import DictFiles
 from utils.storage import Storage
 
 T = TypeVar("AnyValue", bound=ReturnFormataTempo)

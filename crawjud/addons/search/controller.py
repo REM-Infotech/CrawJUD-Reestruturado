@@ -6,8 +6,8 @@ from abc import abstractmethod
 
 from httpx import Client
 
+from celery_app.types.bot import BotData
 from crawjud.abstract._master import AbstractClassBot
-from crawjud.types.bot import BotData
 from crawjud.types.pje import DictResults
 
 

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar  # noqa: F401
 
 from pytz import timezone
 
-from crawjud.types.bot import BotData, MessageNadaEncontrado  # noqa: F401
+from celery_app.types.bot import BotData, MessageNadaEncontrado  # noqa: F401
 from crawjud.types.pje import Resultados  # noqa: F401
 from utils.models.logs import MessageLogDict
 

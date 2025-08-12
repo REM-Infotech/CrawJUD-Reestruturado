@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from celery_app.custom._canvas import subtask
 from celery_app.types._celery._canvas import Signature
+from celery_app.types.bot import BotData, DictFiles
 from crawjud.abstract._master import AbstractClassBot
-from crawjud.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
     from socketio import SimpleClient

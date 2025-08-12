@@ -4,9 +4,9 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from celery_app.custom._canvas import subtask
+from celery_app.types.bot import BotData, DictFiles
 from crawjud.abstract._properties import PropertyBot
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
     from utils.storage import Storage

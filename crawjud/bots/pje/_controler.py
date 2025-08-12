@@ -20,9 +20,9 @@ from pytz import timezone  # noqa: F401
 from tqdm import tqdm
 
 from celery_app.custom._task import ContextTask
+from celery_app.types.bot import BotData
 from crawjud.abstract._head import HeadBot
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.types.bot import BotData
 from crawjud.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
 from utils.models.logs import CachedExecution
 from utils.recaptcha import captcha_to_image
@@ -31,7 +31,7 @@ from utils.storage import Storage
 if TYPE_CHECKING:
     from httpx import Response
 
-    from crawjud.types.bot import BotData
+    from celery_app.types.bot import BotData
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]

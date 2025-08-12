@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import List, Optional, TypedDict
 
-from crawjud.types.bot import BotData
+from celery_app.types.bot import BotData
 
 TDict = dict[str, str]
 

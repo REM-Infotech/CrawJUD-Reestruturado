@@ -10,7 +10,7 @@ import base91
 import pandas as pd
 
 from celery_app._wrapper import shared_task
-from crawjud.types.bot import BotData
+from celery_app.types.bot import BotData
 
 
 def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103
