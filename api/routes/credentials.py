@@ -1,12 +1,17 @@
-"""
-Module for credentials routes.
+"""Fornece rotas relacionadas à gestão de credenciais de autenticação.
 
-This module defines endpoints for listing, creating, editing, and deleting credentials.
+Este módulo implementa:
+- Endpoints para listar sistemas disponíveis;
+- Endpoints para listar, criar e deletar credenciais de autenticação;
+- Funções auxiliares para manipulação de licenças de usuários.
+
+Retorna respostas JSON para operações de consulta e manipulação de credenciais.
 """
 
+from asyncio import iscoroutinefunction
 from pathlib import Path
 from traceback import format_exception
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import aiofiles
 from flask_sqlalchemy import SQLAlchemy
@@ -24,7 +29,6 @@ from quart import (
 from quart import current_app as app
 from quart.datastructures import FileStorage
 from quart_jwt_extended import get_jwt_identity, jwt_required
-from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
 from api import db
@@ -34,22 +38,23 @@ from api.models import BotsCrawJUD, Credentials, LicensesUsers, Users
 
 cred = Blueprint("creds", __name__)
 
+if TYPE_CHECKING:
+    from werkzeug.datastructures import MultiDict
+
 
 class CredentialsForm(TypedDict):
-    """
-    CredentialsForm is a data container for managing authentication credentials.
+    """Define o formato do formulário de credenciais para autenticação.
 
-    It stores details such as the credential name, associated system, authentication method, and optional fields like
-    login and certificate information.
+    Args:
+        doc_cert (str): Documento do certificado digital.
+        nome_cred (str): Nome da credencial.
+        system (str): Sistema ao qual a credencial pertence.
+        auth_method (str): Método de autenticação utilizado.
+        login (str): Login do usuário.
+        password (str): Senha do usuário.
+        cert (FileStorage): Arquivo do certificado digital.
+        key (str): Chave privada do certificado.
 
-    Attributes:
-        nome_cred (str): The unique name or identifier for the credentials.
-        system (str): The specific system with which the credentials are associated.
-        auth_method (str): The method of authentication (e.g., basic, certificate-based).
-        login (Optional[str]): The username for login if applicable; otherwise, None.
-        password (Optional[str]): The password corresponding to the login; otherwise, None.
-        cert (Optional[FileStorage]): The certificate file as a FileStorage instance if required; otherwise, None.
-        key (Optional[str]): The key associated with the certificate if applicable; otherwise, None.
 
     """
 
@@ -63,17 +68,15 @@ class CredentialsForm(TypedDict):
     key: str
 
 
-async def license_user(usr: int, db: SQLAlchemy) -> str:
-    """
-    Return license token.
+def license_user(usr: int, db: SQLAlchemy) -> str:
+    """Recupera o token de licença associado ao usuário informado.
 
     Args:
-        usr (int): User ID.
-        db (SQLAlchemy): Database session.
+        usr (int): Identificador do usuário.
+        db (SQLAlchemy): Instância do banco de dados.
 
     Returns:
-        str: License token associated with the user.
-
+        str: Token de licença do usuário consultado.
 
 
     """
@@ -91,16 +94,20 @@ async def license_user(usr: int, db: SQLAlchemy) -> str:
 @cred.get("/systems")
 @jwt_required
 async def systems() -> Response:
-    """
-    Return array list systems.
+    """Retorna lista de sistemas disponíveis para autenticação.
+
+    Args:
+        Nenhum.
 
     Returns:
-        Response: JSON response containing a list of systems.
+        Response: Resposta JSON contendo os sistemas disponíveis.
 
+    Raises:
+        Nenhuma exceção específica.
 
     """
     list_systems: list[dict[str, str]] = [
-        {"value": None, "text": "Escolha um sistema", "disabled": True}
+        {"value": None, "text": "Escolha um sistema", "disabled": True},
     ]
 
     for item in db.session.query(BotsCrawJUD).all():
@@ -114,19 +121,19 @@ async def systems() -> Response:
     )
 
 
-@cred.route("/credentials", methods=["GET", "POST"])
+@cred.post("/credentials")
 @jwt_required
 async def credentials() -> Response:
-    """
-    Display a list of credentials.
+    """Retorna lista de credenciais associadas ao usuário autenticado.
 
     Returns:
-        Response: A Quart response containing the list of credentials in JSON format.
+        Response: Resposta JSON contendo as credenciais do usuário.
+
 
     """
     try:
         sess = SessionDict(**{
-            k: v for k, v in list(session.items()) if not k.startswith("_")
+            k: v for k, v in session.items() if not k.startswith("_")
         })
         license_user = sess["license_object"]
         license_token = license_user["license_token"]
@@ -152,12 +159,12 @@ async def credentials() -> Response:
                     nome_credencial=item.nome_credencial,
                     system=item.system,
                     login_method=loginmethod,
-                )
+                ),
             )
 
         return await make_response(jsonify(database=credentials), 200)
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
 
@@ -165,11 +172,15 @@ async def credentials() -> Response:
 @cred.route("/peform_credencial", methods=["POST", "DELETE"])
 @jwt_required
 async def cadastro() -> Response:
-    """
-    Handle the creation of new credentials.
+    """Realiza cadastro ou exclusão de credenciais conforme ação informada.
+
+    Args:
+        Nenhum argumento direto. Utiliza dados do request para processar
+        cadastro ou exclusão de credenciais.
 
     Returns:
-        Response: A Quart response after processing the credentials form.
+        Response: Resposta JSON indicando sucesso ou falha da operação.
+
 
     """
     try:
@@ -189,12 +200,13 @@ async def cadastro() -> Response:
             db.session.query(Credentials).filter(Credentials.id == cred_id).delete()
             db.session.commit()
             return await make_response(
-                jsonify(message="Credencial deletada com sucesso!"), 200
+                jsonify(message="Credencial deletada com sucesso!"),
+                200,
             )
 
         form = CredentialsForm(**request_data)
 
-        async def pw(form: CredentialsForm) -> None:
+        def pw(form: CredentialsForm) -> None:
             form["system"] = (
                 db.session.query(BotsCrawJUD)
                 .filter(BotsCrawJUD.system == form["system"])
@@ -209,8 +221,7 @@ async def cadastro() -> Response:
                 password=form["password"],
             )
             licenseusr = LicensesUsers.query.filter(
-                LicensesUsers.license_token
-                == await license_user(get_jwt_identity(), db),
+                LicensesUsers.license_token == license_user(get_jwt_identity(), db),
             ).first()
 
             passwd.license_usr = licenseusr
@@ -230,7 +241,7 @@ async def cadastro() -> Response:
             cer_path = str(
                 Path(temporarypath)
                 .resolve()
-                .joinpath(secure_filename(filecert.filename))
+                .joinpath(secure_filename(filecert.filename)),
             )
 
             await filecert.save(cer_path)
@@ -249,7 +260,7 @@ async def cadastro() -> Response:
                 )
                 licenseusr = LicensesUsers.query.filter(
                     LicensesUsers.license_token
-                    == await license_user(get_jwt_identity(), db),
+                    == license_user(get_jwt_identity(), db),
                 ).first()
 
                 passwd.license_usr = licenseusr
@@ -259,10 +270,15 @@ async def cadastro() -> Response:
 
         callables = {"cert": cert, "pw": pw}
 
-        await callables[form["auth_method"]](form)
+        call_method = callables[form["auth_method"]]
+
+        if iscoroutinefunction(call_method):
+            await call_method(form)
+        else:
+            call_method(form)
 
         return await make_response(jsonify(message="Credencial salva com sucesso!"))
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
