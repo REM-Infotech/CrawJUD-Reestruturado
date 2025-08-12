@@ -39,32 +39,38 @@ class Config:
     task_create_missing_queues: bool
     broker_connection_retry_on_startup: bool
     timezone: str
-    # CELERY_QUEUES = (
-    #     Queue("default"),
-    #     Queue("caixa_queue", routing_key="crawjud.bot.caixa_launcher"),
-    #     Queue("projudi_queue", routing_key="crawjud.bot.projudi_launcher"),
-    # )
-    # CELERY_ROUTES = {
-    #     "crawjud.bot.caixa_launcher": {"queue": "caixa_queue"},
-    #     "crawjud.bot.projudi_launcher": {"queue": "projudi_queue"},
-    # }
 
     @classmethod
     def load_config(cls, **kwrgs: AnyStr) -> Self:
-        """Load Config."""
+        """Carregue a configuração do celery a partir dos argumentos fornecidos.
+
+        Args:
+            **kwrgs (str): Argumentos de configuração para o celery.
+
+        Returns:
+            Self: Instância da classe Config inicializada com os argumentos.
+
+        """
         return cls(**kwrgs)
 
     def convert_bool(self, v: str) -> bool:  # noqa: D102
         return v.lower() == "true" or v == 1
 
     def __init__(self, **kwargs: AnyStr) -> None:
-        """Load Config."""
+        """Inicializa a configuração do celery a partir dos argumentos fornecidos.
+
+        Args:
+            **kwargs (str): Argumentos de configuração para o celery.
+
+
+
+        """
         arguments = kwargs.copy()
         arguments.update(environ)
         self.celery_config = CeleryConfig(**{
             k.lower(): v
-            for k, v in list(arguments.items())
-            if k.lower() in CeleryConfig.__annotations__.keys()
+            for k, v in arguments.items()
+            if k.lower() in CeleryConfig.__annotations__
         })
 
         call_convert = {bool: self.convert_bool}

@@ -3,10 +3,10 @@ import logging
 import os
 import pytest
 from pathlib import Path
-from . import make_celery, config_loggers, app
+from crawjud_app import make_celery, config_loggers, app
 from crawjud_app.custom import AsyncCelery
 from crawjud_app.custom import AsyncCelery
-from . import app_celery
+from crawjud_app import app_celery
 
 @pytest.fixture
 def temp_log_dir(tmp_path: Path) -> Generator[Path, None, None]:
