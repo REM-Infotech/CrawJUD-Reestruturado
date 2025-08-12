@@ -91,8 +91,7 @@ class Mail:
         Args:
             file_path (str | Path): Caminho do arquivo a ser anexado.
 
-        Returns:
-            None: Não retorna valor.
+
 
         Raises:
             FileNotFoundError: Caso o arquivo não seja encontrado.
@@ -122,7 +121,9 @@ class Mail:
 
         if self.MAIL_USE_SSL:
             self.server = SMTP_SSL(
-                self.MAIL_SERVER, self.MAIL_PORT, context=ssl.create_default_context()
+                self.MAIL_SERVER,
+                self.MAIL_PORT,
+                context=ssl.create_default_context(),
             )
 
         elif self.MAIL_USE_TLS:
@@ -146,7 +147,9 @@ class Mail:
 
             self.message["From"] = self.MAIL_DEFAULT_SENDER
             self.server.sendmail(
-                self.MAIL_DEFAULT_SENDER, to, self.message.as_string()
+                self.MAIL_DEFAULT_SENDER,
+                to,
+                self.message.as_string(),
             )
             self.server.quit()
 

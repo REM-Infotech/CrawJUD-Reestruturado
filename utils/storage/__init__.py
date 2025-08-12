@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, BinaryIO, Generator, Literal
+from typing import Any, BinaryIO, Literal
 
 from dotenv import dotenv_values
 from minio import Minio as Client
@@ -21,7 +22,7 @@ environ = dotenv_values()
 storages = Literal["google", "minio"]
 
 
-class Storage[T](Client):  # noqa: B903, D101
+class Storage[T](Client):  # noqa: D101
     def __init__(self, storage: storages) -> None:  # noqa: D107
         server_url = environ["MINIO_URL_SERVER"]
         if storage == "google":
@@ -33,7 +34,7 @@ class Storage[T](Client):  # noqa: B903, D101
         super().__init__(endpoint=server_url, credentials=credentials, secure=False)
 
     @property
-    def bucket(self) -> Bucket:  # noqa: D102
+    def bucket(self) -> Bucket:
         """Get the default bucket."""
         bucket_name = environ["MINIO_BUCKET_NAME"]
         return Bucket(name=bucket_name, creation_date=None, client=self)
@@ -65,8 +66,7 @@ class Storage[T](Client):  # noqa: B903, D101
         )
 
     def list_buckets(self) -> list[Bucket]:
-        """
-        List information of all accessible buckets.
+        """List information of all accessible buckets.
 
         :return: List of :class:`Bucket <Bucket>` object.
 
@@ -80,15 +80,14 @@ class Storage[T](Client):  # noqa: B903, D101
         result = unmarshal(ListBuckets, response.data.decode())
         return result.buckets
 
-    def upload_file(self, file_name: str, file_path: Path) -> None:  # noqa: D102
+    def upload_file(self, file_name: str, file_path: Path) -> None:
         """Upload a file to the bucket.
 
         Args:
             file_name (str): Nome do arquivo no bucket.
             file_path (Path): Caminho do arquivo local a ser enviado.
 
-        Returns:
-            None: Não retorna valor.
+
 
         Raises:
             FileNotFoundError: Caso o arquivo não seja encontrado.
@@ -105,7 +104,10 @@ class Storage[T](Client):  # noqa: B903, D101
         with file_path.open("rb") as f:
             # Inicializa barra de progresso
             with tqdm(
-                total=file_size, unit="B", unit_scale=True, desc=file_name
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                desc=file_name,
             ) as pbar:
                 while True:
                     print(f)

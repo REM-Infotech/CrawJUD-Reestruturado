@@ -26,8 +26,7 @@ class A(ABC):
             *args (Generic[T]): Argumentos posicionais genéricos.
             **kwargs (Generic[T]): Argumentos nomeados genéricos.
 
-        Returns:
-            None: Não retorna valor.
+
 
         Raises:
             NotImplementedError: Método deve ser implementado por subclasses.
@@ -55,8 +54,7 @@ class B(A):
             *args (Generic[T]): Argumentos posicionais genéricos.
             **kwargs (Generic[T]): Argumentos nomeados genéricos.
 
-        Returns:
-            None: Não retorna valor.
+
 
         Raises:
             NotImplementedError: Método deve ser implementado por subclasses.
@@ -81,8 +79,7 @@ class C(A):
             *args (Generic[T]): Argumentos posicionais genéricos.
             **kwargs (Generic[T]): Argumentos nomeados genéricos.
 
-        Returns:
-            None: Não retorna valor.
+
         """
         print("Pão de queijo")  # Exibe mensagem ao chamar método.
 
@@ -105,8 +102,7 @@ class D(B):
             *args (Generic[T]): Argumentos posicionais genéricos.
             **kwargs (Generic[T]): Argumentos nomeados genéricos.
 
-        Returns:
-            None: Não retorna valor.
+
         """
         print("Pão de queijo")  # Exibe mensagem ao chamar método.
 
@@ -118,8 +114,7 @@ class D(B):
             *args (Generic[T]): Argumentos posicionais genéricos.
             **kwargs (Generic[T]): Argumentos nomeados genéricos.
 
-        Returns:
-            None: Não retorna valor.
+
         """
         print("Café com Leite")  # Exibe mensagem ao chamar método.
 

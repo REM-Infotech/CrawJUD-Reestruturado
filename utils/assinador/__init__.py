@@ -1,6 +1,5 @@
-# type: ignore  # noqa:  PGH003, D104
-"""
-Inicializa o módulo de assinatura digital utilizando certificado .p12.
+# type: ignore  # noqa: PGH003
+"""Inicializa o módulo de assinatura digital utilizando certificado .p12.
 
 Este módulo fornece a classe SignPy para realizar assinaturas digitais
 em arquivos PDF, utilizando certificados digitais no formato PKCS#12 (.p12).
@@ -18,12 +17,12 @@ Raises:
 
 from __future__ import annotations  # noqa: I001
 
-# type: ignore  # noqa:  PGH003, D104
+# type: ignore  # noqa: PGH003
 import base64
 from os import PathLike
 from pathlib import Path
 from typing import (
-    Union,  # noqa:  I001
+    Union,
 )
 
 import jpype.imports  # noqa: F401
@@ -65,8 +64,7 @@ _cont = Union[Path, bytes]
 
 
 class SignPy:
-    """
-    Realiza a assinatura digital de um arquivo PDF utilizando certificado digital no formato .p12.
+    """Realiza a assinatura digital de um arquivo PDF utilizando certificado digital no formato .p12.
 
     Args:
         cert_path (str | None): Caminho para o certificado digital (opcional).
@@ -82,10 +80,13 @@ class SignPy:
 
     @classmethod
     def assinador(
-        cls, cert: str, pw: str, content: _cont, out: StrPath = None
+        cls,
+        cert: str,
+        pw: str,
+        content: _cont,
+        out: StrPath = None,
     ) -> SignResult:
-        """
-        Executa o processo de assinatura digital de um conteúdo PDF.
+        """Executa o processo de assinatura digital de um conteúdo PDF.
 
         Args:
             cert (str): Caminho para o certificado digital.
@@ -122,15 +123,13 @@ class SignPy:
         return SignResult(_cert, signed_content)
 
     def __init__(self, cert_path: str = None, password_cert: str = None) -> None:
-        """
-        Inicializa a instância de assinatura com certificado e senha.
+        """Inicializa a instância de assinatura com certificado e senha.
 
         Args:
             cert_path (str | None): Caminho para o certificado digital.
             password_cert (str | None): Senha do certificado digital.
 
-        Returns:
-            None: Não retorna valor.
+
 
         Raises:
             Exception: Em caso de falha ao carregar o certificado.
@@ -144,8 +143,7 @@ class SignPy:
         self.certificate: Object = ks.getCertificate(alias)
 
     def prepare_signer(self) -> tuple[CMSSignedDataGenerator, Certificate]:
-        """
-        Prepara o gerador de assinatura digital com os certificados necessários.
+        """Prepara o gerador de assinatura digital com os certificados necessários.
 
         Args:
             Nenhum argumento.
@@ -164,7 +162,7 @@ class SignPy:
         certificados = JcaCertStore(cert_list)
         cmsgenerator = CMSSignedDataGenerator()
         certificado = Certificate.getInstance(
-            ASN1Primitive.fromByteArray(self.certificate.getEncoded())
+            ASN1Primitive.fromByteArray(self.certificate.getEncoded()),
         )
 
         kf = JClass("java.security.KeyFactory").getInstance("RSA")
@@ -182,8 +180,7 @@ class SignPy:
         return cmsgenerator, certificado
 
     def sign(self, gen: CMSSignedDataGenerator, cms: _cms) -> CMSSignedData:
-        """
-        Realiza a assinatura digital do conteúdo informado.
+        """Realiza a assinatura digital do conteúdo informado.
 
         Args:
             gen (CMSSignedDataGenerator): Gerador de assinatura configurado.
@@ -202,8 +199,7 @@ class SignPy:
 
 
 class SignResult:
-    """
-    Encapsula o resultado da assinatura digital, permitindo obter o certificado e a assinatura em formato base64.
+    """Encapsula o resultado da assinatura digital, permitindo obter o certificado e a assinatura em formato base64.
 
     Args:
         certificate (Object): Certificado digital utilizado.
@@ -241,8 +237,7 @@ class SignResult:
         self.signed_data = signed_data
 
     def getCertificateChain64(self) -> str:  # noqa: N802
-        """
-        Retorna o certificado digital codificado em base64.
+        """Retorna o certificado digital codificado em base64.
 
         Args:
             Nenhum argumento.
@@ -258,8 +253,7 @@ class SignResult:
         return base64.b64encode(cert_bytes, altchars=b"-_")
 
     def getSignature64(self) -> str:  # noqa: N802
-        """
-        Retorna a assinatura digital codificada em base64.
+        """Retorna a assinatura digital codificada em base64.
 
         Args:
             Nenhum argumento.

@@ -1,5 +1,4 @@
-"""
-Defines Celery tasks for initializing and executing bot instances dynamically.
+"""Defines Celery tasks for initializing and executing bot instances dynamically.
 
 Tasks:
     - initialize_bot: Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID (pid). Handles dynamic import of the bot module and class, downloads required files from storage, sets up logging, and manages stop signals via Socket.IO.
@@ -22,16 +21,12 @@ from __future__ import annotations
 import re
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from dotenv import dotenv_values
 
 from crawjud_app.custom._task import ContextTask
 from crawjud_app.decorators import shared_task
-
-if TYPE_CHECKING:
-    pass
-
 
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
@@ -39,8 +34,7 @@ T = TypeVar("T")
 
 
 class StrTime(str):
-    """
-    Representa uma string de data/hora com validação de formatos específicos.
+    """Representa uma string de data/hora com validação de formatos específicos.
 
     Esta classe permite verificar se uma instância corresponde a padrões de data/hora
     definidos por expressões regulares.
@@ -80,8 +74,7 @@ class StrTime(str):
 
 @shared_task(name="print_message", bind=True, base=ContextTask)
 class PrintMessage(ContextTask):
-    """
-    Classe responsável por enviar mensagens de log para o sistema de monitoramento.
+    """Classe responsável por enviar mensagens de log para o sistema de monitoramento.
 
     Esta classe utiliza o Socket.IO para enviar mensagens de log assíncronas, permitindo
     a comunicação em tempo real com o sistema de monitoramento.
@@ -105,8 +98,7 @@ class PrintMessage(ContextTask):
         *args: Generic[T],
         **kwargs: Generic[T],
     ) -> None:
-        """
-        Envia mensagem assíncrona para o sistema de monitoramento via Socket.IO.
+        """Envia mensagem assíncrona para o sistema de monitoramento via Socket.IO.
 
         Args:
             event (str): Evento a ser emitido (padrão: "log_execution").
@@ -115,11 +107,10 @@ class PrintMessage(ContextTask):
             *args: Argumentos posicionais adicionais.
             **kwargs: Argumentos nomeados adicionais.
 
-        Returns:
-            None: Não retorna valor.
+
 
         """
-        current_task: ContextTask = kwargs.get("current_task", None)
+        current_task: ContextTask = kwargs.get("current_task")
         sio = current_task.sio if current_task else self.sio
         if data:
             with suppress(Exception):

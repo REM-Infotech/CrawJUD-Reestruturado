@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from crawjud_app.addons.search.controller import SearchController
 
 
-class AbstractClassBot[T](ABC):  # noqa: B024, D101
+class AbstractClassBot[T](ABC):
     tasks_cls = {}
     subclasses_auth: dict[str, type[AuthController]] = {}
     subclasses_search: dict[str, type[SearchController]] = {}
@@ -57,8 +57,7 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
         errors: int = 0,
         type_log: str = "log",
     ) -> None:
-        """
-        Envia mensagem de log para o sistema de tarefas assíncronas.
+        """Envia mensagem de log para o sistema de tarefas assíncronas.
 
         Args:
             pid (str): Identificador do processo.
@@ -69,8 +68,7 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
             start_time (str): Horário de início do processamento.
             status (str): Status atual do processamento (default: "Em Execução").
 
-        Returns:
-            None: Não retorna valor.
+
 
         """
         # Obtém o horário atual formatado
@@ -93,7 +91,7 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
                 errors=errors,
                 remaining=int(self._total_rows),
                 start_time=self._start_time,
-            )
+            ),
         }
 
         self.sio.emit(
@@ -103,7 +101,7 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
         # Envia a mensagem formatada para o sistema de monitoramento
 
     @classmethod
-    def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: D105, N803
+    def __subclasshook__(cls, C: T) -> NotImplementedError | Literal[True]:  # noqa: N803
         if cls is AbstractClassBot:
             subclass_functions = func_dict_check[cls.subclass_type]
 
@@ -114,11 +112,13 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
         return True
         # return NotImplementedError("Função não implementada!")
 
-    def __init_subclass__(cls) -> None:  # noqa: D105
+    def __init_subclass__(cls) -> None:
         cls.tasks_cls[cls.__name__] = cls
 
     def elawFormats(  # noqa: N802
-        self, data: dict[str, str], cities_amazonas: dict[str, Any]
+        self,
+        data: dict[str, str],
+        cities_amazonas: dict[str, Any],
     ) -> dict[str, str]:
         """Format a legal case dictionary according to pre-defined rules.
 
@@ -140,5 +140,5 @@ class AbstractClassBot[T](ABC):  # noqa: B024, D101
         """
         return NotImplementedError("Função não implementada!")
 
-    def save_success_cache(self, data: dict) -> None:  # noqa: D102
+    def save_success_cache(self, data: dict) -> None:
         return NotImplementedError("Função não implementada!")

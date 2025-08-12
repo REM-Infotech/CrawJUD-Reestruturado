@@ -1,11 +1,17 @@
-# noqa: D100
+"""Executa o processamento da capa dos processos PJE.
+
+Este módulo contém a classe Capa responsável por autenticar, enfileirar e
+processar processos judiciais, além de realizar o download da cópia integral
+dos processos e salvar os resultados no storage.
+
+"""
+
 from __future__ import annotations
 
 import traceback
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
-from datetime import datetime
-from threading import Semaphore  # noqa: F401
+from threading import Semaphore
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
@@ -15,11 +21,12 @@ from crawjud_app.bots.pje._controler import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
 from crawjud_app.custom._task import ContextTask
 from crawjud_app.decorators import shared_task, wrap_cls
-from crawjud_app.types.pje import DictResults
 
 if TYPE_CHECKING:
-    from crawjud_app.types import BotData, T  # noqa: F401
+    from datetime import datetime
 
+    from crawjud_app.types import BotData, T  # noqa: F401
+    from crawjud_app.types.pje import DictResults
 load_dotenv()
 
 
@@ -31,22 +38,15 @@ class Capa[T](PjeBot):  # noqa: D101
     def execution(
         self,
         current_task: ContextTask = None,
-        storage_folder_name: str = None,
-    ) -> None:  # noqa: D102
-        """
-        Executa o fluxo principal de processamento da capa dos processos PJE.
+        storage_folder_name: str | None = None,
+    ) -> None:
+        """Executa o fluxo principal de processamento da capa dos processos PJE.
 
         Args:
             current_task (ContextTask): Tarefa atual do Celery.
             storage_folder_name (str): Nome da pasta de armazenamento.
             *args (T): Argumentos variáveis.
             **kwargs (T): Argumentos nomeados variáveis.
-
-        Returns:
-            None: Não retorna valor.
-
-        Raises:
-            ExecutionError: Caso não encontre arquivo Excel.
 
         """
         start_time: datetime = formata_tempo(str(current_task.request.eta))
@@ -68,7 +68,8 @@ class Capa[T](PjeBot):  # noqa: D101
                         self.print_msg(message=f"Autenticando no TRT {regiao}")
                         if self.autenticar("pje"):
                             self.print_msg(
-                                message="Autenticado com sucesso!", type_log="info"
+                                message="Autenticado com sucesso!",
+                                type_log="info",
                             )
                             pool.submit(
                                 self.queue_processo,
@@ -84,15 +85,14 @@ class Capa[T](PjeBot):  # noqa: D101
                             type_log="error",
                         )
 
-    def queue_processo(  # noqa: D417
+    def queue_processo(
         self,
         data: BotData,
         base_url: str,
         headers: str,
         cookies: str,
     ) -> str:
-        """
-        Enfileira processos para processamento e salva resultados.
+        """Enfileira processos para processamento e salva resultados.
 
         Args:
             cookies (dict[str, str]): Cookies de autenticação.
@@ -106,8 +106,7 @@ class Capa[T](PjeBot):  # noqa: D101
             *args (T): Argumentos variáveis.
             **kwargs (T): Argumentos nomeados variáveis.
 
-        Returns:
-            None: Não retorna valor.
+
 
         """
         semaforo_file = Semaphore(4)
@@ -142,7 +141,7 @@ class Capa[T](PjeBot):  # noqa: D101
                                         "pid": self.pid,
                                         "data": data_request,
                                         "processo": item["NUMERO_PROCESSO"],
-                                    }
+                                    },
                                 )
 
                                 list_tasks.append(
@@ -154,7 +153,7 @@ class Capa[T](PjeBot):  # noqa: D101
                                         semaforo=semaforo_file,
                                         id_processo=resultado["id_processo"],
                                         captchatoken=resultado["captchatoken"],
-                                    )
+                                    ),
                                 )
 
                                 message = f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!"
@@ -184,8 +183,7 @@ class Capa[T](PjeBot):  # noqa: D101
         id_processo: str,
         captchatoken: str,
     ) -> None:
-        """
-        Realiza o download da cópia integral do processo e salva no storage.
+        """Realiza o download da cópia integral do processo e salva no storage.
 
         Args:
             pid: str: Identificador do processo.
@@ -198,8 +196,7 @@ class Capa[T](PjeBot):  # noqa: D101
             *args (T): Argumentos variáveis.
             **kwargs (T): Argumentos nomeados variáveis.
 
-        Returns:
-            None: Não retorna valor.
+
 
         """
         file_name = f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {self.pid}.pdf"
@@ -224,7 +221,7 @@ class Capa[T](PjeBot):  # noqa: D101
                         lambda x: x[0].lower() == "content-type"
                         and x[1].lower() == "application/pdf",
                         list(response.headers.items()),
-                    )
+                    ),
                 )
                 if len(pdf_content) > 0:
                     self.save_file_downloaded(file_name, response=response, data=data)
