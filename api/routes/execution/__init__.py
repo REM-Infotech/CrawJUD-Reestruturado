@@ -1,5 +1,4 @@
-"""
-Module for execution routes.
+"""Module for execution routes.
 
 This module provides endpoints for listing executions and downloading execution files.
 """
@@ -27,7 +26,6 @@ from api import db
 from api.models import Executions, Users
 from api.models import SuperUser as SuperUser
 from api.models import admins as admins
-from api.models.schedule import ScheduleModel as ScheduleModel
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
@@ -35,11 +33,10 @@ if TYPE_CHECKING:
 exe = Blueprint("exe", __name__)
 
 
-@exe.route("/executions", methods=["GET", "POST"])
+@exe.get("/executions")
 @jwt_required
-async def executions() -> Response:
-    """
-    Display a list of executions filtered by search criteria.
+def executions() -> Response:
+    """Display a list of executions filtered by search criteria.
 
     Returns:
         Response: A Quart response rendering the executions page.
@@ -62,7 +59,7 @@ async def executions() -> Response:
 
             if not user.admin:
                 executions = list(
-                    filter(lambda x: x.user.id == current_user, executions)
+                    filter(lambda x: x.user.id == current_user, executions),
                 )
 
         data = [
@@ -81,7 +78,7 @@ async def executions() -> Response:
 
         return jsonify(data=data)
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
 
@@ -89,8 +86,7 @@ async def executions() -> Response:
 @exe.post("/clear_executions")
 @jwt_required
 async def clear_executions() -> Response:
-    """
-    Clear all executions from the database.
+    """Clear all executions from the database.
 
     Returns:
         Response: A Quart response indicating the result of the operation.
@@ -99,11 +95,11 @@ async def clear_executions() -> Response:
     try:
         db: SQLAlchemy = app.extensions["sqlalchemy"]
         db.session.query(Executions).filter(
-            Executions.status == "Finalizado"
+            Executions.status == "Finalizado",
         ).delete()
         db.session.commit()
 
-    except (ValueError, Exception) as e:
+    except ValueError as e:
         app.logger.error("\n".join(format_exception(e)))
         abort(500)
 
