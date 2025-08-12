@@ -36,9 +36,9 @@ def start_worker() -> None:
     worker_name = environ["WORKER_NAME"]
 
     debug = envdot.get("DEBUG", "false").lower() == "true"
-    _pool = "prefork"
+    pool_ = "prefork"
     if debug or platform.system() == "Windows":
-        _pool = "threads"
+        pool_ = "threads"
 
     celery = make_celery()
     worker = Worker(
@@ -47,19 +47,15 @@ def start_worker() -> None:
         task_events=True,
         loglevel="DEBUG",
         concurrency=int(environ.get("CELERY_CONCURRENCY", "16")),
-        pool=_pool,
+        pool=pool_,
     )
     worker = worker
 
     try:
         worker.start()
 
-    except Exception as e:
-        if isinstance(e, KeyboardInterrupt):
-            worker.stop()
-
-        else:
-            tqdm.write("[bold red]Error starting worker.")
+    except KeyboardInterrupt:
+        worker.stop()
 
 
 def start_beat() -> None:

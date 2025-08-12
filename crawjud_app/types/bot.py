@@ -1,6 +1,6 @@
 """TypedDict for bot data."""
 
-from typing import Literal, TypedDict, Union
+from typing import Literal, TypedDict
 
 
 class DictReturnAuth(TypedDict):
@@ -16,7 +16,7 @@ MessageTimeoutAutenticacao = Literal[
     "Tempo de espera excedido para validação de sessão"
 ]
 
-TReturnAuth = Union[DictReturnAuth, MessageTimeoutAutenticacao]
+TReturnAuth = DictReturnAuth | MessageTimeoutAutenticacao
 
 
 class DictFiles(TypedDict):
