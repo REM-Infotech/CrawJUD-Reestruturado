@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import TYPE_CHECKING
 
 from crawjud_app.abstract._master import AbstractClassBot
 
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver
 
-class AuthController[T](AbstractClassBot):  # noqa: B903
+
+class AuthController[T](AbstractClassBot):
     """Controller class for authentication operations."""
+
+    driver: WebDriver
 
     @abstractmethod
     def auth(self, *args: T, **kwargs: T) -> None: ...  # noqa: D102

@@ -28,7 +28,12 @@ class ElawError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorne a representação em string da exceção.
+
+        Returns:
+            str: Representação textual da mensagem de erro.
+
+        """
         return self.message
 
 
@@ -38,7 +43,7 @@ class AdvogadoError(BaseCrawJUDError):
     def __init__(
         self,
         bot_execution_id: str,
-        exception: Exception = None,
+        exception: Exception | None = None,
         message: str = "Erro ao executar operaçao: ",
     ) -> None:
         """Exception para erros de salvamento de Formulários/Arquivos."""
@@ -56,5 +61,10 @@ class AdvogadoError(BaseCrawJUDError):
         super().__init__(message)
 
     def __str__(self) -> str:
-        """Retorna a mensagem."""
+        """Retorne a representação em string da exceção.
+
+        Returns:
+            str: Representação textual da mensagem de erro.
+
+        """
         return self.message

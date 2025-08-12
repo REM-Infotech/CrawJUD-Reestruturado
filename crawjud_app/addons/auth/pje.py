@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud_app.addons.auth import AuthController
+from crawjud_app.common.exceptions.bot import LoginSystemError
 from utils.webdriver import DriverBot
 
 
@@ -29,7 +30,7 @@ class PjeAuth(AuthController):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'button[id="btnSsoPdpj"]',
-                ))
+                )),
             )
             btn_sso.click()
 
@@ -39,7 +40,7 @@ class PjeAuth(AuthController):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     ('div[class="certificado"] > a'),
-                ))
+                )),
             )
             event_cert = btn_certificado.get_attribute("onclick")
             driver.execute_script(event_cert)
@@ -57,8 +58,8 @@ class PjeAuth(AuthController):
                 driver.refresh()
 
             cookies_driver = driver.get_cookies()
-            _har_data = driver.current_HAR
-            entries = list(_har_data.entries)
+            har_data_ = driver.current_HAR
+            entries = list(har_data_.entries)
             entry_proxy = [
                 item
                 for item in entries
@@ -66,59 +67,24 @@ class PjeAuth(AuthController):
                 in item.request.url
             ][-1]
 
-            _cookies = {
+            cookies_ = {
                 str(cookie["name"]): str(cookie["value"]) for cookie in cookies_driver
             }
 
-            _headers = {
+            headers_ = {
                 str(header["name"]): str(header["value"])
                 for header in entry_proxy.request.headers
             }
             driver.quit()
 
-            self._cookies = _cookies
-            self._headers = _headers
+            self._cookies = cookies_
+            self._headers = headers_
             self._base_url = (
                 f"https://pje.trt{self.regiao}.jus.br/pje-consulta-api/api"
             )
 
-            return True
-
-            # self.driver.get(self.elements.url_login)
-
-            # login = self.wait.until(
-            #     ec.presence_of_element_located((
-            #         By.CSS_SELECTOR,
-            #         self.elements.login_input,
-            #     ))
-            # )
-            # password = self.wait.until(
-            #     ec.presence_of_element_located((
-            #         By.CSS_SELECTOR,
-            #         self.elements.password_input,
-            #     ))
-            # )
-            # entrar = self.wait.until(
-            #     ec.presence_of_element_located((
-            #         By.CSS_SELECTOR,
-            #         self.elements.btn_entrar,
-            #     ))
-            # )
-
-            # login.send_keys(self.username)
-            # sleep(0.5)
-            # password.send_keys(self.password)
-            # sleep(0.5)
-            # entrar.click()
-
-            # logado = None
-            # with suppress(TimeoutException):
-            #     logado = WebDriverWait(self.driver, 10).until(
-            #         ec.url_to_be(self.elements.chk_login)
-            #     )
-
-            # return logado is not None
-
-        except Exception:
+        except LoginSystemError:
             self.print_msg("Erro ao realizar autenticação", type_log="error")
             return False
+
+        return True
