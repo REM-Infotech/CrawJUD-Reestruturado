@@ -6,34 +6,33 @@ import io
 import json
 import shutil
 import traceback
-from os import path
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypedDict
 from uuid import uuid4
 
 import aiofiles
 import chardet
-from celery import Celery
 from quart import (
     abort,
     current_app,
     request,
     session,
 )
-from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
+from api.common.exceptions._form import LoadFormError
 from api.interface.formbot import FormDict
 from api.interface.session import SessionDict
-from api.models import BotsCrawJUD
-from api.models.bots import Credentials
 from api.models.users import LicensesUsers
 from utils.storage import Storage
 
 if TYPE_CHECKING:
+    from celery import Celery
     from flask_sqlalchemy import SQLAlchemy
+    from werkzeug.datastructures import MultiDict
 
-
+    from api.models import BotsCrawJUD
+    from api.models.bots import Credentials
 workdir = Path(__file__).cwd()
 
 
@@ -53,15 +52,15 @@ class FormData(TypedDict):  # noqa: D101
         files = await request.files
         data = await cls._form_data()
 
-        _data = {}
+        data_ = {}
 
-        for k, v in list(data.items()):
-            _data.update({k: v})
+        for k, v in data.items():
+            data_.update({k: v})
 
-        for k, v in list(files.items()):
-            _data.update({k: v})
+        for k, v in files.items():
+            data_.update({k: v})
 
-        return cls(**_data)
+        return cls(**data_)
 
 
 class LoadForm:  # noqa: D101
@@ -96,11 +95,12 @@ class LoadForm:  # noqa: D101
 
     async def loadform(  # noqa: D102
         self,
-    ) -> str:
+    ) -> str | None:
+        task_id: str | None = None
         try:
             data = await FormData.constructor()
-            self.bot = await self._query_bot(int(data["bot_id"]))
-            form_data = await self._update_form_data(data)
+            self.bot = self._query_bot(int(data["bot_id"]))
+            form_data = self._update_form_data(data)
             form = await FormDict.constructor(bot=self.bot, data=form_data)
 
             form["email_subject"] = self.sess["current_user"]["email"]
@@ -117,17 +117,20 @@ class LoadForm:  # noqa: D101
                 "storage_folder_name": name_file_config,
             }
 
-            _task = crawjud_app.send_task(
+            task_ = crawjud_app.send_task(
                 f"{self.bot.system}.{self.bot.type}".lower(),
                 kwargs=args_task,
                 countdown=1,
             )
 
-            return _task.task_id
+            task_id = task_.task_id
 
-        except Exception as e:
-            current_app.logger.error("\n".join(traceback.format_exception(e)))
+        except LoadFormError:
+            current_app.logger.error("\n".join(traceback.format_exception()))
             abort(500)
+            return None
+
+        return task_id
 
     def _license_user(self, sess: SessionDict) -> LicensesUsers | None:
         try:
@@ -142,7 +145,7 @@ class LoadForm:  # noqa: D101
         except KeyError:
             abort(401)
 
-    async def _get_annotations(self) -> dict[str, Any]:
+    def _get_annotations(self) -> dict[str, Any]:
         return FormDict.get_annotations(
             self.bot.classification.upper(),
             self.bot.form_cfg,
@@ -161,52 +164,52 @@ class LoadForm:  # noqa: D101
 
         storage = Storage("minio")
         sid = getattr(session, "sid", None)
-        _sid = sid or uuid4().hex
+        sid_ = sid or uuid4().hex
 
-        path_minio = path.join(_sid.upper(), json_file.name)
+        path_minio = str(Path(sid_.upper()).joinpath(json_file.name))
 
         async with aiofiles.open(json_file, "rb") as f:
-            _byte = await f.read()
-            _size = len(_byte)
-            storage.put_object(path_minio, io.BytesIO(_byte), length=_size)
+            byte_ = await f.read()
+            size_ = len(byte_)
+            storage.put_object(path_minio, io.BytesIO(byte_), length=size_)
 
         shutil.rmtree(self.upload_folder)
 
         return name_file_config, json_file.name
 
-    async def _update_form_data(self, _data: FormData) -> None:
+    def _update_form_data(self, _data: FormData) -> dict:
         form_data = {}
 
-        class_items = await self._get_annotations()
-        for item in list(class_items.keys()):
+        class_items = self._get_annotations()
+        for item in class_items:
             val = _data.get(item)
             if val:
                 if item == "creds":
-                    credential = await self._query_credentials(int(val))
-                    form_data.update(await self._format_credential(credential))
+                    credential = self._query_credentials(int(val))
+                    form_data.update(self._format_credential(credential))
                     continue
 
                 form_data.update({item: secure_filename(val)})
 
         return form_data
 
-    async def _query_bot(self, bot_id: int) -> BotsCrawJUD:
+    def _query_bot(self, bot_id: int) -> BotsCrawJUD:
         bot_filter = list(filter(lambda x: x.id == bot_id, self.bots))
         return bot_filter[-1] if len(bot_filter) > 0 else abort(500)
 
-    async def _query_credentials(self, credential_id: int) -> Credentials:
+    def _query_credentials(self, credential_id: int) -> Credentials:
         filtered_creds = list(
             filter(lambda x: x.id == credential_id, self.credentials),
         )
         return filtered_creds[-1] if len(filtered_creds) > 0 else abort(500)
 
-    async def _detect_encoding(self, data: bytes) -> str:
+    def _detect_encoding(self, data: bytes) -> str:
         get_encode = chardet.detect(data)
         encode = get_encode.get("encoding", "utf-8")
 
         return encode or "utf-8"
 
-    async def _format_credential(self, query: Credentials) -> dict[str, str]:
+    def _format_credential(self, query: Credentials) -> dict[str, str]:
         val = {}
         if query.login_method == "pw":
             val = {"username": query.login, "password": query.password}
