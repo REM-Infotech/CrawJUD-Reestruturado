@@ -14,7 +14,7 @@ from pytz import timezone
 from socketio import AsyncClient
 from socketio.exceptions import BadNamespaceError
 
-from celery_app import app
+from crawjud_app import app
 from utils.printlogs._interface import MessageLog
 from utils.printlogs._master import PrintLogs
 

@@ -16,7 +16,7 @@ from quart_socketio import SocketIO
 from quart_socketio.config.python_socketio import AsyncSocketIOConfig
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
-from celery_app import make_celery
+from crawjud_app import make_celery
 
 
 def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
