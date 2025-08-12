@@ -14,7 +14,7 @@ from openpyxl.styles import Font, PatternFill
 from crawjud.addons.make_templates.appends import Listas
 
 if TYPE_CHECKING:
-    from crawjud.types import StrPath
+    from celery_app.types import StrPath
 
 
 class MakeTemplates:

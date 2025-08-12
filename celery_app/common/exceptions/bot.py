@@ -2,7 +2,7 @@
 
 import traceback
 
-from crawjud.common.exceptions import BaseCrawJUDError
+from celery_app.common.exceptions import BaseCrawJUDError
 
 MessageError = "Erro ao executar operaçao: "
 

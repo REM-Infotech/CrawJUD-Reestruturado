@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import traceback
 
-from crawjud.common.exceptions import BaseCrawJUDError
+from celery_app.common.exceptions import BaseCrawJUDError
 
 
 class ElawError(BaseCrawJUDError):

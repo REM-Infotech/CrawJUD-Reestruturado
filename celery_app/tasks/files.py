@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 
 from celery_app._wrapper import shared_task
 from celery_app.custom._task import ContextTask
-from crawjud.types import ReturnFormataTempo
+from celery_app.types import ReturnFormataTempo
 from utils.models.logs import CachedExecution
 from utils.storage import Storage
 

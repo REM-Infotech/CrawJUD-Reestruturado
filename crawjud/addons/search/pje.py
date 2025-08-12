@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING, Literal
 
 from httpx import Client
 
+from celery_app.types import BotData
 from crawjud.addons.search import SearchController
-from crawjud.types import BotData
 from crawjud.types.pje import DictResults
 
 if TYPE_CHECKING:
-    from crawjud.types import BotData
+    from celery_app.types import BotData
 
 # Expressão regular para validar URLs de processos PJe
 pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+(#[a-zA-Z0-9]+)?$"

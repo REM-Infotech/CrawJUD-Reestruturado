@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from celery_app._wrapper import shared_task
 from celery_app.addons.mail import Mail
-from crawjud.types import ReturnFormataTempo
+from celery_app.types import ReturnFormataTempo
 
 if TYPE_CHECKING:
     from celery_app.types import TReturnMessageMail

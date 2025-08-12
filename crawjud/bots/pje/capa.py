@@ -19,7 +19,7 @@ from crawjud.types.pje import DictResults
 from crawjud.wrapper import wrap_cls
 
 if TYPE_CHECKING:
-    from crawjud.types import BotData, T  # noqa: F401
+    from celery_app.types import BotData, T  # noqa: F401
 
 load_dotenv()
 
