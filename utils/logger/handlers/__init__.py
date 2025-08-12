@@ -133,7 +133,7 @@ class ColorFormatter(logging.Formatter):
             str: Registro de log formatado com cores.
 
         """
-        log_fmt = self.FORMATS.get(record.levelno)
+        log_fmt = FORMATS.get(record.levelno)
 
         if hasattr(record, "color_message"):
             record.msg = record.color_message
