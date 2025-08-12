@@ -1,3 +1,10 @@
+"""Decora classes e métodos relacionados ao bot para integração com Socket.IO.
+
+Este módulo fornece:
+- wrap_init: decora o método __init__ para exibir informações de instanciação;
+- wrap_cls: decora classes bot para execução sob controle de conexão Socket.IO.
+"""
+
 from functools import wraps
 from uuid import uuid4
 
@@ -17,6 +24,15 @@ headers = {"Content-Type": "application/json"}
 
 
 def wrap_init[T](cls: type[ClassBot]) -> type[T]:
+    """Decora o método __init__ de uma classe para exibir informações de instancia.
+
+    Args:
+        cls (type[ClassBot]): Classe do bot a ser decorada.
+
+    Returns:
+        type[T]: Classe decorada com __init__ modificado.
+
+    """
     original_init = cls.__init__
 
     @wraps(original_init)
@@ -33,6 +49,15 @@ def wrap_init[T](cls: type[ClassBot]) -> type[T]:
 
 
 def wrap_cls[T](cls: T) -> type[T]:
+    """Decora uma classe bot para executar métodos sob controle de conexão Socket.IO.
+
+    Args:
+        cls (T): Classe do bot a ser decorada.
+
+    Returns:
+        type[T]: Classe decorada com execução controlada via Socket.IO.
+
+    """
     original_cls = cls
 
     @wraps(wrap_cls)
