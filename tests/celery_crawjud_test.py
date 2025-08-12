@@ -1,19 +1,18 @@
-from typing import Generator
-import logging
-import os
-import pytest
 from pathlib import Path
-from crawjud_app import make_celery
+
+import pytest
+
+from crawjud_app import app_celery, make_celery
 from crawjud_app.custom import AsyncCelery
-from crawjud_app.custom import AsyncCelery
-from crawjud_app import app_celery
+
 
 @pytest.fixture
-def temp_log_dir(tmp_path: Path) -> Generator[Path, None, None]:
+def temp_log_dir(tmp_path: Path) -> Path:
     """Crie e forneça um diretório temporário para logs."""
-    log_dir = tmp_path / "logs"
-    log_dir.mkdir()
-    yield log_dir
+    log_dir = tmp_path / "logs"  # pragma: no cover
+    log_dir.mkdir()  # pragma: no cover
+    return log_dir  # pragma: no cover
+
 
 def test_make_celery_retorna_instancia_celery() -> None:
     """Teste se make_celery retorna uma instância de Celery configurada.
@@ -25,6 +24,7 @@ def test_make_celery_retorna_instancia_celery() -> None:
     celery_instance = make_celery()
     assert isinstance(celery_instance, AsyncCelery)
     assert hasattr(celery_instance.conf, "update")
+
 
 def test_app_celery_eh_instancia_de_celery() -> None:
     """Teste se app_celery é uma instância de Celery.
