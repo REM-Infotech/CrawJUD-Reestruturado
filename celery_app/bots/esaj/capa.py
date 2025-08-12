@@ -13,8 +13,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
+from celery_app.abstract.bot import ClassBot
 from celery_app.common.exceptions.bot import ExecutionError
-from crawjud.bot import ClassBot
 
 
 class Capa(ClassBot):

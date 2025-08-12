@@ -17,8 +17,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from urllib3.exceptions import MaxRetryError  # noqa: F401
 
+from celery_app.abstract.bot import ClassBot
 from celery_app.common.exceptions.bot import ExecutionError
-from crawjud.bot import ClassBot
 
 
 class ProcParte(ClassBot):

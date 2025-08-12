@@ -6,7 +6,7 @@ from uuid import uuid4
 from dotenv import dotenv_values
 from socketio import SimpleClient
 
-from crawjud.bot import ClassBot
+from celery_app.abstract.bot import ClassBot
 
 environ = dotenv_values()
 

@@ -19,9 +19,9 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from celery_app._wrapper import shared_task
+from celery_app.abstract.bot import ClassBot
 from celery_app.common.exceptions.bot import ExecutionError
 from celery_app.custom._task import ContextTask
-from crawjud.bot import ClassBot
 
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)

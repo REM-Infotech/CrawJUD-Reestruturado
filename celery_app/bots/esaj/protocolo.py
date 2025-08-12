@@ -20,8 +20,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
+from celery_app.abstract.bot import ClassBot
 from celery_app.common.exceptions.bot import ExecutionError
-from crawjud.bot import ClassBot
 
 
 class Protocolo(ClassBot):
