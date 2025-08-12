@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar  # noqa: F401
 
 from pytz import timezone
 
-from crawjud_app.types.bot import BotData, MessageNadaEncontrado  # noqa: F401
 from crawjud_app.types.pje import Resultados  # noqa: F401
 from utils.models.logs import MessageLogDict
 
@@ -18,6 +17,7 @@ func_dict_check = {
 if TYPE_CHECKING:
     from crawjud_app.addons.auth.controller import AuthController
     from crawjud_app.addons.search.controller import SearchController
+    from crawjud_app.types.bot import BotData
 
 
 class AbstractClassBot[T](ABC):

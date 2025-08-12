@@ -4,24 +4,24 @@ from typing import TYPE_CHECKING
 
 from crawjud_app.abstract._master import AbstractClassBot
 from crawjud_app.custom._canvas import subtask
-from crawjud_app.types._celery._canvas import Signature
-from crawjud_app.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
     from socketio import SimpleClient
 
     from crawjud_app.custom._task import ContextTask
+    from crawjud_app.types._celery._canvas import Signature
+    from crawjud_app.types.bot import BotData, DictFiles
 
 
 class PropertyBot(AbstractClassBot):
     current_task: ContextTask
     sio: SimpleClient
     _stop_bot: bool = False
-    _folder_storage: str = None
-    _xlsx_data: DictFiles = None
-    _downloaded_files: list[DictFiles] = None
-    _bot_data: list[BotData] = None
-    _posicoes_processos: dict[str, int] = None
+    _folder_storage: str | None = None
+    _xlsx_data: DictFiles | None = None
+    _downloaded_files: list[DictFiles] | None = None
+    _bot_data: list[BotData] | None = None
+    _posicoes_processos: dict[str, int] | None = None
 
     @property
     def cookies(self) -> dict[str, str]:
@@ -40,7 +40,7 @@ class PropertyBot(AbstractClassBot):
         return self._posicoes_processos
 
     @property
-    def stop_bot(self) -> bool:  # noqa: D102
+    def stop_bot(self) -> bool:
         return self._stop_bot
 
     @stop_bot.setter

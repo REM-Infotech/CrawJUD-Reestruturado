@@ -37,6 +37,8 @@ class Capa[T](PjeBot):  # noqa: D101
 
     def execution(
         self,
+        name: str | None = None,
+        system: str | None = None,
         current_task: ContextTask = None,
         storage_folder_name: str | None = None,
     ) -> None:

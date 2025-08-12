@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING
 from crawjud_app.abstract._properties import PropertyBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom._canvas import subtask
-from crawjud_app.types.bot import BotData, DictFiles
 
 if TYPE_CHECKING:
+    from crawjud_app.types.bot import BotData, DictFiles
     from utils.storage import Storage
 
 
@@ -21,14 +21,14 @@ class HeadBot[T](PropertyBot):
         )
         xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
         if not xlsx_key:
-            raise ExecutionError("Nenhum arquivo Excel encontrado.")
+            raise ExecutionError(message="Nenhum arquivo Excel encontrado.")
 
         self._xlsx_data = xlsx_key[-1]
         self._downloaded_files = files_b64
 
     def data_frame(self) -> None:
         bot_data: list[BotData] = self.crawjud_dataframe.apply_async(
-            kwargs={"base91_planilha": self.xlsx_data["file_base91str"]}
+            kwargs={"base91_planilha": self.xlsx_data["file_base91str"]},
         ).wait_ready()
 
         self._bot_data = bot_data
