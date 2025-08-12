@@ -17,6 +17,7 @@ Exemplo de aplicação:
 
 - Adicione essa docstring acima de cada função, método ou módulo.
 - Use linguagem clara e técnica.
+- Quando a sugestão envolver alteração de local de pasta, nome de arquivo ou estrutura, gere uma mensagem clara explicando que se trata de uma alteração (e não de uma inserção). Seja direto e técnico na explicação.
 - O texto e a primeira palavra do sumário precisa ser em modo imperativo
 - O texto da docstring precisa ser em português
 - Caso funções/classes não tenham comentários, inclua comentários do tipo "#" para explicar o código sempre.
