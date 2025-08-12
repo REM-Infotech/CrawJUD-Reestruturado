@@ -1,23 +1,14 @@
-"""
-Realiza operações de pré-processamento de imagem e OCR para resolver captchas.
+"""Utilitário para quebra de captcha.
 
-Este módulo contém funções para processar imagens de captchas utilizando OpenCV e extrair texto via Tesseract OCR.
-
-Args:
-    Nenhum argumento de módulo.
-
-Returns:
-    Nenhum valor de retorno.
-
-Raises:
-    Nenhuma exceção específica.
-
+Este módulo inclui:
+- Funções para carregar, reabrir e aplicar filtros em imagens de captcha;
+- Função para extrair texto de captchas via pytesseract;
+- Configuração automática do caminho do Tesseract via variáveis de ambiente.
 """
 
 import base64
 import io
 import re
-from typing import Any
 
 import cv2
 import numpy as np
@@ -32,8 +23,7 @@ custom_config = environ["CONFIG_TESSERACT"]
 
 
 def load_img_blur_apply(im_b: bytes) -> np.ndarray:
-    """
-    Realiza o pré-processamento de uma imagem de captcha aplicando conversão para escala de cinza, binarização e suavização.
+    """Realiza o pré-processamento de uma imagem de captchao.
 
     Args:
         im_b (bytes): Imagem em bytes a ser processada.
@@ -60,9 +50,8 @@ def load_img_blur_apply(im_b: bytes) -> np.ndarray:
     return thresh
 
 
-def reabre_imagem(f: Any) -> np.ndarray:
-    """
-    Reabra e processe uma imagem a partir de um arquivo, aplicando conversão para escala de cinza e binarização.
+def reabre_imagem[T](f: T) -> np.ndarray:
+    """Reabra e processe uma imagem a partir de um arquivo.
 
     Args:
         f (Any): Arquivo de imagem aberto em modo binário.
@@ -84,8 +73,7 @@ def reabre_imagem(f: Any) -> np.ndarray:
 
 
 def captcha_to_image(im_b: str) -> str:
-    """
-    Processa uma imagem de captcha e extraia o texto utilizando OCR.
+    """Processa uma imagem de captcha e extraia o texto utilizando OCR.
 
     Args:
         im_b (str): Imagem em str a ser processada.
@@ -93,15 +81,12 @@ def captcha_to_image(im_b: str) -> str:
     Returns:
         str: Texto extraído da imagem após o processamento.
 
-    Raises:
-        KeyError: Se as variáveis de ambiente necessárias não estiverem definidas.
-        cv2.error: Se ocorrer erro ao processar a imagem.
 
     """
     # Define nome do arquivo para debug do processamento
     _process_dbg = "process_dbg.png"
     im_b = io.BytesIO(
-        base64.b64decode(im_b).replace(" ", "").replace("data:image/png;base64,", "")
+        base64.b64decode(im_b).replace(" ", "").replace("data:image/png;base64,", ""),
     ).read()
     # Pré-processa a imagem
     thresh = load_img_blur_apply(im_b=im_b)
@@ -119,28 +104,18 @@ def captcha_to_image(im_b: str) -> str:
         thresh = cv2.medianBlur(thresh, i)
         thresh = cv2.erode(thresh, item, iterations=1)
 
-    # cv2.imwrite(process_dbg, thresh)
-
     # Sequência de dilatações e erosões para refinar caracteres
     kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
     thresh = cv2.dilate(thresh, kernel1, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_DILATE, (2, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
 
     kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
     thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
-
-    # kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 1))
-    # thresh = cv2.erode(thresh, kernel2, iterations=1)
-    # cv2.imwrite(process_dbg, thresh)
 
     # Aplica OCR usando pytesseract
     text_pytesseract = str(pytesseract.image_to_string(thresh, config=custom_config))
