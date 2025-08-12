@@ -18,8 +18,8 @@ from contextlib import suppress
 from datetime import datetime
 from time import sleep
 from typing import Self
+from zoneinfo import ZoneInfo
 
-from pytz import timezone
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
@@ -804,7 +804,7 @@ class SolPags(ClassBot):
                 tipoCusta = ""  # noqa: N806
                 cod_bars = ""
                 tipoCondenacao = ""  # noqa: N806
-                now = datetime.now(timezone("America/Manaus")).strftime(
+                now = datetime.now(ZoneInfo("America/Manaus")).strftime(
                     "%d-%m-%Y %H.%M.%S",
                 )
                 Name_Comprovante1 = f"COMPROVANTE 1 {self.bot_data.get('NUMERO_PROCESSO')} - {self.pid} - {now}.png"  # noqa: N806

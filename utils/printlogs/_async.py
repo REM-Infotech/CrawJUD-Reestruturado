@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from os import environ
-from typing import Any, Callable, Self
+from typing import TYPE_CHECKING, Any, ClassVar, Self
+from zoneinfo import ZoneInfo
 
-import pytz
-from pytz import timezone
 from socketio import AsyncClient
 from socketio.exceptions import BadNamespaceError
 
@@ -18,26 +16,29 @@ from crawjud_app import app
 from utils.printlogs._interface import MessageLog
 from utils.printlogs._master import PrintLogs
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
 
-class AsyncPrintMessage(PrintLogs):
+
+class AsyncPrintMessage[T](PrintLogs):
     """Classe de gerenciamento de logs CrawJUD."""
 
-    transports = ["websocket"]
-    headers = {"Content-Type": "application/json"}
-    url_server = environ["SOCKETIO_SERVER_URL"]
+    transports: ClassVar[list[str]] = ["websocket"]
+    headers: ClassVar[dict[str, str]] = {"Content-Type": "application/json"}
+    url_server: ClassVar[str] = environ["SOCKETIO_SERVER_URL"]
 
     @property
-    def io(self) -> AsyncClient:  # noqa: D102
+    def io(self) -> AsyncClient:
         return self._sio
 
-    @io.setter
-    def io(self, new_io: AsyncClient) -> None:
-        self._sio = new_io
-
     @classmethod
-    async def constructor(cls, *args: Any, **kwargs: Any) -> Self:
+    async def constructor(cls, kwargs: Mapping[str, T]) -> Self:
         self = cls()
-        for k, v in list(kwargs.items()):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+        self.io = await self.connect()
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
         self.io = await self.connect()
@@ -45,26 +46,18 @@ class AsyncPrintMessage(PrintLogs):
         join_data = {"data": {"room": self.pid}}
         await self.io.emit("join_room", data=join_data, namespace=self.namespace)
 
-        self.start_time = datetime.now(pytz.timezone("America/Manaus"))
+        self.start_time = datetime.now(ZoneInfo("America/Manaus"))
 
         return self
 
-    def on(  # noqa: D102
+    def on(
         self,
         event: str,
-        namespace: str = None,
+        namespace: str | None = None,
     ) -> Callable[..., Any] | None:
-        # def set_handler(handler: Callable[..., Any]) -> Callable[..., Any]:
-        #     if namespace not in self.handlers:
-        #         self.handlers[namespace] = {}
-        #     self.handlers[namespace][event] = handler
-        #     return handler
-
-        # if handler:
-        #     return set_handler
         return self.io.on(event=event, namespace=namespace)
 
-    async def connect(self) -> AsyncClient:  # noqa: D102
+    async def connect(self) -> AsyncClient:
         sio = AsyncClient(reconnection_attempts=20, reconnection_delay=5)
         await sio.connect(
             url=self.url_server,
@@ -84,33 +77,41 @@ class AsyncPrintMessage(PrintLogs):
         for event, handler in handlers.items():
             self.io.on(event, handler, namespace=self.namespace)
 
-    async def __aenter__(self) -> Self:  # noqa: D105
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D105
+    async def __aexit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
         self.io.disconnect()
 
-    async def emit(  # noqa: D102
+    async def emit(
         self,
         event: str,
         data: dict[str, str | dict[str, str | MessageLog]],
-        callback: Callable[..., Any | None] = None,
+        callback: Callable[..., Any | None] | None = None,
     ) -> None:
+        # Armazena tarefas para evitar coleta prematura de lixo
+        if not hasattr(self, "_background_tasks"):
+            self._background_tasks = set()
+
         try:
-            asyncio.create_task(
-                self.io.emit(event, data, self.namespace, callback=callback)
+            task = asyncio.create_task(
+                self.io.emit(event, data, self.namespace, callback=callback),
             )
+            self._background_tasks.add(task)
+            task.add_done_callback(self._background_tasks.discard)
         except BadNamespaceError:
             with suppress(Exception):
                 self.reconnect()
-                asyncio.create_task(
-                    self.io.emit(event, data, self.namespace, callback=callback)
+                task = asyncio.create_task(
+                    self.io.emit(event, data, self.namespace, callback=callback),
                 )
+                self._background_tasks.add(task)
+                task.add_done_callback(self._background_tasks.discard)
 
     async def print_msg(
         self,
         message: str,
-        pid: str = None,
+        pid: str | None = None,
         row: int = 0,
         type_log: str = "log",
         status: str = "Em Execução",
@@ -120,12 +121,12 @@ class AsyncPrintMessage(PrintLogs):
         Uses internal message attributes, logs the formatted string,
         and appends the output to the messages list.
         """
-        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
-        _pid = self.pid if not pid else pid
-        _row = row if row != 0 else self.row
-        prompt = f"[({_pid}, {type_log}, {_row}, {time_exec})> {message}]"
+        time_exec = datetime.now(tz=ZoneInfo("America/Manaus")).strftime("%H:%M:%S")
+        pid_ = pid or self.pid
+        row_ = row if row != 0 else self.row
+        prompt = f"[({pid_}, {type_log}, {row_}, {time_exec})> {message}]"
 
-        data = await self.message_format(_pid, _row, prompt, type_log, status)
+        data = await self.message_format(pid_, row_, prompt, type_log, status)
         self.total = self.total_rows
         self.logger.info(prompt)
 
@@ -142,19 +143,18 @@ class AsyncPrintMessage(PrintLogs):
 
         try:
             self.logger.info(prompt)
-        except Exception as e:
-            self.logger.error(
-                "Erro ao emitir mensagem: Exception %s",
-                "\n".join(traceback.format_exception_only(e)),
+        except Exception:
+            self.logger.exception(
+                "Erro ao emitir mensagem",
             )
 
     async def message_format(
         self,
-        pid: str = None,
+        pid: str | None = None,
         row: int = 0,
-        prompt: str = None,
-        type_log: str = None,
-        status: str = None,
+        prompt: str | None = None,
+        type_log: str | None = None,
+        status: str | None = None,
     ) -> MessageLog:
         total_count = self.total_rows
         remaining = 0

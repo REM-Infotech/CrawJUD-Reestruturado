@@ -1,5 +1,4 @@
-"""
-Defines database models for CrawJUD bots and their execution details.
+"""Defines database models for CrawJUD bots and their execution details.
 
 Provides structures for bot configurations, credentials, and execution logging.
 """
@@ -7,16 +6,15 @@ Provides structures for bot configurations, credentials, and execution logging.
 from collections.abc import Buffer
 from datetime import datetime
 from typing import ClassVar
+from zoneinfo import ZoneInfo
 
-import pytz
 from sqlalchemy.orm.relationships import RelationshipProperty
 
 from api import db
 
 
 class BotsCrawJUD(db.Model):
-    """
-    Represents a CrawJUD bot entity.
+    """Represents a CrawJUD bot entity.
 
     Attributes:
         id (int): Primary key for the bot.
@@ -44,8 +42,7 @@ class BotsCrawJUD(db.Model):
 
 
 class Credentials(db.Model):
-    """
-    Represents stored credentials for a user or system.
+    """Represents stored credentials for a user or system.
 
     Attributes:
         id (int): Primary key for the credential.
@@ -74,13 +71,13 @@ class Credentials(db.Model):
 
     license_id: int = db.Column(db.Integer, db.ForeignKey("licenses_users.id"))
     license_usr = db.relationship(
-        "LicensesUsers", backref=db.backref("credentials", lazy=True)
+        "LicensesUsers",
+        backref=db.backref("credentials", lazy=True),
     )
 
 
 class Executions(db.Model):
-    """
-    Represents bot execution records.
+    """Represents bot execution records.
 
     Attributes:
         pid (str): Process identifier for the execution.
@@ -106,10 +103,12 @@ class Executions(db.Model):
     total_rows: str = db.Column(db.String(length=45))
     url_socket: str = db.Column(db.String(length=64))
     data_execucao: datetime = db.Column(
-        db.DateTime, default=datetime.now(pytz.timezone("America/Manaus"))
+        db.DateTime,
+        default=datetime.now(ZoneInfo("America/Manaus")),
     )
     data_finalizacao: datetime = db.Column(
-        db.DateTime, default=datetime.now(pytz.timezone("America/Manaus"))
+        db.DateTime,
+        default=datetime.now(ZoneInfo("America/Manaus")),
     )
     arquivo_xlsx: str = db.Column(db.String(length=64))
 
@@ -124,13 +123,13 @@ class Executions(db.Model):
 
     license_id: int = db.Column(db.Integer, db.ForeignKey("licenses_users.id"))
     license_usr = db.relationship(
-        "LicensesUsers", backref=db.backref("executions", lazy=True)
+        "LicensesUsers",
+        backref=db.backref("executions", lazy=True),
     )
 
 
 class ThreadBots(db.Model):
-    """
-    Manages thread references linked to bot processes.
+    """Manages thread references linked to bot processes.
 
     Attributes:
         id (int): Primary key for the thread reference.

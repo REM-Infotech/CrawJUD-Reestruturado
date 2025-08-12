@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import bcrypt
-import pytz
 from quart_jwt_extended import get_current_user
 
 from api import db, jwt
@@ -15,9 +15,8 @@ salt = bcrypt.gensalt()
 
 
 @jwt.user_identity_loader
-def user_identity_lookup(*args: str, **kwargs: object) -> int:
-    """
-    Get the user's identity.
+def user_identity_lookup[T](*args: T) -> int:
+    """Get the user's identity.
 
     Returns:
         int: The user's ID.
@@ -30,26 +29,21 @@ def user_identity_lookup(*args: str, **kwargs: object) -> int:
 
 @jwt.token_in_blacklist_loader
 def check_if_token_revoked(jwt_data: dict, *args: str, **kwargs: object) -> bool:
-    """
-    Check if the token is in the blocklist.
+    """Check if the token is in the blocklist.
 
     Returns:
         bool: True if the token is revoked, False otherwise.
 
     """
-    arg = args  # noqa: F841
-    kw = kwargs  # noqa: F841
-
-    jti = jwt_data["jti"]
+    jti = jwt_data["jti"] or kwargs.get("jti") or args[0].get("jti")
     token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
 
     return token is not None
 
 
 @jwt.user_loader_callback_loader
-def user_lookup_callback(*args: str, **kwargs: object) -> Users | None:
-    """
-    Get the user from the JWT data.
+def user_lookup_callback[T](*args: T) -> Users | None:
+    """Get the user from the JWT data.
 
     Returns:
         Users | None: The user object or None if not found.
@@ -73,7 +67,7 @@ class TokenBlocklist(db.Model):
     )
     created_at = db.Column(
         db.DateTime,
-        server_default=datetime.now(pytz.timezone("America/Manaus")).isoformat(),
+        server_default=datetime.now(ZoneInfo("America/Manaus")).isoformat(),
         nullable=False,
     )
 
@@ -97,11 +91,14 @@ class Users(db.Model):
     email: str = db.Column(db.String(length=50), nullable=False, unique=True)
     password: str = db.Column(db.String(length=60), nullable=False)
     login_time = db.Column(
-        db.DateTime, default=datetime.now(pytz.timezone("Etc/GMT+4"))
+        db.DateTime,
+        default=datetime.now(ZoneInfo("America/Manaus")),
     )
     verification_code: str = db.Column(db.String(length=45), unique=True)
     login_id: str = db.Column(
-        db.String(length=64), nullable=False, default=str(uuid4())
+        db.String(length=64),
+        nullable=False,
+        default=str(uuid4()),
     )
     filename: str = db.Column(db.String(length=128))
     blob_doc = db.Column(db.LargeBinary(length=(2**32) - 1))
@@ -110,10 +107,12 @@ class Users(db.Model):
     licenseusr = db.relationship("LicensesUsers", backref="user")
 
     def __init__(
-        self, login: str = None, nome_usuario: str = None, email: str = None
+        self,
+        login: str | None = None,
+        nome_usuario: str | None = None,
+        email: str | None = None,
     ) -> None:
-        """
-        Initialize a new user instance.
+        """Initialize a new user instance.
 
         Args:
             login (str, optional): The user's login name.
@@ -127,8 +126,7 @@ class Users(db.Model):
 
     @property
     def senhacrip(self) -> any:
-        """
-        Get the encrypted password.
+        """Get the encrypted password.
 
         Returns:
             str: The encrypted password.
@@ -138,8 +136,7 @@ class Users(db.Model):
 
     @senhacrip.setter
     def senhacrip(self, senha_texto: str) -> None:
-        """
-        Encrypt and set the user’s password.
+        """Encrypt and set the user password.
 
         Args:
             senha_texto (str): Plain text password.
@@ -148,8 +145,7 @@ class Users(db.Model):
         self.password = bcrypt.hashpw(senha_texto.encode(), salt).decode("utf-8")
 
     def check_password(self, senha_texto_claro: str) -> bool:
-        """
-        Check if the provided password matches the stored encrypted password.
+        """Check if the provided password matches the stored encrypted password.
 
         Args:
             senha_texto_claro (str): Plain text password.
@@ -159,13 +155,13 @@ class Users(db.Model):
 
         """
         return bcrypt.checkpw(
-            senha_texto_claro.encode("utf-8"), self.password.encode("utf-8")
+            senha_texto_claro.encode("utf-8"),
+            self.password.encode("utf-8"),
         )
 
     @property
     def dict_query(self) -> dict[str, str | int]:
-        """
-        Return a dictionary representation of selected user attributes.
+        """Return a dictionary representation of selected user attributes.
 
         Returns:
             dict: Dictionary of user attributes.

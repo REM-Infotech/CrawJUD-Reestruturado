@@ -1,14 +1,17 @@
 """Module for creating XLSX templates from list templates."""
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill
-from pytz import timezone
 from quart import current_app as app
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class MakeModels:
@@ -35,15 +38,17 @@ class MakeModels:
         dir_file = Path(__file__).parent.resolve().joinpath("models")
 
         temp_dir = app.config["TEMP_DIR"]
-        os.makedirs(temp_dir, exist_ok=True)
-        name_file = f"{self.displayname.upper()} - {datetime.now(timezone('Etc/GMT+4')).strftime('%H-%M-%S')}.xlsx"
+        Path(temp_dir).mkdir(parents=True, exist_ok=True)
+        name_file = (
+            f"{self.displayname.upper()} - "
+            f"{datetime.now(ZoneInfo('America/Manaus')).strftime('%H-%M-%S')}.xlsx"
+        )
         itens_append_file = dir_file.joinpath(f"{self.model_name}.json")
         path_template = str(Path(temp_dir).joinpath(name_file))
 
         # Criar um novo workbook e uma planilha
         workbook = openpyxl.Workbook()
-        sheet = workbook.create_sheet("Resultados", 0)
-        sheet = workbook.active
+        sheet: Worksheet = workbook.create_sheet("Resultados", 0)
 
         # Cabeçalhos iniciais
         cabecalhos = ["NUMERO_PROCESSO"]

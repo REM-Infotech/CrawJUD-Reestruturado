@@ -2,48 +2,41 @@
 
 from __future__ import annotations
 
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from os import environ
-from typing import Any, Callable, Self
+from typing import TYPE_CHECKING, Any, Self
+from zoneinfo import ZoneInfo
 
-import pytz
-from pytz import timezone
 from socketio import Client
 from socketio.exceptions import BadNamespaceError
 
 from utils.printlogs._interface import MessageLog
 from utils.printlogs._master import PrintLogs
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-class PrintMessage(PrintLogs):
+
+class PrintMessage[T](PrintLogs):
     """Classe de gerenciamento de logs CrawJUD."""
 
     @property
-    def io(self) -> Client:  # noqa: D102
+    def io(self) -> Client:
         return self._sio
 
     @io.setter
     def io(self, new_io: Client) -> None:
         self._sio = new_io
 
-    def on(  # noqa: D102
+    def on(
         self,
         event: str,
-        namespace: str = None,
+        namespace: str | None = None,
     ) -> Callable[..., Any] | None:
-        # def set_handler(handler: Callable[..., Any]) -> Callable[..., Any]:
-        #     if namespace not in self.handlers:
-        #         self.handlers[namespace] = {}
-        #     self.handlers[namespace][event] = handler
-        #     return handler
-
-        # if handler:
-        #     return set_handler
         return self.io.on(event=event, namespace=namespace)
 
-    def connect(self) -> Client:  # noqa: D102
+    def connect(self) -> Client:
         sio = Client()
         sio.connect(
             url=self.url_server,
@@ -65,9 +58,9 @@ class PrintMessage(PrintLogs):
         for event, handler in handlers.items():
             self.io.on(event, handler, namespace=self.namespace)
 
-    def __init__(self, *args: Any, **kwrgs: Any) -> None:
+    def __init__(self, *args: T, **kwrgs: T) -> None:
         """Inicializa o PrintMessage."""
-        for k, v in list(kwrgs.items()):
+        for k, v in kwrgs.items():
             setattr(self, k, v)
 
         self.url_server = environ["SOCKETIO_SERVER_URL"]
@@ -77,19 +70,19 @@ class PrintMessage(PrintLogs):
         join_data = {"data": {"room": self.pid}}
         self.io.emit("join_room", data=join_data, namespace=self.namespace)
 
-        self.start_time = datetime.now(pytz.timezone("America/Manaus"))
+        self.start_time = datetime.now(ZoneInfo("America/Manaus"))
 
-    def __enter__(self) -> Self:  # noqa: D105
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D105
+    def __exit__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
         self.io.disconnect()
 
-    def emit(  # noqa: D102
+    def emit(
         self,
         event: str,
         data: dict[str, str | dict[str, str | MessageLog]],
-        callback: Callable[..., Any | None] = None,
+        callback: Callable[..., Any | None] | None = None,
     ) -> None:
         try:
             self.io.emit(event, data, self.namespace, callback=callback)
@@ -102,7 +95,7 @@ class PrintMessage(PrintLogs):
     def print_msg(
         self,
         message: str,
-        pid: str = None,
+        pid: str | None = None,
         row: int = 0,
         type_log: str = "log",
         status: str = "Em Execução",
@@ -112,10 +105,10 @@ class PrintMessage(PrintLogs):
         Uses internal message attributes, logs the formatted string,
         and appends the output to the messages list.
         """
-        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
-        _pid = self.pid if not pid else pid
-        _row = row if row != 0 else self.row
-        prompt = f"[({_pid}, {type_log}, {_row}, {time_exec})> {message}]"
+        time_exec = datetime.now(tz=ZoneInfo("America/Manaus")).strftime("%H:%M:%S")
+        pid_ = pid or self.pid
+        row_ = row if row != 0 else self.row
+        prompt = f"[({pid_}, {type_log}, {row_}, {time_exec})> {message}]"
 
         self.total = self.total_rows
 
@@ -123,17 +116,17 @@ class PrintMessage(PrintLogs):
         try:
             total_count = self.total_rows
             remaining = 0
-            if _row > 0:
-                remaining = total_count + 1 - _row
+            if row_ > 0:
+                remaining = total_count + 1 - row_
 
             time_start = self.start_time.strftime("%d/%m/%Y - %H:%M:%S")
             data = MessageLog(
                 message=prompt,
                 type=type_log,
-                pid=_pid,
+                pid=pid_,
                 status=status,
                 start_time=time_start,
-                row=_row,
+                row=row_,
                 total=self.total_rows,
                 errors=0,
                 success=0,
@@ -141,8 +134,7 @@ class PrintMessage(PrintLogs):
             )
             self.emit("log_execution", data={"data": data})
             self.logger.info(prompt)
-        except Exception as e:
-            self.logger.error(
-                "Erro ao emitir mensagem: Exception %s",
-                "\n".join(traceback.format_exception_only(e)),
+        except Exception:
+            self.logger.exception(
+                "Erro ao emitir mensagem.",
             )

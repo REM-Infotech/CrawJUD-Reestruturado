@@ -3,8 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
-
-from pytz import timezone
+from zoneinfo import ZoneInfo
 
 from utils.models.logs import MessageLogDict
 
@@ -75,7 +74,7 @@ class AbstractClassBot[T](ABC):
 
         """
         # Obtém o horário atual formatado
-        time_exec = datetime.now(tz=timezone("America/Manaus")).strftime("%H:%M:%S")
+        time_exec = datetime.now(tz=ZoneInfo("America/Manaus")).strftime("%H:%M:%S")
         # Monta o prompt da mensagem
         prompt = (
             f"[({self._pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
