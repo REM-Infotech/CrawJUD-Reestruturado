@@ -8,7 +8,6 @@ from contextlib import suppress
 from datetime import datetime, timedelta
 from time import sleep
 
-from crawjud.bots.pje.resources._varas_dict import varas as varas_pje
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -20,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as ec
 
 from celery_app._wrapper import shared_task
 from celery_app.abstract.bot import ClassBot
+from celery_app.bots.pje.resources._varas_dict import varas as varas_pje
 from celery_app.common.exceptions.bot import ExecutionError
 from celery_app.custom._task import ContextTask
 

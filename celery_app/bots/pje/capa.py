@@ -8,14 +8,14 @@ from datetime import datetime
 from threading import Semaphore  # noqa: F401
 from typing import TYPE_CHECKING
 
-from crawjud.bots.pje._controler import PjeBot
 from dotenv import load_dotenv
 from httpx import Client
 
 from celery_app._wrapper import shared_task
+from celery_app.bots.pje._controler import PjeBot
+from celery_app.bots.resources.formatadores import formata_tempo
 from celery_app.custom._task import ContextTask
 from celery_app.types.pje import DictResults
-from crawjud.bots.resources.formatadores import formata_tempo
 from crawjud.wrapper import wrap_cls
 
 if TYPE_CHECKING:

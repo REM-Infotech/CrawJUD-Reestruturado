@@ -9,12 +9,12 @@ import logging
 import traceback
 from typing import Callable, Union
 
+from celery_app.bots.projudi.capa import Capa
+from celery_app.bots.projudi.intimacoes import Intimacoes
+from celery_app.bots.projudi.movimentacao import Movimentacao
+from celery_app.bots.projudi.proc_parte import ProcParte as Proc_parte
+from celery_app.bots.projudi.protocolo import Protocolo
 from celery_app.common.exceptions import StartError
-from crawjud.bots.projudi.capa import Capa
-from crawjud.bots.projudi.intimacoes import Intimacoes
-from crawjud.bots.projudi.movimentacao import Movimentacao
-from crawjud.bots.projudi.proc_parte import ProcParte as Proc_parte
-from crawjud.bots.projudi.protocolo import Protocolo
 
 ClassBots = Union[Capa, Intimacoes, Movimentacao, Proc_parte, Protocolo]
 logger_ = logging.getLogger(__name__)

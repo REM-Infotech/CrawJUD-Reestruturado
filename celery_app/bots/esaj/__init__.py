@@ -8,12 +8,12 @@ import logging
 import traceback
 from typing import Callable, Union
 
+from celery_app.bots.esaj.busca_pags import BuscaPags as Busca_pags
+from celery_app.bots.esaj.capa import Capa
+from celery_app.bots.esaj.emissao import Emissao
+from celery_app.bots.esaj.movimentacao import Movimentacao
+from celery_app.bots.esaj.protocolo import Protocolo
 from celery_app.common.exceptions.bot import StartError
-from crawjud.bots.esaj.busca_pags import BuscaPags as Busca_pags
-from crawjud.bots.esaj.capa import Capa
-from crawjud.bots.esaj.emissao import Emissao
-from crawjud.bots.esaj.movimentacao import Movimentacao
-from crawjud.bots.esaj.protocolo import Protocolo
 
 logger_ = logging.getLogger(__name__)
 
