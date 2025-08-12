@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Generic, TypeVar
 
 import base91
-from crawjud import work_dir
 from werkzeug.utils import secure_filename
 
 from crawjud_app.decorators import shared_task
@@ -21,6 +20,8 @@ from crawjud_app.types.bot import DictFiles
 from utils.storage import Storage
 
 T = TypeVar("AnyValue", bound=ReturnFormataTempo)
+
+work_dir = Path(__file__).cwd()
 
 
 @shared_task(name="crawjud.download_files")
