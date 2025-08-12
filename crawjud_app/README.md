@@ -1,4 +1,4 @@
-# Documentação da Pasta celery_app
+# Documentação da Pasta crawjud_app
 
 ## Sumário
 
@@ -32,7 +32,7 @@ Esta pasta contém os módulos e recursos relacionados à configuração e execu
 Para executar o worker do Celery:
 
 ```bash
-celery -A celery_app.main worker --loglevel=info
+celery -A crawjud_app.main worker --loglevel=info
 ```
 
 Consulte a documentação de cada subpasta para detalhes específicos.

@@ -130,7 +130,7 @@ class AsyncPrintMessage(PrintLogs):
         self.logger.info(prompt)
 
         app.send_task(
-            "celery_app.tasks.bot.print_message",
+            "crawjud_app.tasks.bot.print_message",
             kwargs={
                 "data": data,
                 "server": self.url_server,

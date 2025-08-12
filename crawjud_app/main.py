@@ -66,7 +66,7 @@ def start_beat() -> None:
     """Start the Celery beat scheduler."""
     celery = make_celery()
     environ.update({"APPLICATION_APP": "beat"})
-    scheduler = "celery_app.addons.scheduler:DatabaseScheduler"
+    scheduler = "crawjud_app.addons.scheduler:DatabaseScheduler"
     beat = Beat(
         app=celery,
         scheduler=scheduler,

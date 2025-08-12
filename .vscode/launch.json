@@ -50,14 +50,14 @@
       "name": "Debug Celery-Worker CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "celery_app",
+      "module": "crawjud_app",
       "args": ["--type", "worker"]
     },
     {
       "name": "Debug Celery-Beat CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "celery_app",
+      "module": "crawjud_app",
       "args": ["--type", "beat"]
     }
   ],

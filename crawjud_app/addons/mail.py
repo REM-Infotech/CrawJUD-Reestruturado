@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 from dotenv import load_dotenv
 
 from crawjud_app.exceptions.mail import MailError
-from crawjud_app.types import StrPath
 
 if TYPE_CHECKING:
     from typing import Self
@@ -53,7 +52,7 @@ class Mail:
     def __init__(self, **kwrgs: str | bool | int) -> None:
         """Inicializes the Mail class with the given keyword arguments."""
         if len(kwrgs) == 0:
-            load_dotenv(str(Path(__file__).cwd().joinpath("celery_app", ".env")))
+            load_dotenv(str(Path(__file__).cwd().joinpath("crawjud_app", ".env")))
             kwrgs = environ
 
         self.MAIL_SERVER = kwrgs["MAIL_SERVER"]
@@ -86,11 +85,24 @@ class Mail:
         """
         return self._message
 
-    def attach_file(self, file_path: StrPath) -> None:
-        """Attach file to message body."""
+    def attach_file(self, file_path: str | Path) -> None:
+        """Anexa um arquivo ao corpo da mensagem.
+
+        Args:
+            file_path (str | Path): Caminho do arquivo a ser anexado.
+
+        Returns:
+            None: Não retorna valor.
+
+        Raises:
+            FileNotFoundError: Caso o arquivo não seja encontrado.
+
+        """
+        # Resolve o caminho do arquivo e obtém o nome
         file = Path(file_path).resolve()
         filename = file.name
         mime_type, _ = mimetypes.guess_type(file)
+        # Cria a parte MIME do arquivo
         part = MIMEBase(mime_type.split("/")[0], mime_type.split("/")[1])
         with file.open("rb") as file_:
             part.set_payload(file_.read())

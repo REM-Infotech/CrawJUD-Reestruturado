@@ -14,13 +14,13 @@
 
   - [`api/`](./api/__init__.py): Pasta de controle da API
   - [`socketio/`](./socketio/__init__.py): Pasta de controle do Socket.IO server
-  - [`celery/`](./celery_app/__init__.py): Pasta de controle do gerenciador de tasks
+  - [`celery/`](./crawjud_app/__init__.py): Pasta de controle do gerenciador de tasks
 
-    - [`tasks/`](./celery_app/tasks/__init__.py): Pasta de tarefas do Celery App
-    - [`exceptions/`](./celery_app/exceptions/__init__.py): Tratamento de Erros do Celery App
-    - [`resources/`](./celery_app/resources/__init__.py): Recursos do Celery App
-    - [`addons/`](./celery_app/addons/__init__.py): Utilitários do Celery App
-    - [`types/`](./celery_app/types/__init__.py): Tipos do Celery App
+    - [`tasks/`](./crawjud_app/tasks/__init__.py): Pasta de tarefas do Celery App
+    - [`exceptions/`](./crawjud_app/exceptions/__init__.py): Tratamento de Erros do Celery App
+    - [`resources/`](./crawjud_app/resources/__init__.py): Recursos do Celery App
+    - [`addons/`](./crawjud_app/addons/__init__.py): Utilitários do Celery App
+    - [`types/`](./crawjud_app/types/__init__.py): Tipos do Celery App
 
   - `crawjud/`: Pasta de scripts de automação
     - `bots/`: Códigos dos bots

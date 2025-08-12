@@ -7,7 +7,7 @@ CrawJUD é uma plataforma modular para automação de rotinas jurídicas, integr
 ## Principais Módulos
 
 - **api/**: Backend principal (autenticação, rotas REST, dashboards, banco de dados)
-- **celery_app/**: Gerenciador de tarefas assíncronas (jobs, agendamento, integrações externas)
+- **crawjud_app/**: Gerenciador de tarefas assíncronas (jobs, agendamento, integrações externas)
 - **crawjud/**: Núcleo dos robôs de automação (bots, utilitários, exceções)
 - **socketio_server/**: Comunicação em tempo real via Socket.IO (logs, notificações)
 - **tests/**: Testes automatizados
@@ -18,10 +18,10 @@ CrawJUD é uma plataforma modular para automação de rotinas jurídicas, integr
    ```powershell
    poetry install
    ```
-2. Configure as variáveis de ambiente conforme os arquivos `ENVIRONMENT-VARIABLES.md` em `crawjud/` e `celery_app/resources/`.
+2. Configure as variáveis de ambiente conforme os arquivos `ENVIRONMENT-VARIABLES.md` em `crawjud/` e `crawjud_app/resources/`.
 3. Inicie os serviços desejados:
    - API: `python -m api`
-   - Celery: `python -m celery_app`
+   - Celery: `python -m crawjud_app`
    - Robôs: `python -m crawjud --bot_system <sistema> --bot_name <bot> --path_config <config>`
    - SocketIO: `python -m socketio_server`
 

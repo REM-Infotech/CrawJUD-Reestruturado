@@ -10,4 +10,4 @@ Esta pasta contém as definições das tarefas assíncronas que serão executada
 
 ## Exemplo de Uso
 
-Implemente novas tarefas criando funções decoradas com `@celery_app.task` e importe-as conforme necessário.
+Implemente novas tarefas criando funções decoradas com `@crawjud_app.task` e importe-as conforme necessário.

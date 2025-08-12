@@ -36,7 +36,7 @@ def config_loggers(
 
     """
     logger_name = environ.get(
-        "WORKER_NAME", str(re.sub(r"[^a-zA-Z0-9]", "_", "celery_app"))
+        "WORKER_NAME", str(re.sub(r"[^a-zA-Z0-9]", "_", "crawjud_app"))
     )
     log_path = Path().cwd().joinpath("temp", "logs")
     log_path.mkdir(exist_ok=True, parents=True)
@@ -70,7 +70,7 @@ def make_celery() -> Celery:
         Celery: Configured Celery instance.
 
     """
-    importlib.import_module("celery_app.tasks", __package__)
+    importlib.import_module("crawjud_app.tasks", __package__)
 
     config = Config.load_config()
 

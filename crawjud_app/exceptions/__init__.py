@@ -1,4 +1,4 @@
-"""Módulo de tratamento de exceptions do celery_app."""
+"""Módulo de tratamento de exceptions do crawjud_app."""
 
 from __future__ import annotations
 
