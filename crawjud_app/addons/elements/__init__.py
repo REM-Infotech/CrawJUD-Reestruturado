@@ -23,7 +23,7 @@ from typing import AnyStr, Self
 from crawjud_app.addons.elements.elaw import ELAW_AME
 from crawjud_app.addons.elements.esaj import ESAJ_AM
 from crawjud_app.addons.elements.pje import PJE_AM
-from crawjud_app.addons.elements.projudi import PROJUDI_AM
+from crawjud_app.addons.elements.projudi import ProjudiAm
 
 
 class ElementsBot:
@@ -33,12 +33,12 @@ class ElementsBot:
     and state_or_client attributes.
 
     Attributes:
-        elements_bot (Optional[Union[ELAW_AME, ESAJ_AM, PJE_AM, PROJUDI_AM]):
+        elements_bot (Optional[Union[ELAW_AME, ESAJ_AM, PJE_AM, ProjudiAm]):
             The current elements bot instance.
 
     """
 
-    elements_bot: ELAW_AME | ESAJ_AM | PJE_AM | PROJUDI_AM
+    elements_bot: ELAW_AME | ESAJ_AM | PJE_AM | ProjudiAm
     system: str
     state_or_client: str
 
@@ -61,11 +61,11 @@ class ElementsBot:
         return cls(**kwrgs)
 
     @property
-    def bot_elements(self) -> ELAW_AME | ESAJ_AM | PJE_AM | PROJUDI_AM:
+    def bot_elements(self) -> ELAW_AME | ESAJ_AM | PJE_AM | ProjudiAm:
         """Retrieve the configured elements bot instance.
 
         Returns:
-            Union[ELAW_AME, ESAJ_AM, PJE_AM, PROJUDI_AM]: The active elements bot.
+            Union[ELAW_AME, ESAJ_AM, PJE_AM, ProjudiAm]: The active elements bot.
 
         """
         return self.elements_bot

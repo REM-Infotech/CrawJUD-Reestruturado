@@ -7,6 +7,6 @@ from crawjud_app.addons.elements.calculadoras import TJDFT
 from crawjud_app.addons.elements.elaw import ELAW_AME
 from crawjud_app.addons.elements.esaj import ESAJ_AM
 from crawjud_app.addons.elements.pje import PJE_AM
-from crawjud_app.addons.elements.projudi import PROJUDI_AM
+from crawjud_app.addons.elements.projudi import ProjudiAm
 
-type_elements = Union[ESAJ_AM, PROJUDI_AM, ELAW_AME, CAIXA_AM, PJE_AM, TJDFT]
+type_elements = Union[ESAJ_AM, ProjudiAm, ELAW_AME, CAIXA_AM, PJE_AM, TJDFT]

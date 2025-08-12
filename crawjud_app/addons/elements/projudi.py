@@ -1,16 +1,16 @@
-"""Update PROJUDI_AM module docstring to Google style.
+"""Update ProjudiAm module docstring to Google style.
 
-This module provides selectors for the PROJUDI_AM system.
+This module provides selectors for the ProjudiAm system.
 """
 
 from crawjud_app.addons.elements.properties import Configuracao
 
 
-class PROJUDI_AM(Configuracao):  # noqa: N801
-    """Configure PROJUDI_AM selectors and properties.
+class ProjudiAm(Configuracao):  # noqa: N801
+    """Configure ProjudiAm selectors and properties.
 
     This class inherits from Configuracao and defines the CSS selectors and URL
-    properties for automating the PROJUDI_AM system.
+    properties for automating the ProjudiAm system.
 
     Class Attributes:
         url_login (str): Login URL.
