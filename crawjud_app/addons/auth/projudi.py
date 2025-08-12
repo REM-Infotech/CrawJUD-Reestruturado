@@ -34,12 +34,14 @@ class ProjudiAuth(AuthController):
             username.send_keys(self.username)
 
             password = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.campo_passwd
+                By.CSS_SELECTOR,
+                self.elements.campo_2_login,
             )
             password.send_keys(self.password)
 
             entrar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_entrar
+                By.CSS_SELECTOR,
+                self.elements.btn_entrar,
             )
             entrar.click()
 
@@ -56,7 +58,7 @@ class ProjudiAuth(AuthController):
             alert = None
             with suppress(TimeoutException):
                 alert: type[Alert] = WebDriverWait(self.driver, 5).until(
-                    ec.alert_is_present()
+                    ec.alert_is_present(),
                 )
 
             if alert:

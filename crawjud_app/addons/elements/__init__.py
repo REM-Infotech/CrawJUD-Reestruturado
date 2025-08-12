@@ -20,25 +20,19 @@ from __future__ import annotations
 from importlib import import_module
 from typing import AnyStr, Self
 
-from crawjud_app.addons.elements.elaw import ELAW_AME
-from crawjud_app.addons.elements.esaj import ESAJ_AM
-from crawjud_app.addons.elements.pje import PJE_AM
-from crawjud_app.addons.elements.projudi import ProjudiAm
 
-
-class ElementsBot:
+class ElementsBot[T]:
     """Configure and retrieve elements bot instance.
 
     Inherit from CrawJUD and dynamically set the elements bot based on system
     and state_or_client attributes.
 
     Attributes:
-        elements_bot (Optional[Union[ELAW_AME, ESAJ_AM, PJE_AM, ProjudiAm]):
+        elements_bot (Optional[Union[ElawAme, EsajAm, PJeAm, ProjudiAm]):
             The current elements bot instance.
 
     """
 
-    elements_bot: ELAW_AME | ESAJ_AM | PJE_AM | ProjudiAm
     system: str
     state_or_client: str
 
@@ -47,7 +41,7 @@ class ElementsBot:
 
         Call the parent initialization if required.
         """
-        for k, v in list(kwargs.items()):
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
         self.elements_bot = getattr(
@@ -57,15 +51,23 @@ class ElementsBot:
 
     @classmethod
     def config(cls, **kwrgs: AnyStr) -> Self:
-        """Configure the elements_bot attribute."""
+        """Configure o atributo elements_bot.
+
+        Args:
+            **kwrgs (str): Parâmetros para configuração do bot.
+
+        Returns:
+            Self: Instância configurada de ElementsBot.
+
+        """
         return cls(**kwrgs)
 
     @property
-    def bot_elements(self) -> ELAW_AME | ESAJ_AM | PJE_AM | ProjudiAm:
+    def bot_elements(self) -> T:
         """Retrieve the configured elements bot instance.
 
         Returns:
-            Union[ELAW_AME, ESAJ_AM, PJE_AM, ProjudiAm]: The active elements bot.
+            Union[ElawAme, EsajAm, PJeAm, ProjudiAm]: The active elements bot.
 
         """
         return self.elements_bot

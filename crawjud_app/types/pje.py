@@ -1,5 +1,4 @@
-"""
-Modulo de tipos de dados utilizados para representar informações estruturadas de dados do sistema PJe.
+"""Modulo de tipos utilizados para representar estrutura de dados do PJe.
 
 Inclui definições de TypedDict para endereços, papéis, representantes, polos,
 assuntos, anexos, itens de processo, expedientes e processos, facilitando a
@@ -9,23 +8,20 @@ tipagem e documentação dos dados manipulados pelos bots.
 
 from __future__ import annotations
 
-from typing import List, Optional, TypedDict
-
-from crawjud_app.types.bot import BotData
+from typing import TYPE_CHECKING, TypedDict
 
 TDict = dict[str, str]
 
+if TYPE_CHECKING:
+    from crawjud_app.types.bot import BotData
+
 
 class DictSeparaRegiao(TypedDict):
-    """
-    Define o dicionário que separa regiões e posições de processos.
+    """Define o dicionário que separa regiões e posições de processos.
 
     Args:
         regioes (dict[str, list[BotData]]): Dicionário de regiões e bots.
         position_process (dict[str, int]): Posição dos processos por região.
-
-    Returns:
-        DictSeparaRegiao: Dicionário com informações de separação de regiões.
 
     """
 
@@ -34,8 +30,7 @@ class DictSeparaRegiao(TypedDict):
 
 
 class Resultados(TypedDict):
-    """
-    Define o retorno do desafio contendo headers, cookies e resultados.
+    """Define o retorno do desafio contendo headers, cookies e resultados.
 
     Args:
         headers (TDict): Cabeçalhos da requisição.
@@ -53,8 +48,7 @@ class Resultados(TypedDict):
 
 
 class DictDesafio(TypedDict):
-    """
-    Define o desafio do PJe, contendo a imagem codificada e o token do desafio.
+    """Define o desafio do PJe, contendo a imagem codificada e o token do desafio.
 
     Args:
         imagem (Base64Str): Imagem do desafio em base64.
@@ -70,8 +64,7 @@ class DictDesafio(TypedDict):
 
 
 class DictResults(TypedDict):
-    """
-    Define os resultados retornados pelo desafio do PJe.
+    """Define os resultados retornados pelo desafio do PJe.
 
     Args:
         id_processo (str): Identificador do processo.
@@ -91,8 +84,7 @@ class DictResults(TypedDict):
 
 
 class Processo(TypedDict):
-    """
-    Define o processo judicial e seus principais campos.
+    """Define o processo judicial e seus principais campos.
 
     Args:
         id (int): Identificador do processo.
@@ -125,17 +117,16 @@ class Processo(TypedDict):
     distribuidoEm: str
     autuadoEm: str
     valorDaCausa: float
-    poloAtivo: List[Polo]
-    poloPassivo: List[Polo]
-    assuntos: List[Assunto]
-    itensProcesso: List[ItemProcesso]
-    expedientes: List[Expediente]
+    poloAtivo: list[Polo]
+    poloPassivo: list[Polo]
+    assuntos: list[Assunto]
+    itensProcesso: list[ItemProcesso]
+    expedientes: list[Expediente]
     juizoDigital: bool
 
 
 class Endereco(TypedDict, total=False):
-    """
-    Definição do endereço utilizado nos dados do processo judicial.
+    """Definição do endereço utilizado nos dados do processo judicial.
 
     Args:
         logradouro (str): Nome da rua ou avenida.
@@ -162,8 +153,7 @@ class Endereco(TypedDict, total=False):
 
 
 class Papel(TypedDict):
-    """
-    Define o papel de uma pessoa no processo.
+    """Define o papel de uma pessoa no processo.
 
     Args:
         id (int): Identificador do papel.
@@ -181,8 +171,7 @@ class Papel(TypedDict):
 
 
 class Representante(TypedDict):
-    """
-    Define o representante de uma parte no processo.
+    """Define o representante de uma parte no processo.
 
     Args:
         id (int): Identificador do representante.
@@ -213,13 +202,12 @@ class Representante(TypedDict):
     endereco: Endereco
     polo: str
     situacao: str
-    papeis: List[Papel]
+    papeis: list[Papel]
     utilizaLoginSenha: bool
 
 
 class Polo(TypedDict):
-    """
-    Define uma parte (polo) do processo judicial.
+    """Define uma parte (polo) do processo judicial.
 
     Args:
         id (int): Identificador do polo.
@@ -250,13 +238,12 @@ class Polo(TypedDict):
     endereco: Endereco
     polo: str
     situacao: str
-    representantes: List[Representante]
+    representantes: list[Representante]
     utilizaLoginSenha: bool
 
 
 class Assunto(TypedDict):
-    """
-    Define o assunto do processo judicial.
+    """Define o assunto do processo judicial.
 
     Args:
         id (int): Identificador do assunto.
@@ -276,8 +263,7 @@ class Assunto(TypedDict):
 
 
 class Anexo(TypedDict):
-    """
-    Define um anexo relacionado ao processo.
+    """Define um anexo relacionado ao processo.
 
     Args:
         id (int): Identificador do anexo.
@@ -312,15 +298,14 @@ class Anexo(TypedDict):
     usuarioPerito: bool
     documento: bool
     publico: bool
-    poloUsuario: Optional[str]
+    poloUsuario: str | None
     usuarioJuntada: str
     usuarioCriador: int
-    instancia: Optional[str]
+    instancia: str | None
 
 
 class ItemProcesso(TypedDict, total=False):
-    """
-    Define um item do processo judicial.
+    """Define um item do processo judicial.
 
     Args:
         id (int): Identificador do item.
@@ -361,13 +346,12 @@ class ItemProcesso(TypedDict, total=False):
     usuarioJuntada: str
     usuarioCriador: int
     instancia: str
-    anexos: List[Anexo]
+    anexos: list[Anexo]
     poloUsuario: str
 
 
 class Expediente(TypedDict, total=False):
-    """
-    Define um expediente do processo judicial.
+    """Define um expediente do processo judicial.
 
     Args:
         destinatario (str): Destinatário do expediente.

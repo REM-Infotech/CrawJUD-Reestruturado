@@ -25,7 +25,7 @@ class EsajAuth(AuthController):
     def auth(self) -> bool:  # noqa: D102
         try:
             loginuser = "".join(
-                filter(lambda x: x not in string.punctuation, self.username)
+                filter(lambda x: x not in string.punctuation, self.username),
             )
             passuser = self.password
             if self.login_method == "cert":
@@ -43,7 +43,8 @@ class EsajAuth(AuthController):
 
                 try:
                     item = next(
-                        filter(lambda item: loginuser in item.text, loginopt), None
+                        filter(lambda item: loginuser in item.text, loginopt),
+                        None,
                     )
 
                 except Exception as e:
@@ -53,18 +54,21 @@ class EsajAuth(AuthController):
                         sencert = item.get_attribute("value")
                         select = Select(
                             self.driver.find_element(
-                                By.CSS_SELECTOR, 'select[id="certificados"]'
-                            )
+                                By.CSS_SELECTOR,
+                                'select[id="certificados"]',
+                            ),
                         )
                         select.select_by_value(sencert)
                         entrar = self.driver.find_element(
-                            By.XPATH, '//*[@id="submitCertificado"]'
+                            By.XPATH,
+                            '//*[@id="submitCertificado"]',
                         )
                         entrar.click()
                         sleep(2)
 
                         user_accept_cert_dir = os.path.join(
-                            self.path_accepted, "ACCEPTED"
+                            self.path_accepted,
+                            "ACCEPTED",
                         )
                         if not os.path.exists(user_accept_cert_dir):
                             self.accept_cert(user_accept_cert_dir)
@@ -95,18 +99,21 @@ class EsajAuth(AuthController):
             sleep(3)
 
             userlogin = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.campo_username
+                By.CSS_SELECTOR,
+                self.elements.campo_username,
             )
             userlogin.click()
             userlogin.send_keys(loginuser)
 
             userpass = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.campo_passwd
+                By.CSS_SELECTOR,
+                self.elements.campo_2_login,
             )
             userpass.click()
             userpass.send_keys(passuser)
             entrar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_entrar
+                By.CSS_SELECTOR,
+                self.elements.btn_entrar,
             )
             entrar.click()
             sleep(2)
@@ -169,7 +176,7 @@ class EsajAuth(AuthController):
     #         except Exception as e:
     #             raise e
 
-    #         with open(Path(accepted_dir), "w", encoding="utf-8") as f:  # noqa: FURB103
+    #         with open(Path(accepted_dir), "w", encoding="utf-8") as f:
     #             f.write("")
 
     #     except Exception as e:
