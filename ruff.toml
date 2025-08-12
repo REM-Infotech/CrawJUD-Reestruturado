@@ -84,6 +84,8 @@ extend-select = [
     "RUF",
 ]
 
+ignore = ["ARG002"]
+
 # ignore = [
 #     "A005",
 #     "E501",
