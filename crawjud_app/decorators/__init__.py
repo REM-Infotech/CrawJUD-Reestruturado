@@ -22,7 +22,7 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-def shared_task(*args: Any, **kwargs: Any) -> Task | Callable[..., Task]:
+def shared_task[T](*args: T, **kwargs: T) -> Task | Callable[..., Task]:
     """Crie um decorador do shared_task com Type Annotations.
 
     Args:
@@ -48,9 +48,9 @@ def shared_task(*args: Any, **kwargs: Any) -> Task | Callable[..., Task]:
     return decorator
 
 
-def classmethod_shared_task(
-    *args: Any,
-    **kwargs: Any,
+def classmethod_shared_task[T](
+    *args: T,
+    **kwargs: T,
 ) -> Task | Callable[P, Task]:
     """Crie um decorador para permitir o uso de shared_task em métodos de classe.
 

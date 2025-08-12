@@ -1,10 +1,9 @@
-# noqa: D100
 from functools import wraps
-from typing import Any
 from uuid import uuid4
 
 from dotenv import dotenv_values
 from socketio import SimpleClient
+from tqdm import tqdm
 
 from crawjud_app.abstract.bot import ClassBot
 
@@ -17,7 +16,7 @@ transports = ["websocket"]
 headers = {"Content-Type": "application/json"}
 
 
-def wrap_init[T](cls: type[ClassBot]) -> type[T]:  # noqa: D103
+def wrap_init[T](cls: type[ClassBot]) -> type[T]:
     original_init = cls.__init__
 
     @wraps(original_init)
@@ -26,19 +25,19 @@ def wrap_init[T](cls: type[ClassBot]) -> type[T]:  # noqa: D103
         *args: T,
         **kwargs: T,
     ) -> None:
-        print(f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}")
+        tqdm.write(f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}")
         original_init(self)
 
     cls.__init__ = novo_init
     return cls
 
 
-def wrap_cls[T](cls: T) -> type[T]:  # noqa: D103
+def wrap_cls[T](cls: T) -> type[T]:
     original_cls = cls
 
     @wraps(wrap_cls)
     def novo_init(
-        self: T = None,
+        self: T | None = None,
         *args: T,
         **kwargs: T,
     ) -> None:
@@ -46,7 +45,8 @@ def wrap_cls[T](cls: T) -> type[T]:  # noqa: D103
             reconnection_attempts=20,
             reconnection_delay=5,
         ) as sio:
-            # Conecta ao servidor Socket.IO com o URL, namespace e cabeçalhos especificados.
+            # Conecta ao servidor Socket.IO com o URL,
+            # namespace e cabeçalhos especificados.
             kw = kwargs.copy()
             sio.connect(
                 url=server,
@@ -60,12 +60,18 @@ def wrap_cls[T](cls: T) -> type[T]:  # noqa: D103
                 data={"data": {"room": kwargs.get("pid", uuid4().hex)}},
             )
 
-            def stop_bot(*args: Any, **kwargs: Any) -> None:
+            def stop_bot[T](*args: T, **kwargs: T) -> None:
+                tqdm.write(str(args))
+                tqdm.write(str(kwargs))
                 cls.stop_bot = True
 
             sio.client.on("stopbot", namespace=namespace, handler=stop_bot)
 
             cls.sio = sio
+
+            if self:
+                return cls.execution(self, *args, **kwargs)
+
             return cls.execution(*args, **kw)
 
     return novo_init
