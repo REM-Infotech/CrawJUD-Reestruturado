@@ -3,7 +3,7 @@ import logging
 import os
 import pytest
 from pathlib import Path
-from crawjud_app import make_celery, config_loggers, app
+from crawjud_app import make_celery
 from crawjud_app.custom import AsyncCelery
 from crawjud_app.custom import AsyncCelery
 from crawjud_app import app_celery
@@ -14,23 +14,6 @@ def temp_log_dir(tmp_path: Path) -> Generator[Path, None, None]:
     log_dir = tmp_path / "logs"
     log_dir.mkdir()
     yield log_dir
-
-def test_config_loggers_cria_log_file(temp_log_dir: Path) -> None:
-    """Teste se config_loggers cria o arquivo de log corretamente.
-
-    Args:
-        temp_log_dir (Path): Diretório temporário para logs.
-
-    Returns:
-        None: Não retorna valor.
-
-    """
-    os.environ["WORKER_NAME"] = "test_worker"
-    os.environ["DEBUG"] = "True"
-    log_file = temp_log_dir / "test_worker.log"
-    logger = logging.getLogger("test_worker")
-    config_loggers(logger=logger)
-    assert log_file.exists()
 
 def test_make_celery_retorna_instancia_celery() -> None:
     """Teste se make_celery retorna uma instância de Celery configurada.

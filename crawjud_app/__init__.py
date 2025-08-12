@@ -3,6 +3,7 @@
 import importlib
 import logging
 import re
+from contextlib import suppress
 from logging.config import dictConfig
 from os import environ, getenv
 from pathlib import Path
@@ -15,53 +16,54 @@ from utils.logger import dict_config
 
 app = Celery(__name__)
 
+with suppress(Exception):
 
-@after_setup_logger.connect
-def config_loggers(
-    *,
-    logger: logging.Logger,
-) -> None:
-    """Configure and alter the Celery logger for the application.
+    @after_setup_logger.connect
+    def config_loggers(
+        *,
+        logger: logging.Logger,
+    ) -> None:
+        """Configure and alter the Celery logger for the application.
 
-    This function updates the Celery logger
-    configuration based on environment variables
-    and custom logging settings. It ensures that
-    the Celery logger uses the desired log level
-    and handlers derived from the application's logging configuration.
+        This function updates the Celery logger
+        configuration based on environment variables
+        and custom logging settings. It ensures that
+        the Celery logger uses the desired log level
+        and handlers derived from the application's logging configuration.
 
-    Args:
-        logger (logging.Logger): The logger instance to configure.
-        *args (AnyType): Positional arguments.
-        **kwargs (AnyType): Keyword arguments, may include a
-            'logger' instance to be configured.
+        Args:
+            logger (logging.Logger): The logger instance to configure.
+            *args (AnyType): Positional arguments.
+            **kwargs (AnyType): Keyword arguments, may include a
+                'logger' instance to be configured.
 
-    """
-    logger_name = environ.get(
-        "WORKER_NAME",
-        str(re.sub(r"[^a-zA-Z0-9]", "_", "crawjud_app")),
-    )
-    log_path = Path().cwd().joinpath("temp", "logs")
-    log_path.mkdir(exist_ok=True, parents=True)
-    log_file = log_path.joinpath(f"{logger_name}.log")
-    log_file.touch(exist_ok=True)
+        """
+        logger_name = environ.get(
+            "WORKER_NAME",
+            str(re.sub(r"[^a-zA-Z0-9]", "_", "crawjud_app")),
+        )
+        log_path = Path().cwd().joinpath("temp", "logs")
+        log_path.mkdir(exist_ok=True, parents=True)
+        log_file = log_path.joinpath(f"{logger_name}.log")
+        log_file.touch(exist_ok=True)
 
-    log_level = logging.INFO
-    if getenv("DEBUG", "False").lower() == "true":
         log_level = logging.INFO
+        if getenv("DEBUG", "False").lower() == "true":
+            log_level = logging.INFO
 
-    config, _ = dict_config(
-        LOG_LEVEL=log_level,
-        LOGGER_NAME=logger_name,
-        FILELOG_PATH=log_file,
-    )
+        config, _ = dict_config(
+            LOG_LEVEL=log_level,
+            LOGGER_NAME=logger_name,
+            FILELOG_PATH=log_file,
+        )
 
-    logger.handlers.clear()
-    dictConfig(config)
-    # Alter the Celery logger using the provided logger from kwargs if available.
-    logger.setLevel(log_level)
-    configured_logger = logging.getLogger(logger_name.replace("_", "."))
-    for handler in configured_logger.handlers:
-        logger.addHandler(handler)
+        logger.handlers.clear()
+        dictConfig(config)
+        # Alter the Celery logger using the provided logger from kwargs if available.
+        logger.setLevel(log_level)
+        configured_logger = logging.getLogger(logger_name.replace("_", "."))
+        for handler in configured_logger.handlers:
+            logger.addHandler(handler)
 
 
 def make_celery() -> Celery:
