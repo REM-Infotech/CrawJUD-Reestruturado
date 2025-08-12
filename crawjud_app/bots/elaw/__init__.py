@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 import traceback
-from typing import Callable, Union
+from typing import TYPE_CHECKING
 
 from crawjud_app.bots.elaw.andamentos import Andamentos
 from crawjud_app.bots.elaw.cadastro import Cadastro
@@ -27,12 +27,42 @@ from crawjud_app.bots.elaw.provisao import Provisao
 from crawjud_app.bots.elaw.sol_pags import SolPags as Sol_pags
 from crawjud_app.common.exceptions.bot import StartError
 
-logger_ = logging.getLogger(__name__)
-ClassBots = Union[
-    Andamentos, Cadastro, Complement, Download, Prazos, Provisao, Sol_pags
-]
 
-__all__ = [Andamentos, Cadastro, Complement, Download, Prazos, Provisao, Sol_pags]
+class BotNotFoundError(AttributeError):
+    """Exceção para indicar que o robô especificado não foi encontrado.
+
+    Args:
+        message (str): Mensagem de erro.
+
+    Returns:
+        None
+
+    Raises:
+        AttributeError: Sempre que o robô não for localizado.
+
+    """
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+logger_ = logging.getLogger(__name__)
+ClassBots = (
+    Andamentos | Cadastro | Complement | Download | Prazos | Provisao | Sol_pags
+)
+
+__all__ = [
+    "Andamentos",
+    "Cadastro",
+    "Complement",
+    "Download",
+    "Prazos",
+    "Provisao",
+    "Sol_pags",
+]
 
 
 class Elaw:
@@ -61,6 +91,9 @@ class Elaw:
             typebot (str): The type of bot (e.g., capa).
             logger (logging.Logger, optional): The logger instance.
 
+        Raises:
+            StartError: If the bot fails to start.
+
         """
         try:
             display_name = kwargs.get("display_name")
@@ -79,9 +112,9 @@ class Elaw:
             self.bot_call.initialize(*args, **kwargs).execution()
 
         except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
+            self.logger.exception("Failed to start bot")
             err = traceback.format_exc()
-            logger.exception(err)
+            self.logger.exception(err)
             raise StartError(traceback.format_exc()) from e
 
     @property
@@ -94,12 +127,12 @@ class Elaw:
             any: An instance of the specified bot.
 
         Raises:
-            AttributeError: If the specified bot type is not found.
+            BotNotFoundError: If the specified bot type is not found.
 
         """
         bot_call: Callable[[], None] = globals().get(self.typebot_.capitalize())
 
         if not bot_call:
-            raise AttributeError("Robô não encontrado!!")
+            raise BotNotFoundError(message="Robô não encontrado!!")
 
         return bot_call

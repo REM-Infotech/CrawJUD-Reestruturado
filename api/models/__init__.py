@@ -15,17 +15,17 @@ from api.models.secondaries import admins, execution_bots
 from api.models.users import LicensesUsers, SuperUser, Users
 
 __all__ = [
-    admins,
-    execution_bots,
-    Users,
-    LicensesUsers,
-    SuperUser,
-    BotsCrawJUD,
-    Credentials,
-    Executions,
-    ScheduleModel,
-    CrontabModel,
-    ThreadBots,
+    "BotsCrawJUD",
+    "Credentials",
+    "CrontabModel",
+    "Executions",
+    "LicensesUsers",
+    "ScheduleModel",
+    "SuperUser",
+    "ThreadBots",
+    "Users",
+    "admins",
+    "execution_bots",
 ]
 
 environ = dotenv_values()
@@ -63,7 +63,7 @@ async def init_database() -> None:
             name_client = env["ROOT_CLIENT"]
             cpf_cnpj_client = env["ROOT_CPF_CNPJ_CLIENT"]
             license_user = LicensesUsers.query.filter(
-                LicensesUsers.name_client == name_client
+                LicensesUsers.name_client == name_client,
             ).first()
 
             if not license_user:

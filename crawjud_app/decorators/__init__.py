@@ -1,11 +1,11 @@
-"""
-Fornece decoradores para tarefas compartilhadas do Celery e métodos de classe.
+"""Fornece decoradores para tarefas compartilhadas do Celery e métodos de classe.
 
 Este módulo contém decoradores tipados para facilitar o uso do Celery
 em funções e métodos de classe, garantindo integração com type annotations.
 """
 
-from typing import Any, AnyStr, Callable, ParamSpec, TypeVar
+from collections.abc import Callable
+from typing import Any, AnyStr, ParamSpec, TypeVar
 
 from celery import shared_task as share
 
@@ -22,9 +22,8 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-def shared_task(*args: Any, **kwargs: Any) -> Task | Callable[..., Task]:  # noqa: D103
-    """
-    Crie um decorador do shared_task com Type Annotations.
+def shared_task(*args: Any, **kwargs: Any) -> Task | Callable[..., Task]:
+    """Crie um decorador do shared_task com Type Annotations.
 
     Args:
         *args: Argumentos posicionais para o shared_task.
@@ -53,8 +52,7 @@ def classmethod_shared_task(
     *args: Any,
     **kwargs: Any,
 ) -> Task | Callable[P, Task]:
-    """
-    Crie um decorador para permitir o uso de shared_task em métodos de classe.
+    """Crie um decorador para permitir o uso de shared_task em métodos de classe.
 
     Args:
         *args: Argumentos posicionais para o shared_task.
@@ -80,8 +78,8 @@ def classmethod_shared_task(
 
 
 __all__ = [
-    "shared_task",
     "classmethod_shared_task",
+    "shared_task",
     "wrap_cls",
     "wrap_init",
 ]

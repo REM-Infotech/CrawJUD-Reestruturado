@@ -3,9 +3,7 @@
 This module exposes all available namespaces for direct import.
 """
 
-from typing import AnyStr
-
-from quart import current_app, request, websocket
+from quart import request, websocket
 from quart_socketio import Namespace, SocketIO
 
 from api.namespaces.bots import BotsNamespace
