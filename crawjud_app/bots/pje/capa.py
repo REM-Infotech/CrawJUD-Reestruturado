@@ -12,13 +12,14 @@ import traceback
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from threading import Semaphore
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from dotenv import load_dotenv
 from httpx import Client
 
 from crawjud_app.bots.pje._controler import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
+from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom._task import ContextTask
 from crawjud_app.decorators import shared_task, wrap_cls
 
@@ -33,7 +34,7 @@ load_dotenv()
 @shared_task(name="pje.capa", bind=True, base=ContextTask)
 @wrap_cls
 class Capa[T](PjeBot):  # noqa: D101
-    tasks_queue_processos: list[Future] = []
+    tasks_queue_processos: ClassVar[list[Future]] = []
 
     def execution(
         self,
@@ -45,6 +46,8 @@ class Capa[T](PjeBot):  # noqa: D101
         """Executa o fluxo principal de processamento da capa dos processos PJE.
 
         Args:
+            name (str | None): Nome do bot.
+            system (str | None): Sistema do bot.
             current_task (ContextTask): Tarefa atual do Celery.
             storage_folder_name (str): Nome da pasta de armazenamento.
             *args (T): Argumentos variáveis.
@@ -81,7 +84,7 @@ class Capa[T](PjeBot):  # noqa: D101
                                 cookies=self.cookies,
                             )
 
-                    except Exception as e:
+                    except (ExecutionError, Exception) as e:
                         self.print_msg(
                             message="\n".join(traceback.format_exception(e)),
                             type_log="error",
@@ -122,59 +125,61 @@ class Capa[T](PjeBot):  # noqa: D101
 
         list_tasks: list[Future] = []
 
-        with cl as client:
-            with ThreadPoolExecutor(max_workers=4) as pool:
-                for item in data:
-                    try:
-                        # Atualiza dados do item para processamento
-                        row = self.posicoes_processos[item["NUMERO_PROCESSO"]]
-                        resultado: DictResults = self.buscar_processo(
-                            data=item,
-                            row=row,
-                            client=client,
-                        )
+        with cl as client, ThreadPoolExecutor(max_workers=4) as pool:
+            for item in data:
+                try:
+                    # Atualiza dados do item para processamento
+                    row = self.posicoes_processos[item["NUMERO_PROCESSO"]]
+                    resultado: DictResults = self.buscar_processo(
+                        data=item,
+                        row=row,
+                        client=client,
+                    )
 
-                        if resultado:
-                            data_request = resultado.get("data_request")
-                            if data_request:
-                                # Salva dados em cache
-                                self.save_success_cache(
-                                    data={
-                                        "pid": self.pid,
-                                        "data": data_request,
-                                        "processo": item["NUMERO_PROCESSO"],
-                                    },
-                                )
+                    if resultado:
+                        data_request = resultado.get("data_request")
+                        if data_request:
+                            # Salva dados em cache
+                            self.save_success_cache(
+                                data={
+                                    "pid": self.pid,
+                                    "data": data_request,
+                                    "processo": item["NUMERO_PROCESSO"],
+                                },
+                            )
 
-                                list_tasks.append(
-                                    pool.submit(
-                                        self.copia_integral,
-                                        row=row,
-                                        data=item,
-                                        client=client,
-                                        semaforo=semaforo_file,
-                                        id_processo=resultado["id_processo"],
-                                        captchatoken=resultado["captchatoken"],
-                                    ),
-                                )
-
-                                message = f"Informações do processo {item['NUMERO_PROCESSO']} salvas com sucesso!"
-                                self.print_msg(
-                                    message=message,
+                            list_tasks.append(
+                                pool.submit(
+                                    self.copia_integral,
                                     row=row,
-                                    type_log="success",
-                                )
+                                    data=item,
+                                    client=client,
+                                    semaforo=semaforo_file,
+                                    id_processo=resultado["id_processo"],
+                                    captchatoken=resultado["captchatoken"],
+                                ),
+                            )
 
-                    except Exception:
-                        self.print_msg(
-                            message="Erro ao buscar processo",
-                            row=row,
-                            type_log="error",
-                        )
+                            message = (
+                                f"Informações do processo "
+                                f"{item['NUMERO_PROCESSO']} salvas com sucesso!"
+                            )
+                            self.print_msg(
+                                message=message,
+                                row=row,
+                                type_log="success",
+                            )
 
-                for future in list_tasks:
-                    with suppress(Exception):
-                        future.result()
+                except (ExecutionError, Exception):
+                    self.print_msg(
+                        message="Erro ao buscar processo",
+                        row=row,
+                        type_log="error",
+                    )
+
+            for future in list_tasks:
+                with suppress(Exception):
+                    future.result()
 
     def copia_integral(  # noqa: D417
         self,
@@ -228,7 +233,7 @@ class Capa[T](PjeBot):  # noqa: D101
                 if len(pdf_content) > 0:
                     self.save_file_downloaded(file_name, response=response, data=data)
 
-            except Exception:
+            except (ExecutionError, Exception):
                 msg = "Erro ao baixar arquivo"
 
                 self.print_msg(message=msg, row=row, type_log="error")

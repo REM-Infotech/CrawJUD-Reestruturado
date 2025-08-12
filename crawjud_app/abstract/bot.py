@@ -18,9 +18,6 @@ environ = dotenv_values()
 
 
 class ClassBot[T](HeadBot):  # noqa:  D101
-    def __init__(self) -> None:  # noqa: D107
-        print("ok")
-
     @abstractmethod
     def execution(self) -> None: ...  # noqa: D102
 
@@ -29,48 +26,81 @@ class ClassBot[T](HeadBot):  # noqa:  D101
         data: dict[str, str],
         cities_amazonas: dict[str, AnyStr],
     ) -> dict[str, str]:
-        """Format a legal case dictionary according to pre-defined rules.
+        """Formata um dicionário de processo jurídico conforme regras pré-definidas.
 
         Args:
-            data (dict[str, str]): The raw data dictionary.
-            cities_amazonas: Dicionario com as cidades do estado do Amazonas.
+            data (dict[str, str]): Dicionário de dados brutos.
+            cities_amazonas (dict[str, AnyStr]): Dicionário das cidades do Amazonas.
 
         Returns:
-            dict[str, str]: The data formatted with proper types and values.
+            (dict[str, str]): Dados formatados com tipos e valores adequados.
 
-        Rules:
-            - If the key is "TIPO_EMPRESA" and its value is "RÉU", update "TIPO_PARTE_CONTRARIA" to "Autor".
-            - If the key is "COMARCA", update "CAPITAL_INTERIOR" based on the value using the cities_Amazonas method.
-            - If the key is "DATA_LIMITE" and "DATA_INICIO" is not present, set "DATA_INICIO" to the value of "DATA_LIMITE".
-            - If the value is an integer or float, format it to two decimal places and replace the decimal point with a clcomma.
-            - If the key is "CNPJ_FAVORECIDO" and its value is empty, set it to "04.812.509/0001-90".
+        Examples:
+            - Remove chaves com valores vazios ou None.
+            - Atualiza "TIPO_PARTE_CONTRARIA" se "TIPO_EMPRESA" for "RÉU".
+            - Atualiza "CAPITAL_INTERIOR" conforme "COMARCA".
+            - Define "DATA_INICIO" se ausente e "DATA_LIMITE" presente.
+            - Formata valores numéricos para duas casas decimais.
+            - Define "CNPJ_FAVORECIDO" padrão se vazio.
 
-        """  # noqa: E501
-        data_listed = list(data.items())
-        for key, value in data_listed:
-            if isinstance(value, str):
-                if not value.strip():
-                    data.pop(key)
+        """
+        # Remove chaves com valores vazios ou None
+        self._remove_empty_keys(data)
 
-            elif value is None:
-                data.pop(key)
+        # Atualiza "TIPO_PARTE_CONTRARIA" se necessário
+        self._update_tipo_parte_contraria(data)
 
-            if key.upper() == "TIPO_EMPRESA":
-                data["TIPO_PARTE_CONTRARIA"] = "Autor"
-                if value.upper() == "RÉU":
-                    data["TIPO_PARTE_CONTRARIA"] = "Autor"
+        # Atualiza "CAPITAL_INTERIOR" conforme "COMARCA"
+        self._update_capital_interior(data, cities_amazonas)
 
-            elif key.upper() == "COMARCA":
-                set_locale = cities_amazonas.get(value, "Outro Estado")
-                data["CAPITAL_INTERIOR"] = set_locale
+        # Define "DATA_INICIO" se ausente e "DATA_LIMITE" presente
+        self._set_data_inicio(data)
 
-            elif key == "DATA_LIMITE" and not data.get("DATA_INICIO"):
-                data["DATA_INICIO"] = value
+        # Formata valores numéricos
+        self._format_numeric_values(data)
 
-            elif isinstance(value, (int, float)):
-                data[key] = f"{value:.2f}".replace(".", ",")
-
-            elif key == "CNPJ_FAVORECIDO" and not value:
-                data["CNPJ_FAVORECIDO"] = "04.812.509/0001-90"
+        # Define "CNPJ_FAVORECIDO" padrão se vazio
+        self._set_default_cnpj(data)
 
         return data
+
+    def _remove_empty_keys(self, data: dict[str, str]) -> None:
+        """Remove chaves com valores vazios ou None."""
+        for key in list(data.keys()):
+            value = data[key]
+            if (isinstance(value, str) and not value.strip()) or value is None:
+                data.pop(key)
+
+    def _update_tipo_parte_contraria(self, data: dict[str, str]) -> None:
+        """Atualiza 'TIPO_PARTE_CONTRARIA' se 'TIPO_EMPRESA' for 'RÉU'."""
+        tipo_empresa = data.get("TIPO_EMPRESA", "").upper()
+        if tipo_empresa == "RÉU":
+            data["TIPO_PARTE_CONTRARIA"] = "Autor"
+
+    def _update_capital_interior(
+        self,
+        data: dict[str, str],
+        cities_amazonas: dict[str, AnyStr],
+    ) -> None:
+        """Atualiza 'CAPITAL_INTERIOR' conforme 'COMARCA'."""
+        comarca = data.get("COMARCA")
+        if comarca:
+            set_locale = cities_amazonas.get(comarca, "Outro Estado")
+            data["CAPITAL_INTERIOR"] = set_locale
+
+    def _set_data_inicio(self, data: dict[str, str]) -> None:
+        """Define 'DATA_INICIO' se ausente e 'DATA_LIMITE' presente."""
+        if "DATA_LIMITE" in data and not data.get("DATA_INICIO"):
+            data["DATA_INICIO"] = data["DATA_LIMITE"]
+
+    def _format_numeric_values(self, data: dict[str, str]) -> None:
+        """Formata valores numéricos para duas casas decimais."""
+        loop_data = data.items()
+        for key, value in list(loop_data):
+            if isinstance(value, (int, float)):
+                data[key] = f"{value:.2f}".replace(".", ",")
+
+    def _set_default_cnpj(self, data: dict[str, str]) -> None:
+        """Define 'CNPJ_FAVORECIDO' padrão se vazio."""
+        if not data.get("CNPJ_FAVORECIDO"):
+            data["CNPJ_FAVORECIDO"] = "04.812.509/0001-90"
