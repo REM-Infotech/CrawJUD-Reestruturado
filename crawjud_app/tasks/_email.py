@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from crawjud_app._wrapper import shared_task
 from crawjud_app.addons.mail import Mail
+from crawjud_app.decorators import shared_task
 from crawjud_app.types import ReturnFormataTempo
 
 if TYPE_CHECKING:

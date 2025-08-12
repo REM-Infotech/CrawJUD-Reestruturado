@@ -26,8 +26,8 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from dotenv import dotenv_values
 
-from crawjud_app._wrapper import shared_task
 from crawjud_app.custom._task import ContextTask
+from crawjud_app.decorators import shared_task
 
 if TYPE_CHECKING:
     pass

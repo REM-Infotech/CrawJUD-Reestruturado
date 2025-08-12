@@ -12,10 +12,10 @@ from pathlib import Path
 from typing import Generic, TypeVar
 
 import base91
+from crawjud import work_dir
 from werkzeug.utils import secure_filename
 
-from crawjud import work_dir
-from crawjud_app._wrapper import shared_task
+from crawjud_app.decorators import shared_task
 from crawjud_app.types import ReturnFormataTempo
 from crawjud_app.types.bot import DictFiles
 from utils.storage import Storage

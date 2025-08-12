@@ -9,7 +9,7 @@ from datetime import datetime
 import base91
 import pandas as pd
 
-from crawjud_app._wrapper import shared_task
+from crawjud_app.decorators import shared_task
 from crawjud_app.types.bot import BotData
 
 

@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 import pandas as pd
 from werkzeug.utils import secure_filename
 
-from crawjud_app._wrapper import shared_task
 from crawjud_app.custom._task import ContextTask
+from crawjud_app.decorators import shared_task
 from crawjud_app.types import ReturnFormataTempo
 from utils.models.logs import CachedExecution
 from utils.storage import Storage
