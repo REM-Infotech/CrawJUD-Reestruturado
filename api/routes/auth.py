@@ -77,7 +77,7 @@ class LoginForm:
     remember_me: bool
 
 
-@auth.route("/login", methods=["GET", "POST", "OPTIONS"])
+@auth.post("/login")
 async def login() -> Response:
     """Authenticate the user and start a session.
 
