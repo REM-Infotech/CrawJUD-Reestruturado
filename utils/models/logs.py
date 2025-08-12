@@ -34,7 +34,7 @@ from typing import (
 
 from redis_om import Field, HashModel, JsonModel, NotFoundError
 
-from crawjud.types.pje import Processo
+from celery_app.types.pje import Processo
 from utils.interfaces import ItemMessageList
 
 description_message = (
