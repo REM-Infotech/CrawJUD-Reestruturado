@@ -4,7 +4,7 @@ import re
 from importlib import import_module
 from pathlib import Path
 
-import quart_flask_patch
+import quart_flask_patch as quart_patch
 import socketio
 from dotenv import dotenv_values
 from flask_session import Session
@@ -14,12 +14,15 @@ from quart_cors import cors
 from quart_jwt_extended import JWTManager
 from quart_socketio import SocketIO
 from quart_socketio.config.python_socketio import AsyncSocketIOConfig
+from tqdm import tqdm
 
 from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 from crawjud_app import make_celery
 
 
-def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002, D103
+def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002
+    tqdm.write("CORS allowed origins check:", args)
+
     return True
 
 
@@ -94,7 +97,8 @@ async def database_start(app: Quart) -> None:
     """
     from api.models import init_database
 
-    await init_database()
+    async with app.app_context():
+        await init_database()
 
 
 async def register_routes(app: Quart) -> None:
@@ -124,9 +128,9 @@ async def register_routes(app: Quart) -> None:
     from api.routes.dashboard import dash
     from api.routes.execution import exe
 
-    listBlueprints = [bot, auth, exe, dash, cred, admin]  # noqa: N806
+    list_blueprints = [bot, auth, exe, dash, cred, admin]
 
-    for bp in listBlueprints:
+    for bp in list_blueprints:
         app.register_blueprint(bp)
 
 
@@ -135,9 +139,6 @@ async def init_extensions(app: Quart) -> None:
 
     Args:
         app (Quart): The Quart application instance
-
-    Returns:
-        AsyncServer: The SocketIO server instance
 
     """
     db.init_app(app)
@@ -148,3 +149,6 @@ async def init_extensions(app: Quart) -> None:
 
     async with app.app_context():
         await database_start(app)
+
+
+__all__ = ["quart_patch"]
