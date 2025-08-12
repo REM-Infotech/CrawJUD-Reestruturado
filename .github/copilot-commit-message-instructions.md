@@ -18,3 +18,5 @@ Certifique-se de que a configuração github.copilot.enableCommitMessageSuggesti
 Recomenda-se também sugerir o uso de emojis no início do título do commit, conforme o tipo de alteração, como por exemplo: ✨ para nova feature, 🐛 para correção de bug, 🔧 para ajustes de configuração, entre outros.
 
 Os commits precisam ser em português, mas o type e o scope ficam em inglês
+
+Quando a sugestão envolver alteração de local de pasta, nome de arquivo ou estrutura, gere uma mensagem clara explicando que se trata de uma alteração (e não de uma inserção). Seja direto e técnico na explicação.

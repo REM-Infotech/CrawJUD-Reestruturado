@@ -84,7 +84,7 @@ extend-select = [
     "RUF",
 ]
 
-ignore = ["ARG002"]
+ignore = ["ARG002", "FBT003"]
 
 # ignore = [
 #     "A005",
