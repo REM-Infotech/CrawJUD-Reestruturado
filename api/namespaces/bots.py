@@ -3,12 +3,12 @@
 from quart_socketio import Namespace
 
 from api import db
+from api.decorators.api import verify_jwt_websocket
 from api.interface.credentials import (
     CredendialDictSelect,
 )
 from api.models.bots import BotsCrawJUD, Credentials
 from api.types import ASyncServerType
-from api.wrapper import verify_jwt_websocket
 
 
 class BotsNamespace(Namespace):
@@ -38,10 +38,18 @@ class BotsNamespace(Namespace):
         # Optionally, log the disconnection
 
     @verify_jwt_websocket
-    async def on_bots_list(self) -> None:
-        """Handle request for the list of bots.
+    async def on_bots_list(self) -> list:
+        """Retorne uma lista de bots cadastrados no sistema.
 
-        This method can be used to send the list of bots to the client.
+        Args:
+            Nenhum.
+
+        Returns:
+            list: Lista de dicionários contendo dados dos bots.
+
+        Raises:
+            Nenhuma exceção explícita.
+
         """
         # Example: send a list of bots to all connected clients
 
@@ -56,7 +64,7 @@ class BotsNamespace(Namespace):
         for bot in db.session.query(BotsCrawJUD).all():
             bot_data = {
                 k: decode_str(v)
-                for k, v in list(bot.__dict__.items())
+                for k, v in bot.__dict__.items()
                 if not k.startswith("_")
             }
             bots.append(bot_data)
@@ -64,7 +72,22 @@ class BotsNamespace(Namespace):
         return bots
 
     @verify_jwt_websocket
-    async def on_bot_credentials_select(self) -> None:  # noqa: D102
+    async def on_bot_credentials_select(
+        self,
+    ) -> dict[str, list[CredendialDictSelect]]:
+        """Retorne um dicionário de listas de credenciais disponíveis por sistema.
+
+        Args:
+            Nenhum.
+
+        Returns:
+            dict[str, list[CredendialDictSelect]]: Dicionário onde a chave é o nome
+            do sistema e o valor é uma lista de opções de credenciais.
+
+        Raises:
+            Nenhuma exceção explícita.
+
+        """
         query = db.session.query(Credentials).all()
 
         # Inicializa o dicionário de credenciais com opções padrão para cada sistema
@@ -72,8 +95,10 @@ class BotsNamespace(Namespace):
         credentials = {
             sistema: [
                 CredendialDictSelect(
-                    value=None, text="Selecione uma Credencial", disabled=True
-                )
+                    value=None,
+                    text="Selecione uma Credencial",
+                    disabled=True,
+                ),
             ]
             for sistema in sistemas
         }
@@ -83,7 +108,7 @@ class BotsNamespace(Namespace):
             sistema = item.system.lower()
             if sistema in credentials:
                 credentials[sistema].append(
-                    CredendialDictSelect(value=item.id, text=item.nome_credencial)
+                    CredendialDictSelect(value=item.id, text=item.nome_credencial),
                 )
 
         return credentials

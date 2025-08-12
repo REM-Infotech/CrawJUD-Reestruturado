@@ -15,10 +15,10 @@ from quart_jwt_extended import jwt_required
 from werkzeug.exceptions import HTTPException
 
 from api.addons.make_models import MakeModels as MakeModels
+from api.decorators.api import crossdomain
 from api.routes.bot.botlaunch_methods import (
     LoadForm,
 )
-from api.wrapper import crossdomain
 
 bot = Blueprint("bot", __name__, url_prefix="/bot")
 
@@ -32,7 +32,7 @@ async def start_bot() -> None:  # noqa: D103
 
         return await make_response(jsonify(message="Execução iniciada!", pid=pid))
 
-    except Exception as e:
+    except HTTPException as e:
         current_app.logger.error("\n".join(traceback.format_exception(e)))
         return await make_response(jsonify(error="erro"), 500)
 
