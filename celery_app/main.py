@@ -1,6 +1,7 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
 import argparse
+import platform
 from contextlib import suppress
 from multiprocessing import Process  # noqa: F401
 from os import environ
@@ -36,7 +37,7 @@ def start_worker() -> None:
 
     debug = envdot.get("DEBUG", "false").lower() == "true"
     _pool = "prefork"
-    if debug:
+    if debug or platform.system() == "Windows":
         _pool = "threads"
 
     celery = make_celery()
