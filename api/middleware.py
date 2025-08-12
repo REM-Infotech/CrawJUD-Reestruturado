@@ -20,8 +20,18 @@ class ProxyFixMiddleware:  # noqa: D101
         self.mode = mode
         self.trusted_hops = trusted_hops
 
-    async def __call__(self, scope: Scope, receive: Callable, send: Callable) -> None:  # noqa: D102
-        # Keep the `or` instead of `in {'http' …}` to allow type narrowing
+    async def __call__(self, scope: Scope, receive: Callable, send: Callable) -> None:
+        """Processa o escopo ASGI, ajustando cabeçalhos e informações do cliente.
+
+        Args:
+            scope (Scope): Escopo da requisição ASGI.
+            receive (Callable): Função para receber eventos ASGI.
+            send (Callable): Função para enviar eventos ASGI.
+
+
+
+        """
+        # Verifica se o tipo de escopo é http ou websocket
         host: str | None = None
         if scope["type"] == "http" or scope["type"] == "websocket":
             scope = deepcopy(scope)
@@ -29,34 +39,32 @@ class ProxyFixMiddleware:  # noqa: D101
             client: str | None = None
             scheme: str | None = None
 
-            if (
-                self.mode == "modern"
-                and (
-                    value := _get_trusted_value(
-                        b"forwarded", headers, self.trusted_hops
-                    )
+            if self.mode == "modern":
+                value = _get_trusted_value(
+                    b"forwarded",
+                    headers,
+                    self.trusted_hops,
                 )
-                is not None
-            ):
-                for part in value.split(";"):
-                    if part.startswith("for="):
-                        client = part[4:].strip()
-                    elif part.startswith("host="):
-                        host = part[5:].strip()
-                    elif part.startswith("proto="):
-                        scheme = part[6:].strip()
-
+                if value is not None:
+                    client, host, scheme = self._parse_forwarded(value)
             else:
                 client = _get_trusted_value(
-                    b"x-forwarded-for", headers, self.trusted_hops
+                    b"x-forwarded-for",
+                    headers,
+                    self.trusted_hops,
                 )
                 scheme = _get_trusted_value(
-                    b"x-forwarded-proto", headers, self.trusted_hops
+                    b"x-forwarded-proto",
+                    headers,
+                    self.trusted_hops,
                 )
                 host = _get_trusted_value(
-                    b"x-forwarded-host", headers, self.trusted_hops
+                    b"x-forwarded-host",
+                    headers,
+                    self.trusted_hops,
                 )
 
+            # Atualiza informações do escopo conforme valores confiáveis
             if client is not None:
                 scope["client"] = (client, 0)
 
@@ -64,19 +72,61 @@ class ProxyFixMiddleware:  # noqa: D101
                 scope["scheme"] = scheme
 
             if host is not None:
-                headers = [
-                    (name, header_value)
-                    for name, header_value in headers
-                    if name.lower() != b"host"
-                ]
-                headers.append((b"host", host.encode()))
-                scope["headers"] = headers
+                scope["headers"] = self._replace_host_header(headers, host)
 
         await self.app(scope, receive, send)
 
+    def _parse_forwarded(
+        self,
+        value: str,
+    ) -> tuple[str | None, str | None, str | None]:
+        """Extrai os valores de client, host e scheme do cabeçalho Forwarded.
+
+        Args:
+            value (str): Valor do cabeçalho Forwarded.
+
+        Returns:
+            tuple[str | None, str | None, str | None]: Tupla com client, host e scheme
+
+        """
+        client: str | None = None
+        host: str | None = None
+        scheme: str | None = None
+        for part in value.split(";"):
+            if part.startswith("for="):
+                client = part[4:].strip()
+            elif part.startswith("host="):
+                host = part[5:].strip()
+            elif part.startswith("proto="):
+                scheme = part[6:].strip()
+        return client, host, scheme
+
+    def _replace_host_header(
+        self,
+        headers: list[tuple[bytes, bytes]],
+        host: str,
+    ) -> list[tuple[bytes, bytes]]:
+        """Substitui o cabeçalho 'host' pelos valores confiáveis.
+
+        Args:
+            headers (list[tuple[bytes, bytes]]): Lista de cabeçalhos.
+            host (str): Valor confiável do host.
+
+        Returns:
+            list[tuple[bytes, bytes]]: Lista de cabeçalhos atualizada.
+
+        """
+        return [
+            (name, header_value)
+            for name, header_value in headers
+            if name.lower() != b"host"
+        ] + [(b"host", host.encode())]
+
 
 def _get_trusted_value(
-    name: bytes, headers: Iterable[tuple[bytes, bytes]], trusted_hops: int
+    name: bytes,
+    headers: Iterable[tuple[bytes, bytes]],
+    trusted_hops: int,
 ) -> str | None:
     if trusted_hops == 0:
         return None
