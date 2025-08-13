@@ -11,7 +11,6 @@ Attributes:
 
 """
 
-import time
 import traceback
 from contextlib import suppress
 from pathlib import Path
@@ -31,150 +30,7 @@ type_doc = {"11": "cpf", "14": "cnpj"}
 
 
 class PreCadastro(ClassBot):
-    def execution(self) -> None:
-        """Execute the main processing loop for registrations.
-
-        Iterates over each entry in the data frame and processes it.
-        Handles authentication and error logger.
-
-        """
-        frame = self.dataFrame()
-        self.max_rows = len(frame)
-
-        for pos, value in enumerate(frame):
-            self.row = pos + 1
-            self.bot_data = value
-            if self.isStoped:
-                break
-
-            with suppress(Exception):
-                if self.driver.title.lower() == "a sessao expirou":
-                    self.auth_bot()
-
-            try:
-                self.queue()
-
-            except Exception as e:
-                old_message = None
-                windows = self.driver.window_handles
-
-                if len(windows) == 0:
-                    with suppress(Exception):
-                        self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando...",
-                        )
-
-                    old_message = self.message
-
-                    self.auth_bot()
-
-                if old_message is None:
-                    old_message = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old_message}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
-
-        self.finalize_execution()
-
-    def queue(self) -> None:
-        """Handle the registration queue processing.
-
-        Refreshes the driver, extracts process information, and manages the registration
-        process using the ELAW system. Logs the steps, calculates execution time,
-        and handles potential exceptions.
-
-        Raises:
-            ExecutionError: If the process is not found or extraction fails.
-
-        """
-        try:
-            self.bot_data = self.elaw_formats(self.bot_data)
-            pid = self.pid
-            prt = self.prt
-            driver = self.driver
-            elements = self.elements
-            bot_data = self.bot_data
-            search = self.search_bot()
-
-            if search is True:
-                self.append_success([
-                    bot_data.get("NUMERO_PROCESSO"),
-                    "Processo já cadastrado!",
-                    pid,
-                ])
-
-            elif search is not True:
-                self.message = "Processo não encontrado, inicializando cadastro..."
-                self.type_log = "log"
-                prt()
-
-                btn_newproc = driver.find_element(
-                    By.CSS_SELECTOR,
-                    elements.botao_novo,
-                )
-                btn_newproc.click()
-
-                start_time = time.perf_counter()
-
-                self.area_direito()
-                self.subarea_direito()
-                self.next_page()
-                self.info_localizacao()
-                self.informa_estado()
-                self.informa_comarca()
-                self.informa_foro()
-                self.informa_vara()
-                self.informa_proceso()
-                self.informa_empresa()
-                self.set_classe_empresa()
-                self.parte_contraria()
-                self.uf_proc()
-                self.acao_proc()
-                self.advogado_interno()
-                self.adv_parte_contraria()
-                self.data_distribuicao()
-                self.info_valor_causa()
-                self.escritorio_externo()
-                self.tipo_contingencia()
-
-                end_time = time.perf_counter()
-                execution_time = end_time - start_time
-                calc = execution_time / 60
-                splitcalc = str(calc).split(".")
-                minutes = int(splitcalc[0])
-                seconds = int(float(f"0.{splitcalc[1]}") * 60)
-
-                self.message = (
-                    f"Formulário preenchido em {minutes} minutos e {seconds} segundos"
-                )
-                self.type_log = "log"
-                prt()
-
-                self.salvar_tudo()
-
-                if self.confirm_save() is True:
-                    self.print_comprovante()
-
-        except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
-            raise ExecutionError(e=e) from e
-
     def area_direito(self) -> None:
-        """Select the area of law in the web form.
-
-        This method interacts with a web form to select the area of law specified
-        in the bot data. It logs the process and handles any necessary waits and
-        interactions with the web elements.
-
-
-        """
         wait = self.wait
         self.message = "Informando área do direito"
         self.type_log = "log"
@@ -193,12 +49,6 @@ class PreCadastro(ClassBot):
         self.prt()
 
     def subarea_direito(self) -> None:
-        """Select the sub-area of law in the web form.
-
-        This method interacts with a web form to select the sub-area of law specified
-        in the bot data. It logs the process and handles any necessary waits and
-        interactions with the web elements.
-        """
         wait = self.wait
         self.message = "Informando sub-área do direito"
         self.type_log = "log"
@@ -221,12 +71,6 @@ class PreCadastro(ClassBot):
         self.prt()
 
     def next_page(self) -> None:
-        """Navigate to the next page by clicking the designated button.
-
-        This method waits until the next page button is present in the DOM,
-        then clicks it to navigate to the next page.
-
-        """
         next_page: WebElement = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
@@ -237,12 +81,6 @@ class PreCadastro(ClassBot):
         next_page.click()
 
     def info_localizacao(self) -> None:
-        """Provide information about the location of the process.
-
-        This method selects the judicial sphere of the process and logs the actions performed.
-        It interacts with the web elements to set the sphere and waits for the loading to complete.
-
-        """
         element_select = self.elements.css_esfera_judge
         text = "Judicial"
 
