@@ -13,12 +13,15 @@ Attributes:
 """
 
 from time import sleep
+from typing import TYPE_CHECKING
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud_app.abstract.bot import ClassBot
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
