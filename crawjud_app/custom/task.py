@@ -23,8 +23,7 @@ P = ParamSpec("P")
 
 if TYPE_CHECKING:
     from interface.types.celery.canvas import (
-        AsyncResult,
-        EagerResult,
+        CeleryResult,
         Signature,
     )
 
@@ -108,7 +107,7 @@ class ContextTask[T](TaskBase):
         link_error: str | None = None,
         shadow: str | None = None,
         **options: T,
-    ) -> AsyncResult | EagerResult:
+    ) -> CeleryResult:
         """Apply tasks asynchronously by sending a message.
 
         Arguments:

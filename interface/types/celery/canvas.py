@@ -35,141 +35,8 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-class AsyncResult[T](__AsyncResult):
-    """Celery AsyncResult.
-
-    Class that wraps the result of a task execution.
-
-    Used to check the status of a task, retrieve its result,
-    and perform other operations related to task results.
-
-    See Also:
-        :ref:`guide-results` for the complete guide.
-
-    """
-
-    _app: ClassVar[AsyncCelery] = None
-
-    def get(
-        self,
-        timeout: int | None = None,
-        interval: float = 0.5,
-        callback: T = None,
-        on_message: T = None,
-        on_interval: T = None,
-        *,
-        propagate: bool = True,
-        no_ack: bool = True,
-        follow_parents: bool = True,
-        disable_sync_subtasks: bool = True,
-        exception_states: Exception = states.EXCEPTION_STATES,
-        propagate_states: Exception = states.PROPAGATE_STATES,
-    ) -> T:
-        """Wait until task is ready, and return its result.
-
-        Warning:
-           Waiting for tasks within a task may lead to deadlocks.
-           Please read :ref:`task-synchronous-subtasks`.
-
-        Warning:
-           Backends use resources to store and transmit results. To ensure
-           that resources are released, you must eventually call
-           :meth:`~@AsyncResult.get` or :meth:`~@AsyncResult.forget` on
-           EVERY :class:`~@AsyncResult` instance returned after calling
-           a task.
-
-        Arguments:
-            callback (Callable[[T], None]): A callback function to be called
-                with the result of the task when it is ready.
-            exception_states (Iterable[Union[str, Type[BaseException]]]): A list of
-                exception states that should be propagated to the parent task.
-            on_interval (Callable[[float], None]): A callback function to be called
-                periodically with the elapsed time since the task was started.
-            on_message (Callable[[Any], None]): A callback function to be called
-                with the message received from the task when it is ready.
-            propagate_states (Iterable[Union[str, Type[BaseException]]]): A list of
-                states that should be propagated to the parent task.
-            timeout (float): How long to wait, in seconds, before the
-                operation times out. This is the setting for the publisher
-                (celery client) and is different from `timeout` parameter of
-                `@app.task`, which is the setting for the worker. The task
-                isn't terminated even if timeout occurs.
-            propagate (bool): Re-raise exception if the task failed.
-            interval (float): Time to wait (in seconds) before retrying to
-                retrieve the result.  Note that this does not have any effect
-                when using the RPC/redis result store backends, as they don't
-                use polling.
-            no_ack (bool): Enable amqp no ack (automatically acknowledge
-                message).  If this is :const:`False` then the message will
-                **not be acked**.
-            follow_parents (bool): Re-raise any exception raised by
-                parent tasks.
-            disable_sync_subtasks (bool): Disable tasks to wait for sub tasks
-                this is the default configuration. CAUTION do not enable this
-                unless you must.
-
-        Returns:
-            T: Resultado da tarefa, ou lança exceção se falhar.
-
-        """
-        return super().get(
-            timeout,
-            propagate,
-            interval,
-            no_ack,
-            follow_parents,
-            callback,
-            on_message,
-            on_interval,
-            disable_sync_subtasks,
-            exception_states,
-            propagate_states,
-        )
-
-    def __getattr__(self, item: str) -> T:
-        """Retorne o atributo solicitado ou inicialize '_app' se necessário.
-
-        Args:
-            item (str): Nome do atributo a ser acessado.
-
-        Returns:
-            T: Valor do atributo solicitado.
-
-        """
-        if item == "_app" and not hasattr(self, "_app"):
-            from celery import current_app
-
-            self._app = current_app
-
-        return super().__getattr__(item)
-
-    def wait_ready(self, timeout: float | None = None) -> T:
-        """Aguarde até que o resultado da tarefa esteja pronto ou o timeout.
-
-        Args:
-            timeout (float | None): Tempo máximo de espera em segundos,
-                ou None para aguardar indefinidamente.
-
-        Returns:
-            T: Resultado da tarefa se concluída com sucesso,
-                ou None em caso de falha ou expiração.
-
-        """
-        while not self.ready():
-            if timeout is not None:
-                timeout -= 0.5
-                if timeout <= 0:
-                    return None
-            self._app.control.ping(timeout=0.5)
-
-        if self.failed():
-            return None
-
-        return self.result
-
-
-class EagerResult[T](__EagerResult):
-    """Celery AsyncResult.
+class CeleryResult[T](__AsyncResult, __EagerResult):
+    """Celery Results.
 
     Class that wraps the result of a task execution.
 
@@ -428,7 +295,7 @@ class Signature[T](__Signature):
         kwargs: AnyStr | None = None,
         route_name: str | None = None,
         **options: AnyStr,
-    ) -> AsyncResult | None:
+    ) -> CeleryResult | None:
         """Apply this task asynchronously.
 
         Arguments:
@@ -447,11 +314,11 @@ class Signature[T](__Signature):
 
         """
         async_result = cast(
-            "AsyncResult",
+            "CeleryResult",
             super().apply_async(args, kwargs, route_name=route_name, **options),
         )
         async_result._app = self._app  # noqa: SLF001
-        async_result.wait_ready = AsyncResult.wait_ready.__get__(async_result)
+        async_result.wait_ready = CeleryResult.wait_ready.__get__(async_result)
         if async_result:
             return async_result
         return None
