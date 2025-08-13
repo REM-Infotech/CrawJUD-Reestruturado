@@ -12,190 +12,21 @@ Attributes:
 
 """
 
-import traceback
-from contextlib import suppress
 from time import sleep
 
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud_app.abstract.bot import ClassBot
-from crawjud_app.common.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
-campos_validar: list[str] = [
-    "estado",
-    "comarca",
-    "foro",
-    "vara",
-    "divisao",
-    "fase",
-    "provimento",
-    "fato_gerador",
-    "objeto",
-    "tipo_empresa",
-    "tipo_entrada",
-    "acao",
-    "escritorio_externo",
-    "classificacao",
-    "toi_criado",
-    "nota_tecnica",
-    "liminar",
-]
+
 ELEMENT_LOAD = 'div[id="j_id_48"]'
 
 
 class CadastroComplementar(ClassBot):
-    def validar_campos(self) -> None:
-        """Validate the required fields.
-
-        This method checks each required field in the process to ensure
-        they are properly filled. It logs the validation steps and raises
-        an error if any required field is missing.
-
-        Raises:
-            ExecutionError: If any required field is missing.
-
-        """
-        self.message = "Validando campos"
-        self.type_log = "log"
-        self.prt()
-
-        validar: dict[str, str] = {
-            "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO"),
-        }
-        message_campo: list[str] = []
-
-        for campo in campos_validar:
-            try:
-                campo_validar: str = self.elements.dict_campos_validar.get(campo)
-                command = f"return $('{campo_validar}').text()"
-                element = self.driver.execute_script(command)
-
-                if not element or element.lower() == "selecione":
-                    raise ExecutionError(message=f'Campo "{campo}" não preenchido')
-
-                message_campo.append(
-                    f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>',
-                )
-                validar.update({campo.upper(): element})
-
-            except Exception as e:
-                self.logger.exception("".join(traceback.format_exception(e)))
-                try:
-                    message = e.message
-
-                except Exception:
-                    message = str(e)
-
-                validar.update({campo.upper(): message})
-
-                self.message = message
-                self.type_log = "info"
-                self.prt()
-
-        self.append_validarcampos([validar])
-        message_campo.append('<p class="fw-bold">Campos validados!</p>')
-        self.message = "".join(message_campo)
-        self.type_log = "info"
-        self.prt()
-
-    def validar_advogado(self) -> str:
-        """Validate the responsible lawyer.
-
-        This method ensures that the responsible lawyer field is filled and
-        properly selected. It logs the validation steps and raises an error
-        if the field is not properly filled.
-
-        Returns:
-        str
-            The name of the responsible lawyer.
-
-
-        Raises:
-            ExecutionError: If the responsible lawyer field is not filled.
-
-        """
-        self.message = "Validando advogado responsável"
-        self.type_log = "log"
-        self.prt()
-
-        campo_validar = self.elements.dict_campos_validar.get("advogado_interno")
-        command = f"return $('{campo_validar}').text()"
-        element = self.driver.execute_script(command)
-
-        if not element or element.lower() == "selecione":
-            raise ExecutionError(
-                message='Campo "Advogado Responsável" não preenchido',
-            )
-
-        self.message = f'Campo "Advogado Responsável" | Texto: {element}'
-        self.type_log = "info"
-        self.prt()
-
-        sleep(0.5)
-
-        return element
-
-    def validar_advs_participantes(self) -> None:
-        """Validate participating lawyers.
-
-        This method ensures that the responsible lawyer is present in the
-        list of participating lawyers. It logs the validation steps and
-        raises an error if the responsible lawyer is not found.
-
-        Raises:
-            ExecutionError: If the responsible lawyer
-                is not found in the list of participating lawyers.
-
-        """
-        data_bot = self.bot_data
-        adv_name = data_bot.get("ADVOGADO_INTERNO", self.validar_advogado())
-
-        if not adv_name.strip():
-            raise ExecutionError(
-                message="Necessário advogado interno para validação!",
-            )
-
-        self.message = "Validando advogados participantes"
-        self.type_log = "log"
-        self.prt()
-
-        tabela_advogados = self.driver.find_element(
-            By.CSS_SELECTOR,
-            self.elements.tabela_advogados_resp,
-        )
-
-        not_adv = None
-        with suppress(NoSuchElementException):
-            tr_not_adv = self.elements.tr_not_adv
-            not_adv = tabela_advogados.find_element(By.CSS_SELECTOR, tr_not_adv)
-
-        if not_adv is not None:
-            raise ExecutionError(message="Sem advogados participantes!")
-
-        advs = tabela_advogados.find_elements(By.TAG_NAME, "tr")
-
-        for adv in advs:
-            advogado = adv.find_element(By.TAG_NAME, "td").text
-            if advogado.lower() == adv_name.lower():
-                break
-
-        else:
-            raise ExecutionError(
-                message=(
-                    "Advogado responsável não encontrado",
-                    " na lista de advogados participantes!",
-                ),
-            )
-
-        self.message = "Advogados participantes validados"
-        self.type_log = "info"
-        self.prt()
-
     def esfera(self, text: str = "Judicial") -> None:
         """Handle the selection of the judicial sphere in the process.
 
