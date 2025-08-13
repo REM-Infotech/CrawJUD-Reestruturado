@@ -15,7 +15,7 @@ Raises:
 
 Exemplo de aplicação:
 
-- O titulo deve ter exatos 80 caracteres, sem pular linha e etc.
+- O titulo da docstring devem ter exatos 75 caracteres
 - Adicione essa docstring acima de cada função, método ou módulo.
 - Use linguagem clara e técnica.
 - O texto e a primeira palavra do sumário precisa ser em modo imperativo

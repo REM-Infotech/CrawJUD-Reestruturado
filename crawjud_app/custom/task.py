@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from asyncio import iscoroutinefunction
 from asyncio import run as run_async
-from typing import TYPE_CHECKING, ClassVar, Generic, ParamSpec, T, TStr
+from typing import TYPE_CHECKING, ClassVar, Generic, ParamSpec
 
 from celery.app.task import Task as TaskBase
 from dotenv import dotenv_values
@@ -224,12 +224,12 @@ class ContextTask[T](TaskBase):
             **options,
         )
 
-    def __call__(self, *args: TStr, **kwargs: TStr) -> None:
+    def __call__(self, *args: T, **kwargs: T) -> None:
         """Executa a tarefa diretamente ao chamar a instância da classe.
 
         Args:
-            *args (TStr): Argumentos posicionais para a tarefa.
-            **kwargs (TStr): Argumentos nomeados para a tarefa.
+            *args (T): Argumentos posicionais para a tarefa.
+            **kwargs (T): Argumentos nomeados para a tarefa.
 
         Returns:
             None: Não retorna valor.

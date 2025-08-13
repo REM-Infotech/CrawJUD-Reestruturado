@@ -1,12 +1,15 @@
-"""Fetch and process court hearing schedules for judicial data extraction in real-time now.
+"""Automação para extração e processamento de pautas judiciais no PJe.
 
-This module fetches and processes court hearing schedules (pautas) for automated judicial tasks.
+Este módulo contém a classe e funções responsáveis por buscar, processar e registrar
+pautas de audiências judiciais utilizando Selenium, além de tratar erros e gerar logs
+durante a execução automatizada das tarefas.
 """
 
-import os
 from contextlib import suppress
 from datetime import datetime, timedelta
+from pathlib import Path
 from time import sleep
+from typing import TYPE_CHECKING
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -14,22 +17,32 @@ from selenium.common.exceptions import (
     TimeoutException,
 )
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud_app.abstract.bot import ClassBot
 from crawjud_app.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud_app.common.exceptions.bot import ExecutionError
-from crawjud_app.custom._task import ContextTask
+from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
 
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)
-class Pauta(ContextTask, ClassBot):  # noqa: D101
-    def execution(self) -> None:
-        """Execute the main process loop to retrieve pautas until data range is covered now.
+class Pauta(ContextTask, ClassBot):
+    """Implemente a automação para buscar e processar pautas de audiências judiciais.
 
-        This method continuously processes each court hearing date and handles errors.
+    Esta classe executa tarefas automatizadas para extração de pautas de audiências
+    judiciais, utilizando Selenium para navegação e coleta de dados em sistemas PJe.
+    """
+
+    def execution(self) -> None:
+        """Execute o fluxo principal para buscar e processar pautas de audiências.
+
+        Args:
+            self (Pauta): Instância da classe Pauta.
+
         """
         self.current_date = self.data_inicio
         self.graphicMode = "bar"
@@ -53,14 +66,17 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
             message = "Buscando pautas na vara: " + vara_name
             type_log = "log"
             self.prt.print_msg(
-                message=message, pid=self.pid, row=self.row, type_log=type_log
+                message=message,
+                pid=self.pid,
+                row=self.row,
+                type_log=type_log,
             )
 
             if self.is_stoped:
                 break
 
             if varas:
-                vara_name = varas.get(vara)  # noqa: F841
+                vara_name = varas.get(vara)
 
             with suppress(Exception):
                 if self.driver.title.lower() == "a sessao expirou":
@@ -69,23 +85,33 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
             try:
                 self.queue(vara)
 
-            except Exception as e:
+            except ExecutionError as e:
                 self.tratamento_erros(exc=e)
 
         self.finalize_execution()
 
     def queue(self, vara: str) -> None:
-        """Process each court branch in the queue to fetch and update corresponding pauta data now.
+        """Realize a busca e o processamento das pautas para uma vara específica.
 
-        Iterates over the varas list, aggregates data, and attempts pagination if available.
+        Args:
+            vara (str): Nome ou identificador da vara a ser processada.
+
+        Raises:
+            ExecutionError: Caso ocorra erro durante a execução
+                da busca ou processamento.
+
         """
         try:
             self.current_date = self.data_inicio
             while self.current_date <= self.data_fim:
-                message = f"Buscando pautas na data {self.current_date.strftime('%d/%m/%Y')}"
+                current_date_ = self.current_date.strftime("%d/%m/%Y")
+                message = f"Buscando pautas na data {current_date_}"
                 type_log = "log"
                 self.prt.print_msg(
-                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                    message=message,
+                    pid=self.pid,
+                    row=self.row,
+                    type_log=type_log,
                 )
 
                 if self.is_stoped:
@@ -104,19 +130,19 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
 
                 elif len(data_append) > 0:
                     vara = vara.replace("#", "").upper()
-                    _file_name = (
-                        f"{vara} - {date.replace('-', '.')} - {self.pid}.xlsx"  # noqa: N806
+                    file_name_ = (
+                        f"{vara} - {date.replace('-', '.')} - {self.pid}.xlsx"
                     )
-                    self.append_success(data=data_append, _file_name=_file_name)
+                    self.append_success(data=data_append, _file_name=file_name_)
 
                 self.current_date += timedelta(days=1)
 
             data_append = self.group_date_all(self.data_append)
-            _file_name = os.path.basename(self.planilha_sucesso)  # noqa: N806
+            file_name_ = Path(self.planilha_sucesso).name
             if len(data_append) > 0:
                 self.append_success(
                     data=[data_append],
-                    _file_name=_file_name,
+                    _file_name=file_name_,
                     message="Dados extraídos com sucesso!",
                 )
 
@@ -124,21 +150,25 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
                 message = "Nenhuma pauta encontrada"
                 type_log = "error"
                 self.prt.print_msg(
-                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                    message=message,
+                    pid=self.pid,
+                    row=self.row,
+                    type_log=type_log,
                 )
 
         except Exception as e:
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_pautas(self, current_date: type[datetime], vara: str) -> None:
-        """Retrieve and parse pautas from the page for the given date and court branch now.
+        """Busque e processe as pautas de audiências para uma data e vara específicas.
 
         Args:
-            current_date (datetime): Date to retrieve pautas.
-            vara (str): Court branch identifier.
+            current_date (type[datetime]): Data da pauta a ser processada.
+            vara (str): Nome ou identificador da vara.
 
         Raises:
-            ExecutionError: Propagates exceptions during page interaction.
+            ExecutionError: Caso ocorra erro durante a busca
+                ou processamento das pautas.
 
         """
         try:
@@ -150,7 +180,7 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         'pje-data-table[id="tabelaResultado"]',
-                    ))
+                    )),
                 ),
                 (
                     ec.visibility_of_element_located((
@@ -162,14 +192,18 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
 
             with suppress(NoSuchElementException, TimeoutException):
                 itens_pautas = table_pautas.find_element(
-                    By.TAG_NAME, "tbody"
+                    By.TAG_NAME,
+                    "tbody",
                 ).find_elements(By.TAG_NAME, "tr")
 
             if itens_pautas:
                 message = "Pautas encontradas!"
                 type_log = "log"
                 self.prt.print_msg(
-                    message=message, pid=self.pid, row=self.row, type_log=type_log
+                    message=message,
+                    pid=self.pid,
+                    row=self.row,
+                    type_log=type_log,
                 )
 
                 times = 6
@@ -213,7 +247,8 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
 
                 try:
                     btn_next = self.driver.find_element(
-                        By.CSS_SELECTOR, 'button[aria-label="Próxima página"]'
+                        By.CSS_SELECTOR,
+                        'button[aria-label="Próxima página"]',
                     )
 
                     buttondisabled = btn_next.get_attribute("disabled")
@@ -223,7 +258,8 @@ class Pauta(ContextTask, ClassBot):  # noqa: D101
 
                 except Exception as e:
                     raise ExecutionError(
-                        exception=e, bot_execution_id=self.pid
+                        exception=e,
+                        bot_execution_id=self.pid,
                     ) from e
 
             elif not itens_pautas:
