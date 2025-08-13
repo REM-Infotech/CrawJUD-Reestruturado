@@ -52,13 +52,12 @@ campos_validar: list[str] = [
 ]
 
 
-class Complement(ClassBot):
+class CadastroComplementar(ClassBot):
     """A class that configures and retrieves an elements bot instance.
 
     This class interacts with the ELAW system to complete the registration of a process.
     """
 
-    @classmethod
     def initialize(
         cls,
         *args: str | int,
@@ -478,74 +477,7 @@ class Complement(ClassBot):
         self.driver.get_screenshot_as_file(savecomprovante)
         return name_comprovante
 
-    @classmethod
-    def advogado_interno(cls, self: Self) -> None:
-        """Inform the internal lawyer.
-
-        This method inputs the internal lawyer information into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-        Raises
-        ------
-            ExecutionError: If the internal lawyer is not found.
-
-        """
-        self.message = "informando advogado interno"
-        self.type_log = "log"
-        self.prt()
-
-        input_adv_responsavel: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.adv_responsavel)),
-        )
-        input_adv_responsavel.click()
-        self.interact.send_key(
-            input_adv_responsavel,
-            self.bot_data.get("ADVOGADO_INTERNO"),
-        )
-
-        css_wait_adv = f"{input_adv_responsavel.get_attribute('id')} > ul > li"
-
-        wait_adv = None
-
-        with suppress(TimeoutException):
-            wait_adv: WebElement = WebDriverWait(self.driver, 25).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, css_wait_adv)),
-            )
-
-        if wait_adv:
-            wait_adv.click()
-        elif not wait_adv:
-            raise ExecutionError(message="Advogado interno não encontrado")
-
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.interact.sleep_load('div[id="j_id_48"]')
-        element_select = self.wait.until(
-            ec.presence_of_element_located((
-                By.XPATH,
-                self.elements.select_advogado_responsavel,
-            )),
-        )
-        self.select2_elaw(element_select, self.bot_data.get("ADVOGADO_INTERNO"))
-
-        id_element = element_select.get_attribute("id")
-        id_input_css = f'[id="{id_element}"]'
-        comando = f"document.querySelector('{id_input_css}').blur()"
-        self.driver.execute_script(comando)
-
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Advogado interno informado!"
-        self.type_log = "info"
-        self.prt()
-
-    @classmethod
-    def esfera(cls, self: Self, text: str = "Judicial") -> None:
+    def esfera(self, text: str = "Judicial") -> None:
         """Handle the selection of the judicial sphere in the process.
 
         This function performs the following steps:
@@ -581,144 +513,7 @@ class Complement(ClassBot):
         self.type_log = "info"
         self.prt()
 
-    @classmethod
-    def estado(cls, self: Self) -> None:
-        """Update the state of the process in the system.
-
-        This method retrieves the state information from `self.bot_data` using the key "ESTADO",
-        logs the action, and updates the state input field in the system using the `select2_elaw` method.
-        It then waits for the system to load the changes.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        key = "ESTADO"
-        element_select = self.elements.estado_input
-        text = str(self.bot_data.get(key, None))
-
-        self.message = "Informando estado do processo"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Estado do processo informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def comarca(cls, self: Self) -> None:
-        """Inform the "comarca" (jurisdiction) of the process.
-
-        This method retrieves the comarca information from the bot data,
-        selects the appropriate input element, and interacts with the
-        interface to input the comarca information.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        text = str(self.bot_data.get("COMARCA"))
-        element_select = self.elements.comarca_input
-
-        self.message = "Informando comarca do processo"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Comarca do processo informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def foro(cls, self: Self) -> None:
-        """Update the forum (foro) information for the process.
-
-        This method selects the appropriate forum input element and updates it with the
-        forum information retrieved from `self.bot_data`. It logs the actions performed
-        and interacts with the necessary elements on the page to ensure the forum information
-        is correctly updated.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-        """
-        element_select = self.elements.foro_input
-        text = str(self.bot_data.get("FORO"))
-
-        self.message = "Informando foro do processo"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Foro do processo informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def vara(cls, self: Self) -> None:
-        """Update the "vara" (court) information for the process.
-
-        This method retrieves the "VARA" data from the bot's data, selects the appropriate
-        input element for "vara", and interacts with the ELAW system to update the information.
-        It logs messages before and after the interaction to indicate the status of the operation.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-        """
-        text = self.bot_data.get("VARA")
-        element_select = self.elements.vara_input
-
-        self.message = "Informando vara do processo"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Vara do processo informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def unidade_consumidora(cls, self: Self) -> None:
+    def unidade_consumidora(self) -> None:
         """Handle the process of informing the consumer unit in the web application.
 
         This function performs the following steps:
@@ -753,8 +548,7 @@ class Complement(ClassBot):
         self.type_log = "log"
         self.prt()
 
-    @classmethod
-    def localidade(cls, self: Self) -> None:
+    def localidade(self) -> None:
         """Inform the locality of the process.
 
         This method inputs the locality information into the system
@@ -792,8 +586,7 @@ class Complement(ClassBot):
         self.type_log = "info"
         self.prt()
 
-    @classmethod
-    def bairro(cls, self: Self) -> None:
+    def bairro(self) -> None:
         """Inform the neighborhood of the process.
 
         This method inputs the neighborhood information into the system
@@ -828,8 +621,7 @@ class Complement(ClassBot):
         self.type_log = "info"
         self.prt()
 
-    @classmethod
-    def divisao(cls, self: Self) -> None:
+    def divisao(self) -> None:
         """Inform the division of the process.
 
         This method inputs the division information into the system
@@ -862,8 +654,7 @@ class Complement(ClassBot):
         self.type_log = "log"
         self.prt()
 
-    @classmethod
-    def data_citacao(cls, self: Self) -> None:
+    def data_citacao(self) -> None:
         """Inform the citation date in the process.
 
         This method inputs the citation date into the system and ensures it is properly selected.
@@ -894,283 +685,4 @@ class Complement(ClassBot):
 
         self.message = "Data de citação informada!"
         self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def fase(cls, self: Self) -> None:
-        """Inform the phase of the process.
-
-        This method inputs the phase information into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        element_select = self.elements.fase_input
-        text = self.bot_data.get("FASE")
-
-        self.message = "Informando fase do processo"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Fase informada!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def provimento(cls, self: Self) -> None:
-        """Inform the anticipatory provision in the process.
-
-        This method inputs the anticipatory provision information into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        text = self.bot_data.get("PROVIMENTO")
-        element_select = self.elements.provimento_input
-
-        self.message = "Informando provimento antecipatório"
-        self.type_log = "log"
-        self.prt()
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Provimento antecipatório informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def valor_causa(cls, self: Self) -> None:
-        """Inform the value of the cause.
-
-        This method inputs the value of the cause into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        self.message = "Informando valor da causa"
-        self.type_log = "log"
-        self.prt()
-
-        valor_causa: WebElement = self.wait.until(
-            ec.element_to_be_clickable((By.XPATH, self.elements.valor_causa)),
-            message="Erro ao encontrar elemento",
-        )
-
-        valor_causa.click()
-        sleep(0.5)
-        valor_causa.clear()
-
-        self.interact.send_key(valor_causa, self.bot_data.get("VALOR_CAUSA"))
-
-        id_element = valor_causa.get_attribute("id")
-        id_input_css = f'[id="{id_element}"]'
-        comando = f"document.querySelector('{id_input_css}').blur()"
-        self.driver.execute_script(comando)
-
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Valor da causa informado!"
-        self.type_log = "info"
-        self.prt()
-
-    @classmethod
-    def fato_gerador(cls, self: Self) -> None:
-        """Inform the triggering event (fato gerador).
-
-        This method inputs the triggering event information into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        self.message = "Informando fato gerador"
-        self.type_log = "log"
-        self.prt()
-
-        element_select = self.elements.fato_gerador_input
-
-        text = self.bot_data.get("FATO_GERADOR")
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Fato gerador informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def desc_objeto(cls, self: Self) -> None:
-        """Fill in the description object field.
-
-        This method inputs the description of the object into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        input_descobjeto = self.wait.until(
-            ec.presence_of_element_located((
-                By.XPATH,
-                self.elements.input_descobjeto,
-            )),
-        )
-        self.interact.click(input_descobjeto)
-
-        text = self.bot_data.get("DESC_OBJETO")
-
-        self.interact.clear(input_descobjeto)
-        self.interact.send_key(input_descobjeto, text)
-
-        id_element = input_descobjeto.get_attribute("id")
-        id_input_css = f'[id="{id_element}"]'
-        comando = f"document.querySelector('{id_input_css}').blur()"
-        self.driver.execute_script(comando)
-
-    @classmethod
-    def objeto(cls, self: Self) -> None:
-        """Inform the object of the process.
-
-        This method inputs the object information into the system
-        and ensures it is properly selected.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        self.message = "Informando objeto do processo"
-        self.type_log = "log"
-        self.prt()
-
-        element_select = self.elements.objeto_input
-        text = self.bot_data.get("OBJETO")
-
-        self.select2_elaw(
-            self.wait.until(
-                ec.presence_of_element_located((By.XPATH, element_select)),
-            ),
-            text,
-        )
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Objeto do processo informado!"
-        self.type_log = "log"
-        self.prt()
-
-    @classmethod
-    def tipo_empresa(cls, self: Self) -> None:
-        """Set the type of company and update relevant UI elements.
-
-        This method determines the type of company (either "Ativa" or "Passiva") based on the
-        "TIPO_EMPRESA" value in `self.bot_data`. It then updates the UI elements for
-        contingencia and tipo_polo with the appropriate values and logs the actions performed.
-
-        Parameters
-        ----------
-        self : Self
-            The instance of the class.
-
-
-        """
-        self.message = "Informando contingenciamento"
-        self.type_log = "log"
-        self.prt()
-
-        element_select = self.wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.contingencia)),
-        )
-
-        text = ["Passiva", "Passivo"]
-        if str(self.bot_data.get("TIPO_EMPRESA")).lower() == "autor":
-            text = ["Ativa", "Ativo"]
-
-        self.select2_elaw(element_select, text[0])
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        element_select = self.wait.until(
-            ec.presence_of_element_located((By.XPATH, self.elements.tipo_polo)),
-        )
-
-        text = ["Passiva", "Passivo"]
-        if str(self.bot_data.get("TIPO_EMPRESA")).lower() == "autor":
-            text = ["Ativa", "Ativo"]
-
-        self.select2_elaw(element_select, text[1])
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Contingenciamento informado!"
-        self.type_log = "info"
-        self.prt()
-
-    @classmethod
-    def escritorio_externo(cls, self: Self) -> None:
-        """Inform the external office involved in the process.
-
-        This method retrieves the external office information from the bot data,
-        inputs it into the designated field, and logs the action performed.
-
-        """
-        self.message = "Informando Escritório Externo"
-        self.type_log = "log"
-        self.prt()
-
-        driver = self.driver
-        _wait = self.wait
-        elements = self.elements
-
-        sleep(1)
-
-        text = self.bot_data.get("ESCRITORIO_EXTERNO")
-
-        element_select = driver.find_element(By.XPATH, elements.select_escritorio)
-
-        self.interact.select2_elaw(element_select, text)
-        self.interact.sleep_load('div[id="j_id_48"]')
-
-        self.message = "Escritório externo informado!"
-        self.type_log = "info"
         self.prt()

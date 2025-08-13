@@ -16,7 +16,6 @@ import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
-from typing import Self
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
@@ -31,53 +30,7 @@ from crawjud_app.common.exceptions.bot import ExecutionError
 type_doc = {"11": "cpf", "14": "cnpj"}
 
 
-class Cadastro(ClassBot):
-    """The Cadastro class extends CrawJUD to manage registration tasks within the application.
-
-    Attributes:
-        type_doc (dict): A dictionary mapping document types to their identifiers.
-        ...existing attributes...
-
-    """
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize bot instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Cadastro instance.
-
-        This method initializes the cadastro class by calling the base class's
-        __init__ method, setting up the bot, performing authentication, and initializing
-        the start time.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-
+class PreCadastro(ClassBot):
     def execution(self) -> None:
         """Execute the main processing loop for registrations.
 
@@ -309,7 +262,7 @@ class Cadastro(ClassBot):
         self.type_log = "info"
         self.prt()
 
-    def informa_estado(self) -> None:
+    def estado(self) -> None:
         """Informs the state of the process by selecting the appropriate option from a dropdown menu.
 
         This method retrieves the state information from the bot's data, logs the action,
@@ -716,12 +669,6 @@ class Cadastro(ClassBot):
         self.prt()
 
     def advogado_interno(self) -> None:
-        """Inform the internal lawyer.
-
-        This method inputs the internal lawyer information into the system
-        and ensures it is properly selected.
-
-        """
         interact = self.interact
         wait = self.wait
         driver = self.driver
