@@ -16,7 +16,7 @@ from utils.logger import dict_config
 
 app = Celery(__name__)
 
-with suppress(Exception):
+with suppress(Exception):  # pragma: no cover
 
     @after_setup_logger.connect
     def config_loggers(
