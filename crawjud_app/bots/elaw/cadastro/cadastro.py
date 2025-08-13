@@ -11,12 +11,10 @@ Attributes:
 
 """
 
-import time
 import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
-from typing import Self
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
@@ -30,198 +28,11 @@ from crawjud_app.common.exceptions.bot import ExecutionError
 
 type_doc = {"11": "cpf", "14": "cnpj"}
 
+ELEMENT_LOAD = 'div[id="j_id_48"]'
 
-class Cadastro(ClassBot):
-    """The Cadastro class extends CrawJUD to manage registration tasks within the application.
 
-    Attributes:
-        type_doc (dict): A dictionary mapping document types to their identifiers.
-        ...existing attributes...
-
-    """
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize bot instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Cadastro instance.
-
-        This method initializes the cadastro class by calling the base class's
-        __init__ method, setting up the bot, performing authentication, and initializing
-        the start time.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-
-    def execution(self) -> None:
-        """Execute the main processing loop for registrations.
-
-        Iterates over each entry in the data frame and processes it.
-        Handles authentication and error logger.
-
-        """
-        frame = self.dataFrame()
-        self.max_rows = len(frame)
-
-        for pos, value in enumerate(frame):
-            self.row = pos + 1
-            self.bot_data = value
-            if self.isStoped:
-                break
-
-            with suppress(Exception):
-                if self.driver.title.lower() == "a sessao expirou":
-                    self.auth_bot()
-
-            try:
-                self.queue()
-
-            except Exception as e:
-                old_message = None
-                windows = self.driver.window_handles
-
-                if len(windows) == 0:
-                    with suppress(Exception):
-                        self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando...",
-                        )
-
-                    old_message = self.message
-
-                    self.auth_bot()
-
-                if old_message is None:
-                    old_message = self.message
-                message_error = str(e)
-
-                self.type_log = "error"
-                self.message_error = f"{message_error}. | Operação: {old_message}"
-                self.prt()
-
-                self.bot_data.update({"MOTIVO_ERRO": self.message_error})
-                self.append_error(self.bot_data)
-
-                self.message_error = None
-
-        self.finalize_execution()
-
-    def queue(self) -> None:
-        """Handle the registration queue processing.
-
-        Refreshes the driver, extracts process information, and manages the registration
-        process using the ELAW system. Logs the steps, calculates execution time,
-        and handles potential exceptions.
-
-        Raises:
-            ExecutionError: If the process is not found or extraction fails.
-
-        """
-        try:
-            self.bot_data = self.elaw_formats(self.bot_data)
-            pid = self.pid
-            prt = self.prt
-            driver = self.driver
-            elements = self.elements
-            bot_data = self.bot_data
-            search = self.search_bot()
-
-            if search is True:
-                self.append_success([
-                    bot_data.get("NUMERO_PROCESSO"),
-                    "Processo já cadastrado!",
-                    pid,
-                ])
-
-            elif search is not True:
-                self.message = "Processo não encontrado, inicializando cadastro..."
-                self.type_log = "log"
-                prt()
-
-                btn_newproc = driver.find_element(
-                    By.CSS_SELECTOR,
-                    elements.botao_novo,
-                )
-                btn_newproc.click()
-
-                start_time = time.perf_counter()
-
-                self.area_direito()
-                self.subarea_direito()
-                self.next_page()
-                self.info_localizacao()
-                self.informa_estado()
-                self.informa_comarca()
-                self.informa_foro()
-                self.informa_vara()
-                self.informa_proceso()
-                self.informa_empresa()
-                self.set_classe_empresa()
-                self.parte_contraria()
-                self.uf_proc()
-                self.acao_proc()
-                self.advogado_interno()
-                self.adv_parte_contraria()
-                self.data_distribuicao()
-                self.info_valor_causa()
-                self.escritorio_externo()
-                self.tipo_contingencia()
-
-                end_time = time.perf_counter()
-                execution_time = end_time - start_time
-                calc = execution_time / 60
-                splitcalc = str(calc).split(".")
-                minutes = int(splitcalc[0])
-                seconds = int(float(f"0.{splitcalc[1]}") * 60)
-
-                self.message = (
-                    f"Formulário preenchido em {minutes} minutos e {seconds} segundos"
-                )
-                self.type_log = "log"
-                prt()
-
-                self.salvar_tudo()
-
-                if self.confirm_save() is True:
-                    self.print_comprovante()
-
-        except Exception as e:
-            self.logger.exception("".join(traceback.format_exception(e)))
-            raise ExecutionError(e=e) from e
-
+class PreCadastro(ClassBot):
     def area_direito(self) -> None:
-        """Select the area of law in the web form.
-
-        This method interacts with a web form to select the area of law specified
-        in the bot data. It logs the process and handles any necessary waits and
-        interactions with the web elements.
-
-
-        """
         wait = self.wait
         self.message = "Informando área do direito"
         self.type_log = "log"
@@ -240,12 +51,6 @@ class Cadastro(ClassBot):
         self.prt()
 
     def subarea_direito(self) -> None:
-        """Select the sub-area of law in the web form.
-
-        This method interacts with a web form to select the sub-area of law specified
-        in the bot data. It logs the process and handles any necessary waits and
-        interactions with the web elements.
-        """
         wait = self.wait
         self.message = "Informando sub-área do direito"
         self.type_log = "log"
@@ -262,18 +67,12 @@ class Cadastro(ClassBot):
         )
         self.select2_elaw(element_subarea, text)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load()
         self.message = "Sub-Área do direito selecionada!"
         self.type_log = "info"
         self.prt()
 
     def next_page(self) -> None:
-        """Navigate to the next page by clicking the designated button.
-
-        This method waits until the next page button is present in the DOM,
-        then clicks it to navigate to the next page.
-
-        """
         next_page: WebElement = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
@@ -284,12 +83,6 @@ class Cadastro(ClassBot):
         next_page.click()
 
     def info_localizacao(self) -> None:
-        """Provide information about the location of the process.
-
-        This method selects the judicial sphere of the process and logs the actions performed.
-        It interacts with the web elements to set the sphere and waits for the loading to complete.
-
-        """
         element_select = self.elements.css_esfera_judge
         text = "Judicial"
 
@@ -303,13 +96,13 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Esfera Informada!"
         self.type_log = "info"
         self.prt()
 
-    def informa_estado(self) -> None:
+    def estado(self) -> None:
         """Informs the state of the process by selecting the appropriate option from a dropdown menu.
 
         This method retrieves the state information from the bot's data, logs the action,
@@ -332,7 +125,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Estado do processo informado!"
         self.type_log = "log"
@@ -366,7 +159,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Comarca do processo informado!"
         self.type_log = "log"
@@ -399,7 +192,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Foro do processo informado!"
         self.type_log = "log"
@@ -434,7 +227,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Vara do processo informado!"
         self.type_log = "log"
@@ -465,7 +258,7 @@ class Cadastro(ClassBot):
         self.driver.execute_script(
             f'document.querySelector("{css_campo_processo}").blur()',
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Número do processo informado!"
         self.type_log = "info"
@@ -493,7 +286,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Empresa informada!"
         self.type_log = "info"
@@ -524,7 +317,7 @@ class Cadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Classificação da Empresa informada"
         self.type_log = "info"
@@ -564,7 +357,7 @@ class Cadastro(ClassBot):
         select_tipo_doc = self.elements.select_tipo_doc
         self.select2_elaw(select_tipo_doc, tipo_doc)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         campo_doc: WebElement = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
@@ -577,7 +370,7 @@ class Cadastro(ClassBot):
         campo_doc.clear()
         sleep(0.05)
         self.interact.send_key(campo_doc, self.bot_data.get("DOC_PARTE_CONTRARIA"))
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         search_button_parte: WebElement = self.wait.until(
             ec.presence_of_element_located((
@@ -587,7 +380,7 @@ class Cadastro(ClassBot):
             message="Erro ao encontrar elemento",
         )
         search_button_parte.click()
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         check_parte = self.check_part_found()
 
@@ -595,7 +388,7 @@ class Cadastro(ClassBot):
             try:
                 self.cadastro_parte_contraria()
                 self.driver.switch_to.default_content()
-                self.interact.sleep_load('div[id="j_id_48"]')
+                self.interact.sleep_load(ELEMENT_LOAD)
 
             except Exception as e:
                 self.logger.exception("".join(traceback.format_exception(e)))
@@ -625,7 +418,7 @@ class Cadastro(ClassBot):
         self.select2_elaw(self.driver.find_element(By.XPATH, element_select), text)
         sleep(0.5)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         if str(self.bot_data.get("CAPITAL_INTERIOR")).lower() == "outro estado":
             other_location: WebElement = self.wait.until(
@@ -673,7 +466,7 @@ class Cadastro(ClassBot):
         self.interact.click(elemento)
         self.interact.send_key(elemento, text)
         self.interact.send_key(elemento, Keys.ENTER)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Ação informada!"
         self.type_log = "info"
@@ -688,12 +481,12 @@ class Cadastro(ClassBot):
 
 
         """
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         self.message = "Informando data de distribuição"
         self.type_log = "log"
         self.prt()
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         data_distribuicao: WebElement = self.wait.until(
             ec.element_to_be_clickable((
                 By.CSS_SELECTOR,
@@ -709,19 +502,13 @@ class Cadastro(ClassBot):
             self.bot_data.get("DATA_DISTRIBUICAO"),
         )
         self.interact.send_key(data_distribuicao, Keys.TAB)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Data de distribuição informada!"
         self.type_log = "info"
         self.prt()
 
     def advogado_interno(self) -> None:
-        """Inform the internal lawyer.
-
-        This method inputs the internal lawyer information into the system
-        and ensures it is properly selected.
-
-        """
         interact = self.interact
         wait = self.wait
         driver = self.driver
@@ -758,9 +545,9 @@ class Cadastro(ClassBot):
         elif not wait_adv:
             raise ExecutionError(message="Advogado interno não encontrado")
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
         element_select = wait.until(
             ec.presence_of_element_located((
                 By.XPATH,
@@ -774,7 +561,7 @@ class Cadastro(ClassBot):
         comando = f"document.querySelector('{id_input_css}').blur()"
         driver.execute_script(comando)
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Advogado interno informado!"
         self.type_log = "info"
@@ -815,7 +602,7 @@ class Cadastro(ClassBot):
 
         check_adv = None
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         with suppress(TimeoutException):
             check_adv: WebElement = (
@@ -838,7 +625,7 @@ class Cadastro(ClassBot):
             self.cadastro_advogado_contra()
             driver.switch_to.default_content()
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Adv. parte contrária informado!"
         self.type_log = "info"
@@ -878,7 +665,7 @@ class Cadastro(ClassBot):
 
         driver.execute_script(f"document.querySelector('{input_valor_causa}').blur()")
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Valor da causa informado!"
         self.type_log = "info"
@@ -914,7 +701,7 @@ class Cadastro(ClassBot):
             ec.presence_of_element_located((By.XPATH, elements.select_escritorio)),
         )
         interact.select2_elaw(select_escritorio, text)
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Escritório externo informado!"
         self.type_log = "info"
@@ -952,10 +739,10 @@ class Cadastro(ClassBot):
         )
 
         select2_elaw(select_contigencia, text[0])
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         select2_elaw(select_polo, text[1])
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Contingenciamento informado!"
         self.type_log = "info"
@@ -992,7 +779,7 @@ class Cadastro(ClassBot):
             )
             add_parte.click()
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
             main_window = driver.current_window_handle
 
@@ -1079,7 +866,7 @@ class Cadastro(ClassBot):
                 )),
             )
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
@@ -1118,7 +905,7 @@ class Cadastro(ClassBot):
             )
             add_parte.click()
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
             iframe = None
 
@@ -1240,7 +1027,7 @@ class Cadastro(ClassBot):
         wait = self.wait
         elements = self.elements
         interact = self.interact
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
         salvartudo: WebElement = wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
