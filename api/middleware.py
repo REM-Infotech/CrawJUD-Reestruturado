@@ -3,19 +3,45 @@ from __future__ import annotations  # noqa: D100
 from copy import deepcopy
 from typing import TYPE_CHECKING, Literal
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable
 
     from hypercorn.typing import ASGIFramework, Scope
 
 
-class ProxyFixMiddleware:  # noqa: D101
-    def __init__(  # noqa: D107
+class ProxyFixMiddleware:
+    """Implemente um middleware para ajustar cabeçalhos de proxy em aplicações ASGI.
+
+    Args:
+        app (ASGIFramework): Aplicação ASGI a ser protegida.
+        mode (Literal["legacy", "modern"]): Modo de operação do middleware.
+        trusted_hops (int): Número de proxies confiáveis a considerar.
+
+    Returns:
+        None: Não retorna valor, atua diretamente no escopo ASGI.
+
+    Raises:
+        Nenhuma exceção específica é levantada.
+
+    """
+
+    def __init__(
         self,
         app: ASGIFramework,
         mode: Literal["legacy", "modern"] = "legacy",
         trusted_hops: int = 1,
     ) -> None:
+        """Inicialize o middleware ProxyFixMiddleware com os parâmetros fornecidos.
+
+        Args:
+            app (ASGIFramework): Aplicação ASGI a ser protegida.
+            mode (Literal["legacy", "modern"]): Modo de operação do middleware.
+            trusted_hops (int): Número de proxies confiáveis a considerar.
+
+        Raises:
+            Nenhuma exceção específica é levantada.
+
+        """
         self.app = app
         self.mode = mode
         self.trusted_hops = trusted_hops

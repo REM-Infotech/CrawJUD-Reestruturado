@@ -49,13 +49,10 @@ def start_worker() -> None:
         concurrency=int(environ.get("CELERY_CONCURRENCY", "16")),
         pool=pool_,
     )
-    worker = worker
-
-    try:
+    with suppress(KeyboardInterrupt):
         worker.start()
 
-    except KeyboardInterrupt:
-        worker.stop()
+    worker.stop()
 
 
 def start_beat() -> None:
@@ -91,12 +88,23 @@ def restart_service(call: Callable, proc: Process) -> Process:  # noqa: D103
     return start_service(call)
 
 
-def stop_service(proc: Process) -> bool:  # noqa: D103
-    proc.kill()
-    return False
+def stop_service(proc: Process) -> bool:
+    """Pare o serviço passado como processo.
+
+    Args:
+        proc (Process): Processo a ser parado.
+
+    Returns:
+        bool: True se o processo foi parado com sucesso, False caso contrário.
+
+    """
+    proc.terminate()
+    proc.join()
+    # Retorna True se o processo foi parado com sucesso, False caso contrário.
+    return proc.is_alive()
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     """Entrada main."""
     with suppress(KeyboardInterrupt, Exception):
         calls = {"worker": start_worker, "beat": start_beat}

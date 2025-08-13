@@ -9,13 +9,13 @@ from utils.logger import dict_config
 
 
 async def main_app() -> None:
-    """
-    Asynchronously initializes and runs the main application.
+    """Asynchronously initializes and runs the main application.
 
     This function performs the following steps:
     1. Creates the application instance using `create_app()`.
     2. Initializes the I/O subsystem with the created app.
-    3. Retrieves the host and port from environment variables, defaulting to "0.0.0.0" and 5000 if not set.
+    3. Retrieves the host and port from environment variables,
+        defaulting to "127.0.0.1" and 5000 if not set.
     4. Runs the application using the I/O subsystem on the specified host and port.
 
     """
@@ -23,14 +23,17 @@ async def main_app() -> None:
         app = await create_app()
         await io.init_app(app, cors_allowed_origins=check_cors_allowed_origins)
         await register_namespaces(io)
-        host = environ.get("API_HOST", "0.0.0.0")
+        # Use "127.0.0.1" como padrão para evitar exposição a todas as interfaces
+        host = environ.get("API_HOST", "127.0.0.1")
         port = int(environ.get("API_PORT", 5000))
 
         log_folder = Path(__file__).cwd().joinpath("temp", "logs")
         log_folder.mkdir(exist_ok=True, parents=True)
         log_file = str(log_folder.joinpath(f"{__package__}.log"))
         cfg, _ = dict_config(
-            LOG_LEVEL=logging.INFO, LOGGER_NAME=__package__, FILELOG_PATH=log_file
+            LOG_LEVEL=logging.INFO,
+            LOGGER_NAME=__package__,
+            FILELOG_PATH=log_file,
         )
 
         # Executa o servidor sem SSL para evitar erros de requisição HTTP inválida

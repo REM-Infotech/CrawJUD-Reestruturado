@@ -32,7 +32,7 @@ MAIL_DEFAULT_SENDER = env.get("MAIL_DEFAULT_SENDER", "")
 
 # SQLALCHEMY CONFIG
 SQLALCHEMY_POOL_SIZE = int(
-    env.get("SQLALCHEMY_POOL_SIZE", 30)
+    env.get("SQLALCHEMY_POOL_SIZE", 30),
 )  # Número de conexões na pool
 
 # Número de conexões extras além da pool_size
@@ -52,7 +52,7 @@ SQLALCHEMY_POOL_PRE_PING = (
 SQLALCHEMY_DATABASE_URI = env.get("SQLALCHEMY_DATABASE_URI", "sqlite:///local.db")
 
 SQLALCHEMY_ENGINE_OPTIONS = json.loads(
-    env.get("SQLALCHEMY_ENGINE_OPTIONS", '{"pool_pre_ping": "True"}')
+    str(env.get("SQLALCHEMY_ENGINE_OPTIONS", '{"pool_pre_ping": "True"}')),
 )
 SQLALCHEMY_TRACK_MODIFICATIONS = env.get("WITH_REDIS", "false").lower() == "true"
 

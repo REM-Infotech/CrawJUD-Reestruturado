@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from contextlib import suppress
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     AnyStr,
+    ClassVar,
     ParamSpec,
-    TypeVar,
-    Union,
 )
 
-from browsermobproxy import Client
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.core.download_manager import WDMDownloadManager
@@ -40,30 +37,31 @@ from utils.webdriver.config.proxy import (
 from utils.webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from browsermobproxy import Client
     from selenium.webdriver.common.service import Service
 
     from utils.webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
     from utils.webdriver.config.chrome import ChromeOptions
     from utils.webdriver.config.firefox import FirefoxOptions
 
-
 work_dir = Path(__file__).cwd()
 
 P = ParamSpec("P")
-T = TypeVar("T")
 
 
-class DriverBot(WebDriver):  # noqa: D101
+class DriverBot[T](WebDriver):  # noqa: D101
     _har: DictHARProxy = None
-    _log: dict[str, DictHARProxy] = None
+    _log: ClassVar[dict[str, DictHARProxy]] = {}
     _count: int = 0
 
     def __init__(  # noqa: D107
         self,
         selected_browser: BrowserOptions,
-        execution_path: str | Path = None,
-        *args: Any,
-        **kwargs: Any,
+        execution_path: str | Path | None = None,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         driver_config = config[selected_browser]
 
@@ -98,7 +96,7 @@ class DriverBot(WebDriver):  # noqa: D101
 
         system_manager = OperationSystemManager()
         file_manager = FileManager(os_system_manager=system_manager)
-        _manager = driver_config["manager"](
+        manager_ = driver_config["manager"](
             download_manager=WDMDownloadManager(),
             cache_manager=DriverCacheManager(
                 file_manager=file_manager,
@@ -106,13 +104,13 @@ class DriverBot(WebDriver):  # noqa: D101
             ),
             os_system_manager=system_manager,
         )
-        self._manager = _manager
-        return _manager
+        self._manager = manager_
+        return manager_
 
     def _configure_service(
         self,
         driver_config: ChromeConfig | FirefoxConfig,
-        **kwargs: Any,
+        **kwargs: T,
     ) -> None:
         self._service = driver_config["service"](
             executable_path=self._manager.install(),
@@ -132,8 +130,8 @@ class DriverBot(WebDriver):  # noqa: D101
     def _configure_options(
         self,
         driver_config: ChromeConfig | FirefoxConfig,
-        *args: Any,
-        **kwargs: Any,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         self._options = driver_config.get("options")(*args, **kwargs)
         self._options.enable_downloads = True
@@ -183,8 +181,8 @@ class DriverBot(WebDriver):  # noqa: D101
     def new_har(  # noqa: D102
         self,
         ref: AnyStr = "default",
-        options: dict = None,
-        title: AnyStr = None,
+        options: T = None,
+        title: T = None,
     ) -> None:
         if options is None:
             options = {"captureHeaders": True, "captureContent": True}
@@ -197,11 +195,11 @@ class DriverBot(WebDriver):  # noqa: D101
     def _entry_generator(
         self,
     ) -> Generator[EntryRequest, Any, None]:
-        _slice = self._count
+        slice_ = self._count
         list_entries: list = self.client.har.get("log").get("entries")
         self._count = len(self.client.har.get("log").get("entries"))
-        if _slice > 0:
-            list_entries: list = list_entries[_slice:]
+        if slice_ > 0:
+            list_entries: list = list_entries[slice_:]
 
         for entry in list_entries:
             yield EntryRequest(

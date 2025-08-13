@@ -1,25 +1,25 @@
 from __future__ import annotations
 
 import io
-import xml.etree.ElementTree as ET  # noqa: S405
-from collections.abc import Generator
 from contextlib import suppress
-from datetime import datetime
-from os import path
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self, TypeVar, cast
 
 from minio.datatypes import Bucket as __Bucket
 from minio.datatypes import ListAllMyBucketsResult
 from minio.datatypes import Object as __Object
-from minio.helpers import ObjectWriteResult
 from minio.time import from_iso8601utc
 from minio.xml import find, findall, findtext
-from urllib3 import BaseHTTPResponse
 
 if TYPE_CHECKING:
-    from utils.storage import Storage
+    from collections.abc import Generator
+    from datetime import datetime
 
+    from minio.helpers import ObjectWriteResult
+    from minio.xml import Element
+    from urllib3 import BaseHTTPResponse
+
+    from utils.storage import Storage
 A = TypeVar("A", bound="ListBuckets")
 
 
@@ -28,9 +28,8 @@ class ListBuckets(ListAllMyBucketsResult):
         super().__init__(buckets=buckets)
 
     @classmethod
-    def fromxml(cls, element: ET.Element) -> Self:
-        """Create new object with values from XML element."""
-        element = cast("ET.Element", find(element, "Buckets", True))
+    def fromxml(cls, element: Element) -> Self:
+        element = cast("Element", find(element, "Buckets", True))
         buckets = []
         elements = findall(element, "Bucket")
         for bucket in elements:
@@ -46,7 +45,7 @@ class ListBuckets(ListAllMyBucketsResult):
         return cls(buckets=buckets)
 
 
-class Bucket(__Bucket):
+class Bucket[T](__Bucket):
     client: Storage
 
     def __init__(self, name: str, creation_date: datetime, client: Storage) -> None:
@@ -55,17 +54,19 @@ class Bucket(__Bucket):
 
     def list_objects(
         self,
-        prefix: str = None,
+        prefix: str | None = None,
+        *,
         recursive: bool = True,
-        start_after: str = None,
-        include_user_meta: str = False,
-        include_version: str = False,
-        use_api_v1: str = False,
-        use_url_encoding_type: str = True,
-        fetch_owner: str = False,
-        extra_headers: str = None,
-        extra_query_params: str = None,
+        start_after: str | None = None,
+        include_user_meta: bool = False,
+        include_version: bool = False,
+        use_api_v1: bool = False,
+        use_url_encoding_type: bool = True,
+        fetch_owner: bool = False,
+        extra_headers: str | None = None,
+        extra_query_params: str | None = None,
     ) -> Generator[Blob, Any, None]:
+        # Lista objetos do bucket conforme os parâmetros fornecidos.
         for ob in self.client._list_objects(  # noqa: SLF001
             bucket_name=self.name,
             delimiter=None if recursive else "/",
@@ -86,10 +87,10 @@ class Bucket(__Bucket):
         object_name: str,
         offset: int = 0,
         length: int = 0,
-        request_headers: Any | None = None,
-        ssec: Any | None = None,
+        request_headers: T | None = None,
+        ssec: T | None = None,
         version_id: str | None = None,
-        extra_query_params: Any | None = None,
+        extra_query_params: T | None = None,
     ) -> BaseHTTPResponse | None:
         with suppress(Exception):
             return self.client.get_object(
@@ -110,10 +111,10 @@ class Bucket(__Bucket):
         object_name: str,
         data: bytes,
         length: int,
-        chunk_size: int = None,
+        chunk_size: int | None = None,
         content_type: str = "application/octet-stream",
-        progress: Any = None,
-        extra_headers: Any = None,
+        progress: T | None = None,
+        extra_headers: T | None = None,
     ) -> ObjectWriteResult:
         if not self.get_object(object_name):
             return self.client.put_object(
@@ -135,13 +136,23 @@ class Bucket(__Bucket):
 
 
 class Blob(__Object):
-    _object_name: str = None
+    _object_name: str | None = None
     client: Storage
     bucket: Bucket
 
     @classmethod
     def from_object(cls, _object: __Object, client: Storage, bucket: Bucket) -> Blob:
-        """Create a Blob instance from an existing Object."""
+        """Crie uma instância de Blob a partir de um Object existente.
+
+        Args:
+            _object (__Object): Objeto de origem.
+            client (Storage): Cliente de armazenamento.
+            bucket (Bucket): Bucket associado.
+
+        Returns:
+            Blob: Instância de Blob criada a partir do Object.
+
+        """
         return cls(ob=_object, client=client, bucket=bucket)
 
     @property
@@ -163,17 +174,18 @@ class Blob(__Object):
 
     def list_objects(
         self,
-        prefix: str = None,
+        *,
         recursive: bool = True,
-        start_after: str = None,
-        include_user_meta: str = False,
-        include_version: str = False,
-        use_api_v1: str = False,
-        use_url_encoding_type: str = True,
-        fetch_owner: str = False,
-        extra_headers: str = None,
-        extra_query_params: str = None,
+        start_after: str | None = None,
+        include_user_meta: bool = False,
+        include_version: bool = False,
+        use_api_v1: bool = False,
+        use_url_encoding_type: bool = True,
+        fetch_owner: bool = False,
+        extra_headers: str | None = None,
+        extra_query_params: str | None = None,
     ) -> Generator[Blob, Any, None]:
+        # Lista objetos do bucket conforme os parâmetros fornecidos.
         return self.bucket.list_objects(
             prefix=self.name,
             recursive=recursive,
@@ -205,6 +217,6 @@ class Blob(__Object):
 
             self.client.fget_object(
                 bucket_name=self.bucket_name,
-                object_name=path.join(dest.name, self.name),
+                object_name=str(Path(dest.name).joinpath(self.name)),
                 file_path=file_dest,
             )
