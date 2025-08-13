@@ -6,6 +6,7 @@ from time import sleep
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
+from api.common.exceptions.raises import raise_execution_error
 from crawjud_app.bots.elaw.cadastro.cadastro import PreCadastro
 from crawjud_app.bots.elaw.cadastro.complement import CadastroComplementar
 from crawjud_app.common.exceptions.bot import ExecutionError
@@ -29,10 +30,6 @@ campos_validar: list[str] = [
     "nota_tecnica",
     "liminar",
 ]
-
-
-def _raise_missing_field_error(msg: str) -> None:
-    raise ExecutionError(message=msg)
 
 
 class ElawCadadastro(CadastroComplementar, PreCadastro):
@@ -201,33 +198,18 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
         message_campo: list[str] = []
 
         for campo in campos_validar:
-            try:
-                campo_validar: str = self.elements.dict_campos_validar.get(campo)
-                command = f"return $('{campo_validar}').text()"
-                element = self.driver.execute_script(command)
+            campo_validar: str = self.elements.dict_campos_validar.get(campo)
+            command = f"return $('{campo_validar}').text()"
+            element = self.driver.execute_script(command)
 
-                if not element or element.lower() == "selecione":
-                    message = f'Campo "{campo}" não preenchido'
-                    _raise_missing_field_error(message)
+            if not element or element.lower() == "selecione":
+                message = f'Campo "{campo}" não preenchido'
+                raise_execution_error(message)
 
-                message_campo.append(
-                    f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>',
-                )
-                validar.update({campo.upper(): element})
-
-            except Exception as e:
-                self.logger.exception("".join(traceback.format_exception(e)))
-                try:
-                    message = e.message
-
-                except Exception:
-                    message = str(e)
-
-                validar.update({campo.upper(): message})
-
-                self.message = message
-                self.type_log = "info"
-                self.prt()
+            message_campo.append(
+                f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>',
+            )
+            validar.update({campo.upper(): element})
 
         self.append_validarcampos([validar])
         message_campo.append('<p class="fw-bold">Campos validados!</p>')
