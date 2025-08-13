@@ -1,1 +1,4 @@
-import crawjud_app  # noqa: F401
+from crawjud_app.main import main as _main
+
+if __name__ == "__main__":
+    _main()
