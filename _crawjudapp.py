@@ -1,4 +1,4 @@
-from crawjud_app.main import main as _main
+from crawjud_app.main import start_worker
 
 if __name__ == "__main__":
-    _main()
+    start_worker()
