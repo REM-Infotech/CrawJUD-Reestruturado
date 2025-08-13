@@ -123,7 +123,6 @@ class AbstractClassBot[T](ABC):
         tqdm.write("ok")
 
     def __init_subclass__(cls) -> None:
-        tqdm.write(cls.__name__)
         cls.tasks_cls[cls.__name__] = cls
 
     @abstractmethod

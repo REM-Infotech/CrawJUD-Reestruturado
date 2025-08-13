@@ -41,9 +41,6 @@ def wrap_init[T](cls: type[ClassBot]) -> type[T]:
         *args: T,
         **kwargs: T,
     ) -> None:
-        tqdm.write(
-            f"Instanciando {cls.__name__} com args: {args}, kwargs: {kwargs}",
-        )
         return original_init(self, *args, **kwargs)
 
     cls.__init__ = novo_init
