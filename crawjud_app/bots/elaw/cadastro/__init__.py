@@ -31,6 +31,10 @@ campos_validar: list[str] = [
 ]
 
 
+def _raise_missing_field_error(msg: str) -> None:
+    raise ExecutionError(message=msg)
+
+
 class ElawCadadastro(CadastroComplementar, PreCadastro):
     def __init__(
         self,
@@ -186,10 +190,6 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
         This method checks each required field in the process to ensure
         they are properly filled. It logs the validation steps and raises
         an error if any required field is missing.
-
-        Raises:
-            ExecutionError: If any required field is missing.
-
         """
         self.message = "Validando campos"
         self.type_log = "log"
@@ -207,7 +207,8 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
                 element = self.driver.execute_script(command)
 
                 if not element or element.lower() == "selecione":
-                    raise ExecutionError(message=f'Campo "{campo}" não preenchido')
+                    message = f'Campo "{campo}" não preenchido'
+                    _raise_missing_field_error(message)
 
                 message_campo.append(
                     f'<p class="fw-bold">Campo "{campo}" Validado | Texto: {element}</p>',
