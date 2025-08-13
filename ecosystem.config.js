@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "crawjud_app",
-      cmd: "python -m celery_app",
+      cmd: "celery_app",
       args: "--type worker",
       autorestart: true,
       watch: true,
