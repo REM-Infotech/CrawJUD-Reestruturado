@@ -9,17 +9,19 @@ from __future__ import annotations
 import json.decoder
 from typing import TYPE_CHECKING, Literal
 
-from httpx import Client
-
 from crawjud_app.addons.search import SearchController
 from interface.types import BotData
-from interface.types.pje import DictResults
 
 if TYPE_CHECKING:
-    from interface.types import BotData
+    from httpx import Client
 
+    from interface.types import BotData
+    from interface.types.pje import DictResults
 # Expressão regular para validar URLs de processos PJe
-pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+(#[a-zA-Z0-9]+)?$"
+pattern_url = (
+    r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/"
+    r"\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+(#[a-zA-Z0-9]+)?$"
+)
 
 
 # Tipo literal para mensagem de processo não encontrado
@@ -36,20 +38,18 @@ class PJeSearch[T](SearchController):
         *args: T,
         **kwargs: T,
     ) -> DictResults | Literal["Nenhum processo encontrado"]:
-        """Realiza a busca de um processo no sistema PJe utilizando os dados fornecidos.
+        """Realize a busca de um processo no sistema PJe.
 
         Args:
             headers (dict[str, str]): Cabeçalhos HTTP para a requisição.
             cookies (dict[str, str]): Cookies HTTP para a requisição.
             data (BotData): Dados do processo a serem consultados.
             *args: Argumentos adicionais.
-            **kwargs: Argumentos nomeados adicionais.
+            **kwargs: Argumentos nomeados adicionais
 
         Returns:
-            resultado = desafio_captcha(id_processo=id_processo, data=data, url_base=url_base)
-
-        Raises:
-            ExecutionError: Caso ocorra erro ao obter informações do processo após múltiplas tentativas.
+            DictResults | Literal["Nenhum processo encontrado"]: Resultado da busca do
+            processo ou mensagem indicando que nenhum processo foi encontrado.
 
         """
         # Envia mensagem de log para task assíncrona
@@ -59,37 +59,31 @@ class PJeSearch[T](SearchController):
             row=row,
             type_log="log",
         )
+        link = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
+        response = client.get(url=link)
+        id_processo: str
+
+        if response.status_code == 403:
+            return None
 
         try:
-            # Monta URL para buscar dados básicos do processo
-            link = f"/processos/dadosbasicos/{data['NUMERO_PROCESSO']}"
-            response = client.get(url=link)
-            id_processo: str
+            data_request = response.json()
 
-            if response.status_code == 403:
-                return None
+        except json.decoder.JSONDecodeError:
+            return None
 
-            try:
-                data_request = response.json()
+        # Caso a resposta seja uma lista, pega o primeiro item
+        if isinstance(data_request, list):
+            data_request: dict[str, T] = data_request[0]
 
-            except json.decoder.JSONDecodeError:
-                return None
+        try:
+            id_processo = data_request["id"]
+        except KeyError:
+            return None
 
-            # Caso a resposta seja uma lista, pega o primeiro item
-            if isinstance(data_request, list):
-                data_request: dict[str, T] = data_request[0]
-
-            try:
-                id_processo = data_request["id"]
-            except KeyError:
-                return None
-
-            return self.desafio_captcha(
-                data=data,
-                row=row,
-                id_processo=id_processo,
-                client=client,
-            )
-
-        except Exception:
-            self.print_msg("Erro ao buscar processo", row=row, type_log="error")
+        return self.desafio_captcha(
+            data=data,
+            row=row,
+            id_processo=id_processo,
+            client=client,
+        )
