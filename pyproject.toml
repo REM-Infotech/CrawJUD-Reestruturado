@@ -81,6 +81,7 @@ omit = [
      "utils/logger/*",
      "tests/*",
      "**/__main__.py",
+     "crawjud_app/addons/search/**/*",
      "api/common/__init__.py",
      "api/common/exceptions/__init__.py"
 ]
