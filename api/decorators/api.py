@@ -37,7 +37,7 @@ def verify_jwt_websocket[T](func: Callable) -> T:
         func (Callable): Função assíncrona a ser decorada.
 
     Returns:
-        WrappedFnReturnT: Função decorada que verifica o JWT antes
+        Função decorada que verifica o JWT antes
             de executar a função original.
 
     Observações:
