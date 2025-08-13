@@ -85,6 +85,8 @@ class PjeAuth(AuthController):
                 for header in entry_proxy.request.headers
             }
 
+            driver.quit()
+
             self._cookies = cookies_
             self._headers = headers_
             self._base_url = (
