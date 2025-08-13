@@ -64,8 +64,8 @@ class AbstractClassBot[T](ABC):
         return self._regiao
 
     @regiao.setter
-    def regiao(self, _data_regiao: str) -> None:
-        self._data_regiao = _data_regiao
+    def regiao(self, _regiao: str) -> None:
+        self._regiao = _regiao
 
     def print_msg(  # noqa: D417
         self,

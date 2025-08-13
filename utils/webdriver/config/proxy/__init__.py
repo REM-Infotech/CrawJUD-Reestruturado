@@ -11,7 +11,7 @@ environ = dotenv_values()
 
 
 def configure_proxy() -> tuple[Client, Server]:  # noqa: D103
-    server = Server(environ["BROWSERMOB_PATH"])
+    server = Server()
     server.start()
     return server.create_proxy(), server
 
@@ -75,7 +75,7 @@ class ResponseData:  # noqa: D101
 @dataclass(frozen=True)
 class ContentData(TypedDict):  # noqa: D101
     size: int
-    mimeType: str  # noqa: N815
+    mimeType: str
     comment: str
     text: str = ""
 
@@ -100,13 +100,13 @@ class Page(TypedDict):  # noqa: D101
     id: str = "default"
     startedDateTime: str = "2025-07-29T12:15:00.124-04:00"
     title: str = "default"
-    pageTimings: dict[str, str | int] = {}
+    pageTimings: dict[str, str | int]
     comment: str = ""
 
 
 class DictHARProxy(TypedDict):  # noqa: D101
     version: str = ""
     creator: CreatorInfo
-    pages: list[Page] = []
-    entries: list[EntryRequest] = []
+    pages: list[Page]
+    entries: list[EntryRequest]
     comment: str = ""
