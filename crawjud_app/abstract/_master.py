@@ -8,7 +8,6 @@ from zoneinfo import ZoneInfo
 from tqdm import tqdm
 
 from utils.models.logs import MessageLogDict
-from utils.webdriver import DriverBot
 
 func_dict_check = {
     "bot": ["execution"],
@@ -38,18 +37,6 @@ class AbstractClassBot[T](ABC):
     _cookies: dict[str, str] | None = None
     _headers: dict[str, str] | None = None
     _base_url: str | None = None
-
-    _driver: ClassVar[DriverBot] = None
-
-    @property
-    def driver(self) -> DriverBot:
-        if not self._driver:
-            self._driver = DriverBot(
-                selected_browser="chrome",
-                with_proxy=True,
-            )
-
-        return self._driver
 
     @property
     def data_regiao(self) -> list[BotData]:
