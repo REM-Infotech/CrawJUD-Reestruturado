@@ -14,11 +14,9 @@ from quart import (
 from quart_jwt_extended import jwt_required
 from werkzeug.exceptions import HTTPException
 
-from api.addons.make_models import MakeModels as MakeModels
 from api.decorators.api import crossdomain
-from api.routes.bot.botlaunch_methods import (
-    LoadForm,
-)
+from api.routes.bot.botlaunch_methods import LoadForm
+from utils.xlsx_generator import MakeTemplates as MakeTemplates
 
 bot = Blueprint("bot", __name__, url_prefix="/bot")
 
