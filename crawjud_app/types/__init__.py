@@ -5,6 +5,8 @@ de dados, parâmetros e retornos em funções e classes do projeto.
 
 """
 
+import re
+from collections import UserString
 from datetime import datetime, timedelta
 from os import PathLike
 from typing import Literal, TypeVar
@@ -41,6 +43,42 @@ StrPath = str | PathLike
 ReturnFormataTempo = datetime | float | int | bool | str
 TypeLog = Literal["log", "success", "warning", "info", "error"]
 StatusType = Literal["Inicializando", "Em Execução", "Finalizado", "Falha"]
+
+
+class StrTime[T](UserString):
+    """Representa uma string de data/hora com validação de formatos específicos.
+
+    Esta classe permite verificar se uma instância corresponde a padrões de data/hora
+    definidos por expressões regulares.
+
+    Args:
+        instance (Any): Instância a ser verificada.
+
+    Returns:
+        bool: Indica se a instância corresponde a algum dos padrões de data/hora.
+
+    """
+
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return self
+
+    def __repr__(self) -> str:
+        return self
+
+    def __instancecheck__(self, instance: T) -> bool:
+        # Lista de padrões para validação de datas/horas
+        pattern_list = [
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$",
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}Z$",
+            r"^\d{4}-\d{2}-\d{2}"
+            r"^\d{2}:\d{2}:\d{2}$",
+            r"^\d{4}-\d{2}-\d{2}.\d{1,6}$",
+        ]
+
+        return any(re.match(pattern, instance) for pattern in pattern_list)
 
 
 __all__ = ["BotData"]

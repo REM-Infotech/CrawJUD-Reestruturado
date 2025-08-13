@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from crawjud_app.abstract._properties import PropertyBot
 from crawjud_app.common.exceptions.bot import ExecutionError
-from crawjud_app.custom._canvas import subtask
+from crawjud_app.custom.canvas import subtask
 
 if TYPE_CHECKING:
     from crawjud_app.types.bot import BotData, DictFiles

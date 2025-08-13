@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 from crawjud_app.abstract._head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
-from crawjud_app.custom._task import ContextTask
+from crawjud_app.custom.task import ContextTask
 from crawjud_app.types.bot import BotData
 from crawjud_app.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
 from utils.models.logs import CachedExecution

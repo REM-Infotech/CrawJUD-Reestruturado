@@ -21,3 +21,5 @@ Arquivos Alterados:
 - Os commits precisam ser em português, mas o type e o scope ficam em inglês
 
 - Quando a sugestão envolver alteração de local de pasta, nome de arquivo ou estrutura, gere uma mensagem clara explicando que se trata de uma alteração (e não de uma inserção). Seja direto e técnico na explicação.
+
+- Caso as alterações ultrapassem os 25 arquivos, faça um resumo geral

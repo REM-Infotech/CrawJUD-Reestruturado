@@ -9,7 +9,7 @@ from typing import ParamSpec
 
 from celery import shared_task as share
 
-from crawjud_app.types._celery._task import Task
+from crawjud_app.types.celery.task import Task
 
 from .bot import wrap_cls, wrap_init
 

@@ -1,102 +1,49 @@
-"""Defines Celery tasks for initializing and executing bot instances dynamically.
+"""Tarefas relacionadas ao envio de mensagens de log para o sistema de monitoramento.
 
-Tasks:
-    - initialize_bot: Asynchronously initializes and executes a bot instance based on the provided name, system, and process ID (pid). Handles dynamic import of the bot module and class, downloads required files from storage, sets up logging, and manages stop signals via Socket.IO.
-    - scheduled_initialize_bot: Synchronously initializes and executes a bot instance for scheduled tasks, using the provided bot name, system, and configuration path.
-
-Dependencies:
-    - Dynamic import of bot modules and classes.
-    - Storage management for downloading required files.
-    - PrintMessage for logging and communication.
-    - Socket.IO for handling stop signals during bot execution.
-
-Raises:
-    - ImportError: If the specified bot class cannot be found in the dynamically imported module.
-    - Exception: Catches and logs any exceptions during bot initialization or execution.
-
+Este módulo contém a classe PrintMessage, responsável por enviar mensagens de log
+assíncronas via Socket.IO, permitindo a comunicação em tempo real com o sistema de
+monitoramento.
 """
 
 from __future__ import annotations
 
-import re
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, Generic, TypeVar
 
 from dotenv import dotenv_values
 
-from crawjud_app.custom._task import ContextTask
+from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task
 
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
-T = TypeVar("T")
-
-
-class StrTime(str):
-    """Representa uma string de data/hora com validação de formatos específicos.
-
-    Esta classe permite verificar se uma instância corresponde a padrões de data/hora
-    definidos por expressões regulares.
-
-    Args:
-        instance (Any): Instância a ser verificada.
-
-    Returns:
-        bool: Indica se a instância corresponde a algum dos padrões de data/hora.
-
-    """
-
-    __slots__ = ()
-
-    def __str__(self) -> str:  # noqa: D105
-        return self
-
-    def __repr__(self) -> str:  # noqa: D105
-        return self
-
-    def __instancecheck__(self, instance: Any) -> bool:  # noqa: D105
-        # Lista de padrões para validação de datas/horas
-        pattern_list = [
-            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
-            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$",
-            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}Z$",
-            r"^\d{4}-\d{2}-\d{2}"
-            r"^\d{2}:\d{2}:\d{2}$",
-            r"^\d{4}-\d{2}-\d{2}.\d{1,6}$",
-        ]
-
-        if any(re.match(pattern, instance) for pattern in pattern_list):
-            return True
-
-        return False
 
 
 @shared_task(name="print_message", bind=True, base=ContextTask)
-class PrintMessage(ContextTask):
+class PrintMessage[T](ContextTask):
     """Classe responsável por enviar mensagens de log para o sistema de monitoramento.
 
-    Esta classe utiliza o Socket.IO para enviar mensagens de log assíncronas, permitindo
-    a comunicação em tempo real com o sistema de monitoramento.
+    Esta classe utiliza o Socket.IO para enviar mensagens de log assíncronas,
+    permitindo a comunicação em tempo real com o sistema de monitoramento.
     """
 
     def __init__(  # noqa: D107
         self,
         event: str = "log_execution",
-        data: dict[str, str] | str = None,
-        room: str = None,
-        *args: Generic[T],
-        **kwargs: Generic[T],
+        data: dict[str, str] | str | None = None,
+        room: str | None = None,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         self.print_msg(event=event, data=data, room=room, *args, **kwargs)  # noqa: B026
 
     def print_msg(
         self,
         event: str = "log_execution",
-        data: dict[str, str] | str = None,
-        room: str = None,
-        *args: Generic[T],
-        **kwargs: Generic[T],
+        data: dict[str, str] | str | None = None,
+        room: str | None = None,
+        *args: T,
+        **kwargs: T,
     ) -> None:
         """Envia mensagem assíncrona para o sistema de monitoramento via Socket.IO.
 

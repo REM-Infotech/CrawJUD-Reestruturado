@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from crawjud_app.abstract._master import AbstractClassBot
-from crawjud_app.custom._canvas import subtask
+from crawjud_app.custom.canvas import subtask
 
 if TYPE_CHECKING:
     from socketio import SimpleClient
 
-    from crawjud_app.custom._task import ContextTask
-    from crawjud_app.types._celery._canvas import Signature
+    from crawjud_app.custom.task import ContextTask
     from crawjud_app.types.bot import BotData, DictFiles
+    from crawjud_app.types.celery.canvas import Signature
 
 
 class PropertyBot(AbstractClassBot):

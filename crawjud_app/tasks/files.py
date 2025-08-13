@@ -4,19 +4,14 @@ from __future__ import annotations
 
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, TypeVar
 
 import pandas as pd
 from werkzeug.utils import secure_filename
 
-from crawjud_app.custom._task import ContextTask
+from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task
-from crawjud_app.types import ReturnFormataTempo
 from utils.models.logs import CachedExecution
 from utils.storage import Storage
-
-if TYPE_CHECKING:
-    pass
 
 workdir_path = Path(__file__).cwd()
 
@@ -27,22 +22,39 @@ transports = ["websocket"]
 headers = {"Content-Type": "application/json"}
 url_server = environ["SOCKETIO_SERVER_URL"]
 
-T = TypeVar("AnyValue", bound=ReturnFormataTempo)
-
 
 @shared_task(name="save_success", bind=True, base=ContextTask)
-class SaveSuccessTask(ContextTask):  # noqa: D101
-    def __init__(  # noqa: D107
+class SaveSuccessTask(ContextTask):
+    """Gerencia a tarefa de salvar resultados em Excel e realizar upload.
+
+    Args:
+        pid (str): Identificador do processo de execução.
+        filename (str): Nome do arquivo a ser salvo.
+
+    Returns:
+        None: Não retorna valor.
+
+    Raises:
+        FileNotFoundError: Caso o diretório de destino não exista.
+
+    """
+
+    def __init__(
         self,
         pid: str,
         filename: str,
-        *args: Generic[T],
-        **kwargs: Generic[T],
     ) -> None:
-        _data_query = CachedExecution.find(CachedExecution.pid == pid).all()
+        """Inicializa a tarefa SaveSuccessTask com o PID e nome do arquivo.
+
+        Args:
+            pid (str): Identificador do processo de execução.
+            filename (str): Nome do arquivo a ser salvo.
+
+        """
+        data_query_ = CachedExecution.find(CachedExecution.pid == pid).all()
 
         list_data = []
-        for item in _data_query:
+        for item in data_query_:
             list_data.extend(item.data)
 
         storage = Storage("minio")
