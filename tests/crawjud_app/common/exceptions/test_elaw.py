@@ -1,5 +1,6 @@
 import pytest
-from crawjud_app.common.exceptions.elaw import ElawError, AdvogadoError
+
+from crawjud_app.common.exceptions.elaw import AdvogadoError, ElawError
 
 # python
 """Teste unitário para classes de exceção ElawError e AdvogadoError do módulo elaw.
@@ -9,15 +10,11 @@ Testa a criação, mensagem e herança das exceções ElawError e AdvogadoError.
 """
 
 
-
 def test_elaw_error_mensagem_padrao() -> None:
     """Verifique a mensagem padrão ao instanciar ElawError com exceção.
 
     Args:
         Nenhum.
-
-    Returns:
-        None: Não retorna valor.
 
     """
     # Cria exceção simulada
@@ -30,14 +27,12 @@ def test_elaw_error_mensagem_padrao() -> None:
     assert "erro simulado" in str(error)
     assert isinstance(error, ElawError)
 
+
 def test_elaw_error_mensagem_customizada() -> None:
     """Verifique mensagem customizada ao instanciar ElawError.
 
     Args:
         Nenhum.
-
-    Returns:
-        None: Não retorna valor.
 
     """
     exc = ValueError("valor inválido")
@@ -47,14 +42,12 @@ def test_elaw_error_mensagem_customizada() -> None:
     assert mensagem in str(error)
     assert "ValueError" in str(error)
 
+
 def test_elaw_error_heranca_base() -> None:
     """Verifique se ElawError é subclasse de BaseCrawJUDError.
 
-    Args:
-        Nenhum.
-
-    Returns:
-        None: Não retorna valor.
+    Raises:
+        ElawError: Se ocorrer um erro ao instanciar a exceção.
 
     """
     exc = Exception("erro base")
@@ -62,14 +55,12 @@ def test_elaw_error_heranca_base() -> None:
     with pytest.raises(ElawError):
         raise ElawError(exc, bot_execution_id)
 
+
 def test_advogado_error_mensagem_padrao() -> None:
     """Verifique a mensagem padrão ao instanciar AdvogadoError.
 
     Args:
         Nenhum.
-
-    Returns:
-        None: Não retorna valor.
 
     """
     bot_execution_id = "exec-004"
@@ -77,14 +68,12 @@ def test_advogado_error_mensagem_padrao() -> None:
     assert "Erro ao executar operaçao" in str(error)
     assert isinstance(error, AdvogadoError)
 
+
 def test_advogado_error_com_excecao() -> None:
     """Verifique mensagem ao instanciar AdvogadoError com exceção.
 
     Args:
         Nenhum.
-
-    Returns:
-        None: Não retorna valor.
 
     """
     bot_execution_id = "exec-005"
@@ -93,14 +82,12 @@ def test_advogado_error_com_excecao() -> None:
     assert "KeyError" in str(error)
     assert "chave ausente" in str(error)
 
+
 def test_advogado_error_mensagem_customizada() -> None:
     """Verifique mensagem customizada ao instanciar AdvogadoError.
 
     Args:
         Nenhum.
-
-    Returns:
-        None: Não retorna valor.
 
     """
     bot_execution_id = "exec-006"
@@ -108,14 +95,12 @@ def test_advogado_error_mensagem_customizada() -> None:
     error = AdvogadoError(bot_execution_id, message=mensagem)
     assert mensagem in str(error)
 
+
 def test_advogado_error_heranca_base() -> None:
     """Verifique se AdvogadoError é subclasse de BaseCrawJUDError.
 
-    Args:
-        Nenhum.
-
-    Returns:
-        None: Não retorna valor.
+    Raises:
+        AdvogadoError: Se ocorrer um erro ao instanciar a exceção.
 
     """
     bot_execution_id = "exec-007"

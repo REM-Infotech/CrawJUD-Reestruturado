@@ -1,37 +1,4 @@
 preview = true
-exclude = [
-    "examples",
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-    "tests",
-    "Lib",
-]
-
-extend-exclude = ["hooks"]
 extend-include = ["*.ipynb"]
 line-length = 86
 indent-width = 4
@@ -86,54 +53,18 @@ extend-select = [
 
 ignore = ["ARG002", "FBT003"]
 
-# ignore = [
-#     "A005",
-#     "E501",
-#     "T201",
-#     "S104",
-#     "COM812",
-#     "D203",
-#     "D211",
-#     "D212",
-#     "D213",
-#     "S603",
-#     "S607",
-#     "S404",
-#     "C901",
-#     "ANN401",
-#     "INP",
-#     "UP",
-#     "RET",
-#     "BLE",
-#     "FBT",
-#     "CPY",
-#     "DTZ",
-#     "EM",
-#     "FA",
-#     "SIM",
-#     "TID",
-#     "TC",
-#     "ARG",
-#     "PTH",
-#     "ERA",
-#     "PD",
-#     "PL",
-#     "TRY",
-#     "FLY",
-#     "AIR",
-#     "PERF",
-#     "FURB",
-#     "DOC",
-#     "RUF",
-# ]
-
-
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
-unfixable = []
+unfixable = ["B", "S"]
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[lint.extend-per-file-ignores]
+
+
+"**/{tests,docs,tools}/*" = ["E402", "S", "D100", "D104", "ANN", "D417", "N818"]
+
 
 
 [format]

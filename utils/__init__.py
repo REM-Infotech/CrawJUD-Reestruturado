@@ -1,1 +1,1 @@
-# noqa: D104
+"""Utilitários gerais do CrawJUD."""
