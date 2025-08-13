@@ -2,7 +2,10 @@
 
 from time import sleep
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import (
+    TimeoutException,
+    UnexpectedAlertPresentException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
@@ -42,7 +45,12 @@ class PjeAuth(AuthController):
             driver.execute_script(event_cert)
             sleep(1)
             try:
-                WebDriverWait(driver, 15).until(ec.url_to_be(url_valida_sessao))
+                WebDriverWait(
+                    driver=driver,
+                    timeout=15,
+                    poll_frequency=0.3,
+                    ignored_exceptions=(UnexpectedAlertPresentException),
+                ).until(ec.url_to_be(url_valida_sessao))
             except TimeoutException:
                 if "pjekz" not in driver.current_url:
                     return False
@@ -71,8 +79,6 @@ class PjeAuth(AuthController):
                 str(header["name"]): str(header["value"])
                 for header in entry_proxy.request.headers
             }
-
-            self.driver = driver
 
             self._cookies = cookies_
             self._headers = headers_
