@@ -78,6 +78,7 @@ source = ["."]
 omit = [
     "utils/webdriver/*",
      "utils/storage/*",
+     "utils/logger/*",
      "tests/*",
      "**/__main__.py",
      "api/common/__init__.py",
