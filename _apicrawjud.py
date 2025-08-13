@@ -1,4 +1,6 @@
+import asyncio
+
 from api._main import main_app
 
 if __name__ == "__main__":
-    main_app()
+    asyncio.run(main_app())
