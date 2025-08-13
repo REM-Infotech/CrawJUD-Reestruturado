@@ -9,6 +9,7 @@ from os import environ, getenv
 from pathlib import Path
 
 from celery.signals import after_setup_logger
+from tqdm import tqdm
 
 from crawjud_app.custom import AsyncCelery as Celery
 from crawjud_app.resources.load_config import Config
@@ -19,9 +20,9 @@ app = Celery(__name__)
 with suppress(Exception):  # pragma: no cover
 
     @after_setup_logger.connect
-    def config_loggers(
-        *,
+    def config_loggers[T](
         logger: logging.Logger,
+        **kwargs: T,
     ) -> None:
         """Configure and alter the Celery logger for the application.
 
@@ -38,6 +39,7 @@ with suppress(Exception):  # pragma: no cover
                 'logger' instance to be configured.
 
         """
+        tqdm.write(str(kwargs))
         logger_name = environ.get(
             "WORKER_NAME",
             str(re.sub(r"[^a-zA-Z0-9]", "_", "crawjud_app")),

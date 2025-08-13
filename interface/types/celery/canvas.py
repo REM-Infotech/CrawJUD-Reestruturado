@@ -21,7 +21,6 @@ from typing import (
 
 from celery.canvas import Signature as __Signature
 from celery.result import AsyncResult as __AsyncResult
-from celery.result import EagerResult as __EagerResult
 from celery.result import states
 
 if TYPE_CHECKING:
@@ -35,7 +34,7 @@ TBotSpec = ParamSpec("TBotSpec", bound=AnyStr)
 class_set = set()
 
 
-class CeleryResult[T](__AsyncResult, __EagerResult):
+class CeleryResult[T](__AsyncResult):
     """Celery Results.
 
     Class that wraps the result of a task execution.
