@@ -62,7 +62,19 @@ class ModelRedisHandler(HashModel):
     module_name: str
 
 
-class CachedExecutionDict(TypedDict):  # noqa: D101
+class CachedExecutionDict(TypedDict):
+    """Defina o dicionário TypedDict para armazenar execuções em cache no Redis.
+
+    Args:
+        processo (str): Identificador do processo jurídico.
+        pid (str): Identificador do processo (ex: 'C3K7H5').
+        data (dict[str, Any] | list[Any]): Dados do processo armazenados em cache.
+
+    Returns:
+        CachedExecutionDict: Dicionário representando a execução em cache.
+
+    """
+
     processo: str = Field(description="Processo Juridico", primary_key=True)
     pid: str = Field(
         default="desconhecido",
@@ -216,10 +228,19 @@ class MessageLog(JsonModel):
         return None
 
     @classmethod
-    def all_data(cls) -> list[Self]:  # noqa: D102
+    def all_data(cls) -> list[Self]:
+        """Recupere todos os registros do modelo MessageLog do Redis.
+
+        Args:
+            cls (type[Self]): Classe do modelo MessageLog a ser consultado.
+
+        Returns:
+            list[Self]: Lista de instâncias do modelo MessageLog recuperadas.
+
+        """
         return all_data(cls)
 
-    def model_dump(  # noqa: D102
+    def model_dump(
         self,
         mode: Literal["json", "python"] = "python",
         include: IncEx | None = None,
@@ -235,6 +256,27 @@ class MessageLog(JsonModel):
         round_trip: bool = False,
         **kwargs: P.kwargs,
     ) -> MessageLogDict:
+        """Realize o dump do modelo MessageLog convertendo para dicionário.
+
+        Args:
+            mode (Literal["json", "python"], opcional): Modo de serialização.
+            include (IncEx | None, opcional): Campos a incluir.
+            exclude (IncEx | None, opcional): Campos a excluir.
+            context (dict | None, opcional): Contexto adicional.
+            warnings (Literal["none", "warn", "error"], opcional): Controle de avisos.
+            fallback (Callable[..., Any] | None, opcional): Função de fallback.
+            *args: Argumentos posicionais adicionais.
+            by_alias (bool | None, opcional): Usar aliases dos campos.
+            exclude_unset (bool, opcional): Excluir campos não definidos.
+            exclude_defaults (bool, opcional): Excluir valores padrão.
+            exclude_none (bool, opcional): Excluir campos None.
+            round_trip (bool, opcional): Preservar informações para round-trip.
+            **kwargs: Argumentos nomeados adicionais.
+
+        Returns:
+            MessageLogDict: Dicionário serializado do modelo MessageLog.
+
+        """
         # Realiza o dump do modelo, convertendo para dict
         return MessageLogDict(
             **super().model_dump(
@@ -255,7 +297,19 @@ class MessageLog(JsonModel):
         )
 
 
-class CachedExecution(JsonModel):  # noqa: D101
+class CachedExecution(JsonModel):
+    """Defina modelo CachedExecution para armazenar execuções em cache no Redis.
+
+    Args:
+        processo (str): Identificador do processo jurídico.
+        pid (str): Identificador do processo (ex: 'C3K7H5').
+        data (Processo | Any): Dados do processo armazenados em cache.
+
+    Returns:
+        CachedExecution: Instância do modelo de execução em cache.
+
+    """
+
     processo: str = Field(description="Processo Juridico", primary_key=True)
     pid: str = Field(
         default="desconhecido",
@@ -264,10 +318,19 @@ class CachedExecution(JsonModel):  # noqa: D101
     data: Processo | Any = Field()
 
     @classmethod
-    def all_data(cls) -> list[Self]:  # noqa: D102
+    def all_data(cls) -> list[Self]:  # pragma: no cover
+        """Recupere todos os registros do modelo CachedExecution do Redis.
+
+        Args:
+            cls (type[Self]): Classe do modelo CachedExecution a ser consultado.
+
+        Returns:
+            list[Self]: Lista de instâncias do modelo CachedExecution recuperadas.
+
+        """
         return all_data(cls)
 
-    def model_dump(  # noqa: D102
+    def model_dump(
         self,
         mode: Literal["json", "python"] = "python",
         include: IncEx | None = None,
@@ -282,7 +345,29 @@ class CachedExecution(JsonModel):  # noqa: D101
         round_trip: bool = False,
         warnings: bool | Literal["none", "warn", "error"] = True,
         **kwargs: P.kwargs,
-    ) -> CachedExecutionDict:
+    ) -> CachedExecutionDict:  # pragma: no cover
+        """Realize o dump do modelo CachedExecution convertendo para dict.
+
+        Args:
+            mode (Literal["json", "python"], opcional): Modo de serialização.
+            include (IncEx | None, opcional): Campos a incluir.
+            exclude (IncEx | None, opcional): Campos a excluir.
+            context (dict | None, opcional): Contexto adicional.
+            fallback (Callable[..., Any] | None, opcional): Função de fallback.
+            *args: Argumentos posicionais adicionais.
+            by_alias (bool | None, opcional): Usar aliases dos campos.
+            exclude_unset (bool, opcional): Excluir campos não definidos.
+            exclude_defaults (bool, opcional): Excluir valores padrão.
+            exclude_none (bool, opcional): Excluir campos None.
+            round_trip (bool, opcional): Preservar informações para round-trip.
+            warnings (bool | Literal["none", "warn", "error"], opcional):
+                Controle de avisos.
+            **kwargs: Argumentos nomeados adicionais.
+
+        Returns:
+            CachedExecutionDict: Dicionário serializado do modelo.
+
+        """
         return CachedExecutionDict(
             **super().model_dump(
                 mode=mode,
@@ -302,7 +387,16 @@ class CachedExecution(JsonModel):  # noqa: D101
         )
 
 
-def all_data[T](cls: type[T]) -> Generator[T, Any, None]:  # noqa: D103
+def all_data[T](cls: type[T]) -> Generator[T, Any, None]:  # pragma: no cover
+    """Recupere todos os registros do modelo informado do Redis de forma iterativa.
+
+    Args:
+        cls (type[T]): Classe do modelo Redis a ser consultado.
+
+    Yields:
+        Generator[T, Any, None]: Gerador que itera sobre as instâncias do modelo.
+
+    """
     pks = list(cls.all_pks())
     cls.total_pks = len(pks)
     for pk in pks:
