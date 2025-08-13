@@ -10,7 +10,7 @@ import base91
 import pandas as pd
 
 from crawjud_app.decorators import shared_task
-from interface.types.bot import BotData
+from interface.dict.bot import BotData
 
 
 def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103

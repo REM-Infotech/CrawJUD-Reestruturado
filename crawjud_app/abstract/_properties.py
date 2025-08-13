@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from socketio import SimpleClient
 
     from crawjud_app.custom.task import ContextTask
-    from interface.types.bot import BotData, DictFiles
+    from interface.dict.bot import BotData, DictFiles
     from interface.types.celery.canvas import Signature
 
 

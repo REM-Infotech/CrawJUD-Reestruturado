@@ -6,28 +6,21 @@ remover diretórios temporários utilizados durante o processamento dos dados.
 
 import json
 import shutil
-from os import path
 from pathlib import Path
-from typing import Generic, TypeVar
 
 import base91
 from werkzeug.utils import secure_filename
 
 from crawjud_app.decorators import shared_task
-from interface.types import ReturnFormataTempo
-from interface.types.bot import DictFiles
+from interface.dict.bot import DictFiles
 from utils.storage import Storage
-
-T = TypeVar("AnyValue", bound=ReturnFormataTempo)
 
 work_dir = Path(__file__).cwd()
 
 
 @shared_task(name="crawjud.download_files")
-def download_files(  # noqa: D417
+def download_files(
     storage_folder_name: str,
-    *args: Generic[T],
-    **kwargs: Generic[T],
 ) -> list[DictFiles]:
     """Baixe arquivos de um storage, organize e remova diretórios temporários.
 
@@ -35,73 +28,59 @@ def download_files(  # noqa: D417
         storage_folder_name (str): Nome da pasta de configuração para download.
 
     Returns:
-        list[DictFiles]: Lista de dicionários contendo informações dos arquivos baixados.
+        list[DictFiles]:
+            Lista de dicionários contendo informações dos arquivos baixados.
 
-    Raises:
-        FileNotFoundError: Caso o diretório de arquivos não seja encontrado.
 
     """
     storage = Storage("minio")
     path_files = work_dir.joinpath("temp")
     list_files: list[DictFiles] = []
 
-    _folder_temp = storage_folder_name.upper()
-    _json_name = f"{storage_folder_name.upper()}.json"
-    _object_name = path.join(_folder_temp, _json_name)
-    config_file = storage.bucket.get_object(_object_name)
+    folder_temp_ = storage_folder_name.upper()
+    json_name_ = f"{storage_folder_name.upper()}.json"
 
-    path_files.joinpath(_object_name).parent.mkdir(exist_ok=True, parents=True)
+    object_name_ = str(Path(folder_temp_).joinpath(json_name_))
+    config_file = storage.bucket.get_object(object_name_)
 
-    _data_json: dict[str, str] = json.loads(config_file.data)
+    path_files.joinpath(object_name_).parent.mkdir(exist_ok=True, parents=True)
 
-    if _data_json.get("xlsx"):
-        _xlsx_name = secure_filename(_data_json.get("xlsx"))
-        _path_minio = path.join(_folder_temp, _xlsx_name)
-        file_xlsx = storage.bucket.get_object(_path_minio)
+    data_json_: dict[str, str] = json.loads(config_file.data)
+
+    if data_json_.get("xlsx"):
+        xlsx_name_ = secure_filename(data_json_.get("xlsx"))
+
+        path_minio_ = str(Path(folder_temp_).joinpath(xlsx_name_))
+        file_xlsx = storage.bucket.get_object(path_minio_)
         file_base91str = base91.encode(file_xlsx.data)
 
-        _suffix = Path(_xlsx_name).suffix
+        suffix_ = Path(xlsx_name_).suffix
 
         list_files.append(
             DictFiles(
-                file_name=_xlsx_name,
+                file_name=xlsx_name_,
                 file_base91str=file_base91str,
-                file_suffix=_suffix,
+                file_suffix=suffix_,
             ),
         )
 
-    if _data_json.get("otherfiles"):
-        files_list: list[str] = _data_json.get("otherfiles")
+    if data_json_.get("otherfiles"):
+        files_list: list[str] = data_json_.get("otherfiles")
         for file in files_list:
             file = secure_filename(file)
-            _path_minio = path.join(_folder_temp, file)
-            _file = storage.bucket.get_object(_path_minio)
-            _suffix = Path(file).suffix
+            path_minio_ = str(Path(folder_temp_).joinpath(file))
+            file_ = storage.bucket.get_object(path_minio_)
+            suffix_ = Path(file).suffix
 
-            file_base91str = base91.encode(_file.data)
+            file_base91str = base91.encode(file_.data)
             list_files.append(
                 DictFiles(
                     file_name=file,
                     file_base91str=file_base91str,
-                    file_suffix=_suffix,
+                    file_suffix=suffix_,
                 ),
             )
 
     shutil.rmtree(path_files.joinpath(storage_folder_name))
 
     return list_files
-
-
-async def remove_temp_files(pid: str) -> None:
-    """Remove diretórios temporários utilizados durante o processamento dos dados.
-
-    Args:
-        pid (str): Identificador do processo cujos arquivos temporários serão removidos.
-
-    Returns:
-        None: Esta função não retorna valor.
-
-    """
-    path_files = work_dir.joinpath("temp", pid)
-    if path_files.exists():
-        shutil.rmtree(path_files)

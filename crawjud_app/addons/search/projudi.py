@@ -6,20 +6,39 @@ from time import sleep
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
+from httpx import Client
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud_app.addons.search import SearchController
 from crawjud_app.common.exceptions.bot import ExecutionError
+from interface.dict.bot import BotData
+from interface.types.pje import DictResults
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
+CSS_INPUT_PROCESSO = {
+    "1": "#numeroProcesso",
+    "2": "#numeroRecurso",
+}
+
+
 class ProjudiSearch(SearchController):
     """Classe de pesquisa PROJUDI."""
+
+    def desafio_captcha(  # noqa: D102
+        self,
+        row: int,
+        data: BotData,
+        id_processo: str,
+        client: Client,
+    ) -> DictResults:
+        return NotImplementedError("Função não implementada!")
 
     def search(self, bot_data: dict[str, str]) -> bool:
         """Procura processos no PROJUDI.
@@ -58,11 +77,6 @@ class ProjudiSearch(SearchController):
         manipula entradas, clique e tentativa condicional
 
         """
-        inputproc = None
-        enterproc = None
-        allowacess = None
-        not_found = None
-        to_grau2 = None
         grau = self.bot_data.get("GRAU", 1) or 1
 
         if isinstance(grau, str):
@@ -70,84 +84,14 @@ class ProjudiSearch(SearchController):
 
         grau = int(grau)
 
-        def detect_intimacao() -> None:
-            if "intimacaoAdvogado.do" in self.driver.current_url:
-                raise ExecutionError(
-                    message="Processo com Intimação pendente de leitura!",
-                )
-
-        def allow_access() -> None:
-            with suppress(TimeoutException, NoSuchElementException):
-                nonlocal allowacess
-                allowacess = self.driver.find_element(
+        with suppress(TimeoutException):
+            inputproc = WebDriverWait(self.driver, 10).until(
+                ec.presence_of_element_located((
                     By.CSS_SELECTOR,
-                    "#habilitacaoProvisoriaButton",
-                )
+                    CSS_INPUT_PROCESSO[str(grau)],
+                )),
+            )
 
-            if allowacess:
-                allowacess.click()
-                sleep(1)
-
-                confirmterms = self.driver.find_element(
-                    By.CSS_SELECTOR,
-                    "#termoAceito",
-                )
-                confirmterms.click()
-                sleep(1)
-
-                save = self.driver.find_element(By.CSS_SELECTOR, "#saveButton")
-                save.click()
-
-        def get_link_grau2() -> str | None:
-            """Recupera link para acessar processos em segundo grau.
-
-            Filtra elemento com "Clique aqui para visualizar os recursos relacionados".
-
-            Returns:
-                str | None: link ou None.
-
-            """
-            with suppress(Exception, TimeoutException, NoSuchElementException):
-                info_proc = self.wait.until(
-                    ec.presence_of_all_elements_located(
-                        (
-                            By.CSS_SELECTOR,
-                            "table#informacoesProcessuais > tbody > tr > td > a",
-                        ),
-                    ),
-                )
-
-                info_proc = list(
-                    filter(
-                        lambda x: "Clique aqui para visualizar os recursos relacionados"
-                        in x.text,
-                        info_proc,
-                    ),
-                )[-1]
-
-                return info_proc.get_attribute("href")
-
-            return None
-
-        if grau == 1:
-            with suppress(TimeoutException):
-                inputproc: WebElement = self.wait.until(
-                    ec.presence_of_element_located((
-                        By.CSS_SELECTOR,
-                        "#numeroProcesso",
-                    )),
-                )
-
-        elif grau == 2:
-            with suppress(TimeoutException):
-                inputproc = WebDriverWait(self.driver, 10).until(
-                    ec.presence_of_element_located((
-                        By.CSS_SELECTOR,
-                        "#numeroRecurso",
-                    )),
-                )
-
-        if inputproc:
             proc = self.bot_data.get("NUMERO_PROCESSO")
             inputproc.send_keys(proc)
             sleep(1)
@@ -155,14 +99,12 @@ class ProjudiSearch(SearchController):
             consultar.click()
 
             with suppress(TimeoutException, NoSuchElementException, Exception):
-                not_found = WebDriverWait(self.driver, 5).until(
+                WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located((
                         By.XPATH,
                         '//*[@id="buscaProcessosQualquerInstanciaForm"]/table[2]/tbody/tr/td',
                     )),
                 )
-
-            if not_found and not_found.text == "Nenhum registro encontrado":
                 return False
 
             with suppress(TimeoutException):
@@ -170,19 +112,12 @@ class ProjudiSearch(SearchController):
                     ec.presence_of_element_located((By.CLASS_NAME, "link")),
                 )
 
-            if not enterproc:
-                return False
-
-            enterproc.click()
-
-            # if grau == 1:
-            #     to_grau2 = get_link_grau2()
-
-            detect_intimacao()
-            allow_access()
-
-            if grau == 2 and to_grau2:
-                self.driver.get(to_grau2)
+                enterproc.click()
+                detect_intimacao(driver=self.driver)
+                allow_access(driver=self.driver)
+                link_grau2 = get_link_grau2(wait=self.wait)
+                if grau == 2 and link_grau2:
+                    self.driver.get(link_grau2)
 
             return True
 
@@ -259,11 +194,11 @@ class ProjudiSearch(SearchController):
         data_fim.send_keys(data_fim_xls)
 
         if self.polo_parte.lower() == "reu":
-            setréu = self.driver.find_element(
+            set_reu = self.driver.find_element(
                 By.CSS_SELECTOR,
                 'input[value="promovido"]',
             )
-            setréu.click()
+            set_reu.click()
 
         elif self.polo_parte.lower() == "autor":
             setautor = self.driver.find_element(
@@ -281,7 +216,79 @@ class ProjudiSearch(SearchController):
                 ec.presence_of_element_located((By.CLASS_NAME, "link")),
             )
 
-        if enterproc:
-            return True
+        return enterproc is not None
 
-        return False
+
+def detect_intimacao(driver: WebDriver) -> None:
+    """Detecta intimação pendente de leitura no processo.
+
+    Args:
+        driver (WebDriver): Instância do navegador Selenium WebDriver.
+
+    Raises:
+        ExecutionError: Se houver intimação pendente de leitura.
+
+    """
+    if "intimacaoAdvogado.do" in driver.current_url:
+        raise ExecutionError(
+            message="Processo com Intimação pendente de leitura!",
+        )
+
+
+def allow_access(driver: WebDriver) -> None:
+    """Permite acesso provisório ao processo no sistema PROJUDI.
+
+    Args:
+        driver (WebDriver): Instância do navegador Selenium WebDriver.
+
+    Executa cliques para habilitar acesso provisório e aceitar termos.
+
+    """
+    with suppress(TimeoutException, NoSuchElementException):
+        allowacess = driver.find_element(
+            By.CSS_SELECTOR,
+            "#habilitacaoProvisoriaButton",
+        )
+
+        allowacess.click()
+        sleep(1)
+
+        confirmterms = driver.find_element(
+            By.CSS_SELECTOR,
+            "#termoAceito",
+        )
+        confirmterms.click()
+        sleep(1)
+
+        save = driver.find_element(By.CSS_SELECTOR, "#saveButton")
+        save.click()
+
+
+def get_link_grau2(wait: WebDriverWait) -> str | None:
+    """Recupera link para acessar processos em segundo grau.
+
+    Filtra elemento com "Clique aqui para visualizar os recursos relacionados".
+
+    Returns:
+        str | None: link ou None.
+
+    """
+    with suppress(Exception, TimeoutException, NoSuchElementException):
+        info_proc = wait.until(
+            ec.presence_of_all_elements_located(
+                (
+                    By.CSS_SELECTOR,
+                    "table#informacoesProcessuais > tbody > tr > td > a",
+                ),
+            ),
+        )
+
+        info_proc = list(
+            filter(
+                lambda x: "Clique aqui para visualizar os recursos relacionados"
+                in x.text,
+                info_proc,
+            ),
+        )[-1]
+
+        return info_proc.get_attribute("href")

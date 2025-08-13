@@ -16,7 +16,7 @@ from tqdm import tqdm
 from crawjud_app.abstract._head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud_app.custom.task import ContextTask
-from interface.types.bot import BotData
+from interface.dict.bot import BotData
 from interface.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
 from utils.models.logs import CachedExecution
 from utils.recaptcha import captcha_to_image
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from httpx import Client, Response
 
-    from interface.types.bot import BotData
+    from interface.dict.bot import BotData
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]

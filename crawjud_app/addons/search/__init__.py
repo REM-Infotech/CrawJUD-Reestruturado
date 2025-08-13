@@ -4,7 +4,4 @@ from .elaw import ElawSearch
 from .esaj import EsajSearch
 from .projudi import ProjudiSearch
 
-# from .pje import PjeSearch
-
-
-__all__ = ["SearchController", "ElawSearch", "ProjudiSearch", "EsajSearch"]
+__all__ = ["ElawSearch", "EsajSearch", "ProjudiSearch", "SearchController"]

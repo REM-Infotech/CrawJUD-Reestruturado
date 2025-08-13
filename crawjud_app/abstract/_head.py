@@ -8,7 +8,7 @@ from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.canvas import subtask
 
 if TYPE_CHECKING:
-    from interface.types.bot import BotData, DictFiles
+    from interface.dict.bot import BotData, DictFiles
     from utils.storage import Storage
 
 

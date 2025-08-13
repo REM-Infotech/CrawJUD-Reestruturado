@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from crawjud_app.addons.auth.controller import AuthController
     from crawjud_app.addons.search.controller import SearchController
-    from interface.types.bot import BotData
+    from interface.dict.bot import BotData
 
 
 class AbstractClassBot[T](ABC):
