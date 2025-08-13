@@ -67,6 +67,7 @@ class DriverBot[T](WebDriver):  # noqa: D101
     ) -> None:
         driver_config = config[selected_browser]
         tqdm.write(with_proxy)
+        kwargs.update({"with_proxy": with_proxy})
         # Configura o Manager
         self._configure_manager(
             driver_config=driver_config,

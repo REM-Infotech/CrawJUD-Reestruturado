@@ -1,6 +1,5 @@
 # noqa: D100
 from pathlib import Path
-from typing import Any
 
 from browsermobproxy import Client, Server
 from selenium.webdriver.chrome.options import Options
@@ -49,7 +48,7 @@ chrome_preferences: ChromePreferences = {
 }
 
 
-class ChromeOptions(Options):  # noqa: D101
+class ChromeOptions[T](Options):  # noqa: D101
     _proxy_client: Client = None
 
     def __init__(  # noqa: D107
@@ -57,9 +56,9 @@ class ChromeOptions(Options):  # noqa: D101
         extensions_path: Path | str = work_dir,
         preferences: ChromePreferences = chrome_preferences,
         arguments: list[str] = arguments_list,
+        *,
         with_proxy: bool = False,
-        *args: Any,
-        **kwargs: Any,
+        **kwargs: T,
     ) -> None:
         super().__init__()
 
@@ -92,9 +91,9 @@ class ChromeOptions(Options):  # noqa: D101
         return self._server
 
 
-def configure_chrome(
-    *args: Any,
-    **kwargs: Any,
+def configure_chrome[T](
+    *args: T,
+    **kwargs: T,
 ) -> ChromeOptions:
     """Configurações do Options do Chrome.
 
