@@ -54,8 +54,6 @@ class ContextTask[T](TaskBase):
     tasks_cls: ClassVar[dict] = {}
 
     def _run(self, *args: Generic[T], **kwargs: Generic[T]) -> None:
-        kwargs["current_task"] = self
-
         if iscoroutinefunction(self.run):
             return run_async(self.run(*args, **kwargs))
 

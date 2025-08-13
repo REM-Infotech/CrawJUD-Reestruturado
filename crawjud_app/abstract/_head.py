@@ -51,3 +51,6 @@ class HeadBot[T](PropertyBot):
     @property
     @abstractmethod
     def storage(self) -> Storage: ...
+
+
+from crawjud_app.addons import auth  # noqa: E402, F401

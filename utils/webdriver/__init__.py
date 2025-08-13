@@ -14,6 +14,7 @@ from typing import (
 
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
+from tqdm import tqdm
 from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.driver_cache import DriverCacheManager
 from webdriver_manager.core.file_manager import FileManager
@@ -60,11 +61,12 @@ class DriverBot[T](WebDriver):  # noqa: D101
         self,
         selected_browser: BrowserOptions,
         execution_path: str | Path | None = None,
-        *args: T,
+        *,
+        with_proxy: bool = False,
         **kwargs: T,
     ) -> None:
         driver_config = config[selected_browser]
-
+        tqdm.write(with_proxy)
         # Configura o Manager
         self._configure_manager(
             driver_config=driver_config,

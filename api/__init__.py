@@ -21,7 +21,7 @@ from crawjud_app import make_celery
 
 
 def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002
-    tqdm.write("CORS allowed origins check:", args)
+    tqdm.write(f"CORS allowed origins check: {args}")
 
     return True
 

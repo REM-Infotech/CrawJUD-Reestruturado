@@ -95,6 +95,9 @@ def wrap_cls[T](cls: type[ClassBot]) -> type[T]:
 
             cls.sio = sio
 
+            if self:
+                return cls.execution(current_task=self, *args, **kwargs)
+
             return cls.execution(self, *args, **kwargs)
 
     return novo_init

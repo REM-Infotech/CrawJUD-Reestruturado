@@ -51,7 +51,7 @@ class PjeBot[T](HeadBot, ContextTask):
         return cls_search.search(self, data=data, row=row, client=client)
 
     def autenticar(self, system: str) -> bool:
-        return self.subclasses_auth[f"auth{system.lower()}"].auth(self)
+        return self.subclasses_auth[f"{system.lower()}auth"].auth(self)
 
     def regioes(self) -> Generator[tuple[str, str], Any, None]:
         self.carregar_arquivos()

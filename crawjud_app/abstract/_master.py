@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
+from tqdm import tqdm
+
 from utils.models.logs import MessageLogDict
+from utils.webdriver import DriverBot
 
 func_dict_check = {
     "bot": ["execution"],
@@ -35,6 +38,18 @@ class AbstractClassBot[T](ABC):
     _cookies: dict[str, str] | None = None
     _headers: dict[str, str] | None = None
     _base_url: str | None = None
+
+    _driver: ClassVar[DriverBot] = None
+
+    @property
+    def driver(self) -> DriverBot:
+        if not self._driver:
+            self._driver = DriverBot(
+                selected_browser="chrome",
+                with_proxy=True,
+            )
+
+        return self._driver
 
     @property
     def data_regiao(self) -> list[BotData]:
@@ -104,49 +119,12 @@ class AbstractClassBot[T](ABC):
 
     @classmethod
     def __subclasshook__(cls, subclass: type) -> bool:
-        """Verifica se a subclasse implementa todos os métodos obrigatórios.
-
-        Args:
-            subclass (type): Classe a ser verificada.
-
-        Returns:
-            bool: True se todos os métodos obrigatórios estiverem presentes,
-            False caso contrário.
-
-        """
-        # Verifica se está sendo chamado para AbstractClassBot
-        if cls is AbstractClassBot:
-            # Obtém os métodos obrigatórios do dict de funções
-            subclass_type = getattr(cls, "subclass_type", None)
-            if subclass_type is None or subclass_type not in func_dict_check:
-                return False
-            required_methods = func_dict_check[subclass_type]
-            # Verifica se todos os métodos obrigatórios estão presentes
-            for method in required_methods:
-                if not any(method in B.__dict__ for B in subclass.__mro__):
-                    return False
-            return True
-        return NotImplemented
+        """Verifica se a subclasse implementa todos os métodos obrigatórios."""
+        tqdm.write("ok")
 
     def __init_subclass__(cls) -> None:
+        tqdm.write(cls.__name__)
         cls.tasks_cls[cls.__name__] = cls
-
-    @abstractmethod
-    def elaw_formats(
-        self,
-        data: dict[str, str],
-        cities_amazonas: dict[str, Any],
-    ) -> dict[str, str]:
-        """Format a legal case dictionary according to pre-defined rules.
-
-        Args:
-            data (dict[str, str]): The raw data dictionary.
-            cities_amazonas: Dicionario com as cidades do estado do Amazonas.
-
-        Returns:
-            dict[str, str]: The data formatted with proper types and values.
-
-        """
 
     @abstractmethod
     def save_success_cache(self, data: dict) -> None:

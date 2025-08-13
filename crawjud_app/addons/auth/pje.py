@@ -9,7 +9,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud_app.addons.auth import AuthController
 from crawjud_app.common.exceptions.bot import LoginSystemError
-from utils.webdriver import DriverBot
 
 
 class PjeAuth(AuthController):
@@ -17,10 +16,7 @@ class PjeAuth(AuthController):
 
     def auth(self) -> bool:  # noqa: D102
         try:
-            driver = DriverBot(
-                selected_browser="chrome",
-                with_proxy=True,
-            )
+            driver = self.driver
             wait = driver.wait
             url_login = self.formata_url_pje(_format="login")
             url_valida_sessao = self.formata_url_pje(_format="validate_login")
@@ -75,7 +71,8 @@ class PjeAuth(AuthController):
                 str(header["name"]): str(header["value"])
                 for header in entry_proxy.request.headers
             }
-            driver.quit()
+
+            self.driver = driver
 
             self._cookies = cookies_
             self._headers = headers_
