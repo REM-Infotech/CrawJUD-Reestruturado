@@ -1,6 +1,6 @@
 """TypedDict for bot data."""
 
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 
 class DictReturnAuth(TypedDict):
@@ -9,14 +9,6 @@ class DictReturnAuth(TypedDict):
     cookies: dict[str, str]
     headers: dict[str, str]
     base_url: str
-
-
-MessageNadaEncontrado = Literal["Nenhum processo encontrado"]
-MessageTimeoutAutenticacao = Literal[
-    "Tempo de espera excedido para validação de sessão"
-]
-
-TReturnAuth = DictReturnAuth | MessageTimeoutAutenticacao
 
 
 class DictFiles(TypedDict):
