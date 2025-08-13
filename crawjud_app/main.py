@@ -46,7 +46,7 @@ def start_worker() -> None:
         hostname=worker_name,
         task_events=True,
         loglevel="DEBUG",
-        concurrency=int(environ.get("CELERY_CONCURRENCY", "16")),
+        concurrency=int(environ.get("CELERY_CONCURRENCY", "4")),
         pool=pool_,
     )
     with suppress(KeyboardInterrupt):

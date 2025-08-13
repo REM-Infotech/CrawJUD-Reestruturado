@@ -15,15 +15,3 @@ class AuthController[T](AbstractClassBot):
 
     def __init_subclass__(cls) -> None:  # noqa: D105
         cls.subclasses_auth[cls.__name__.lower()] = cls
-
-    def formata_url_pje(  # noqa: D102
-        self,
-        _format: str = "login",
-    ) -> str:
-        formats = {
-            "login": f"https://pje.trt{self.regiao}.jus.br/primeirograu/login.seam",
-            "validate_login": f"https://pje.trt{self.regiao}.jus.br/pjekz/",
-            "search": f"https://pje.trt{self.regiao}.jus.br/consultaprocessual/",
-        }
-
-        return formats[_format]

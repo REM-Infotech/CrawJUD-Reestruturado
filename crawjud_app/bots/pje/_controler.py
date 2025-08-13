@@ -293,3 +293,15 @@ class PjeBot[T](HeadBot, ContextTask):
             regioes_dict[regiao].append(item)
 
         return {"regioes": regioes_dict, "position_process": position_process}
+
+    def formata_url_pje(
+        self,
+        _format: str = "login",
+    ) -> str:
+        formats = {
+            "login": f"https://pje.trt{self.regiao}.jus.br/primeirograu/login.seam",
+            "validate_login": f"https://pje.trt{self.regiao}.jus.br/pjekz/",
+            "search": f"https://pje.trt{self.regiao}.jus.br/consultaprocessual/",
+        }
+
+        return formats[_format]
