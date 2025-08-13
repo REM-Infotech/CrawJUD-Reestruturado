@@ -79,5 +79,7 @@ omit = [
     "utils/webdriver/*",
      "utils/storage/*",
      "tests/*",
-     "**/__main__.py"
+     "**/__main__.py",
+     "api/common/__init__.py",
+     "api/common/exceptions/__init__.py"
 ]
