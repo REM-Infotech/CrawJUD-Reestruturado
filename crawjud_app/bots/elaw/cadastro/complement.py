@@ -45,6 +45,7 @@ campos_validar: list[str] = [
     "nota_tecnica",
     "liminar",
 ]
+ELEMENT_LOAD = 'div[id="j_id_48"]'
 
 
 class CadastroComplementar(ClassBot):
@@ -185,7 +186,10 @@ class CadastroComplementar(ClassBot):
 
         else:
             raise ExecutionError(
-                message="Advogado responsável não encontrado na lista de advogados participantes!",
+                message=(
+                    "Advogado responsável não encontrado",
+                    " na lista de advogados participantes!",
+                ),
             )
 
         self.message = "Advogados participantes validados"
@@ -222,7 +226,7 @@ class CadastroComplementar(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Esfera Informada!"
         self.type_log = "info"
@@ -295,7 +299,7 @@ class CadastroComplementar(ClassBot):
         comando = f"document.querySelector('{id_input_css}').blur()"
         self.driver.execute_script(comando)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Localidade informada!"
         self.type_log = "info"
@@ -330,7 +334,7 @@ class CadastroComplementar(ClassBot):
         comando = f"document.querySelector('{id_input_css}').blur()"
         self.driver.execute_script(comando)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Bairro informado!"
         self.type_log = "info"
@@ -363,7 +367,7 @@ class CadastroComplementar(ClassBot):
             text,
         )
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Divisão informada!"
         self.type_log = "log"
@@ -389,14 +393,14 @@ class CadastroComplementar(ClassBot):
             ec.presence_of_element_located((By.XPATH, self.elements.data_citacao)),
         )
         self.interact.clear(data_citacao)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         self.interact.send_key(data_citacao, self.bot_data.get("DATA_CITACAO"))
         sleep(2)
         id_element = data_citacao.get_attribute("id")
         id_input_css = f'[id="{id_element}"]'
         comando = f"document.querySelector('{id_input_css}').blur()"
         self.driver.execute_script(comando)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Data de citação informada!"
         self.type_log = "log"

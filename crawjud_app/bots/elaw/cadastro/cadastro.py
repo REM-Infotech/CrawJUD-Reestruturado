@@ -28,6 +28,8 @@ from crawjud_app.common.exceptions.bot import ExecutionError
 
 type_doc = {"11": "cpf", "14": "cnpj"}
 
+ELEMENT_LOAD = 'div[id="j_id_48"]'
+
 
 class PreCadastro(ClassBot):
     def area_direito(self) -> None:
@@ -65,7 +67,7 @@ class PreCadastro(ClassBot):
         )
         self.select2_elaw(element_subarea, text)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load()
         self.message = "Sub-Área do direito selecionada!"
         self.type_log = "info"
         self.prt()
@@ -94,7 +96,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Esfera Informada!"
         self.type_log = "info"
@@ -123,7 +125,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Estado do processo informado!"
         self.type_log = "log"
@@ -157,7 +159,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Comarca do processo informado!"
         self.type_log = "log"
@@ -190,7 +192,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Foro do processo informado!"
         self.type_log = "log"
@@ -225,7 +227,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Vara do processo informado!"
         self.type_log = "log"
@@ -256,7 +258,7 @@ class PreCadastro(ClassBot):
         self.driver.execute_script(
             f'document.querySelector("{css_campo_processo}").blur()',
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Número do processo informado!"
         self.type_log = "info"
@@ -284,7 +286,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Empresa informada!"
         self.type_log = "info"
@@ -315,7 +317,7 @@ class PreCadastro(ClassBot):
             ),
             text,
         )
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Classificação da Empresa informada"
         self.type_log = "info"
@@ -355,7 +357,7 @@ class PreCadastro(ClassBot):
         select_tipo_doc = self.elements.select_tipo_doc
         self.select2_elaw(select_tipo_doc, tipo_doc)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         campo_doc: WebElement = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
@@ -368,7 +370,7 @@ class PreCadastro(ClassBot):
         campo_doc.clear()
         sleep(0.05)
         self.interact.send_key(campo_doc, self.bot_data.get("DOC_PARTE_CONTRARIA"))
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         search_button_parte: WebElement = self.wait.until(
             ec.presence_of_element_located((
@@ -378,7 +380,7 @@ class PreCadastro(ClassBot):
             message="Erro ao encontrar elemento",
         )
         search_button_parte.click()
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         check_parte = self.check_part_found()
 
@@ -386,7 +388,7 @@ class PreCadastro(ClassBot):
             try:
                 self.cadastro_parte_contraria()
                 self.driver.switch_to.default_content()
-                self.interact.sleep_load('div[id="j_id_48"]')
+                self.interact.sleep_load(ELEMENT_LOAD)
 
             except Exception as e:
                 self.logger.exception("".join(traceback.format_exception(e)))
@@ -416,7 +418,7 @@ class PreCadastro(ClassBot):
         self.select2_elaw(self.driver.find_element(By.XPATH, element_select), text)
         sleep(0.5)
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         if str(self.bot_data.get("CAPITAL_INTERIOR")).lower() == "outro estado":
             other_location: WebElement = self.wait.until(
@@ -464,7 +466,7 @@ class PreCadastro(ClassBot):
         self.interact.click(elemento)
         self.interact.send_key(elemento, text)
         self.interact.send_key(elemento, Keys.ENTER)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Ação informada!"
         self.type_log = "info"
@@ -479,12 +481,12 @@ class PreCadastro(ClassBot):
 
 
         """
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         self.message = "Informando data de distribuição"
         self.type_log = "log"
         self.prt()
 
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
         data_distribuicao: WebElement = self.wait.until(
             ec.element_to_be_clickable((
                 By.CSS_SELECTOR,
@@ -500,7 +502,7 @@ class PreCadastro(ClassBot):
             self.bot_data.get("DATA_DISTRIBUICAO"),
         )
         self.interact.send_key(data_distribuicao, Keys.TAB)
-        self.interact.sleep_load('div[id="j_id_48"]')
+        self.interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Data de distribuição informada!"
         self.type_log = "info"
@@ -543,9 +545,9 @@ class PreCadastro(ClassBot):
         elif not wait_adv:
             raise ExecutionError(message="Advogado interno não encontrado")
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
         element_select = wait.until(
             ec.presence_of_element_located((
                 By.XPATH,
@@ -559,7 +561,7 @@ class PreCadastro(ClassBot):
         comando = f"document.querySelector('{id_input_css}').blur()"
         driver.execute_script(comando)
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Advogado interno informado!"
         self.type_log = "info"
@@ -600,7 +602,7 @@ class PreCadastro(ClassBot):
 
         check_adv = None
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         with suppress(TimeoutException):
             check_adv: WebElement = (
@@ -623,7 +625,7 @@ class PreCadastro(ClassBot):
             self.cadastro_advogado_contra()
             driver.switch_to.default_content()
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Adv. parte contrária informado!"
         self.type_log = "info"
@@ -663,7 +665,7 @@ class PreCadastro(ClassBot):
 
         driver.execute_script(f"document.querySelector('{input_valor_causa}').blur()")
 
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Valor da causa informado!"
         self.type_log = "info"
@@ -699,7 +701,7 @@ class PreCadastro(ClassBot):
             ec.presence_of_element_located((By.XPATH, elements.select_escritorio)),
         )
         interact.select2_elaw(select_escritorio, text)
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Escritório externo informado!"
         self.type_log = "info"
@@ -737,10 +739,10 @@ class PreCadastro(ClassBot):
         )
 
         select2_elaw(select_contigencia, text[0])
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         select2_elaw(select_polo, text[1])
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
 
         self.message = "Contingenciamento informado!"
         self.type_log = "info"
@@ -777,7 +779,7 @@ class PreCadastro(ClassBot):
             )
             add_parte.click()
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
             main_window = driver.current_window_handle
 
@@ -864,7 +866,7 @@ class PreCadastro(ClassBot):
                 )),
             )
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
@@ -903,7 +905,7 @@ class PreCadastro(ClassBot):
             )
             add_parte.click()
 
-            interact.sleep_load('div[id="j_id_48"]')
+            interact.sleep_load(ELEMENT_LOAD)
 
             iframe = None
 
@@ -1025,7 +1027,7 @@ class PreCadastro(ClassBot):
         wait = self.wait
         elements = self.elements
         interact = self.interact
-        interact.sleep_load('div[id="j_id_48"]')
+        interact.sleep_load(ELEMENT_LOAD)
         salvartudo: WebElement = wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
