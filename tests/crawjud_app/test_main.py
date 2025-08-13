@@ -50,12 +50,12 @@ def test_start_worker_and_start_beat_do_not_raise(monkeypatch) -> None:
     """
     monkeypatch.setattr(main, "make_celery", lambda: None)
     class DummyWorker:
-        def __init__(self, **kwargs): pass
-        def start(self): pass
-        def stop(self): pass
+        def __init__(self, **kwargs) -> None: pass
+        def start(self) -> None: pass
+        def stop(self) -> None: pass
     class DummyBeat:
-        def __init__(self, **kwargs): pass
-        def run(self): pass
+        def __init__(self, **kwargs) -> None: pass
+        def run(self) -> None: pass
 
     monkeypatch.setattr(main, "Worker", DummyWorker)
     monkeypatch.setattr(main, "Beat", DummyBeat)

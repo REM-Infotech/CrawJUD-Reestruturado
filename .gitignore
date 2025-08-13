@@ -7,6 +7,7 @@ bandit.html
 *.so
 results.db
 is_init.txt
+.scannerwork
 # Distribution / packaging
 .Python
 build/
