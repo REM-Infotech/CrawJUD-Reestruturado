@@ -1,5 +1,4 @@
-"""
-Gerencia operações de download, movimentação e remoção de arquivos temporários.
+"""Gerencia operações de download, movimentação e remoção de arquivos temporários.
 
 Este módulo fornece funções para baixar arquivos de um storage, organizar e
 remover diretórios temporários utilizados durante o processamento dos dados.
@@ -15,8 +14,8 @@ import base91
 from werkzeug.utils import secure_filename
 
 from crawjud_app.decorators import shared_task
-from crawjud_app.types import ReturnFormataTempo
-from crawjud_app.types.bot import DictFiles
+from interface.types import ReturnFormataTempo
+from interface.types.bot import DictFiles
 from utils.storage import Storage
 
 T = TypeVar("AnyValue", bound=ReturnFormataTempo)
@@ -26,10 +25,11 @@ work_dir = Path(__file__).cwd()
 
 @shared_task(name="crawjud.download_files")
 def download_files(  # noqa: D417
-    storage_folder_name: str, *args: Generic[T], **kwargs: Generic[T]
+    storage_folder_name: str,
+    *args: Generic[T],
+    **kwargs: Generic[T],
 ) -> list[DictFiles]:
-    """
-    Baixe arquivos de um storage, organize e remova diretórios temporários.
+    """Baixe arquivos de um storage, organize e remova diretórios temporários.
 
     Args:
         storage_folder_name (str): Nome da pasta de configuração para download.
@@ -67,7 +67,7 @@ def download_files(  # noqa: D417
                 file_name=_xlsx_name,
                 file_base91str=file_base91str,
                 file_suffix=_suffix,
-            )
+            ),
         )
 
     if _data_json.get("otherfiles"):
@@ -84,7 +84,7 @@ def download_files(  # noqa: D417
                     file_name=file,
                     file_base91str=file_base91str,
                     file_suffix=_suffix,
-                )
+                ),
             )
 
     shutil.rmtree(path_files.joinpath(storage_folder_name))
@@ -93,8 +93,7 @@ def download_files(  # noqa: D417
 
 
 async def remove_temp_files(pid: str) -> None:
-    """
-    Remove diretórios temporários utilizados durante o processamento dos dados.
+    """Remove diretórios temporários utilizados durante o processamento dos dados.
 
     Args:
         pid (str): Identificador do processo cujos arquivos temporários serão removidos.

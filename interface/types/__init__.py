@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from os import PathLike
 from typing import Literal, TypeVar
 
-from crawjud_app.types.bot import BotData
+from interface.types.bot import BotData
 
 TReturnMessageMail = Literal["E-mail enviado com sucesso!"]
 TReturnMessageExecutBot = Literal["Execução encerrada com sucesso!"]

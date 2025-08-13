@@ -12,7 +12,7 @@ from crawjud_app.addons.mail import Mail
 from crawjud_app.decorators import shared_task
 
 if TYPE_CHECKING:
-    from crawjud_app.types import TReturnMessageMail
+    from interface.types import TReturnMessageMail
 
 
 @shared_task(name="send_email")

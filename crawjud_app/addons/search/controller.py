@@ -7,8 +7,8 @@ from abc import abstractmethod
 from httpx import Client
 
 from crawjud_app.abstract._master import AbstractClassBot
-from crawjud_app.types.bot import BotData
-from crawjud_app.types.pje import DictResults
+from interface.types.bot import BotData
+from interface.types.pje import DictResults
 
 
 class SearchController[T](AbstractClassBot):
@@ -17,7 +17,7 @@ class SearchController[T](AbstractClassBot):
     def __init_subclass__(cls) -> None:  # noqa: D105
         if not hasattr(cls, "search"):
             raise NotImplementedError(
-                f"Subclasses of {cls.__name__} must implement the 'search' method."
+                f"Subclasses of {cls.__name__} must implement the 'search' method.",
             )
 
         cls.subclasses_search[cls.__name__.lower()] = cls

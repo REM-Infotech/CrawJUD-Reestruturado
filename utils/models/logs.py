@@ -25,7 +25,7 @@ from redis_om import Field, HashModel, JsonModel, NotFoundError
 from utils.interfaces import ItemMessageList
 
 if TYPE_CHECKING:
-    from crawjud_app.types.pje import Processo
+    from interface.types.pje import Processo
 
 description_message = (
     "e.g. '[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]'"

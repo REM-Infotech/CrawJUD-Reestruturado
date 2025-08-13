@@ -10,7 +10,7 @@ import base91
 import pandas as pd
 
 from crawjud_app.decorators import shared_task
-from crawjud_app.types.bot import BotData
+from interface.types.bot import BotData
 
 
 def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103
@@ -18,15 +18,17 @@ def formata_tempo[T](item: str | bool) -> T | datetime:  # noqa: D103
         if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", item.split(".")[0]):
             return datetime.strptime(item.split(".")[0], "%Y-%m-%dT%H:%M:%S")
 
-        elif re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$", item):
+        if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6}$", item):
             return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S.%f")
 
     return item
 
 
 @shared_task(name="crawjud.dataFrame")
-def dataframe[T](  # noqa: N802
-    base91_planilha: str, *args: T, **kwargs: T
+def dataframe[T](
+    base91_planilha: str,
+    *args: T,
+    **kwargs: T,
 ) -> list[BotData]:
     """Convert an Excel file to a list of dictionaries with formatted data.
 

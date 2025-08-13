@@ -22,7 +22,7 @@ environ = dotenv_values()
 P = ParamSpec("P")
 
 if TYPE_CHECKING:
-    from crawjud_app.types.celery.canvas import (
+    from interface.types.celery.canvas import (
         AsyncResult,
         EagerResult,
         Signature,

@@ -14,7 +14,7 @@ from openpyxl.styles import Font, PatternFill
 from crawjud_app.addons.make_templates.appends import Listas
 
 if TYPE_CHECKING:
-    from crawjud_app.types import StrPath
+    from interface.types import StrPath
 
 
 class MakeTemplates:
@@ -63,7 +63,8 @@ class MakeTemplates:
         path_template.touch(exist_ok=True)
 
         lista_colunas: list[str] = Listas.listas_colunas(
-            self.BOT_NAME, self.TEMPLATE_TYPE
+            self.BOT_NAME,
+            self.TEMPLATE_TYPE,
         )
         # Create workbook and sheet
         workbook = openpyxl.Workbook()

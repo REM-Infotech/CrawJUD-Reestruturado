@@ -1,5 +1,4 @@
-"""
-Realiza a busca e resolução de captcha de processos no sistema PJe.
+"""Realiza a busca e resolução de captcha de processos no sistema PJe.
 
 Este módulo contém funções para buscar processos e resolver desafios captcha
 utilizando dados fornecidos, integrando com tasks Celery e tratamento de exceções.
@@ -13,11 +12,11 @@ from typing import TYPE_CHECKING, Literal
 from httpx import Client
 
 from crawjud_app.addons.search import SearchController
-from crawjud_app.types import BotData
-from crawjud_app.types.pje import DictResults
+from interface.types import BotData
+from interface.types.pje import DictResults
 
 if TYPE_CHECKING:
-    from crawjud_app.types import BotData
+    from interface.types import BotData
 
 # Expressão regular para validar URLs de processos PJe
 pattern_url = r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\/\d+(#[a-zA-Z0-9]+)?$"
@@ -37,8 +36,7 @@ class PJeSearch[T](SearchController):
         *args: T,
         **kwargs: T,
     ) -> DictResults | Literal["Nenhum processo encontrado"]:
-        """
-        Realiza a busca de um processo no sistema PJe utilizando os dados fornecidos.
+        """Realiza a busca de um processo no sistema PJe utilizando os dados fornecidos.
 
         Args:
             headers (dict[str, str]): Cabeçalhos HTTP para a requisição.
@@ -69,13 +67,13 @@ class PJeSearch[T](SearchController):
             id_processo: str
 
             if response.status_code == 403:
-                return
+                return None
 
             try:
                 data_request = response.json()
 
             except json.decoder.JSONDecodeError:
-                return
+                return None
 
             # Caso a resposta seja uma lista, pega o primeiro item
             if isinstance(data_request, list):
@@ -84,7 +82,7 @@ class PJeSearch[T](SearchController):
             try:
                 id_processo = data_request["id"]
             except KeyError:
-                return
+                return None
 
             return self.desafio_captcha(
                 data=data,

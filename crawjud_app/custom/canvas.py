@@ -11,7 +11,7 @@ from typing import AnyStr
 
 from celery.utils.abstract import CallableSignature
 
-from crawjud_app.types.celery.canvas import Signature
+from interface.types.celery.canvas import Signature
 
 
 def subtask(
