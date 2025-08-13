@@ -51,7 +51,7 @@ with suppress(Exception):  # pragma: no cover
 
         log_level = logging.INFO
         if getenv("DEBUG", "False").lower() == "true":
-            log_level = logging.INFO
+            log_level = logging.DEBUG
 
         config, _ = dict_config(
             LOG_LEVEL=log_level,
