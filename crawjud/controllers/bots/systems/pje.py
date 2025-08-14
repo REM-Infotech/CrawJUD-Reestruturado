@@ -13,9 +13,9 @@ from time import sleep
 from typing import TYPE_CHECKING, ClassVar, cast
 from uuid import uuid4
 
-from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
 from tqdm import tqdm
 
+from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud.controllers.bots.master.cnj_bots import CNJBots as ClassBot
 from crawjud.interface.dict.bot import BotData
 from crawjud.interface.types.custom import StrProcessoCNJ

@@ -13,8 +13,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.systems.esaj import ESajBot as ClassBot
-from crawjud_app.common.exceptions.bot import ExecutionError
 
 
 class Capa(ClassBot):

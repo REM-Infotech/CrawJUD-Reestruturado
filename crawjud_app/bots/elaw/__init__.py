@@ -18,6 +18,7 @@ import logging
 import traceback
 from typing import TYPE_CHECKING
 
+from crawjud.common.exceptions.bot import StartError
 from crawjud_app.bots.elaw.andamentos import Andamentos
 from crawjud_app.bots.elaw.cadastro import Cadastro
 from crawjud_app.bots.elaw.complement import Complement
@@ -25,7 +26,6 @@ from crawjud_app.bots.elaw.download import Download
 from crawjud_app.bots.elaw.prazos import Prazos
 from crawjud_app.bots.elaw.provisao import Provisao
 from crawjud_app.bots.elaw.sol_pags import SolPags as Sol_pags
-from crawjud_app.common.exceptions.bot import StartError
 
 
 class BotNotFoundError(AttributeError):

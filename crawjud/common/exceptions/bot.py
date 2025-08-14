@@ -2,7 +2,7 @@
 
 import traceback
 
-from crawjud_app.common.exceptions import BaseCrawJUDError
+from crawjud.common.exceptions import BaseCrawJUDError
 
 MessageError = "Erro ao executar operaçao: "
 

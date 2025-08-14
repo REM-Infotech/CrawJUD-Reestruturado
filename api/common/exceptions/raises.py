@@ -1,4 +1,4 @@
-from crawjud_app.common.exceptions.bot import ExecutionError
+from crawjud.common.exceptions.bot import ExecutionError
 
 
 def raise_execution_error(msg: str) -> None:

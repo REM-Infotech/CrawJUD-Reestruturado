@@ -7,9 +7,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 from api.common.exceptions.raises import raise_execution_error
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud_app.bots.elaw.cadastro.cadastro import PreCadastro
 from crawjud_app.bots.elaw.cadastro.complement import CadastroComplementar
-from crawjud_app.common.exceptions.bot import ExecutionError
 
 campos_validar: list[str] = [
     "estado",

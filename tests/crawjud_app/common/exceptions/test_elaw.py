@@ -1,6 +1,6 @@
 import pytest
 
-from crawjud_app.common.exceptions.elaw import AdvogadoError, ElawError
+from crawjud.common.exceptions.elaw import AdvogadoError, ElawError
 
 # python
 """Teste unitário para classes de exceção ElawError e AdvogadoError do módulo elaw.

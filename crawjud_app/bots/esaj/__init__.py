@@ -9,12 +9,12 @@ import traceback
 from collections.abc import Callable
 from typing import Union
 
+from crawjud.common.exceptions.bot import StartError
 from crawjud_app.bots.esaj.busca_pags import BuscaPags as Busca_pags
 from crawjud_app.bots.esaj.capa import Capa
 from crawjud_app.bots.esaj.emissao import Emissao
 from crawjud_app.bots.esaj.movimentacao import Movimentacao
 from crawjud_app.bots.esaj.protocolo import Protocolo
-from crawjud_app.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
 

@@ -9,8 +9,8 @@ import traceback
 from collections.abc import Callable
 from typing import Union
 
+from crawjud.common.exceptions.bot import StartError
 from crawjud_app.bots.caixa.emissor import Emissor
-from crawjud_app.common.exceptions.bot import StartError
 
 logger_ = logging.getLogger(__name__)
 ClassBots = Union[Emissor]

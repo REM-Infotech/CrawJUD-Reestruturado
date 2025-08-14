@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from crawjud_app.common.exceptions.bot import ExecutionError
-
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.master.abs_master import AbstractCrawJUD
 from crawjud_app.custom.canvas import subtask
 from crawjud_app.custom.task import ContextTask

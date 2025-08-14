@@ -6,12 +6,12 @@ from contextlib import suppress
 from time import sleep
 from typing import TYPE_CHECKING
 
-from crawjud_app.common.exceptions.bot import LoginSystemError
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
+from crawjud.common.exceptions.bot import LoginSystemError
 from crawjud.controllers.bots.systems.projudi import ProjudiBot
 
 if TYPE_CHECKING:

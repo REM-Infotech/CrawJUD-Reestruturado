@@ -2,7 +2,6 @@
 
 from time import sleep
 
-from crawjud_app.common.exceptions.bot import LoginSystemError
 from selenium.common.exceptions import (
     TimeoutException,
     UnexpectedAlertPresentException,
@@ -11,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
+from crawjud.common.exceptions.bot import LoginSystemError
 from crawjud.controllers.bots.systems.pje import PjeBot
 from crawjud.utils.webdriver import DriverBot
 

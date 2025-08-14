@@ -1,6 +1,6 @@
 """Exception classes for mail-related errors."""
 
-from crawjud_app.common.exceptions import BaseExceptionCeleryAppError
+from crawjud.common.exceptions import BaseExceptionCeleryAppError
 
 
 class MailError(BaseExceptionCeleryAppError):

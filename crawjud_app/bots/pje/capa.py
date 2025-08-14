@@ -17,9 +17,9 @@ from typing import TYPE_CHECKING, ClassVar
 from dotenv import load_dotenv
 from httpx import Client
 
+from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.systems.pje import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
-from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task, wrap_cls
 
