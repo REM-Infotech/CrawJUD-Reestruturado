@@ -6,6 +6,10 @@ on:
       - "!releases/**"
       - "!main"
       - "dev"
+  pull_request:
+    branches:
+      - "!releases/**"
+      - "!main"
 
 jobs:
   pre-commit:
