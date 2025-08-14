@@ -48,6 +48,8 @@ class PjeBot[T](ClassBot):
     """Classe de controle para robôs do PJe."""
 
     pje_classes: ClassVar[dict[str, type[PjeBot]]] = {}
+    subclasses_search: ClassVar[dict[str, type[PjeBot]]] = {}
+
     semaforo_save = Semaphore(1)
     _storage = Storage("minio")
 
@@ -351,4 +353,5 @@ class PjeBot[T](ClassBot):
         cls.pje_classes[cls.__name__] = cls
 
 
-importlib.import_module("utils.auth.pje")
+importlib.import_module("crawjud.utils.auth.pje")
+importlib.import_module("crawjud.utils.search.pje")
