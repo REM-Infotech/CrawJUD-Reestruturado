@@ -6,7 +6,6 @@ import string
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
-from typing import TYPE_CHECKING
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -14,9 +13,6 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from controllers.bots.systems.esaj import ESajBot
-
-if TYPE_CHECKING:
-    from selenium.webdriver.remote.webelement import WebElement
 
 
 class EsajAuth(ESajBot):
@@ -30,7 +26,7 @@ class EsajAuth(ESajBot):
         if self.login_method == "cert":
             self.driver.get(self.elements.url_login_cert)
             sleep(3)
-            loginopt: WebElement = self.wait.until(
+            loginopt = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'select[id="certificados"]',

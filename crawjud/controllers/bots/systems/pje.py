@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import secrets
 import traceback
 from contextlib import suppress
@@ -9,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import Semaphore
 from time import sleep
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 from uuid import uuid4
 
 from tqdm import tqdm
@@ -41,6 +42,7 @@ COUNT_TRYS = 15
 class PjeBot[T](ClassBot):
     """Classe de controle para robôs do PJe."""
 
+    pje_classes: ClassVar[dict[str, type[PjeBot]]] = {}
     semaforo_save = Semaphore(1)
     _storage = Storage("minio")
 
@@ -96,7 +98,7 @@ class PjeBot[T](ClassBot):
             bool: Booleano para identificar se autenicação foi realizada.
 
         """
-        return self.subclasses_auth["pjeauth"].auth(self)
+        return self.pje_classes["pjeauth"].auth()
 
     def regioes(self) -> RegioesIterator:
         """Listagem das regiões do PJe.
@@ -338,3 +340,10 @@ class PjeBot[T](ClassBot):
         }
 
         return formats[_format]
+
+    def __init_subclass__(cls) -> None:
+        """Empty."""
+        cls.pje_classes[cls.__name__] = cls
+
+
+importlib.import_module("utils.auth.pje")
