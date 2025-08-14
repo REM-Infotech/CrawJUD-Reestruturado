@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from crawjud_app.abstract._master import AbstractClassBot
+from crawjud_app.abstract._master import AbstractCrawJUD
 
 if TYPE_CHECKING:
     from httpx import Client
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from interface.types.pje import DictResults
 
 
-class SearchController[T](AbstractClassBot):
+class SearchController[T](AbstractCrawJUD):
     """Controller class for search operations."""
 
     def __init_subclass__(cls) -> None:  # noqa: D105

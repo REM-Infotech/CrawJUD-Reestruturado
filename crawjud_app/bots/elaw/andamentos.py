@@ -19,11 +19,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.master.bot_head import ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Andamentos(HeadBot):
+class Andamentos(ClassBot):
     """The Andamentos class manages the andamento tracking bot."""
 
     @classmethod

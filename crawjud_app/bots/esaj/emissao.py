@@ -20,7 +20,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.esaj import ESajBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
@@ -55,7 +55,7 @@ type_docscss = {
 }
 
 
-class Emissao(HeadBot):
+class Emissao(ClassBot):
     """Perform emission tasks by generating docs and extracting PDF barcodes.
 
     This class executes the complete workflow for document emission. It

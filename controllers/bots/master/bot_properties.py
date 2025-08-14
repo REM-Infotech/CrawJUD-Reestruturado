@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from crawjud_app.abstract._master import AbstractClassBot
+from crawjud_app.abstract._master import AbstractCrawJUD
 from crawjud_app.custom.canvas import subtask
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from interface.types.celery.canvas import Signature
 
 
-class PropertyBot(AbstractClassBot):
+class PropertyBot(AbstractCrawJUD):
     current_task: ContextTask
     sio: SimpleClient
     _stop_bot: bool = False
@@ -21,7 +21,7 @@ class PropertyBot(AbstractClassBot):
     _xlsx_data: DictFiles | None = None
     _downloaded_files: list[DictFiles] | None = None
     _bot_data: list[BotData] | None = None
-    _posicoes_processos: dict[str, int] | None = None
+    posicoes_processos: dict[str, int] | None = None
 
     @property
     def cookies(self) -> dict[str, str]:
@@ -36,8 +36,8 @@ class PropertyBot(AbstractClassBot):
         return self._base_url
 
     @property
-    def posicoes_processos(self) -> dict[str, int]:
-        return self._posicoes_processos
+    def list_posicao_processo(self) -> dict[str, int]:
+        return self.posicoes_processos
 
     @property
     def stop_bot(self) -> bool:

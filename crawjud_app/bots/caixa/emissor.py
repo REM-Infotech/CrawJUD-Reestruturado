@@ -18,14 +18,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.master.bot_head import ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
 class OtherUtils: ...  # noqa: D101
 
 
-class Emissor(HeadBot):
+class Emissor(ClassBot):
     """Manage creation and processing of judicial deposit documents using the Emissor bot fully.
 
     Offer a range of functionalities to access deposit pages, handle login flows,

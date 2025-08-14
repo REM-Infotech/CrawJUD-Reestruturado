@@ -15,11 +15,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.esaj import ESajBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Movimentacao(HeadBot):
+class Movimentacao(ClassBot):
     """Class Movimentacao.
 
     Handles all movement-related tasks in the Esaj system.

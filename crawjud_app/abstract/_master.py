@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from interface.dict.bot import BotData
 
 
-class AbstractClassBot[T](ABC):
+class AbstractCrawJUD[T](ABC):
     # Adiciona importação para ClassVar
 
     tasks_cls: ClassVar[dict] = {}

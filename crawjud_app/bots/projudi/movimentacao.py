@@ -22,11 +22,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Movimentacao(HeadBot):
+class Movimentacao(ClassBot):
     """Manage movements in Projudi by scraping, filtering, and logging process-related actions.
 
     This class extends CrawJUD to handle operations including movement search,

@@ -1,0 +1,311 @@
+"""Módulo para a classe de controle dos robôs PJe."""
+
+from __future__ import annotations
+
+import secrets
+import traceback
+from contextlib import suppress
+from datetime import datetime
+from pathlib import Path
+from threading import Semaphore
+from time import sleep
+from typing import TYPE_CHECKING, cast
+from uuid import uuid4
+
+from tqdm import tqdm
+
+from controllers.bots.master.bot_head import ClassBot
+from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
+from crawjud_app.custom.task import ContextTask
+from crawjud_app.iterators import RegioesIterator
+from interface.dict.bot import BotData
+from interface.types.custom import StrProcessoCNJ
+from interface.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
+from utils.models.logs import CachedExecution
+from utils.recaptcha import captcha_to_image
+from utils.storage import Storage
+
+if TYPE_CHECKING:
+    from httpx import Client, Response
+
+    from interface.dict.bot import BotData
+
+DictData = dict[str, str | datetime]
+ListData = list[DictData]
+
+workdir = Path(__file__).cwd()
+
+HTTP_STATUS_FORBIDDEN = 403  # Constante para status HTTP Forbidden
+COUNT_TRYS = 15
+
+
+class PjeBot[T](ClassBot, ContextTask):
+    """Classe de controle para robôs do PJe."""
+
+    semaforo_save = Semaphore(1)
+    _storage = Storage("minio")
+
+    @property
+    def storage(self) -> Storage:
+        """Storage do CrawJUD."""
+        return self._storage
+
+    def buscar_processo(self, data: BotData, row: int, client: Client) -> DictResults:
+        """Busca o processo no PJe.
+
+        Returns:
+            DictResults: dicionário com os resultados da busca.
+
+        """
+        cls_search = self.subclasses_search[f"{self.system.lower()}search"]
+        return cls_search.search(self, data=data, row=row, client=client)
+
+    def autenticar(self) -> bool:
+        """Autenticação do PJE.
+
+        Returns:
+            bool: Booleano para identificar se autenicação foi realizada.
+
+        """
+        return self.subclasses_auth["pjeauth"].auth(self)
+
+    def regioes(self) -> RegioesIterator:
+        """Listagem das regiões do PJe.
+
+        Returns:
+            RegioesIterator:
+                Iterator das Regiões do PJe.
+
+        """
+        return RegioesIterator(self)
+
+    def save_file_downloaded(
+        self,
+        file_name: str,
+        response_data: Response,
+        data_bot: BotData,
+        row: int,
+    ) -> None:
+        """Envia o `arquivo baixado` no processo para o `storage`.
+
+        Arguments:
+            file_name (str): Nome do arquivo.
+            response_data (Response): response da request httpx.
+            data_bot (BotData): Mapping dos dados da planilha de input.
+            row (int): row do loop.
+
+        """
+        try:
+            path_temp = workdir.joinpath("temp", uuid4().hex)
+
+            chunk = 8 * 1024 * 1024
+            file_path = path_temp.joinpath(file_name)
+            # Salva arquivo em chunks no storage
+            size: int = response_data.headers.get("Content-Length")
+            dest_name = str(Path(self.pid.upper()) / file_name)
+            upload_file = False
+            with file_path.open("wb") as f:
+                for _bytes in response_data.iter_bytes(chunk):
+                    f.write(_bytes)
+                    try:
+                        upload_file = True
+                        self.storage.append_object(dest_name, _bytes, chunk, size)
+                    except (FileUploadError, Exception) as e:
+                        tqdm.write("\n".join(traceback.format_exception(e)))
+
+            if not upload_file:
+                file_size = file_path.stat().st_size
+                with file_path.open("rb") as file:
+                    self.storage.put_object(
+                        object_name=dest_name,
+                        data=file,
+                        length=file_size,
+                    )
+
+            with suppress(Exception):
+                file_path.unlink()
+
+        except (FileUploadError, Exception) as e:
+            str_exc = "\n".join(traceback.format_exception_only(e))
+            message = "Não foi possível baixar o arquivo. " + str_exc
+            self.print_msg(
+                row=row,
+                message=message,
+                type_log="warning",
+            )
+
+        finally:
+            message = "Arquivo do processo n.{proc} baixado com sucesso!".format(
+                proc=data_bot["NUMERO_PROCESSO"],
+            )
+            self.print_msg(
+                row=row,
+                message=message,
+                type_log="info",
+            )
+
+    def save_success_cache(
+        self,
+        data: Processo,
+        processo: StrProcessoCNJ | None = None,
+    ) -> None:
+        """Salva os resultados em cache Redis.
+
+        Arguments:
+            data (Processo): Mapping com as informações extraídas do processo
+            processo (StrProcessoCNJ): Número do Processo
+
+
+        """
+        with suppress(Exception):
+            cache = CachedExecution(processo=processo, data=data, pid=self.pid)
+            cache.save()
+
+    def desafio_captcha(
+        self,
+        row: int,
+        data: BotData,
+        id_processo: str,
+        client: Client,
+    ) -> DictResults:
+        """Resolve o desafio captcha para acessar informações do processo no PJe.
+
+        Returns:
+            Resultados: Dicionário contendo headers, cookies e resultados do processo.
+
+        Raises:
+            ExecutionError: Caso não seja possível obter informações do processo
+            após 15 tentativas.
+
+        """
+        count_try: int = 0
+        response_desafio = None
+        data_request: DictDesafio = {}
+
+        def formata_data_result() -> DictDesafio:
+            request_json = response_desafio.json()
+
+            if isinstance(request_json, list):
+                request_json = request_json[-1]
+
+            return cast("DictDesafio", request_json)
+
+        def args_desafio() -> tuple[str, str]:
+            if count_try == 0:
+                link = f"/captcha?idProcesso={id_processo}"
+
+                nonlocal response_desafio
+                response_desafio = client.get(url=link, timeout=60)
+
+                nonlocal data_request
+                data_request = formata_data_result()
+
+            img = data_request.get("imagem")
+            token_desafio = data_request.get("tokenDesafio")
+
+            return img, token_desafio
+
+        while count_try <= COUNT_TRYS:
+            with suppress(Exception):
+                img, token_desafio = args_desafio()
+                text = captcha_to_image(img)
+
+                link = (
+                    f"/processos/{id_processo}"
+                    f"?tokenDesafio={token_desafio}"
+                    f"&resposta={text}"
+                )
+                response_desafio = client.get(url=link, timeout=60)
+
+                sleep_time = secrets.randbelow(5) + 3
+
+                if response_desafio.status_code == HTTP_STATUS_FORBIDDEN:
+                    raise ExecutionError(
+                        message="Erro ao obter informações do processo",
+                    )
+
+                data_request = response_desafio.json()
+                imagem = data_request.get("imagem")
+
+                if imagem:
+                    count_try += 1
+                    sleep(sleep_time)
+                    continue
+
+                msg = (
+                    f"Processo {data['NUMERO_PROCESSO']} encontrado! "
+                    "Salvando dados..."
+                )
+                self.print_msg(
+                    message=msg,
+                    row=row,
+                    type_log="info",
+                )
+
+                captcha_token = response_desafio.headers.get("captchatoken", "")
+                return DictResults(
+                    id_processo=id_processo,
+                    captchatoken=str(captcha_token),
+                    text=text,
+                    data_request=cast("Processo", data_request),
+                )
+
+        if count_try > COUNT_TRYS:
+            self.print_msg(
+                message="Erro ao obter informações do processo",
+                row=row,
+                type_log="error",
+            )
+            return None
+
+        return None
+
+    def separar_regiao(self) -> DictSeparaRegiao:
+        """Separa os processos por região a partir do número do processo.
+
+        Returns:
+            dict[str, list[BotData] | dict[str, int]]: Dicionário com as regiões e a
+            posição de cada processo.
+
+        """
+        regioes_dict: dict[str, list[BotData]] = {}
+        position_process: dict[str, int] = {}
+
+        for item in self.bot_data:
+            numero_processo = StrProcessoCNJ(item["NUMERO_PROCESSO"])
+
+            regiao = numero_processo.tj
+            # Atualiza o número do processo no item
+            item["NUMERO_PROCESSO"] = numero_processo
+
+            # Adiciona a posição do processo na
+            # lista original no dicionário de posições
+            position_process[numero_processo] = len(position_process)
+
+            # Caso a região não exista no dicionário, cria uma nova lista
+            if not regioes_dict.get(regiao):
+                regioes_dict[regiao] = [item]
+                continue
+
+            # Caso a região já exista, adiciona o item à lista correspondente
+            regioes_dict[regiao].append(item)
+
+        return {"regioes": regioes_dict, "position_process": position_process}
+
+    def formata_url_pje(
+        self,
+        _format: str = "login",
+    ) -> str:
+        """Formata a URL no padrão esperado pelo PJe.
+
+        Returns:
+            str: URL formatada.
+
+        """
+        formats = {
+            "login": f"https://pje.trt{self.regiao}.jus.br/primeirograu/login.seam",
+            "validate_login": f"https://pje.trt{self.regiao}.jus.br/pjekz/",
+            "search": f"https://pje.trt{self.regiao}.jus.br/consultaprocessual/",
+        }
+
+        return formats[_format]

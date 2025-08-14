@@ -32,7 +32,7 @@ from crawjud_app.common.exceptions.bot import ExecutionError
 type_doc = {11: "cpf", 14: "cnpj"}
 
 
-class SolPags(HeadBot):
+class SolPags(ClassBot):
     """The SolPags class extends CrawJUD to manage page solutions within the application.
 
     Attributes:

@@ -13,11 +13,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Intimacoes(HeadBot):
+class Intimacoes(ClassBot):
     """Extract and process intimations in Projudi by navigating pages and extracting data.
 
     This class extends CrawJUD to enter the intimacoes tab, set page sizes,

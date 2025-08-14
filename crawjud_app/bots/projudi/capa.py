@@ -17,11 +17,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Capa(HeadBot):
+class Capa(ClassBot):
     """Extract process information from Projudi and populate structured data.
 
     This class extends CrawJUD to click through information panels,

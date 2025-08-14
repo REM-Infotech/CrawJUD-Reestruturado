@@ -20,11 +20,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.esaj import ESajBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Protocolo(HeadBot):
+class Protocolo(ClassBot):
     """Class Protocolo.
 
     Manage protocol operations in the ESaj system via CrawJUD.

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from crawjud_app.abstract._master import AbstractClassBot
+from crawjud_app.abstract._master import AbstractCrawJUD
 
 
-class AuthController[T](AbstractClassBot):
+class AuthController[T](AbstractCrawJUD):
     """Controller class for authentication operations."""
 
     @abstractmethod

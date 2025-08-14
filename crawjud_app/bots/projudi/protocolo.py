@@ -25,13 +25,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 dotenv.load_dotenv()
 
 
-class Protocolo(HeadBot):
+class Protocolo(ClassBot):
     """Handle protocol operations and execute moves, uploads, signing, and screenshot capture in Projudi.
 
     This class extends CrawJUD to manage protocols by sequentially processing moves,

@@ -1,36 +1,65 @@
-"""Módulo núcleo de controle dos robôs."""
+"""Modulo de controle da classe Base para todos os bots."""
 
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import (
-    AnyStr,
-    ParamSpec,
-)
+from typing import TYPE_CHECKING
 
-from dotenv import dotenv_values
+from controllers.bots.master.bot_properties import PropertyBot
+from crawjud_app.common.exceptions.bot import ExecutionError
+from crawjud_app.custom.canvas import subtask
 
-from crawjud_app.abstract._head import HeadBot
-
-PrintParamSpec = ParamSpec("PrintParamSpec", bound=str)
-
-environ = dotenv_values()
+if TYPE_CHECKING:
+    from interface.dict.bot import BotData, DictFiles
+    from utils.storage import Storage
 
 
-class ClassBot[T](HeadBot):  # noqa:  D101
+class ClassBot[T](PropertyBot):
+    """Classe base para todos os bots."""
+
+    @property
     @abstractmethod
-    def execution(self) -> None: ...  # noqa: D102
+    def storage(self) -> Storage: ...
+
+    def download_files(self) -> None:
+        files_b64: list[DictFiles] = (
+            subtask("crawjud.download_files")
+            .apply_async(kwargs={"storage_folder_name": self.folder_storage})
+            .wait_ready()
+        )
+        xlsx_key = list(filter(lambda x: x["file_suffix"] == ".xlsx", files_b64))
+        if not xlsx_key:
+            raise ExecutionError(message="Nenhum arquivo Excel encontrado.")
+
+        self._xlsx_data = xlsx_key[-1]
+        self._downloaded_files = files_b64
+
+    def data_frame(self) -> None:
+        bot_data: list[BotData] = self.crawjud_dataframe.apply_async(
+            kwargs={"base91_planilha": self.xlsx_data["file_base91str"]},
+        ).wait_ready()
+
+        self._bot_data = bot_data
+
+    def carregar_arquivos(self) -> None:
+        self.download_files()
+        self.data_frame()
+
+        self.print_msg(
+            message="Planilha carregada!",
+            type_log="info",
+        )
 
     def elaw_formats(
         self,
         data: dict[str, str],
-        cities_amazonas: dict[str, AnyStr],
+        cities_amazonas: dict[str, str],
     ) -> dict[str, str]:
         """Formata um dicionário de processo jurídico conforme regras pré-definidas.
 
         Args:
             data (dict[str, str]): Dicionário de dados brutos.
-            cities_amazonas (dict[str, AnyStr]): Dicionário das cidades do Amazonas.
+            cities_amazonas (dict[str, str]): Dicionário das cidades do Amazonas.
 
         Returns:
             (dict[str, str]): Dados formatados com tipos e valores adequados.
@@ -81,7 +110,7 @@ class ClassBot[T](HeadBot):  # noqa:  D101
     def _update_capital_interior(
         self,
         data: dict[str, str],
-        cities_amazonas: dict[str, AnyStr],
+        cities_amazonas: dict[str, str],
     ) -> None:
         """Atualiza 'CAPITAL_INTERIOR' conforme 'COMARCA'."""
         comarca = data.get("COMARCA")

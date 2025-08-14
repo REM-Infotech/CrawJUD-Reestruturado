@@ -13,11 +13,11 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.esaj import ESajBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Capa(HeadBot):
+class Capa(ClassBot):
     """Perform capa tasks by searching and extracting process details robustly.
 
     This class handles process information retrieval including form extraction

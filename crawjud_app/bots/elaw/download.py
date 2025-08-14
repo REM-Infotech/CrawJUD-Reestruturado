@@ -19,11 +19,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.master.bot_head import ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Download(HeadBot):
+class Download(ClassBot):
     """The Download class extends CrawJUD to handle download tasks within the application.
 
     Attributes:

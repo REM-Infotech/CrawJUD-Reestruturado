@@ -19,7 +19,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import HeadBot
+from controllers.bots.pje import PjeBot as ClassBot
 from crawjud_app.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)
-class Pauta(ContextTask, HeadBot):
+class Pauta(ContextTask, ClassBot):
     """Implemente a automação para buscar e processar pautas de audiências judiciais.
 
     Esta classe executa tarefas automatizadas para extração de pautas de audiências
