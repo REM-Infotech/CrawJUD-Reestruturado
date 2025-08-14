@@ -6,7 +6,7 @@ on:
     branches:
       - "!releases/**"
       - "!main"
-      - "!dev"
+      - "dev"
 
 jobs:
   pre-commit:
@@ -15,3 +15,35 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.1
+        continue-on-error: true # Permitir que o workflow continue, mesmo com falhas nos hooks
+
+      - name: Capture pre-commit errors
+        if: failure() # Só captura erros se falhou
+        run: |
+          # Captura a saída do pre-commit que contém erros
+          errors=$(cat $GITHUB_ENV | grep "pre-commit" || echo "No errors found.")
+
+          # Define o token de autenticação para criar issues
+          github_token=${{ secrets.GITHUB_TOKEN }}
+          pr_number=${{ github.event.pull_request.number }}
+
+          # Se houver erros, cria as issues
+          if [ "$errors" != "No errors found." ]; then
+            while IFS= read -r error; do
+              issue_title="Pre-commit error: $error"
+              issue_body="Error detected during pre-commit checks:\n\n$error\n\nPlease fix the error and push the changes."
+
+              curl -X POST \
+                -H "Authorization: token $github_token" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "title": "'"$issue_title"'",
+                  "body": "'"$issue_body"'",
+                  "assignees": ["${{ github.actor }}"],
+                  "labels": ["bug"]
+                }' \
+                https://api.github.com/repos/${{ github.repository }}/issues
+            done <<< "$errors"
+          else
+            echo "No pre-commit errors found."
+          fi
