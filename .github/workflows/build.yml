@@ -1,12 +1,19 @@
 name: Build
 
 on:
+  pull_request:
   push:
-    branches: [dev]
+    branches:
+      - "main"
+      - "releases/**"
+      - "!releases/**-alpha"
+    tags-ignore:
+      - v1.*-alpha*
+      - v1.*-beta*
 
 jobs:
   build:
-    name: Build and analyze
+    name: 🔎 Análise de Código - SonarQube | Pre-Commit
     runs-on: ubuntu-latest
 
     steps:
@@ -17,9 +24,3 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
-      # - uses: SonarSource/sonarqube-quality-gate-action@v1
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }
