@@ -25,13 +25,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
 
-class Provisao(ClassBot):
+class Provisao(HeadBot):
     """The Provisao class extends CrawJUD to manage provisions within the application.
 
     Attributes:
@@ -46,8 +46,7 @@ class Provisao(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -101,7 +100,7 @@ class Provisao(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -164,7 +163,7 @@ class Provisao(ClassBot):
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.type_risk_label,
-            ))
+            )),
         )
 
         if label_risk.text == "Risco Quebrado":
@@ -254,7 +253,8 @@ class Provisao(ClassBot):
             valueprovisao = item.find_elements(By.TAG_NAME, "td")[0].text
             with suppress(NoSuchElementException):
                 valueprovisao = item.find_element(
-                    By.CSS_SELECTOR, self.elements.value_provcss
+                    By.CSS_SELECTOR,
+                    self.elements.value_provcss,
                 ).text
 
             if "-" in valueprovisao or valueprovisao == "Nenhum registro encontrado!":
@@ -284,7 +284,7 @@ class Provisao(ClassBot):
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.itens_obj_div_css,
-                    ))
+                    )),
                 )
                 .find_element(By.TAG_NAME, "ul")
                 .find_elements(By.TAG_NAME, "li")[0]
@@ -294,7 +294,8 @@ class Provisao(ClassBot):
             item_obj_div.click()
 
             add_objeto = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.botao_adicionar
+                By.CSS_SELECTOR,
+                self.elements.botao_adicionar,
             )
             add_objeto.click()
 
@@ -303,7 +304,8 @@ class Provisao(ClassBot):
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
-                message="Não foi possivel atualizar provisão", e=e
+                message="Não foi possivel atualizar provisão",
+                e=e,
             ) from e
 
     def edit_valor(self) -> None:
@@ -333,7 +335,7 @@ class Provisao(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
-                ))
+                )),
             ).find_elements(
                 By.XPATH,
                 './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
@@ -362,7 +364,7 @@ class Provisao(ClassBot):
 
                 id_campo_valor_dml = campo_valor_dml.get_attribute("id")
                 self.driver.execute_script(
-                    f"document.getElementById('{id_campo_valor_dml}').blur()"
+                    f"document.getElementById('{id_campo_valor_dml}').blur()",
                 )
                 self.interact.sleep_load('div[id="j_id_2z"]')
 
@@ -378,7 +380,7 @@ class Provisao(ClassBot):
 
         """
         self.driver.execute_script(
-            'document.getElementById("j_id_2z:j_id_32_2e:processoAmountObjetoDt").style.zoom = "0.5" '
+            'document.getElementById("j_id_2z:j_id_32_2e:processoAmountObjetoDt").style.zoom = "0.5" ',
         )
         try:
             self.message = "Alterando risco"
@@ -389,7 +391,7 @@ class Provisao(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
-                ))
+                )),
             ).find_elements(
                 By.XPATH,
                 './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
@@ -427,7 +429,8 @@ class Provisao(ClassBot):
                 )
 
                 self.interact.select2_elaw(
-                    css_selector_filter_risk, provisao_from_xlsx
+                    css_selector_filter_risk,
+                    provisao_from_xlsx,
                 )
 
                 self.interact.sleep_load('div[id="j_id_3c"]')
@@ -450,26 +453,28 @@ class Provisao(ClassBot):
 
             def set_data_correcao(data_base_correcao: str) -> None:
                 data_correcao = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.data_correcaoCss
+                    By.CSS_SELECTOR,
+                    self.elements.data_correcaoCss,
                 )
                 css_daata_correcao = data_correcao.get_attribute("id")
                 self.interact.clear(data_correcao)
                 self.interact.send_key(data_correcao, data_base_correcao)
 
                 self.driver.execute_script(
-                    f"document.getElementById('{css_daata_correcao}').blur()"
+                    f"document.getElementById('{css_daata_correcao}').blur()",
                 )
                 self.interact.sleep_load('div[id="j_id_2z"]')
 
             def set_data_juros(data_base_juros: str) -> None:
                 data_juros = self.driver.find_element(
-                    By.CSS_SELECTOR, self.elements.data_jurosCss
+                    By.CSS_SELECTOR,
+                    self.elements.data_jurosCss,
                 )
                 css_data = data_juros.get_attribute("id")
                 self.interact.clear(data_juros)
                 self.interact.send_key(data_juros, data_base_juros)
                 self.driver.execute_script(
-                    f"document.getElementById('{css_data}').blur()"
+                    f"document.getElementById('{css_data}').blur()",
                 )
                 self.interact.sleep_load('div[id="j_id_2z"]')
 
@@ -500,7 +505,8 @@ class Provisao(ClassBot):
         """
         try:
             try_salvar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.botao_salvar_id
+                By.CSS_SELECTOR,
+                self.elements.botao_salvar_id,
             )
 
             sleep(1)
@@ -518,11 +524,11 @@ class Provisao(ClassBot):
                 )),
             )
             informar_motivo.send_keys(
-                self.bot_data.get("OBSERVACAO", "Atualização de provisão")
+                self.bot_data.get("OBSERVACAO", "Atualização de provisão"),
             )
             id_informar_motivo = informar_motivo.get_attribute("id")
             self.driver.execute_script(
-                f"document.getElementById('{id_informar_motivo}').blur()"
+                f"document.getElementById('{id_informar_motivo}').blur()",
             )
 
         except Exception as e:
@@ -538,7 +544,8 @@ class Provisao(ClassBot):
         """
         self.interact.sleep_load('div[id="j_id_2z"]')
         salvar = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.botao_salvar_id
+            By.CSS_SELECTOR,
+            self.elements.botao_salvar_id,
         )
         salvar.click()
 

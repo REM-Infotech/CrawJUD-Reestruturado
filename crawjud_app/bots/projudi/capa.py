@@ -17,11 +17,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Capa(ClassBot):
+class Capa(HeadBot):
     """Extract process information from Projudi and populate structured data.
 
     This class extends CrawJUD to click through information panels,
@@ -126,7 +126,8 @@ class Capa(ClassBot):
                 data = self.copia_pdf(data)
 
             self.append_success(
-                [data], "Informações do processo extraidas com sucesso!"
+                [data],
+                "Informações do processo extraidas com sucesso!",
             )
 
         except Exception as e:
@@ -135,18 +136,20 @@ class Capa(ClassBot):
             raise ExecutionError(e=e) from e
 
     def copia_pdf(
-        self, data: dict[str, str | int | datetime]
+        self,
+        data: dict[str, str | int | datetime],
     ) -> dict[str, str | int | datetime]:
         """Extract the movements of the legal proceedings and saves a PDF copy."""
         id_proc = self.driver.find_element(
-            By.CSS_SELECTOR, 'input[name="id"]'
+            By.CSS_SELECTOR,
+            'input[name="id"]',
         ).get_attribute("value")
 
         btn_exportar = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'input[id="btnMenuExportar"]',
-            ))
+            )),
         )
         time.sleep(0.5)
         btn_exportar.click()
@@ -154,7 +157,7 @@ class Capa(ClassBot):
         btn_exportar_processo = self.wait.until(
             ec.presence_of_element_located(
                 (By.CSS_SELECTOR, 'input[id="exportarProcessoButton"]'),
-            )
+            ),
         )
         time.sleep(0.5)
         btn_exportar_processo.click()
@@ -165,7 +168,7 @@ class Capa(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'input[name="gerarMovimentacoes"][value="false"]',
-                ))
+                )),
             ).click()
 
         def unmark_add_validate_tag() -> None:
@@ -174,7 +177,7 @@ class Capa(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'input[name="adicionarTarjaValidacao"][value="false"]',
-                ))
+                )),
             ).click()
 
         def export() -> None:
@@ -185,11 +188,12 @@ class Capa(ClassBot):
 
             n_processo = self.bot_data.get("NUMERO_PROCESSO")
             path_pdf = Path(self.output_dir_path).joinpath(
-                f"Cópia Integral - {n_processo} - {self.pid}.pdf"
+                f"Cópia Integral - {n_processo} - {self.pid}.pdf",
             )
 
             btn_exportar = self.driver.find_element(
-                By.CSS_SELECTOR, 'input[name="btnExportar"]'
+                By.CSS_SELECTOR,
+                'input[name="btnExportar"]',
             )
             btn_exportar.click()
 
@@ -219,8 +223,7 @@ class Capa(ClassBot):
         return data
 
     def get_process_informations(self) -> dict[str, str | int | datetime]:
-        """
-        Extrai informações detalhadas do processo da página atual do Projudi.
+        """Extrai informações detalhadas do processo da página atual do Projudi.
 
         Returns:
             dict[str, str | int | datetime]: Dicionário com informações formatadas do processo.
@@ -232,7 +235,7 @@ class Capa(ClassBot):
         try:
             grau = self._get_grau()
             process_info: dict[str, str | int | datetime] = {
-                "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO")
+                "NUMERO_PROCESSO": self.bot_data.get("NUMERO_PROCESSO"),
             }
 
             self._log_obtendo_informacoes()
@@ -247,8 +250,7 @@ class Capa(ClassBot):
             raise e
 
     def _get_grau(self) -> int:
-        """
-        Obtém e formata o grau do processo.
+        """Obtém e formata o grau do processo.
 
         Returns:
             int: Grau do processo.
@@ -268,10 +270,11 @@ class Capa(ClassBot):
         self.prt()
 
     def _extrai_info_geral(
-        self, process_info: dict[str, str | int | datetime], grau: int
+        self,
+        process_info: dict[str, str | int | datetime],
+        grau: int,
     ) -> None:
-        """
-        Extrai informações gerais do processo.
+        """Extrai informações gerais do processo.
 
         Args:
             process_info (dict): Dicionário de informações do processo.
@@ -279,7 +282,8 @@ class Capa(ClassBot):
 
         """
         btn_infogeral = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.btn_infogeral
+            By.CSS_SELECTOR,
+            self.elements.btn_infogeral,
         )
         btn_infogeral.click()
 
@@ -295,7 +299,7 @@ class Capa(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     element_content2,
-                ))
+                )),
             ),
         ]
 
@@ -303,10 +307,11 @@ class Capa(ClassBot):
             self._extrai_tabela_info_geral(incl, process_info)
 
     def _extrai_tabela_info_geral(
-        self, incl: WebElement, process_info: dict[str, str | int | datetime]
+        self,
+        incl: WebElement,
+        process_info: dict[str, str | int | datetime],
     ) -> None:
-        """
-        Extrai dados das tabelas de informações gerais.
+        """Extrai dados das tabelas de informações gerais.
 
         Args:
             incl (WebElement): Elemento da tabela.
@@ -317,7 +322,8 @@ class Capa(ClassBot):
             itens = [
                 x
                 for x in incl.find_element(By.TAG_NAME, "tbody").find_elements(
-                    By.TAG_NAME, "tr"
+                    By.TAG_NAME,
+                    "tr",
                 )
                 if len(x.find_elements(By.TAG_NAME, "td")) > 1
             ]
@@ -325,7 +331,8 @@ class Capa(ClassBot):
                 labels = [
                     x
                     for x in item.find_elements(
-                        By.CSS_SELECTOR, "td.label, td.labelRadio > label"
+                        By.CSS_SELECTOR,
+                        "td.label, td.labelRadio > label",
                     )
                     if x.text.strip() != ""
                 ]
@@ -343,16 +350,20 @@ class Capa(ClassBot):
                     )
                     value_text = values[idx].text
                     value_text = self._format_value(
-                        label_text, not_formated_label, value_text
+                        label_text,
+                        not_formated_label,
+                        value_text,
                     )
                     if value_text is not None:
                         process_info.update({label_text: value_text})
 
     def _format_value(
-        self, label_text: str, not_formated_label: str, value_text: str
+        self,
+        label_text: str,
+        not_formated_label: str,
+        value_text: str,
     ) -> str | float | datetime | None:
-        """
-        Formata o valor extraído conforme o tipo de campo.
+        """Formata o valor extraído conforme o tipo de campo.
 
         Args:
             label_text (str): Texto do label formatado.
@@ -365,7 +376,7 @@ class Capa(ClassBot):
         """
         if label_text == "VALOR_DA_CAUSA":
             return self._format_vl_causa(value_text)
-        elif (
+        if (
             "DATA" in label_text
             or "DISTRIBUICAO" in label_text
             or "AUTUACAO" in label_text
@@ -379,8 +390,7 @@ class Capa(ClassBot):
         return None
 
     def _format_vl_causa(self, valor_causa: str) -> float | str:
-        """
-        Formata o valor da causa removendo símbolos e convertendo para float.
+        """Formata o valor da causa removendo símbolos e convertendo para float.
 
         Args:
             valor_causa (str): Valor bruto.
@@ -398,8 +408,7 @@ class Capa(ClassBot):
         return valor_causa
 
     def _convert_to_float(self, value: str) -> float:
-        """
-        Convert string formatada para float.
+        """Convert string formatada para float.
 
         Args:
             value (str): Valor em string.
@@ -422,10 +431,11 @@ class Capa(ClassBot):
         return float(value)
 
     def _extrai_partes(
-        self, process_info: dict[str, str | int | datetime], grau: int
+        self,
+        process_info: dict[str, str | int | datetime],
+        grau: int,
     ) -> None:
-        """
-        Extrai informações das partes do processo.
+        """Extrai informações das partes do processo.
 
         Args:
             process_info (dict): Dicionário de informações do processo.
@@ -440,7 +450,8 @@ class Capa(ClassBot):
 
         includecontent = self._get_includecontent_capa()
         result_table = includecontent.find_elements(
-            By.CLASS_NAME, self.elements.resulttable
+            By.CLASS_NAME,
+            self.elements.resulttable,
         )
         h4_names = [
             x
@@ -454,16 +465,19 @@ class Capa(ClassBot):
             nome_colunas = [
                 column.text.upper()
                 for column in parte_info.find_element(
-                    By.TAG_NAME, "thead"
+                    By.TAG_NAME,
+                    "thead",
                 ).find_elements(By.TAG_NAME, "th")
             ]
             self._extrai_tabela_partes(
-                parte_info, nome_colunas, tipo_parte, process_info
+                parte_info,
+                nome_colunas,
+                tipo_parte,
+                process_info,
             )
 
     def _get_includecontent_capa(self) -> WebElement:
-        """
-        Obtém o elemento de conteúdo da capa.
+        """Obtém o elemento de conteúdo da capa.
 
         Returns:
             WebElement: Elemento de conteúdo.
@@ -484,8 +498,7 @@ class Capa(ClassBot):
         tipo_parte: str,
         process_info: dict[str, str | int | datetime],
     ) -> None:
-        """
-        Extrai dados das tabelas de partes.
+        """Extrai dados das tabelas de partes.
 
         Args:
             parte_info (WebElement): Elemento da tabela de partes.
@@ -495,7 +508,8 @@ class Capa(ClassBot):
 
         """
         linhas = parte_info.find_element(By.TAG_NAME, "tbody").find_elements(
-            By.XPATH, self.elements.table_moves
+            By.XPATH,
+            self.elements.table_moves,
         )
         for parte in linhas:
             tds = parte.find_elements(By.TAG_NAME, "td")

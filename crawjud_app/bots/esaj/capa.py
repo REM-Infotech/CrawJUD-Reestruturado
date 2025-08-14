@@ -13,11 +13,11 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Capa(ClassBot):
+class Capa(HeadBot):
     """Perform capa tasks by searching and extracting process details robustly.
 
     This class handles process information retrieval including form extraction
@@ -84,7 +84,7 @@ class Capa(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -175,18 +175,21 @@ class Capa(ClassBot):
         for pos_, sumary in enumerate(list_sumary):
             for pos, rows in enumerate(sumary):
                 subitems_sumary = rows.find_elements(
-                    By.CSS_SELECTOR, self.elements.rows_sumary_
+                    By.CSS_SELECTOR,
+                    self.elements.rows_sumary_,
                 )
 
                 for item in subitems_sumary:
                     if pos == 0 and pos_ == 0:
                         num_proc = item.find_element(
-                            By.CLASS_NAME, self.elements.numproc
+                            By.CLASS_NAME,
+                            self.elements.numproc,
                         ).text
                         status_proc = "Em Andamento"
                         with suppress(NoSuchElementException):
                             status_proc = item.find_element(
-                                By.CLASS_NAME, self.elements.statusproc
+                                By.CLASS_NAME,
+                                self.elements.statusproc,
                             ).text
 
                         data.update({
@@ -197,7 +200,8 @@ class Capa(ClassBot):
 
                     value = None
                     title = item.find_element(
-                        By.CLASS_NAME, self.elements.nameitemsumary
+                        By.CLASS_NAME,
+                        self.elements.nameitemsumary,
                     ).text
 
                     if title:
@@ -208,18 +212,20 @@ class Capa(ClassBot):
 
                     with suppress(NoSuchElementException):
                         value = item.find_element(
-                            By.CSS_SELECTOR, self.elements.valueitemsumary
+                            By.CSS_SELECTOR,
+                            self.elements.valueitemsumary,
                         ).text
 
                     if not value:
                         with suppress(NoSuchElementException):
                             element_search = self.elements.value2_itemsumary.get(
-                                title
+                                title,
                             )
 
                             if element_search:
                                 value = item.find_element(
-                                    By.CSS_SELECTOR, element_search
+                                    By.CSS_SELECTOR,
+                                    element_search,
                                 ).text
 
                                 if title == "OUTROS_ASSUNTOS":
@@ -234,7 +240,7 @@ class Capa(ClassBot):
         for group_parte in table_partes.find_elements(By.TAG_NAME, "tr"):
             pos_repr = 0
             type_parte = self.format_string(
-                group_parte.find_elements(By.TAG_NAME, "td")[0].text.upper()
+                group_parte.find_elements(By.TAG_NAME, "td")[0].text.upper(),
             )
 
             info_parte = group_parte.find_elements(By.TAG_NAME, "td")[1]
@@ -246,7 +252,7 @@ class Capa(ClassBot):
                         tipo_representante = representante[0].upper()
                         nome_representante = representante[1].upper()
                         key = {
-                            f"{tipo_representante}_{type_parte}": nome_representante
+                            f"{tipo_representante}_{type_parte}": nome_representante,
                         }
 
                         doc_ = "Não consta"

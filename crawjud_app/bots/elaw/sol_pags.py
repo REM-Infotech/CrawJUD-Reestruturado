@@ -27,13 +27,12 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.abstract.bot import ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
 
-class SolPags(ClassBot):
+class SolPags(HeadBot):
     """The SolPags class extends CrawJUD to manage page solutions within the application.
 
     Attributes:

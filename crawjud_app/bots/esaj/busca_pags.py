@@ -13,14 +13,14 @@ from zoneinfo import ZoneInfo
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class BuscaPags(ClassBot):
+class BuscaPags(HeadBot):
     """Class BuscaPags.
 
     Manages page search and the extraction of cost-related information.

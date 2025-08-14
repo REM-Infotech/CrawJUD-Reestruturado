@@ -19,11 +19,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Download(ClassBot):
+class Download(HeadBot):
     """The Download class extends CrawJUD to handle download tasks within the application.
 
     Attributes:
@@ -38,8 +38,7 @@ class Download(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -97,7 +96,7 @@ class Download(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -214,7 +213,7 @@ class Download(ClassBot):
             get_name_file = str(
                 item.find_elements(By.TAG_NAME, "td")[3]
                 .find_element(By.TAG_NAME, "a")
-                .text
+                .text,
             )
 
             for termo in termos:

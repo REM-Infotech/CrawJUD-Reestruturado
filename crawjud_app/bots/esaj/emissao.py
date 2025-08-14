@@ -20,7 +20,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
@@ -55,7 +55,7 @@ type_docscss = {
 }
 
 
-class Emissao(ClassBot):
+class Emissao(HeadBot):
     """Perform emission tasks by generating docs and extracting PDF barcodes.
 
     This class executes the complete workflow for document emission. It
@@ -137,7 +137,7 @@ class Emissao(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -207,12 +207,14 @@ class Emissao(ClassBot):
         set_foro.send_keys(self.bot_data.get("FORO"))
 
         set_classe = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.tree_selection
+            By.CSS_SELECTOR,
+            self.elements.tree_selection,
         )
         set_classe.send_keys(self.bot_data.get("CLASSE"))
 
         semprecível = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.civil_selector
+            By.CSS_SELECTOR,
+            self.elements.civil_selector,
         )
         semprecível.click()
 
@@ -220,7 +222,8 @@ class Emissao(ClassBot):
         val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
         nameinteressado = self.driver.find_element(
-            By.CSS_SELECTOR, 'input[name="entity.nmInteressado"]'
+            By.CSS_SELECTOR,
+            'input[name="entity.nmInteressado"]',
         )
         nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
@@ -231,13 +234,15 @@ class Emissao(ClassBot):
         set_doc.click()
         sleep(0.5)
         setcpf_cnpj = self.driver.find_element(
-            By.CSS_SELECTOR, elements[1]
+            By.CSS_SELECTOR,
+            elements[1],
         ).find_element(By.CSS_SELECTOR, elements[2])
         sleep(0.5)
         setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
         avançar = self.driver.find_element(
-            By.CSS_SELECTOR, self.elements.botao_avancar
+            By.CSS_SELECTOR,
+            self.elements.botao_avancar,
         )
         avançar.click()
 
@@ -269,12 +274,14 @@ class Emissao(ClassBot):
             set_foro.send_keys(self.bot_data.get("FORO"))
 
             val_acao = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.valor_acao
+                By.CSS_SELECTOR,
+                self.elements.valor_acao,
             )
             val_acao.send_keys(self.bot_data.get("VALOR_CAUSA"))
 
             nameinteressado = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.interessado
+                By.CSS_SELECTOR,
+                self.elements.interessado,
             )
             nameinteressado.send_keys(self.bot_data.get("NOME_INTERESSADO"))
 
@@ -286,7 +293,8 @@ class Emissao(ClassBot):
             set_doc.click()
             sleep(0.5)
             setcpf_cnpj = self.driver.find_element(
-                By.CSS_SELECTOR, elements[1]
+                By.CSS_SELECTOR,
+                elements[1],
             ).find_element(
                 By.CSS_SELECTOR,
                 elements[2],
@@ -295,19 +303,24 @@ class Emissao(ClassBot):
             setcpf_cnpj.send_keys(self.bot_data.get("CPF_CNPJ"))
 
             avançar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.botao_avancar
+                By.CSS_SELECTOR,
+                self.elements.botao_avancar,
             )
             avançar.click()
 
             sleep(1)
             set_recurso_inominado: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.check))
-            )  # noqa: N806
+                ec.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    self.elements.check,
+                )),
+            )
             set_recurso_inominado.click()
 
             sleep(1)
             last_avançar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.botao_avancar_dois
+                By.CSS_SELECTOR,
+                self.elements.botao_avancar_dois,
             )
             last_avançar.click()
 
@@ -319,7 +332,7 @@ class Emissao(ClassBot):
 
         elif portal == "não informado":
             raise ExecutionError(
-                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)"
+                message="Informar portal do processo na planilha (PROJUDI ou ESAJ)",
             )
 
     def renajud(self) -> None:
@@ -378,7 +391,7 @@ class Emissao(ClassBot):
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.mensagem_retorno,
-                    ))
+                    )),
                 )
                 .text
             )

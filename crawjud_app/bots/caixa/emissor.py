@@ -18,14 +18,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
 class OtherUtils: ...  # noqa: D101
 
 
-class Emissor(ClassBot):
+class Emissor(HeadBot):
     """Manage creation and processing of judicial deposit documents using the Emissor bot fully.
 
     Offer a range of functionalities to access deposit pages, handle login flows,
@@ -100,7 +100,7 @@ class Emissor(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -155,7 +155,7 @@ class Emissor(ClassBot):
         self.prt()
 
         self.driver.get(
-            "https://depositojudicial.caixa.gov.br/sigsj_internet/depositos-judiciais/justica-estadual/"
+            "https://depositojudicial.caixa.gov.br/sigsj_internet/depositos-judiciais/justica-estadual/",
         )
         sleep(0.5)
         list_opt: WebElement = self.wait.until(
@@ -193,7 +193,8 @@ class Emissor(ClassBot):
         inputcaptcha.send_keys(val_captcha.replace(",", ""))
 
         next_btn = self.driver.find_element(
-            By.CSS_SELECTOR, 'input[class="hand btnConfirmar"]'
+            By.CSS_SELECTOR,
+            'input[class="hand btnConfirmar"]',
         )
         next_btn.click()
 
@@ -477,7 +478,8 @@ class Emissor(ClassBot):
         self.type_log = "log"
         self.prt()
         make_id = self.driver.find_element(
-            By.CSS_SELECTOR, 'input[id="j_id5:filtroView:formFormulario:j_id248"]'
+            By.CSS_SELECTOR,
+            'input[id="j_id5:filtroView:formFormulario:j_id248"]',
         )
         make_id.click()
 
@@ -486,7 +488,8 @@ class Emissor(ClassBot):
         self.type_log = "log"
         self.prt()
         download_pdf = self.driver.find_element(
-            By.CSS_SELECTOR, 'a[id="j_id5:filtroView:formFormulario:j_id554"]'
+            By.CSS_SELECTOR,
+            'a[id="j_id5:filtroView:formFormulario:j_id554"]',
         )
         download_pdf.click()
 

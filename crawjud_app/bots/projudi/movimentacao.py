@@ -22,11 +22,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Movimentacao(ClassBot):
+class Movimentacao(HeadBot):
     """Manage movements in Projudi by scraping, filtering, and logging process-related actions.
 
     This class extends CrawJUD to handle operations including movement search,
@@ -168,7 +168,7 @@ class Movimentacao(ClassBot):
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.select_page_size,
-                ))
+                )),
             ),
         )
         select.select_by_value("1000")
@@ -186,7 +186,8 @@ class Movimentacao(ClassBot):
         self.set_tablemoves()
 
         keyword = self.bot_data.get(
-            "PALAVRA_CHAVE", self.bot_data.get("PALAVRAS_CHAVE", "*")
+            "PALAVRA_CHAVE",
+            self.bot_data.get("PALAVRAS_CHAVE", "*"),
         )
 
         if keyword != "*":
@@ -307,7 +308,8 @@ class Movimentacao(ClassBot):
                     keyword.lower() == text_mov.lower(),
                     keyword.lower() in text_mov.lower(),
                     self.similaridade(
-                        keyword.lower(), text_mov.split("\n")[0].lower()
+                        keyword.lower(),
+                        text_mov.split("\n")[0].lower(),
                     )
                     > 0.8,
                 ]
@@ -371,7 +373,7 @@ class Movimentacao(ClassBot):
         message_.append(f'\nPALAVRA_CHAVE: <span class="fw-bold">{keyword}</span>')
         if data_inicio:
             message_.append(
-                f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>'
+                f'\nDATA_INICIO: <span class="fw-bold">{data_inicio}</span>',
             )
         if data_fim:
             message_.append(f'\nDATA_FIM: <span class="fw-bold">{data_fim}</span>')
@@ -440,7 +442,7 @@ class Movimentacao(ClassBot):
 
             """ Outros Checks """
             mov_chk, trazerteor, mov_name, use_gpt, save_another_file = check_others(
-                text_mov
+                text_mov,
             )
 
             nome_mov = str(itensmove[3].find_element(By.TAG_NAME, "b").text)
@@ -523,7 +525,8 @@ class Movimentacao(ClassBot):
         expand = None
         with suppress(NoSuchElementException):
             self.expand_btn = move.find_element(
-                By.CSS_SELECTOR, self.elements.expand_btn_projudi
+                By.CSS_SELECTOR,
+                self.elements.expand_btn_projudi,
             )
 
             expand = self.expand_btn
@@ -566,7 +569,7 @@ class Movimentacao(ClassBot):
         css_tr = f'tr[id="{id_tr}"]'
 
         table_docs: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr))
+            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)),
         )
         style_expand = table_docs.get_attribute("style")
 
@@ -579,7 +582,7 @@ class Movimentacao(ClassBot):
 
         sleep(2)
         table_docs: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr))
+            ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)),
         )
         rows = table_docs.find_elements(By.TAG_NAME, "tr")
         rows_reverse = rows[::-1]
@@ -601,7 +604,7 @@ class Movimentacao(ClassBot):
             doc = docs.find_elements(By.TAG_NAME, "td")[4]
             link_doc = doc.find_element(By.TAG_NAME, "a")
             name_pdf = self.format_string(str(link_doc.text))
-            old_pdf = Path(os.path.join(self.output_dir_path), name_pdf)  # noqa: F841
+            old_pdf = Path(os.path.join(self.output_dir_path), name_pdf)
             url = link_doc.get_attribute("href")
 
             # Get cookies from ChromeDriver session
@@ -612,7 +615,10 @@ class Movimentacao(ClassBot):
 
             # Download using requests
             response = requests.get(
-                url, cookies=cookies, allow_redirects=True, timeout=60
+                url,
+                cookies=cookies,
+                allow_redirects=True,
+                timeout=60,
             )
 
             if response.status_code == 200:
@@ -699,5 +705,6 @@ class Movimentacao(ClassBot):
         """Locate the movement table and assign its elements to self.table_moves."""
         table_moves = self.driver.find_element(By.CLASS_NAME, "resultTable")
         self.table_moves = table_moves.find_elements(
-            By.XPATH, self.elements.table_moves
+            By.XPATH,
+            self.elements.table_moves,
         )

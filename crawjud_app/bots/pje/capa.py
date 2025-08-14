@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, ClassVar
 from dotenv import load_dotenv
 from httpx import Client
 
-from crawjud_app.bots.pje._controler import PjeBot
+from controllers.bots.pje import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask
@@ -67,7 +67,8 @@ class Capa[T](PjeBot):  # noqa: D101
         # Autentica e processa cada região
 
         semaforo_regiao = Semaphore(4)
-        for regiao, data_regiao in self.regioes():
+        generator_regioes = self.regioes()
+        for regiao, data_regiao in generator_regioes:
             with semaforo_regiao:
                 try:
                     self.print_msg(message=f"Autenticando no TRT {regiao}")
@@ -133,7 +134,7 @@ class Capa[T](PjeBot):  # noqa: D101
             for item in data:
                 try:
                     # Atualiza dados do item para processamento
-                    row = self.posicoes_processos[item["NUMERO_PROCESSO"]]
+                    row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
                     resultado: DictResults = self.buscar_processo(
                         data=item,
                         row=row,

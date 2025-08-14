@@ -15,11 +15,11 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class ProcParte(ClassBot):
+class ProcParte(HeadBot):
     """Handle participant processing in Projudi with detailed queue management and error handling.
 
     This class extends CrawJUD to retrieve process lists, store participant information,

@@ -20,14 +20,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
-
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 cookieaceito = []
 
 
-class Tjdft(ClassBot):
+class Tjdft(HeadBot):
     """The Tjdft class extends CrawJUD to handle calculations for the TJD-Federal Tribunal.
 
     Attributes:
@@ -42,8 +41,7 @@ class Tjdft(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -101,7 +99,7 @@ class Tjdft(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -160,7 +158,7 @@ class Tjdft(ClassBot):
             self.type_log = "log"
             self.prt()
             self.driver.get(
-                "https://www.tjdft.jus.br/servicos/atualizacao-monetaria-1/calculo"
+                "https://www.tjdft.jus.br/servicos/atualizacao-monetaria-1/calculo",
             )
 
             check_cookies = None
@@ -181,7 +179,8 @@ class Tjdft(ClassBot):
                     'button[class="btn btn-primary btn-sm acceptcookies"]'
                 )
                 aceitar_cookies: WebElement = self.driver.find_element(
-                    By.CSS_SELECTOR, aceitar_cookies_css
+                    By.CSS_SELECTOR,
+                    aceitar_cookies_css,
                 )
                 aceitar_cookies.click()
                 self.driver.switch_to.default_content()
@@ -218,7 +217,8 @@ class Tjdft(ClassBot):
         except Exception as e:
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
-                message="Erro ao informar número do processo", e=e
+                message="Erro ao informar número do processo",
+                e=e,
             ) from e
 
     def info_requerente(self) -> None:
@@ -304,8 +304,8 @@ class Tjdft(ClassBot):
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         css_select_juros,
-                    ))
-                )
+                    )),
+                ),
             )
             select.select_by_value(juros_partir)
 
@@ -313,8 +313,9 @@ class Tjdft(ClassBot):
             if juros_percent == "1":
                 self.interact.click(
                     self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="juros_percent1"]'
-                    )
+                        By.CSS_SELECTOR,
+                        'input[id="juros_percent1"]',
+                    ),
                 )
 
             elif juros_percent != "1":
@@ -323,8 +324,9 @@ class Tjdft(ClassBot):
 
                 self.interact.click(
                     self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="juros_percent2"]'
-                    )
+                        By.CSS_SELECTOR,
+                        'input[id="juros_percent2"]',
+                    ),
                 )
                 self.interact.send_key(
                     self.wait.until(
@@ -424,17 +426,20 @@ class Tjdft(ClassBot):
 
                 if self.bot_data.get("MULTA_DATA", None):
                     multa_data = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="multa_data"]'
+                        By.CSS_SELECTOR,
+                        'input[id="multa_data"]',
                     )
                     multa_valor = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="multa_valor"]'
+                        By.CSS_SELECTOR,
+                        'input[id="multa_valor"]',
                     )
 
                     valor = str(self.bot_data.get("MULTA_VALOR"))
                     valor = f"{valor},00" if "," not in valor else valor
 
                     self.interact.send_key(
-                        multa_data, self.bot_data.get("MULTA_DATA")
+                        multa_data,
+                        self.bot_data.get("MULTA_DATA"),
                     )
                     self.interact.send_key(multa_valor, valor)
 
@@ -470,7 +475,7 @@ class Tjdft(ClassBot):
 
                     honorario_sucumb.send_keys(percent)
                     self.driver.execute_script(
-                        f"document.querySelector('{css_honorario_sucumb}').blur()"
+                        f"document.querySelector('{css_honorario_sucumb}').blur()",
                     )
                     sleep(0.5)
 
@@ -484,10 +489,12 @@ class Tjdft(ClassBot):
                     and disabled_state == ""
                 ):
                     honor_sucumb_data = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="honor_sucumb_data"]'
+                        By.CSS_SELECTOR,
+                        'input[id="honor_sucumb_data"]',
                     )
                     honor_sucumb_valor = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="honor_sucumb_valor"]'
+                        By.CSS_SELECTOR,
+                        'input[id="honor_sucumb_valor"]',
                     )
                     sucumb_juros_partir = self.driver.find_element(
                         By.CSS_SELECTOR,
@@ -498,7 +505,8 @@ class Tjdft(ClassBot):
                     valor = f"{valor},00" if "," not in valor else valor
 
                     self.interact.send_key(
-                        honor_sucumb_data, self.bot_data.get("HONORARIO_SUCUMB_DATA")
+                        honor_sucumb_data,
+                        self.bot_data.get("HONORARIO_SUCUMB_DATA"),
                     )
                     self.interact.send_key(honor_sucumb_valor, valor)
                     self.interact.send_key(
@@ -517,10 +525,12 @@ class Tjdft(ClassBot):
         def percent_multa_475J() -> None:  # noqa: N802
             try:
                 percent_multa_ = self.driver.find_element(
-                    By.CSS_SELECTOR, 'input[id="multa475_exec_percent"]'
+                    By.CSS_SELECTOR,
+                    'input[id="multa475_exec_percent"]',
                 )
                 self.interact.send_key(
-                    percent_multa_, self.bot_data.get("PERCENT_MULTA_475J")
+                    percent_multa_,
+                    self.bot_data.get("PERCENT_MULTA_475J"),
                 )
 
             except Exception as e:
@@ -549,7 +559,7 @@ class Tjdft(ClassBot):
 
                     honorario_exec.send_keys(percent)
                     self.driver.execute_script(
-                        f"document.querySelector('{css_honorario_exec}').blur()"
+                        f"document.querySelector('{css_honorario_exec}').blur()",
                     )
                     sleep(0.5)
 
@@ -563,13 +573,16 @@ class Tjdft(ClassBot):
                     and disabled_state == ""
                 ):
                     honor_exec_data = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="honor_exec_data"]'
+                        By.CSS_SELECTOR,
+                        'input[id="honor_exec_data"]',
                     )
                     honor_exec_valor = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="honor_exec_valor"]'
+                        By.CSS_SELECTOR,
+                        'input[id="honor_exec_valor"]',
                     )
                     exec_juros_partir = self.driver.find_element(
-                        By.CSS_SELECTOR, 'input[id="honor_exec_juros_partir"]'
+                        By.CSS_SELECTOR,
+                        'input[id="honor_exec_juros_partir"]',
                     )
 
                     valor = str(self.bot_data.get("HONORARIO_CUMPRIMENTO_VALOR"))
@@ -600,7 +613,8 @@ class Tjdft(ClassBot):
                 self.type_log = "log"
                 self.prt()
                 data_custas: WebElement = self.driver.find_element(
-                    By.CSS_SELECTOR, css_data_custas
+                    By.CSS_SELECTOR,
+                    css_data_custas,
                 )
                 data_custas.click()
                 data_custas.send_keys(self.bot_data.get("CUSTAS_DATA"))
@@ -611,7 +625,8 @@ class Tjdft(ClassBot):
                 self.type_log = "log"
                 self.prt()
                 custas_valor: WebElement = self.driver.find_element(
-                    By.CSS_SELECTOR, css_custas_valor
+                    By.CSS_SELECTOR,
+                    css_custas_valor,
                 )
                 custas_valor.click()
 
@@ -657,7 +672,8 @@ class Tjdft(ClassBot):
                 )),
             )[-1]
             row_valorcalc = table_valorcalc.find_element(
-                By.TAG_NAME, "tbody"
+                By.TAG_NAME,
+                "tbody",
             ).find_elements(By.TAG_NAME, "tr")[-1]
             valor_doc = float(
                 row_valorcalc.find_elements(By.TAG_NAME, "td")[-1]

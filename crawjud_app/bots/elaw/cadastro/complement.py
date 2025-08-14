@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
@@ -29,7 +29,7 @@ type_doc = {11: "cpf", 14: "cnpj"}
 ELEMENT_LOAD = 'div[id="j_id_48"]'
 
 
-class CadastroComplementar(ClassBot):
+class CadastroComplementar(HeadBot):
     def esfera(self, text: str = "Judicial") -> None:
         """Handle the selection of the judicial sphere in the process.
 

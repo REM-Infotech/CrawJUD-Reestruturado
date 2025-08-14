@@ -20,11 +20,11 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Protocolo(ClassBot):
+class Protocolo(HeadBot):
     """Class Protocolo.
 
     Manage protocol operations in the ESaj system via CrawJUD.
@@ -125,7 +125,7 @@ class Protocolo(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -187,10 +187,12 @@ class Protocolo(ClassBot):
         try:
             try:
                 self.prt.print_log(
-                    "log", "Processo encontrado! Inicializando peticionamento..."
+                    "log",
+                    "Processo encontrado! Inicializando peticionamento...",
                 )
                 button_peticionamento: WebElement = WebDriverWait(
-                    self.driver, 10
+                    self.driver,
+                    10,
                 ).until(
                     ec.element_to_be_clickable((By.ID, "pbPeticionar")),
                 )
@@ -215,7 +217,8 @@ class Protocolo(ClassBot):
                 )
                 enterproc.click()
                 button_peticionamento: WebElement = WebDriverWait(
-                    self.driver, 10
+                    self.driver,
+                    10,
                 ).until(
                     ec.element_to_be_clickable((By.ID, "pbPeticionar")),
                 )
@@ -224,7 +227,7 @@ class Protocolo(ClassBot):
 
         except Exception:
             raise ExecutionError(
-                message="Erro ao inicializar peticionamento"
+                message="Erro ao inicializar peticionamento",
             ) from None
 
     def set_tipo_protocolo(self) -> None:
@@ -256,7 +259,8 @@ class Protocolo(ClassBot):
                 )),
             )
             select_tipo_peticao = select_tipo_peticao.find_element(
-                By.CSS_SELECTOR, self.elements.toggle
+                By.CSS_SELECTOR,
+                self.elements.toggle,
             )
             self.interact.click(select_tipo_peticao)
 
@@ -267,14 +271,15 @@ class Protocolo(ClassBot):
                 )),
             )
             self.interact.send_key(
-                input_tipo_peticao, self.bot_data.get("TIPO_PROTOCOLO")
+                input_tipo_peticao,
+                self.bot_data.get("TIPO_PROTOCOLO"),
             )
             sleep(1.5)
             self.interact.send_key(input_tipo_peticao, Keys.ENTER)
 
         except Exception:
             raise ExecutionError(
-                message="Erro ao informar tipo de protocolo"
+                message="Erro ao informar tipo de protocolo",
             ) from None
 
     def set_subtipo_protocolo(self) -> None:
@@ -297,7 +302,8 @@ class Protocolo(ClassBot):
                 )),
             )
             select_categoria_peticao = select_categoria_peticao.find_element(
-                By.CSS_SELECTOR, self.elements.toggle
+                By.CSS_SELECTOR,
+                self.elements.toggle,
             )
             self.interact.click(select_categoria_peticao)
 
@@ -308,7 +314,8 @@ class Protocolo(ClassBot):
                 )),
             )
             self.interact.send_key(
-                input_categoria_peticao, self.bot_data.get("SUBTIPO_PROTOCOLO")
+                input_categoria_peticao,
+                self.bot_data.get("SUBTIPO_PROTOCOLO"),
             )
 
             input_categoria_peticao_option: WebElement = self.wait.until(
@@ -322,7 +329,7 @@ class Protocolo(ClassBot):
 
         except Exception:
             raise ExecutionError(
-                message="Erro ao informar subtipo de protocolo"
+                message="Erro ao informar subtipo de protocolo",
             ) from None
 
     def set_petition_file(self) -> None:
@@ -399,7 +406,8 @@ class Protocolo(ClassBot):
                 for parte in partes:
                     parte: WebElement = parte
                     parte_name = parte.find_element(
-                        By.CSS_SELECTOR, self.elements.nome
+                        By.CSS_SELECTOR,
+                        self.elements.nome,
                     ).text.lower()
                     if parte_name == parte_peticao:
                         sleep(3)
@@ -407,7 +415,8 @@ class Protocolo(ClassBot):
                         incluir_button = None
                         with suppress(NoSuchElementException):
                             incluir_button = parte.find_element(
-                                By.CSS_SELECTOR, self.elements.botao_incluir_peticao
+                                By.CSS_SELECTOR,
+                                self.elements.botao_incluir_peticao,
                             )
 
                         if not incluir_button:
@@ -425,11 +434,13 @@ class Protocolo(ClassBot):
 
                     if parte_name != parte_peticao:
                         partes = self.driver.find_elements(
-                            By.CSS_SELECTOR, self.elements.parte_view
+                            By.CSS_SELECTOR,
+                            self.elements.parte_view,
                         )
                         for parte in partes:
                             parte_name = parte.find_element(
-                                By.CSS_SELECTOR, self.elements.nome
+                                By.CSS_SELECTOR,
+                                self.elements.nome,
                             ).text.lower()
                             if parte_name == parte_peticao.lower():
                                 self.prt.print_log(
@@ -441,12 +452,12 @@ class Protocolo(ClassBot):
 
             elif not partes:
                 raise ExecutionError(
-                    message="Não foi possivel vincular parte a petição"
+                    message="Não foi possivel vincular parte a petição",
                 )
 
         except Exception:
             raise ExecutionError(
-                message="Não foi possivel vincular parte a petição"
+                message="Não foi possivel vincular parte a petição",
             ) from None
 
     def finish_petition(self) -> None:
@@ -459,7 +470,8 @@ class Protocolo(ClassBot):
         self.prt.print_log("log", "Finalizando...")
 
         finish_button = self.driver.find_element(
-            By.XPATH, self.elements.botao_protocolar
+            By.XPATH,
+            self.elements.botao_protocolar,
         )
         sleep(1)
         finish_button.click()
@@ -499,14 +511,15 @@ class Protocolo(ClassBot):
 
             name_recibo = f"Recibo Protocolo - {self.bot_data.get('NUMERO_PROCESSO')} - PID {self.pid}.pdf"
             self.driver.get_screenshot_as_file(
-                f"{self.output_dir_path}/{name_recibo.replace('.pdf', '.png')}"
+                f"{self.output_dir_path}/{name_recibo.replace('.pdf', '.png')}",
             )
 
             getlinkrecibo.click()
 
             path = os.path.join(self.output_dir_path, name_recibo)
             pathpdf = os.path.join(
-                Path(self.path_args).parent.resolve(), "recibo.pdf"
+                Path(self.path_args).parent.resolve(),
+                "recibo.pdf",
             )
 
             while True:

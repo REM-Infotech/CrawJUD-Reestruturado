@@ -19,11 +19,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.abstract.bot import ClassBot
+from controllers.bots.master.bot_head import HeadBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class Prazos(ClassBot):
+class Prazos(HeadBot):
     """The Prazos class extends CrawJUD to handle deadline-related tasks within the application.
 
     Attributes:
@@ -38,8 +38,7 @@ class Prazos(ClassBot):
         *args: str | int,
         **kwargs: str | int,
     ) -> Self:
-        """
-        Initialize bot instance.
+        """Initialize bot instance.
 
         Args:
             *args (tuple[str | int]): Variable length argument list.
@@ -92,7 +91,7 @@ class Prazos(ClassBot):
                 if len(windows) == 0:
                     with suppress(Exception):
                         self.driver_launch(
-                            message="Webdriver encerrado inesperadamente, reinicializando..."
+                            message="Webdriver encerrado inesperadamente, reinicializando...",
                         )
 
                     old_message = self.message
@@ -142,7 +141,7 @@ class Prazos(ClassBot):
                 self.message = "Já existe lançamento para esta pauta"
                 self.type_log = "info"
                 chk_lancamento.update({
-                    "MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!"
+                    "MENSAGEM_COMCLUSAO": "REGISTROS ANTERIORES EXISTENTES!",
                 })
 
                 comprovante = chk_lancamento
@@ -153,7 +152,7 @@ class Prazos(ClassBot):
                 comprovante = self.CheckLancamento()
                 if not comprovante:
                     raise ExecutionError(
-                        message="Não foi possível comprovar lançamento, verificar manualmente"
+                        message="Não foi possível comprovar lançamento, verificar manualmente",
                     )
 
                 self.message = "Pauta lançada!"
@@ -173,7 +172,8 @@ class Prazos(ClassBot):
         """
         try:
             switch_pautaandamento = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.switch_pautaandamento
+                By.CSS_SELECTOR,
+                self.elements.switch_pautaandamento,
             )
 
             switch_pautaandamento.click()
@@ -226,7 +226,7 @@ class Prazos(ClassBot):
             for item in items:
                 value_item = item.get_attribute("value")
                 text_item = self.driver.execute_script(
-                    f"return $(\"option[value='{value_item}']\").text();"
+                    f"return $(\"option[value='{value_item}']\").text();",
                 )
 
                 opt_itens.update({text_item.upper(): value_item})
@@ -272,7 +272,8 @@ class Prazos(ClassBot):
             self.prt()
 
             btn_salvar = self.driver.find_element(
-                By.CSS_SELECTOR, self.elements.btn_salvar
+                By.CSS_SELECTOR,
+                self.elements.btn_salvar,
             )
 
             btn_salvar.click()
@@ -300,7 +301,8 @@ class Prazos(ClassBot):
             )
 
             tableprazos: list[WebElement] = tableprazos.find_elements(
-                By.TAG_NAME, "tr"
+                By.TAG_NAME,
+                "tr",
             )
 
             data = None
@@ -322,7 +324,7 @@ class Prazos(ClassBot):
                     idPrazo = str(item.find_elements(By.TAG_NAME, "td")[2].text)  # noqa: N806
 
                     item.screenshot(
-                        os.path.join(self.output_dir_path, nameComprovante)
+                        os.path.join(self.output_dir_path, nameComprovante),
                     )
 
                     data = {
