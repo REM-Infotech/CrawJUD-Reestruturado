@@ -119,6 +119,8 @@ class Protocolo(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 windows = self.driver.window_handles
 
@@ -170,6 +172,8 @@ class Protocolo(ClassBot):
             self.append_success(data, message=data[1])
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -535,5 +539,7 @@ class Protocolo(ClassBot):
             ]
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(message="Erro ao confirmar protocolo", e=e) from e

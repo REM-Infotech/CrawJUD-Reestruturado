@@ -79,6 +79,8 @@ class ProcParte(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old = self.message
                 message_error = str(e)
 
@@ -112,6 +114,8 @@ class ProcParte(ClassBot):
                         self.auth_bot()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             old_message = None
 
@@ -184,6 +188,8 @@ class ProcParte(ClassBot):
                     self.auth_bot()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 

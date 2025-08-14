@@ -84,6 +84,8 @@ class Andamentos(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 windows = self.driver.window_handles
 
@@ -149,6 +151,8 @@ class Andamentos(ClassBot):
                 ])
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -179,6 +183,8 @@ class Andamentos(ClassBot):
             self.interact.sleep_load('div[id="j_id_34"]')
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -209,6 +215,8 @@ class Andamentos(ClassBot):
             self.interact.send_key(ocorrencia, text_andamento)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -239,6 +247,8 @@ class Andamentos(ClassBot):
             self.interact.send_key(observacao, text_andamento)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -274,6 +284,8 @@ class Andamentos(ClassBot):
             save_button.click()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
                 message="Não foi possivel salvar andamento",

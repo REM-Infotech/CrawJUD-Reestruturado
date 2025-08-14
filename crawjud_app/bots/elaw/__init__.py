@@ -112,6 +112,8 @@ class Elaw:
             self.bot_call.initialize(*args, **kwargs).execution()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("Failed to start bot")
             err = traceback.format_exc()
             self.logger.exception(err)

@@ -87,6 +87,8 @@ class Capa(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception(str(e))
                 old_message = None
 
@@ -131,6 +133,8 @@ class Capa(ClassBot):
             )
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             self.logger.exception(str(e))
             raise ExecutionError(e=e) from e
@@ -246,6 +250,8 @@ class Capa(ClassBot):
             return process_info
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 

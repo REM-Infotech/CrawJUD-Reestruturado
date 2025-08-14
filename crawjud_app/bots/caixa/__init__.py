@@ -6,7 +6,8 @@ configure logging. This file follows Google/PEP 257 docstring guidelines.
 
 import logging
 import traceback
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 
 from crawjud_app.bots.caixa.emissor import Emissor
 from crawjud_app.common.exceptions.bot import StartError
@@ -54,6 +55,8 @@ class Caixa:
             self.bot_call.initialize(*args, **kwargs).execution()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             err = traceback.format_exc()
             logger.exception(err)

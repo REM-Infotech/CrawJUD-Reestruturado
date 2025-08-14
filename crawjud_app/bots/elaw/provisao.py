@@ -94,6 +94,8 @@ class Provisao(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 windows = self.driver.window_handles
 
@@ -149,6 +151,8 @@ class Provisao(ClassBot):
                 raise ExecutionError(message="Processo não encontrado!")
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
@@ -302,6 +306,8 @@ class Provisao(ClassBot):
             self.interact.sleep_load('div[id="j_id_8c"]')
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
                 message="Não foi possivel atualizar provisão",
@@ -369,6 +375,8 @@ class Provisao(ClassBot):
                 self.interact.sleep_load('div[id="j_id_2z"]')
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
@@ -436,6 +444,8 @@ class Provisao(ClassBot):
                 self.interact.sleep_load('div[id="j_id_3c"]')
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
@@ -493,6 +503,8 @@ class Provisao(ClassBot):
                 set_data_juros(data_base_juros)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 
@@ -532,6 +544,8 @@ class Provisao(ClassBot):
             )
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise e
 

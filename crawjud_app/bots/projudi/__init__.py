@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import logging
 import traceback
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 
 from crawjud_app.bots.projudi.capa import Capa
 from crawjud_app.bots.projudi.intimacoes import Intimacoes
@@ -51,6 +52,8 @@ class Projudi:
             self.bot_call.initialize(*args, **kwargs).execution()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             err = traceback.format_exc()
             logger.exception(err)

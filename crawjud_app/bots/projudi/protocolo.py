@@ -98,6 +98,8 @@ class Protocolo(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 # windows = self.driver.window_handles
 
@@ -180,6 +182,8 @@ class Protocolo(ClassBot):
             self.append_success(data)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -358,6 +362,8 @@ class Protocolo(ClassBot):
             """ Corrigir elements """
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -432,6 +438,8 @@ class Protocolo(ClassBot):
                     break
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -457,6 +465,8 @@ class Protocolo(ClassBot):
             radiobutton.click()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -519,6 +529,8 @@ class Protocolo(ClassBot):
                         break
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -581,6 +593,8 @@ class Protocolo(ClassBot):
             self.prt()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -671,6 +685,8 @@ class Protocolo(ClassBot):
             return [self.bot_data.get("NUMERO_PROCESSO"), self.message, comprovante1]
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 

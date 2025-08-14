@@ -1,6 +1,14 @@
+"""Modulo de controle da Classe de controle para robôs CNJ.
+
+Esse modulo tem como objetivo criar uma classe de controle para
+bots cujo a finalidade é automatizar tarefas de processos de
+sistemas que o CNJ opera (Projudi, ESAJ, PJe, etc.).
+
+"""
+
 from abc import abstractmethod
 
-from controllers.bots.master.bot_head import ClassBot
+from controllers.bots.master.cnj_bots import CNJBots as ClassBot
 
 
 class CNJBots[T](ClassBot):

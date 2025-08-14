@@ -94,6 +94,10 @@ class Tjdft(ClassBot):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 windows = self.driver.window_handles
 
@@ -142,6 +146,10 @@ class Tjdft(ClassBot):
             self.finalizar_execucao()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -187,6 +195,8 @@ class Tjdft(ClassBot):
                 self.driver.switch_to.default_content()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -216,6 +226,8 @@ class Tjdft(ClassBot):
             self.prt()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
                 message="Erro ao informar número do processo",
@@ -251,6 +263,8 @@ class Tjdft(ClassBot):
             self.prt()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -280,6 +294,8 @@ class Tjdft(ClassBot):
             self.prt()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -347,6 +363,8 @@ class Tjdft(ClassBot):
                 )
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -392,6 +410,8 @@ class Tjdft(ClassBot):
             self.prt()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
@@ -449,6 +469,8 @@ class Tjdft(ClassBot):
                 self.prt()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(e=e) from e
 
@@ -520,6 +542,8 @@ class Tjdft(ClassBot):
                 self.prt()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(e=e) from e
 
@@ -535,6 +559,8 @@ class Tjdft(ClassBot):
                 )
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(e=e) from e
 
@@ -604,6 +630,8 @@ class Tjdft(ClassBot):
                 self.prt()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(e=e) from e
 
@@ -640,6 +668,8 @@ class Tjdft(ClassBot):
                 self.prt()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(e=e) from e
 
@@ -701,5 +731,7 @@ class Tjdft(ClassBot):
             self.append_success(data)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e

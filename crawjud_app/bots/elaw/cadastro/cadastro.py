@@ -391,6 +391,8 @@ class PreCadastro(ClassBot):
                 self.interact.sleep_load(ELEMENT_LOAD)
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception("".join(traceback.format_exception(e)))
                 raise ExecutionError(
                     message="Não foi possível cadastrar parte",
@@ -869,6 +871,8 @@ class PreCadastro(ClassBot):
             interact.sleep_load(ELEMENT_LOAD)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(
                 message="Não foi possível cadastrar advogado",
@@ -1012,6 +1016,8 @@ class PreCadastro(ClassBot):
             ).click()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 

@@ -14,9 +14,8 @@ from uuid import uuid4
 
 from tqdm import tqdm
 
-from controllers.bots.master.bot_head import ClassBot
+from controllers.bots.master.cnj_bots import CNJBots as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
-from crawjud_app.custom.task import ContextTask
 from crawjud_app.iterators import RegioesIterator
 from interface.dict.bot import BotData
 from interface.types.custom import StrProcessoCNJ
@@ -39,7 +38,7 @@ HTTP_STATUS_FORBIDDEN = 403  # Constante para status HTTP Forbidden
 COUNT_TRYS = 15
 
 
-class PjeBot[T](ClassBot, ContextTask):
+class PjeBot[T](ClassBot):
     """Classe de controle para robôs do PJe."""
 
     semaforo_save = Semaphore(1)

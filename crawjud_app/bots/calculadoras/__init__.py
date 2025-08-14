@@ -5,7 +5,8 @@ This module initializes and manages the Calculadoras bot within the CrawJUD-Bots
 
 import logging
 import traceback
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 
 from crawjud_app.bots.calculadoras.tjdft import Tjdft
 from crawjud_app.common.exceptions.bot import StartError
@@ -57,6 +58,8 @@ class Calculadoras:
             self.bot_call.initialize(*args, **kwargs).execution()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(e)))
             err = traceback.format_exc()
             logger.exception(err)

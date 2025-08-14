@@ -8,20 +8,33 @@ from typing import TYPE_CHECKING
 from controllers.bots.master.bot_properties import PropertyBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.canvas import subtask
+from crawjud_app.custom.task import ContextTask
 
 if TYPE_CHECKING:
     from interface.dict.bot import BotData, DictFiles
     from utils.storage import Storage
 
 
-class ClassBot[T](PropertyBot):
+class ClassBot[T](PropertyBot, ContextTask):
     """Classe base para todos os bots."""
 
     @property
     @abstractmethod
-    def storage(self) -> Storage: ...
+    def storage(self) -> Storage:
+        """Objeto do storage CrawJUD."""
 
-    def download_files(self) -> None:
+    def download_files(
+        self,
+    ) -> None:
+        # TODO(Nicholas Silva): Criar Exception para erros de download de arquivos
+        # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
+        """Baixa os arquivos necessários para a execução do robô.
+
+        Raises:
+            ExecutionError:
+                Exception genérico de execução
+
+        """
         files_b64: list[DictFiles] = (
             subtask("crawjud.download_files")
             .apply_async(kwargs={"storage_folder_name": self.folder_storage})

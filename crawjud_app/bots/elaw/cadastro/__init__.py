@@ -80,6 +80,8 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
                 self.queue()
 
             except Exception as e:
+                # TODO(Nicholas Silva): Criação de Exceptions
+                # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
                 windows = self.driver.window_handles
 
@@ -178,6 +180,8 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
                     self.print_comprovante()
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(exc=e)))
             raise ExecutionError(e=e) from e
 

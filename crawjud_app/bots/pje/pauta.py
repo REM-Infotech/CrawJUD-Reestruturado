@@ -157,6 +157,8 @@ class Pauta(ContextTask, ClassBot):
                 )
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
 
     def get_pautas(self, current_date: type[datetime], vara: str) -> None:
@@ -257,6 +259,8 @@ class Pauta(ContextTask, ClassBot):
                         self.get_pautas(current_date, vara)
 
                 except Exception as e:
+                    # TODO(Nicholas Silva): Criação de Exceptions
+                    # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                     raise ExecutionError(
                         exception=e,
                         bot_execution_id=self.pid,
@@ -268,4 +272,6 @@ class Pauta(ContextTask, ClassBot):
             sleep(times)
 
         except Exception as e:
+            # TODO(Nicholas Silva): Criação de Exceptions
+            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
