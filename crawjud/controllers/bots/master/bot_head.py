@@ -2,18 +2,23 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime
+from io import BytesIO
+from typing import TYPE_CHECKING, ClassVar
+
+import base91
+from pandas import Timestamp, read_excel
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.master.abs_master import AbstractCrawJUD
+from crawjud.interface.dict.bot import BotData
 from crawjud_app.custom.canvas import subtask
 from crawjud_app.custom.task import ContextTask
 
 if TYPE_CHECKING:
     from socketio import SimpleClient
 
-    from crawjud.interface.dict.bot import BotData, DictFiles
-    from crawjud.interface.types.celery.canvas import Signature
+    from crawjud.interface.dict.bot import DictFiles
     from crawjud.utils.storage import Storage
 
 
@@ -23,11 +28,11 @@ class ClassBot[T](AbstractCrawJUD, ContextTask):
     current_task: ContextTask
     sio: SimpleClient
     _stop_bot: bool = False
-    _folder_storage: str | None = None
-    _xlsx_data: DictFiles | None = None
-    _downloaded_files: list[DictFiles] | None = None
-    _bot_data: list[BotData] | None = None
-    posicoes_processos: dict[str, int] | None = None
+    _folder_storage: ClassVar[str] = ""
+    _xlsx_data: ClassVar[DictFiles] = {}
+    _downloaded_files: ClassVar[list[DictFiles]] = []
+    _bot_data: ClassVar[list[BotData]] = {}
+    posicoes_processos: ClassVar[dict[str, int]] = {}
 
     @property
     def pid(self) -> str:
@@ -69,9 +74,46 @@ class ClassBot[T](AbstractCrawJUD, ContextTask):
     def folder_storage(self, _folder_storage: str) -> None:
         self._folder_storage = _folder_storage
 
-    @property
-    def crawjud_dataframe(self) -> Signature:
-        return subtask("crawjud.dataFrame")
+    def load_data(
+        self,
+        base91_planilha: str,
+    ) -> list[BotData]:
+        """Convert an Excel file to a list of dictionaries with formatted data.
+
+        Reads an Excel file, processes the data by formatting dates and floats,
+        and returns the data as a list of dictionaries.
+
+        Arguments:
+            base91_planilha (str):
+                base91 da planilha
+
+        Returns:
+            list[BotData]: A record list from the processed Excel file.
+
+        """
+        buffer_planilha = BytesIO(base91.decode(base91_planilha))
+        df = read_excel(buffer_planilha)
+        df.columns = df.columns.str.upper()
+
+        def format_data(x: T) -> str:
+            if str(x) == "NaT" or str(x) == "nan":
+                return ""
+
+            if isinstance(x, (datetime, Timestamp)):
+                return x.strftime("%d/%m/%Y")
+
+            return x
+
+        def format_float(x: T) -> str:
+            return f"{x:.2f}".replace(".", ",")
+
+        for col in df.columns:
+            df[col] = df[col].apply(format_data)
+
+        for col in df.select_dtypes(include=["float"]).columns:
+            df[col] = df[col].apply(format_float)
+
+        return [BotData(list(item.items())) for item in df.to_dict(orient="records")]
 
     @property
     def bot_data(self) -> list[BotData]:
@@ -107,9 +149,9 @@ class ClassBot[T](AbstractCrawJUD, ContextTask):
         self._downloaded_files = files_b64
 
     def data_frame(self) -> None:
-        bot_data: list[BotData] = self.crawjud_dataframe.apply_async(
-            kwargs={"base91_planilha": self.xlsx_data["file_base91str"]},
-        ).wait_ready()
+        bot_data: list[BotData] = self.load_data(
+            base91_planilha=self.xlsx_data["file_base91str"],
+        )
 
         self._bot_data = bot_data
 

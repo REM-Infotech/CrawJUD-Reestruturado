@@ -35,8 +35,6 @@ class PJeSearch[T](PjeBot):
         data: BotData,
         row: int,
         client: Client,
-        *args: T,
-        **kwargs: T,
     ) -> DictResults | Literal["Nenhum processo encontrado"]:
         """Realize a busca de um processo no sistema PJe.
 

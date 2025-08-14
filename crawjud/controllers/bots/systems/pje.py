@@ -96,8 +96,12 @@ class PjeBot[T](ClassBot):
             DictResults: dicionário com os resultados da busca.
 
         """
-        cls_search = self.subclasses_search[f"{self.system.lower()}search"]
-        return cls_search.search(self, data=data, row=row, client=client)
+        return self.pje_classes["pjesearch"].search(
+            self,
+            data=data,
+            row=row,
+            client=client,
+        )
 
     def autenticar(self) -> bool:
         """Autenticação do PJE.
@@ -106,7 +110,7 @@ class PjeBot[T](ClassBot):
             bool: Booleano para identificar se autenicação foi realizada.
 
         """
-        return self.pje_classes["pjeauth"].auth()
+        return self.pje_classes["pjeauth"].auth(self)
 
     def regioes(self) -> RegioesIterator:
         """Listagem das regiões do PJe.
@@ -355,7 +359,7 @@ class PjeBot[T](ClassBot):
 
     def __init_subclass__(cls) -> None:
         """Empty."""
-        cls.pje_classes[cls.__name__] = cls
+        cls.pje_classes[cls.__name__.lower()] = cls
 
 
 importlib.import_module("crawjud.utils.auth.pje")

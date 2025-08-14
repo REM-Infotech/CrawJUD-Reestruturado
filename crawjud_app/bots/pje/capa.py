@@ -72,7 +72,7 @@ class Capa[T](PjeBot):  # noqa: D101
             with semaforo_regiao:
                 try:
                     self.print_msg(message=f"Autenticando no TRT {regiao}")
-                    if self.autenticar("pje"):
+                    if self.autenticar():
                         self.print_msg(
                             message="Autenticado com sucesso!",
                             type_log="info",
@@ -146,11 +146,8 @@ class Capa[T](PjeBot):  # noqa: D101
                         if data_request:
                             # Salva dados em cache
                             self.save_success_cache(
-                                data={
-                                    "pid": self.pid,
-                                    "data": data_request,
-                                    "processo": item["NUMERO_PROCESSO"],
-                                },
+                                data=data_request,
+                                processo=item["NUMERO_PROCESSO"],
                             )
 
                             thread_ = threading.Thread(

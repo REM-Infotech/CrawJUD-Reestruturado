@@ -119,11 +119,16 @@ class StrProcessoCNJ[T](UserString):
             str: TJ ID
 
         """
-        tj_id: str = re.search(r"(?<=5\.)\d{2}", self.data).group()
-        if tj_id.startswith("0"):
-            tj_id = tj_id.replace("0", "")
+        to_return = None
+        tj_id: re.Match[str] = re.search(r"(?<=\d\.)\d{2}", self.data)
+        if not tj_id:
+            _raise_value_error()
 
-        return tj_id
+        to_return = tj_id.group()
+        if to_return.startswith("0"):
+            to_return = to_return.replace("0", "")
+
+        return to_return
 
     def __str__(self) -> str:
         """Retorne a representação em string da instância StrTime.
