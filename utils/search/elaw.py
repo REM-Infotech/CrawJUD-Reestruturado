@@ -1,20 +1,25 @@
 """Módulo de controle de pesquisa Elaw."""
 
+from __future__ import annotations
+
 from contextlib import suppress
 from time import sleep
+from typing import TYPE_CHECKING
 
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
 )
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.addons.search import SearchController
+from controllers.bots.systems.elaw import ElawBot
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
 
 
-class ElawSearch(SearchController):
+class ElawSearch(ElawBot):
     """Classe de pesquisa Elaw."""
 
     def search(self, bot_data: dict[str, str]) -> bool:
@@ -33,7 +38,7 @@ class ElawSearch(SearchController):
             self.driver.get("https://amazonas.elaw.com.br/processoList.elaw")
 
         campo_numproc: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.ID, "tabSearchTab:txtSearch"))
+            ec.presence_of_element_located((By.ID, "tabSearchTab:txtSearch")),
         )
         campo_numproc.clear()
         sleep(0.15)
@@ -41,13 +46,14 @@ class ElawSearch(SearchController):
 
         self.driver.find_element(By.ID, "btnPesquisar").click()
         search_result: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.ID, "dtProcessoResults_data"))
+            ec.presence_of_element_located((By.ID, "dtProcessoResults_data")),
         )
 
         open_proc = None
         with suppress(NoSuchElementException):
             open_proc = search_result.find_element(
-                By.ID, "dtProcessoResults:0:btnProcesso"
+                By.ID,
+                "dtProcessoResults:0:btnProcesso",
             )
 
         sleep(1.5)
@@ -67,7 +73,7 @@ class ElawSearch(SearchController):
                         ec.presence_of_element_located((
                             By.ID,
                             "dtProcessoResults_data",
-                        ))
+                        )),
                     ).find_element(
                         By.ID,
                         "dtProcessoResults:0:btnProcesso",

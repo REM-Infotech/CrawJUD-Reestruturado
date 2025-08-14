@@ -7,15 +7,14 @@ from time import sleep
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.addons.search import SearchController
+from controllers.bots.systems.esaj import ESajBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 
-class EsajSearch(SearchController):
+class EsajSearch(ESajBot):
     """Classe de autenticação Esaj."""
 
     def search(self, bot_data: dict[str, str]) -> bool:
@@ -25,24 +24,15 @@ class EsajSearch(SearchController):
            bool: True se encontrado; ou False
         Navega pela pagina do ESAJ, processa entradas com base no grau do processo.
 
+        Raises:
+            ExecutionError:
+                Erro de execução
+
         """
         self.bot_data = bot_data
         grau = self.bot_data.get("GRAU", 1)
-
-        if not grau:
-            grau = 1
-
-        if isinstance(grau, str):
-            if "º" in grau:
-                grau = grau.replace("º", "").replace(" ", "")
-
-            grau = int(grau)
-
-        if grau == 1:
-            self.driver.get(self.elements.consultaproc_grau1)
-            id_consultar = "botaoConsultarProcessos"
-
-        elif grau == 2:
+        id_consultar = "botaoConsultarProcessos"
+        if grau == 2:
             self.driver.get(self.elements.consultaproc_grau2)
             id_consultar = "pbConsultar"
 
@@ -51,14 +41,14 @@ class EsajSearch(SearchController):
 
         sleep(1)
         # Coloca o campo em formato "Outros" para inserir o número do processo
-        ratioNumberOld: WebElement = self.wait.until(  # noqa: N806
-            ec.presence_of_element_located((By.ID, "radioNumeroAntigo"))
-        )  # noqa: N806
+        ratioNumberOld = self.wait.until(  # noqa: N806
+            ec.presence_of_element_located((By.ID, "radioNumeroAntigo")),
+        )
         ratioNumberOld.click()
 
         # Insere o processo no Campo
-        lineprocess: WebElement = self.wait.until(
-            ec.presence_of_element_located((By.ID, "nuProcessoAntigoFormatado"))
+        lineprocess = self.wait.until(
+            ec.presence_of_element_located((By.ID, "nuProcessoAntigoFormatado")),
         )
         lineprocess.click()
         lineprocess.send_keys(self.bot_data.get("NUMERO_PROCESSO"))
@@ -66,8 +56,8 @@ class EsajSearch(SearchController):
         # Abre o Processo
         openprocess = None
         with suppress(TimeoutException):
-            openprocess: WebElement = self.wait.until(
-                ec.presence_of_element_located((By.ID, id_consultar))
+            openprocess = self.wait.until(
+                ec.presence_of_element_located((By.ID, id_consultar)),
             )
             openprocess.click()
 
@@ -80,7 +70,7 @@ class EsajSearch(SearchController):
         # Retry 1
         if not check_process:
             with suppress(NoSuchElementException, TimeoutException):
-                check_process: WebElement = WebDriverWait(self.driver, 5).until(
+                check_process = WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         'div[id="listagemDeProcessos"]',
@@ -100,7 +90,7 @@ class EsajSearch(SearchController):
         # Retry 2
         if not check_process:
             with suppress(NoSuchElementException, TimeoutException):
-                check_process: WebElement = WebDriverWait(self.driver, 5).until(
+                check_process = WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located(
                         (
                             By.CSS_SELECTOR,
@@ -112,8 +102,9 @@ class EsajSearch(SearchController):
                 if check_process:
                     check_process.click()
                     btEnviarIncidente = self.driver.find_element(  # noqa: N806
-                        By.CSS_SELECTOR, 'input[name="btEnviarIncidente"]'
-                    )  # noqa: N806
+                        By.CSS_SELECTOR,
+                        'input[name="btEnviarIncidente"]',
+                    )
                     btEnviarIncidente.click()
 
         return check_process is not None

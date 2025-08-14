@@ -11,8 +11,8 @@ from abc import abstractmethod
 from controllers.bots.master.cnj_bots import CNJBots as ClassBot
 
 
-class CNJBots[T](ClassBot):
-    """Classe de controle de bots CNJJ."""
+class AnyBots[T](ClassBot):
+    """Classe de controle para bots no geral."""
 
     @abstractmethod
     def autenticar(self, *args: T, **kwargs: T) -> bool:

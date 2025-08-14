@@ -9,7 +9,7 @@ from __future__ import annotations
 import json.decoder
 from typing import TYPE_CHECKING, Literal
 
-from crawjud_app.addons.search import SearchController
+from controllers.bots.systems.pje import PjeBot
 from interface.types import BotData
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ pattern_url = (
 # Tipo literal para mensagem de processo não encontrado
 
 
-class PJeSearch[T](SearchController):
+class PJeSearch[T](PjeBot):
     """Classe de pesquisa PJe."""
 
     def search(  # noqa: D417

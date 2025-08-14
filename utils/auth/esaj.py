@@ -13,16 +13,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from crawjud_app.addons.auth import AuthController
+from controllers.bots.systems.esaj import ESajBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class EsajAuth(AuthController):
+class EsajAuth(ESajBot):
     """Classe de autenticação Esaj."""
 
-    def auth(self) -> bool:  # noqa: D102
+    def auth(self) -> bool:
         loginuser = "".join(
             filter(lambda x: x not in string.punctuation, self.username),
         )

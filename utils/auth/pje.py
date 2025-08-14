@@ -10,15 +10,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.addons.auth import AuthController
+from controllers.bots.systems.pje import PjeBot
 from crawjud_app.common.exceptions.bot import LoginSystemError
 from utils.webdriver import DriverBot
 
 
-class PjeAuth(AuthController):
+class PjeAuth(PjeBot):
     """Classe de autenticação PJE."""
 
-    def auth(self) -> bool:  # noqa: D102
+    def auth(self) -> bool:
         try:
             driver = DriverBot(
                 selected_browser="chrome",

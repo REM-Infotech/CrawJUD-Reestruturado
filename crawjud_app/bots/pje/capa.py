@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, ClassVar
 from dotenv import load_dotenv
 from httpx import Client
 
-from controllers.bots.pje import PjeBot
+from controllers.bots.systems.pje import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask
@@ -63,7 +63,7 @@ class Capa[T](PjeBot):  # noqa: D101
 
         self.queue()
 
-    def queue(self) -> None:  # noqa: D102
+    def queue(self) -> None:
         # Autentica e processa cada região
 
         semaforo_regiao = Semaphore(4)

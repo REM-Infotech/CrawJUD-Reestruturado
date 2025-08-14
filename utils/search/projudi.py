@@ -1,37 +1,38 @@
 """Módulo de pesquisa CrawJUD."""
 
+from __future__ import annotations
+
 from contextlib import suppress
 from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from httpx import Client
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawjud_app.addons.search import SearchController
+from controllers.bots.systems.projudi import ProjudiBot
 from crawjud_app.common.exceptions.bot import ExecutionError
-from interface.dict.bot import BotData
-from interface.types.pje import DictResults
 
 if TYPE_CHECKING:
+    from httpx import Client
+    from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.remote.webelement import WebElement
 
-
+    from interface.dict.bot import BotData
+    from interface.types.pje import DictResults
 CSS_INPUT_PROCESSO = {
     "1": "#numeroProcesso",
     "2": "#numeroRecurso",
 }
 
 
-class ProjudiSearch(SearchController):
+class ProjudiSearch(ProjudiBot):
     """Classe de pesquisa PROJUDI."""
 
-    def desafio_captcha(  # noqa: D102
+    def desafio_captcha(
         self,
         row: int,
         data: BotData,

@@ -1,4 +1,4 @@
-"""Módulo para a classe de controle dos robôs PJe."""
+"""Módulo para a classe de controle dos robôs PROJUDI."""
 
 from __future__ import annotations
 

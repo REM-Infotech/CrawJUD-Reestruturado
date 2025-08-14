@@ -25,7 +25,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.projudi import ProjudiBot as ClassBot
+from controllers.bots.systems.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 dotenv.load_dotenv()

@@ -15,7 +15,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from controllers.bots.projudi import ProjudiBot as ClassBot
+from controllers.bots.systems.projudi import ProjudiBot as ClassBot
 from crawjud_app.common.exceptions.bot import ExecutionError
 
 

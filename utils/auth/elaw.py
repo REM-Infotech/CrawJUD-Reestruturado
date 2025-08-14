@@ -6,16 +6,16 @@ from typing import TYPE_CHECKING
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from crawjud_app.addons.auth import AuthController
+from controllers.bots.systems.elaw import ElawBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class ElawAuth(AuthController):
+class ElawAuth(ElawBot):
     """Classe de autenticação Elaw."""
 
-    def auth(self) -> bool:  # noqa: D102
+    def auth(self) -> bool:
         self.driver.get("https://amazonas.elaw.com.br/login")
 
         # wait until page load

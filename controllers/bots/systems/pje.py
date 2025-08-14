@@ -45,9 +45,39 @@ class PjeBot[T](ClassBot):
     _storage = Storage("minio")
 
     @property
-    def storage(self) -> Storage:
-        """Storage do CrawJUD."""
-        return self._storage
+    def list_posicao_processo(self) -> dict[str, int]:
+        return self.posicoes_processos
+
+    @property
+    def data_regiao(self) -> list[BotData]:
+        return self._data_regiao
+
+    @data_regiao.setter
+    def data_regiao(self, _data_regiao: str) -> None:
+        self._data_regiao = _data_regiao
+
+    @property
+    def regiao(self) -> str:
+        return self._regiao
+
+    @property
+    def cookies(self) -> dict[str, str]:
+        """Dicionário de Cookies."""
+        return self._cookies
+
+    @property
+    def headers(self) -> dict[str, str]:
+        """Dicionário de Headers."""
+        return self._headers
+
+    @property
+    def base_url(self) -> str:
+        """Dicionário de Cookies."""
+        return self._base_url
+
+    @regiao.setter
+    def regiao(self, _regiao: str) -> None:
+        self._regiao = _regiao
 
     def buscar_processo(self, data: BotData, row: int, client: Client) -> DictResults:
         """Busca o processo no PJe.

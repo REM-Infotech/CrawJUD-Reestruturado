@@ -1,23 +1,29 @@
 """Módulo de controle de autenticação Projudi."""
 
+from __future__ import annotations
+
 from contextlib import suppress
 from time import sleep
+from typing import TYPE_CHECKING
 
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from crawjud_app.addons.auth import AuthController
+from controllers.bots.systems.projudi import ProjudiBot
 from crawjud_app.common.exceptions.bot import LoginSystemError
 
+if TYPE_CHECKING:
+    from selenium.webdriver.common.alert import Alert
+    from selenium.webdriver.remote.webelement import WebElement
 
-class ProjudiAuth(AuthController):
+
+class ProjudiAuth(ProjudiBot):
     """Classe de autenticação PROJUDI."""
 
-    def auth(self) -> bool:  # noqa: D102
+    def auth(self) -> bool:
+        check_login = None
         try:
             self.driver.get(self.elements.url_login)
 
@@ -45,8 +51,6 @@ class ProjudiAuth(AuthController):
             )
             entrar.click()
 
-            check_login = None
-
             with suppress(TimeoutException):
                 check_login = WebDriverWait(self.driver, 10).until(
                     ec.presence_of_element_located((
@@ -64,7 +68,7 @@ class ProjudiAuth(AuthController):
             if alert:
                 alert.accept()
 
-            return check_login is not None
-
         except Exception as e:
             raise LoginSystemError(exception=e) from e
+
+        return check_login is not None

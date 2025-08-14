@@ -1,6 +1,8 @@
+"""Módulo da Classe CrawJUD."""
+
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
@@ -9,25 +11,21 @@ from tqdm import tqdm
 
 from utils.models.logs import MessageLogDict
 
+if TYPE_CHECKING:
+    from typing import ClassVar
+
+    from interface.dict.bot import BotData
+
 func_dict_check = {
     "bot": ["execution"],
     "search": ["buscar_processo"],
 }
 
-if TYPE_CHECKING:
-    from typing import ClassVar
 
-    from crawjud_app.addons.auth.controller import AuthController
-    from crawjud_app.addons.search.controller import SearchController
-    from interface.dict.bot import BotData
-
-
-class AbstractCrawJUD[T](ABC):
-    # Adiciona importação para ClassVar
+class AbstractCrawJUD:
+    """Classe CrawJUD."""
 
     tasks_cls: ClassVar[dict] = {}
-    subclasses_auth: ClassVar[dict[str, type[AuthController]]] = {}
-    subclasses_search: ClassVar[dict[str, type[SearchController]]] = {}
     # Atributos Globais
     _pid: str | None = None
     _total_rows: int = 0
@@ -37,22 +35,6 @@ class AbstractCrawJUD[T](ABC):
     _cookies: dict[str, str] | None = None
     _headers: dict[str, str] | None = None
     _base_url: str | None = None
-
-    @property
-    def data_regiao(self) -> list[BotData]:
-        return self._data_regiao
-
-    @data_regiao.setter
-    def data_regiao(self, _data_regiao: str) -> None:
-        self._data_regiao = _data_regiao
-
-    @property
-    def regiao(self) -> str:
-        return self._regiao
-
-    @regiao.setter
-    def regiao(self, _regiao: str) -> None:
-        self._regiao = _regiao
 
     def print_msg(  # noqa: D417
         self,
@@ -110,6 +92,7 @@ class AbstractCrawJUD[T](ABC):
         tqdm.write("ok")
 
     def __init_subclass__(cls) -> None:
+        """Empty."""
         cls.tasks_cls[cls.__name__] = cls
 
     @abstractmethod
