@@ -1,3 +1,4 @@
+from pathlib import Path
 import subprocess
 import sys
 import threading
@@ -12,10 +13,11 @@ class ModCall[T]:
         last_check = arg
 
         def call_func(*args, **kwargs) -> None:
+            p = sys.exec_prefix
             result = subprocess.run(
                 [
-                    "python",
-                    "run_numpy.py",
+                    str(Path(p).joinpath("python").as_posix()),
+                    str(Path(__file__).parent.joinpath("run_numpy.py")),
                     "--function",
                     last_check,
                     "--args",
@@ -27,6 +29,12 @@ class ModCall[T]:
                 text=True,
             )
 
+            if result.stdout:
+                import pickle
+
+                with open(f"{last_check}.pkl", "rb") as f:
+                    r_pickle = pickle.load(f)
+                    return r_pickle
             return result
 
         return call_func
