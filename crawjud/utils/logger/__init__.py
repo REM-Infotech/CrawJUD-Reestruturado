@@ -23,7 +23,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
 
     handlers_config = {
         "file_handler": {
-            "class": "utils.logger.handlers.FileHandler",
+            "class": "crawjud.utils.logger.handlers.FileHandler",
             "level": logging.INFO,
             "formatter": "json",
             "filename": "app.log",
@@ -36,7 +36,7 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
             "formatter": "color",  # Usa o novo formatter colorido
         },
         "redis_handler": {
-            "class": "utils.logger.handlers.RedisHandler",
+            "class": "crawjud.utils.logger.handlers.RedisHandler",
             "level": logging.INFO,
             "formatter": "json",
         },
@@ -59,10 +59,10 @@ def dict_config(**kwargs: str | int) -> tuple[dict[str, Any], str]:
                 "format": "%(message)s",
             },
             "json": {
-                "()": "utils.logger.handlers.JsonFormatter",
+                "()": "crawjud.utils.logger.handlers.JsonFormatter",
             },
             "color": {
-                "()": "utils.logger.handlers.ColorFormatter",
+                "()": "crawjud.utils.logger.handlers.ColorFormatter",
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
