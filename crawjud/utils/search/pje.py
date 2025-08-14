@@ -9,14 +9,14 @@ from __future__ import annotations
 import json.decoder
 from typing import TYPE_CHECKING, Literal
 
-from controllers.bots.systems.pje import PjeBot
-from interface.types import BotData
+from crawjud.controllers.bots.systems.pje import PjeBot
+from crawjud.interface.types import BotData
 
 if TYPE_CHECKING:
     from httpx import Client
 
-    from interface.types import BotData
-    from interface.types.pje import DictResults
+    from crawjud.interface.types import BotData
+    from crawjud.interface.types.pje import DictResults
 # Expressão regular para validar URLs de processos PJe
 pattern_url = (
     r"^https:\/\/pje\.trt\d{1,2}\.jus\.br\/consultaprocessual\/detalhe-processo\/"

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, ClassVar
 from dotenv import load_dotenv
 from httpx import Client
 
-from controllers.bots.systems.pje import PjeBot
+from crawjud.controllers.bots.systems.pje import PjeBot
 from crawjud_app.bots.resources.formatadores import formata_tempo
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask
@@ -27,8 +27,8 @@ if TYPE_CHECKING:
     from concurrent.futures import Future
     from datetime import datetime
 
-    from interface.types import BotData
-    from interface.types.pje import DictResults
+    from crawjud.interface.types import BotData
+    from crawjud.interface.types.pje import DictResults
 load_dotenv()
 
 

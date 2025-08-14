@@ -11,13 +11,12 @@ from quart import request, session
 from quart_socketio import Namespace
 from tqdm import tqdm
 
-from utils.interfaces import ItemMessageList
-from utils.models.logs import MessageLog, MessageLogDict
+from crawjud.utils.interfaces import ItemMessageList
+from crawjud.utils.models.logs import MessageLog, MessageLogDict
 
 
 class ASyncServerType(socketio.AsyncServer):
-    """
-    Define o tipo de servidor assíncrono para integração com o Socket.IO.
+    """Define o tipo de servidor assíncrono para integração com o Socket.IO.
 
     Args:
         Nenhum argumento específico.
@@ -31,8 +30,7 @@ class ASyncServerType(socketio.AsyncServer):
 
 
 class LogsNamespace(Namespace):
-    """
-    Gerencia eventos de logs em tempo real via WebSocket.
+    """Gerencia eventos de logs em tempo real via WebSocket.
 
     Args:
         namespace (str): Nome do namespace.
@@ -47,8 +45,7 @@ class LogsNamespace(Namespace):
     server: ASyncServerType
 
     async def on_connect(self) -> None:
-        """
-        Manipula o evento de conexão de um cliente ao namespace.
+        """Manipula o evento de conexão de um cliente ao namespace.
 
         Args:
             Nenhum argumento.
@@ -63,8 +60,7 @@ class LogsNamespace(Namespace):
         await self.save_session(sid=sid, session=session)
 
     async def on_disconnect(self) -> None:
-        """
-        Manipula o evento de desconexão de um cliente.
+        """Manipula o evento de desconexão de um cliente.
 
         Args:
             Nenhum argumento.
@@ -76,8 +72,7 @@ class LogsNamespace(Namespace):
         # Evento de desconexão não implementado
 
     async def on_stopbot(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Emitissor de sinal de parada para um processo específico.
+        """Emitissor de sinal de parada para um processo específico.
 
         Args:
             *args: Argumentos posicionais.
@@ -92,8 +87,7 @@ class LogsNamespace(Namespace):
         await self.emit("stopbot", room=data["pid"])
 
     async def on_join_room(self) -> None:
-        """
-        Adiciona o cliente a uma sala específica.
+        """Adiciona o cliente a uma sala específica.
 
         Args:
             Nenhum argumento.
@@ -109,8 +103,7 @@ class LogsNamespace(Namespace):
         await self.enter_room(sid=sid, room=data["room"], namespace=self.namespace)
 
     async def on_load_cache(self) -> MessageLogDict:
-        """
-        Carrega o cache de logs para um processo.
+        """Carrega o cache de logs para um processo.
 
         Args:
             Nenhum argumento.
@@ -125,8 +118,7 @@ class LogsNamespace(Namespace):
         return message, True
 
     async def on_log_execution(self) -> None:
-        """
-        Recebe e propaga logs de execução em tempo real.
+        """Recebe e propaga logs de execução em tempo real.
 
         Args:
             Nenhum argumento.
@@ -145,14 +137,15 @@ class LogsNamespace(Namespace):
 
         except KeyError as e:
             tqdm.write(
-                f"Erro ao processar log: {'\n'.join(traceback.format_exception(e))}"
+                f"Erro ao processar log: {'\n'.join(traceback.format_exception(e))}",
             )
 
     async def _calc_success_errors(  # noqa: D417
-        self, message: MessageLogDict, log: MessageLog = None
+        self,
+        message: MessageLogDict,
+        log: MessageLog = None,
     ) -> MessageLogDict:
-        """
-        Calcula e atualiza os valores de sucesso, erro e restante no log.
+        """Calcula e atualiza os valores de sucesso, erro e restante no log.
 
         Args:
             message (MessageLogDict): Dicionário com informações do log.
@@ -166,10 +159,10 @@ class LogsNamespace(Namespace):
 
         if log:
             count_success = len(
-                list(filter(lambda x: x["type"] == "success", log.messages))
+                list(filter(lambda x: x["type"] == "success", log.messages)),
             )
             count_error = len(
-                list(filter(lambda x: x["type"] == "error", log.messages))
+                list(filter(lambda x: x["type"] == "error", log.messages)),
             )
             remaining = count_success + count_error
 
@@ -180,10 +173,11 @@ class LogsNamespace(Namespace):
         return message
 
     async def log_redis(
-        self, pid: str, message: MessageLogDict = None
+        self,
+        pid: str,
+        message: MessageLogDict = None,
     ) -> MessageLogDict:
-        """
-        Carrega ou atualiza o log de um processo no Redis.
+        """Carrega ou atualiza o log de um processo no Redis.
 
         Args:
             pid (str): Identificador do processo.
@@ -247,7 +241,7 @@ class LogsNamespace(Namespace):
                     id_log=int(updated_msg.pop("id_log", 0)) + 1,
                     message=msg,
                     type=type_log,
-                )
+                ),
             ]
             log = MessageLog(**updated_msg)
             log.save()
@@ -262,7 +256,7 @@ class LogsNamespace(Namespace):
                     id_log=int(updated_msg.pop("id_log", 0)) + 1,
                     message=msg,
                     type=type_log,
-                )
+                ),
             )
 
         # Atualiza o log no banco de dados

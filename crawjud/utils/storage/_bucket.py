@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from minio.xml import Element
     from urllib3 import BaseHTTPResponse
 
-    from utils.storage import Storage
+    from crawjud.utils.storage import Storage
 A = TypeVar("A", bound="ListBuckets")
 
 

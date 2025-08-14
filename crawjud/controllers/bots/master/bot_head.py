@@ -4,17 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from controllers.bots.master.abs_master import AbstractCrawJUD
 from crawjud_app.common.exceptions.bot import ExecutionError
+
+from crawjud.controllers.bots.master.abs_master import AbstractCrawJUD
 from crawjud_app.custom.canvas import subtask
 from crawjud_app.custom.task import ContextTask
 
 if TYPE_CHECKING:
     from socketio import SimpleClient
 
-    from interface.dict.bot import BotData, DictFiles
-    from interface.types.celery.canvas import Signature
-    from utils.storage import Storage
+    from crawjud.interface.dict.bot import BotData, DictFiles
+    from crawjud.interface.types.celery.canvas import Signature
+    from crawjud.utils.storage import Storage
 
 
 class ClassBot[T](AbstractCrawJUD, ContextTask):

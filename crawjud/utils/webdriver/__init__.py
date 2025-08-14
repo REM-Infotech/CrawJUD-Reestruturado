@@ -20,8 +20,8 @@ from webdriver_manager.core.driver_cache import DriverCacheManager
 from webdriver_manager.core.file_manager import FileManager
 from webdriver_manager.core.os_manager import OperationSystemManager
 
-from utils.webdriver._driver import config
-from utils.webdriver.config.proxy import (
+from crawjud.utils.webdriver._driver import config
+from crawjud.utils.webdriver.config.proxy import (
     ContentData,
     Cookie,
     DictHARProxy,
@@ -32,10 +32,10 @@ from utils.webdriver.config.proxy import (
     RequestData,
     ResponseData,
 )
-from utils.webdriver.config.proxy import (
+from crawjud.utils.webdriver.config.proxy import (
     CreatorInfo as CreatorInfo,
 )
-from utils.webdriver.web_element import WebElementBot
+from crawjud.utils.webdriver.web_element import WebElementBot
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -43,9 +43,13 @@ if TYPE_CHECKING:
     from browsermobproxy import Client
     from selenium.webdriver.common.service import Service
 
-    from utils.webdriver._types import BrowserOptions, ChromeConfig, FirefoxConfig
-    from utils.webdriver.config.chrome import ChromeOptions
-    from utils.webdriver.config.firefox import FirefoxOptions
+    from crawjud.utils.webdriver._types import (
+        BrowserOptions,
+        ChromeConfig,
+        FirefoxConfig,
+    )
+    from crawjud.utils.webdriver.config.chrome import ChromeOptions
+    from crawjud.utils.webdriver.config.firefox import FirefoxOptions
 
 work_dir = Path(__file__).cwd()
 
@@ -140,18 +144,18 @@ class DriverBot[T](WebDriver):  # noqa: D101
         self._options.enable_downloads = True
 
     @property
-    def options(self) -> FirefoxOptions | ChromeOptions:  # noqa: D102
+    def options(self) -> FirefoxOptions | ChromeOptions:
         return self._options
 
     @property
-    def service(self) -> Service:  # noqa: D102
+    def service(self) -> Service:
         return self._service
 
     @property
-    def wait(self) -> WebDriverWait:  # noqa: D102
+    def wait(self) -> WebDriverWait:
         return self._wait
 
-    def quit(self) -> None:  # noqa: D102
+    def quit(self) -> None:
         with suppress(Exception):
             self.options.proxy_client.close()
             self.options.proxy_server.stop()
@@ -162,14 +166,14 @@ class DriverBot[T](WebDriver):  # noqa: D101
     def wait(self, new_wait: WebDriverWait) -> None:
         self._wait = new_wait
 
-    def find_element(self, *args: P.args, **kwargs: P.kwargs) -> WebElementBot:  # noqa: D102
+    def find_element(self, *args: P.args, **kwargs: P.kwargs) -> WebElementBot:
         return super().find_element(*args, **kwargs)
 
-    def find_elements(self, *args: P.args, **kwargs: P.kwargs) -> list[WebElementBot]:  # noqa: D102
+    def find_elements(self, *args: P.args, **kwargs: P.kwargs) -> list[WebElementBot]:
         return super().find_elements(*args, **kwargs)
 
     @property
-    def current_HAR(self) -> HARProxy:  # noqa: D102, N802
+    def current_HAR(self) -> HARProxy:  # noqa: N802
         if not self._har:
             self._log = self.client.har
             self._har = self._log.get("log")
@@ -181,7 +185,7 @@ class DriverBot[T](WebDriver):  # noqa: D101
 
         return HARProxy(**self._har)
 
-    def new_har(  # noqa: D102
+    def new_har(
         self,
         ref: AnyStr = "default",
         options: T = None,
@@ -192,7 +196,7 @@ class DriverBot[T](WebDriver):  # noqa: D101
         self.client.new_har(ref, options, title)
 
     @property
-    def client(self) -> Client:  # noqa: D102
+    def client(self) -> Client:
         return self.options.proxy_client
 
     def _entry_generator(

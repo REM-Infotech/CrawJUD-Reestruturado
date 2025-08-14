@@ -24,7 +24,7 @@ from api.common.exceptions._form import LoadFormError
 from api.interface.formbot import FormDict
 from api.interface.session import SessionDict
 from api.models.users import LicensesUsers
-from utils.storage import Storage
+from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:
     from celery import Celery
@@ -48,7 +48,7 @@ class FormData(TypedDict):  # noqa: D101
         return data
 
     @classmethod
-    async def constructor(cls) -> Self:  # noqa: D102
+    async def constructor(cls) -> Self:
         files = await request.files
         data = await cls._form_data()
 
@@ -93,7 +93,7 @@ class LoadForm:  # noqa: D101
         self.credentials = license_user.credentials
         self.upload_folder = workdir.joinpath("temp", self.sid.upper())
 
-    async def loadform(  # noqa: D102
+    async def loadform(
         self,
     ) -> str | None:
         task_id: str | None = None

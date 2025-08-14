@@ -8,21 +8,21 @@ from time import sleep
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
+from crawjud_app.common.exceptions.bot import ExecutionError
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.systems.projudi import ProjudiBot
-from crawjud_app.common.exceptions.bot import ExecutionError
+from crawjud.controllers.bots.systems.projudi import ProjudiBot
 
 if TYPE_CHECKING:
     from httpx import Client
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.remote.webelement import WebElement
 
-    from interface.dict.bot import BotData
-    from interface.types.pje import DictResults
+    from crawjud.interface.dict.bot import BotData
+    from crawjud.interface.types.pje import DictResults
 CSS_INPUT_PROCESSO = {
     "1": "#numeroProcesso",
     "2": "#numeroRecurso",

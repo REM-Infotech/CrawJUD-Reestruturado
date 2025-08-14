@@ -22,10 +22,10 @@ from typing import (
 
 from redis_om import Field, HashModel, JsonModel, NotFoundError
 
-from utils.interfaces import ItemMessageList
+from crawjud.utils.interfaces import ItemMessageList
 
 if TYPE_CHECKING:
-    from interface.types.pje import Processo
+    from crawjud.interface.types.pje import Processo
 
 description_message = (
     "e.g. '[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]'"
@@ -291,7 +291,7 @@ class MessageLog(JsonModel):
                 round_trip=round_trip,
                 warnings=warnings,
                 fallback=fallback,
-                *args,  # noqa: B026
+                *args,
                 **kwargs,
             ),
         )
@@ -381,7 +381,7 @@ class CachedExecution(JsonModel):
                 round_trip=round_trip,
                 warnings=warnings,
                 fallback=fallback,
-                *args,  # noqa: B026
+                *args,
                 **kwargs,
             ),
         )

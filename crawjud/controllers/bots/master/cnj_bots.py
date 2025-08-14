@@ -8,7 +8,7 @@ sistemas que o CNJ opera (Projudi, ESAJ, PJe, etc.).
 
 from abc import abstractmethod
 
-from controllers.bots.master.bot_head import ClassBot
+from crawjud.controllers.bots.master.bot_head import ClassBot
 
 
 class CNJBots[T](ClassBot):

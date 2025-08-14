@@ -13,22 +13,27 @@ from time import sleep
 from typing import TYPE_CHECKING, ClassVar, cast
 from uuid import uuid4
 
+from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
 from tqdm import tqdm
 
-from controllers.bots.master.cnj_bots import CNJBots as ClassBot
-from crawjud_app.common.exceptions.bot import ExecutionError, FileUploadError
+from crawjud.controllers.bots.master.cnj_bots import CNJBots as ClassBot
+from crawjud.interface.dict.bot import BotData
+from crawjud.interface.types.custom import StrProcessoCNJ
+from crawjud.interface.types.pje import (
+    DictDesafio,
+    DictResults,
+    DictSeparaRegiao,
+    Processo,
+)
+from crawjud.utils.models.logs import CachedExecution
+from crawjud.utils.recaptcha import captcha_to_image
+from crawjud.utils.storage import Storage
 from crawjud_app.iterators import RegioesIterator
-from interface.dict.bot import BotData
-from interface.types.custom import StrProcessoCNJ
-from interface.types.pje import DictDesafio, DictResults, DictSeparaRegiao, Processo
-from utils.models.logs import CachedExecution
-from utils.recaptcha import captcha_to_image
-from utils.storage import Storage
 
 if TYPE_CHECKING:
     from httpx import Client, Response
 
-    from interface.dict.bot import BotData
+    from crawjud.interface.dict.bot import BotData
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]

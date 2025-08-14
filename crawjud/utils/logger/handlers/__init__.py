@@ -11,7 +11,7 @@ import click
 import redis
 from dotenv import load_dotenv
 
-from utils.models.logs import ModelRedisHandler
+from crawjud.utils.models.logs import ModelRedisHandler
 
 FSTRING_MESSAGE = "%(message)s"
 

@@ -4,10 +4,10 @@ from pathlib import Path
 from browsermobproxy import Client, Server
 from selenium.webdriver.chrome.options import Options
 
-from utils.webdriver._types import (
+from crawjud.utils.webdriver._types import (
     ChromePreferences,
 )
-from utils.webdriver.config.proxy import configure_proxy
+from crawjud.utils.webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 
@@ -79,7 +79,7 @@ class ChromeOptions[T](Options):  # noqa: D101
             self.add_argument(f"--proxy-server={self._proxy_client.proxy}")
 
     @property
-    def proxy_client(self) -> Client:  # noqa: D102
+    def proxy_client(self) -> Client:
         return self._proxy_client
 
     @proxy_client.setter
@@ -87,7 +87,7 @@ class ChromeOptions[T](Options):  # noqa: D101
         self._proxy_client = new_proxy
 
     @property
-    def proxy_server(self) -> Server:  # noqa: D102
+    def proxy_server(self) -> Server:
         return self._server
 
 

@@ -5,13 +5,13 @@ from __future__ import annotations
 from contextlib import suppress
 from time import sleep
 
+from crawjud_app.common.exceptions.bot import ExecutionError
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from controllers.bots.systems.esaj import ESajBot
-from crawjud_app.common.exceptions.bot import ExecutionError
+from crawjud.controllers.bots.systems.esaj import ESajBot
 
 
 class EsajSearch(ESajBot):

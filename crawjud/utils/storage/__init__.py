@@ -14,9 +14,11 @@ from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
 
-from utils.storage._bucket import Blob as Blob
-from utils.storage._bucket import Bucket, ListBuckets
-from utils.storage.credentials.providers import GoogleStorageCredentialsProvider
+from crawjud.utils.storage._bucket import Blob as Blob
+from crawjud.utils.storage._bucket import Bucket, ListBuckets
+from crawjud.utils.storage.credentials.providers import (
+    GoogleStorageCredentialsProvider,
+)
 
 environ = dotenv_values()
 storages = Literal["google", "minio"]
@@ -39,7 +41,7 @@ class Storage[T](Client):  # noqa: D101
         bucket_name = environ["MINIO_BUCKET_NAME"]
         return Bucket(name=bucket_name, creation_date=None, client=self)
 
-    def list_objects(  # noqa: D102
+    def list_objects(
         self,
         prefix: str = None,
         recursive: str = False,
@@ -117,7 +119,7 @@ class Storage[T](Client):  # noqa: D101
                     pbar.update(len(chunk))
                     self.bucket.append_object(file_name, chunk, 0)
 
-    def fget_object(  # noqa: D102
+    def fget_object(
         self,
         object_name: str,
         file_path: str,
@@ -141,7 +143,7 @@ class Storage[T](Client):  # noqa: D101
             progress,
         )
 
-    def fput_object(  # noqa: D102
+    def fput_object(
         self,
         object_name: str,
         file_path: str,
@@ -171,7 +173,7 @@ class Storage[T](Client):  # noqa: D101
             legal_hold,
         )
 
-    def put_object(  # noqa: D102
+    def put_object(
         self,
         object_name: str,
         data: BinaryIO,
@@ -206,7 +208,7 @@ class Storage[T](Client):  # noqa: D101
             write_offset,
         )
 
-    def append_object(  # noqa: D102
+    def append_object(
         self,
         object_name: str,
         data: bytes,
@@ -226,7 +228,7 @@ class Storage[T](Client):  # noqa: D101
             extra_headers,
         )
 
-    def download_files(self, dest: str | Path, prefix: str) -> None:  # noqa: D102
+    def download_files(self, dest: str | Path, prefix: str) -> None:
         files = self.bucket.list_objects(prefix=prefix, recursive=True)
 
         if isinstance(dest, str):

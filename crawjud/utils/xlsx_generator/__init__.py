@@ -19,7 +19,7 @@ from openpyxl.styles import Font, PatternFill
 if TYPE_CHECKING:
     from openpyxl.worksheet.worksheet import Worksheet
 
-    from interface.types import StrPath as StrPath
+    from crawjud.interface.types import StrPath as StrPath
 
 
 class MakeTemplates:

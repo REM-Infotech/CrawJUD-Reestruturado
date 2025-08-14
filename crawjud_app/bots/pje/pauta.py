@@ -19,7 +19,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.systems.pje import PjeBot as ClassBot
+from crawjud.controllers.bots.systems.pje import PjeBot as ClassBot
 from crawjud_app.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud_app.common.exceptions.bot import ExecutionError
 from crawjud_app.custom.task import ContextTask

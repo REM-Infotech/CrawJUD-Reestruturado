@@ -11,9 +11,9 @@ from pathlib import Path
 import base91
 from werkzeug.utils import secure_filename
 
+from crawjud.interface.dict.bot import DictFiles
+from crawjud.utils.storage import Storage
 from crawjud_app.decorators import shared_task
-from interface.dict.bot import DictFiles
-from utils.storage import Storage
 
 work_dir = Path(__file__).cwd()
 

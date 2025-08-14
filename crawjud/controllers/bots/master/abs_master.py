@@ -9,12 +9,12 @@ from zoneinfo import ZoneInfo
 
 from tqdm import tqdm
 
-from utils.models.logs import MessageLogDict
+from crawjud.utils.models.logs import MessageLogDict
 
 if TYPE_CHECKING:
     from typing import ClassVar
 
-    from interface.dict.bot import BotData
+    from crawjud.interface.dict.bot import BotData
 
 func_dict_check = {
     "bot": ["execution"],

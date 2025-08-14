@@ -7,8 +7,8 @@ from browsermobproxy import Client, Server
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options
 
-from utils.webdriver._types import FirefoxPreferences
-from utils.webdriver.config.proxy import configure_proxy
+from crawjud.utils.webdriver._types import FirefoxPreferences
+from crawjud.utils.webdriver.config.proxy import configure_proxy
 
 work_dir = Path(__file__).cwd()
 
@@ -47,7 +47,7 @@ class FirefoxOptions(Options):  # noqa: D101
             self.proxy = self._proxy_client.selenium_proxy()
 
     @property
-    def proxy_client(self) -> Client:  # noqa: D102
+    def proxy_client(self) -> Client:
         return self._proxy_client
 
     @proxy_client.setter
@@ -55,7 +55,7 @@ class FirefoxOptions(Options):  # noqa: D101
         self._proxy_client = new_proxy
 
     @property
-    def proxy_server(self) -> Server:  # noqa: D102
+    def proxy_server(self) -> Server:
         return self._server
 
 

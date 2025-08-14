@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from controllers.bots.master.bot_head import ClassBot
-    from interface.types.pje import DictSeparaRegiao
+    from crawjud.controllers.bots.master.bot_head import ClassBot
+    from crawjud.interface.types.pje import DictSeparaRegiao
 
 
 class RegioesIterator:

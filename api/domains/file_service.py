@@ -14,7 +14,7 @@ from tqdm import tqdm
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
-from utils.storage import Storage
+from crawjud.utils.storage import Storage
 
 workdir_path = Path(__file__).cwd()
 

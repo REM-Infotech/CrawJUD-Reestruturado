@@ -16,7 +16,7 @@ from werkzeug.exceptions import HTTPException
 
 from api.decorators.api import crossdomain
 from api.routes.bot.botlaunch_methods import LoadForm
-from utils.xlsx_generator import MakeTemplates as MakeTemplates
+from crawjud.utils.xlsx_generator import MakeTemplates as MakeTemplates
 
 bot = Blueprint("bot", __name__, url_prefix="/bot")
 

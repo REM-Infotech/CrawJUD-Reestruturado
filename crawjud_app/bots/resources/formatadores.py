@@ -10,8 +10,8 @@ from zoneinfo import ZoneInfo
 import base91
 import pandas as pd
 
+from crawjud.interface.dict.bot import BotData
 from crawjud_app.decorators import shared_task
-from interface.dict.bot import BotData
 
 
 def formata_tempo[T](item: T) -> T | datetime:  # noqa: D103

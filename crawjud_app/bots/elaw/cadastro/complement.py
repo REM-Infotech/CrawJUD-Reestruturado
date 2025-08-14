@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
-from controllers.bots.master.bot_head import ClassBot
+from crawjud.controllers.bots.master.bot_head import ClassBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
