@@ -5,6 +5,8 @@ from collections import UserString
 from contextlib import suppress
 from typing import NoReturn
 
+from crawjud.common.exceptions.validacao import ValidacaoStringError
+
 PADRAO_CNJ: list[re.Pattern] = [r"^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$"]
 PADRAO_DATA: list[re.Pattern] = [
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
@@ -17,7 +19,9 @@ PADRAO_DATA: list[re.Pattern] = [
 
 
 def _raise_value_error() -> NoReturn:
-    raise ValueError(message="Valor informado não corresponde ao valor esperado")
+    raise ValidacaoStringError(
+        message="Valor informado não corresponde ao valor esperado",
+    )
 
 
 def _validate_str(seq: str, pattern_list: list[re.Pattern]) -> bool:
@@ -97,7 +101,7 @@ class StrProcessoCNJ[T](UserString):
 
     def __init__(self, seq: str) -> None:
         """Inicializa a classe StrTime."""
-        _validate_str(seq, PADRAO_DATA)
+        _validate_str(seq, PADRAO_CNJ)
 
         seq = re.sub(
             r"(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})",
@@ -115,7 +119,7 @@ class StrProcessoCNJ[T](UserString):
             str: TJ ID
 
         """
-        tj_id: str = re.search(r"(?<=5\.)\d{2}", self).group()
+        tj_id: str = re.search(r"(?<=5\.)\d{2}", self.data).group()
         if tj_id.startswith("0"):
             tj_id = tj_id.replace("0", "")
 
@@ -128,7 +132,7 @@ class StrProcessoCNJ[T](UserString):
             str: Representação textual da instância.
 
         """
-        return self
+        return self.data
 
     def __repr__(self) -> str:
         """Retorne a representação formal da instância StrTime.

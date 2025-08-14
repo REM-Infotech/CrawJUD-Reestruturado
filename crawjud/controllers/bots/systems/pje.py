@@ -16,6 +16,7 @@ from uuid import uuid4
 from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
+from crawjud.common.exceptions.validacao import ValidacaoStringError
 from crawjud.controllers.bots.master.cnj_bots import CNJBots as ClassBot
 from crawjud.interface.dict.bot import BotData
 from crawjud.interface.types.custom import StrProcessoCNJ
@@ -310,23 +311,27 @@ class PjeBot[T](ClassBot):
         position_process: dict[str, int] = {}
 
         for item in self.bot_data:
-            numero_processo = StrProcessoCNJ(item["NUMERO_PROCESSO"])
+            try:
+                numero_processo = StrProcessoCNJ(item["NUMERO_PROCESSO"])
 
-            regiao = numero_processo.tj
-            # Atualiza o número do processo no item
-            item["NUMERO_PROCESSO"] = numero_processo
+                regiao = numero_processo.tj
+                # Atualiza o número do processo no item
+                item["NUMERO_PROCESSO"] = numero_processo
 
-            # Adiciona a posição do processo na
-            # lista original no dicionário de posições
-            position_process[numero_processo] = len(position_process)
+                # Adiciona a posição do processo na
+                # lista original no dicionário de posições
+                position_process[numero_processo] = len(position_process)
 
-            # Caso a região não exista no dicionário, cria uma nova lista
-            if not regioes_dict.get(regiao):
-                regioes_dict[regiao] = [item]
+                # Caso a região não exista no dicionário, cria uma nova lista
+                if not regioes_dict.get(regiao):
+                    regioes_dict[regiao] = [item]
+                    continue
+
+                # Caso a região já exista, adiciona o item à lista correspondente
+                regioes_dict[regiao].append(item)
+
+            except ValidacaoStringError:
                 continue
-
-            # Caso a região já exista, adiciona o item à lista correspondente
-            regioes_dict[regiao].append(item)
 
         return {"regioes": regioes_dict, "position_process": position_process}
 
