@@ -20,7 +20,7 @@ from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 from crawjud_app import make_celery
 
 
-def check_cors_allowed_origins(*args) -> bool:  # noqa: ANN002
+def check_cors_allowed_origins(*args) -> bool:
     tqdm.write(f"CORS allowed origins check: {args}")
 
     return True

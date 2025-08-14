@@ -62,7 +62,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [lint.extend-per-file-ignores]
 
-"*" = ["B026", "FIX","D102"]
+"*" = ["B026", "FIX", "D102", "ANN002"]
 "**/{tests,docs,tools}/*" = ["E402", "S", "D100", "D104", "ANN", "D417", "N818"]
 
 
