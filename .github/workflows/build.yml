@@ -1,4 +1,4 @@
-name: Build
+name: 🔎 Análise de Código - SonarQube
 
 on:
   pull_request:
@@ -6,14 +6,14 @@ on:
     branches:
       - "main"
       - "releases/**"
-      - "!releases/**-alpha"
+      - "!releases/**-alpha*"
+      - "!releases/**-beta*"
     tags-ignore:
       - v1.*-alpha*
       - v1.*-beta*
 
 jobs:
   build:
-    name: 🔎 Análise de Código - SonarQube | Pre-Commit
     runs-on: ubuntu-latest
 
     steps:
