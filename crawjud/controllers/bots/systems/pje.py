@@ -292,6 +292,7 @@ class PjeBot[T](ClassBot):
                     text=text,
                     data_request=cast("Processo", data_request),
                 )
+            count_try += 1
 
         if count_try > COUNT_TRYS:
             self.print_msg(

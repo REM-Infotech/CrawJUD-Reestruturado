@@ -12,7 +12,6 @@ from __future__ import annotations
 from collections.abc import Callable, Generator, Mapping
 from contextlib import suppress
 from typing import (
-    TYPE_CHECKING,
     Any,
     Literal,
     ParamSpec,
@@ -22,10 +21,8 @@ from typing import (
 
 from redis_om import Field, HashModel, JsonModel, NotFoundError
 
+from crawjud.interface.types.pje import Processo
 from crawjud.utils.interfaces import ItemMessageList
-
-if TYPE_CHECKING:
-    from crawjud.interface.types.pje import Processo
 
 description_message = (
     "e.g. '[(C3K7H5, log, 15, 19:37:15)> Salvando arquivos na pasta...]'"
@@ -310,7 +307,11 @@ class CachedExecution(JsonModel):
 
     """
 
-    processo: str = Field(description="Processo Juridico", primary_key=True)
+    processo: str = Field(
+        description="Processo Juridico",
+        primary_key=True,
+        default=Processo(),
+    )
     pid: str = Field(
         default="desconhecido",
         description="e.g. 'C3K7H5' (identificador do processo)",

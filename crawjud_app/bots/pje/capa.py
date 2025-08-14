@@ -8,14 +8,12 @@ dos processos e salvar os resultados no storage.
 
 from __future__ import annotations
 
-import threading
 import traceback
-from contextlib import suppress
-from threading import Semaphore
 from typing import TYPE_CHECKING, ClassVar
 
 from dotenv import load_dotenv
 from httpx import Client
+from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.systems.pje import PjeBot
@@ -66,34 +64,27 @@ class Capa[T](PjeBot):  # noqa: D101
     def queue(self) -> None:
         # Autentica e processa cada região
 
-        semaforo_regiao = Semaphore(4)
         generator_regioes = self.regioes()
         for regiao, data_regiao in generator_regioes:
-            with semaforo_regiao:
-                try:
-                    self.print_msg(message=f"Autenticando no TRT {regiao}")
-                    if self.autenticar():
-                        self.print_msg(
-                            message="Autenticado com sucesso!",
-                            type_log="info",
-                        )
-                        thread_ = threading.Thread(
-                            target=self.queue_processo,
-                            kwargs={
-                                "data": data_regiao,
-                                "base_url": self.base_url,
-                                "headers": self.headers,
-                                "cookies": self.cookies,
-                            },
-                        )
-
-                        thread_.start()
-
-                except (ExecutionError, Exception) as e:
+            try:
+                self.print_msg(message=f"Autenticando no TRT {regiao}")
+                if self.autenticar():
                     self.print_msg(
-                        message="\n".join(traceback.format_exception(e)),
-                        type_log="error",
+                        message="Autenticado com sucesso!",
+                        type_log="info",
                     )
+                    self.queue_processo(
+                        data=data_regiao,
+                        base_url=self.base_url,
+                        headers=self.headers,
+                        cookies=self.cookies,
+                    )
+
+            except ExecutionError as e:
+                self.print_msg(
+                    message="\n".join(traceback.format_exception(e)),
+                    type_log="error",
+                )
 
     def queue_processo(
         self,
@@ -119,7 +110,6 @@ class Capa[T](PjeBot):  # noqa: D101
 
 
         """
-        semaforo_file = Semaphore(4)
         cl = Client(
             base_url=base_url,
             timeout=30,
@@ -127,9 +117,6 @@ class Capa[T](PjeBot):  # noqa: D101
             cookies=cookies,
             follow_redirects=True,
         )
-
-        list_tasks: list[Future] = []
-
         with cl as client:
             for item in data:
                 try:
@@ -150,23 +137,13 @@ class Capa[T](PjeBot):  # noqa: D101
                                 processo=item["NUMERO_PROCESSO"],
                             )
 
-                            thread_ = threading.Thread(
-                                target=self.copia_integral,
-                                kwargs={
-                                    "row": row,
-                                    "data": item,
-                                    "client": client,
-                                    "semaforo": semaforo_file,
-                                    "id_processo": resultado["id_processo"],
-                                    "captchatoken": resultado["captchatoken"],
-                                },
+                            self.copia_integral(
+                                row=row,
+                                data=item,
+                                client=client,
+                                id_processo=resultado["id_processo"],
+                                captchatoken=resultado["captchatoken"],
                             )
-
-                            list_tasks.append(
-                                thread_,
-                            )
-
-                            thread_.start()
 
                             message = (
                                 f"Informações do processo "
@@ -178,23 +155,18 @@ class Capa[T](PjeBot):  # noqa: D101
                                 type_log="success",
                             )
 
-                except (ExecutionError, Exception):
+                except ExecutionError:
                     self.print_msg(
                         message="Erro ao buscar processo",
                         row=row,
                         type_log="error",
                     )
 
-        for future in list_tasks:
-            with suppress(Exception):
-                future.result()
-
     def copia_integral(  # noqa: D417
         self,
         row: int,
         data: BotData,
         client: Client,
-        semaforo: Semaphore,
         id_processo: str,
         captchatoken: str,
     ) -> None:
@@ -216,32 +188,33 @@ class Capa[T](PjeBot):  # noqa: D101
         """
         file_name = f"COPIA INTEGRAL {data['NUMERO_PROCESSO']} {self.pid}.pdf"
 
-        with semaforo:
-            proc = data["NUMERO_PROCESSO"]
-            id_proc = id_processo
-            captcha = captchatoken
+        proc = data["NUMERO_PROCESSO"]
+        id_proc = id_processo
+        captcha = captchatoken
 
-            link = f"/processos/{id_proc}/integra?tokenCaptcha={captcha}"
-            try:
-                message = f"Baixando arquivo do processo n.{proc}"
-                self.print_msg(
-                    message=message,
-                    row=row,
-                    type_log="log",
-                )
+        link = f"/processos/{id_proc}/integra?tokenCaptcha={captcha}"
+        try:
+            message = f"Baixando arquivo do processo n.{proc}"
+            self.print_msg(
+                message=message,
+                row=row,
+                type_log="log",
+            )
 
-                response = client.get(url=link)
-                pdf_content = list(
-                    filter(
-                        lambda x: x[0].lower() == "content-type"
-                        and x[1].lower() == "application/pdf",
-                        list(response.headers.items()),
-                    ),
-                )
-                if len(pdf_content) > 0:
-                    self.save_file_downloaded(file_name, response=response, data=data)
+            response = client.get(url=link)
+            pdf_content = list(
+                filter(
+                    lambda x: x[0].lower() == "content-type"
+                    and x[1].lower() == "application/pdf",
+                    list(response.headers.items()),
+                ),
+            )
+            if len(pdf_content) > 0:
+                self.save_file_downloaded(file_name, response=response, data=data)
 
-            except (ExecutionError, Exception):
-                msg = "Erro ao baixar arquivo"
+        except ExecutionError as e:
+            tqdm.write("\n".join(traceback.format_exception(e)))
 
-                self.print_msg(message=msg, row=row, type_log="error")
+            msg = "Erro ao baixar arquivo"
+
+            self.print_msg(message=msg, row=row, type_log="info")

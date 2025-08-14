@@ -62,6 +62,52 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [lint.extend-per-file-ignores]
 
+"**/patch_numpy.py" = [
+    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W",
+    "ANN",
+    "ASYNC",
+    "COM",
+    "EXE",
+    "PYI",
+    "PT",
+    "RSE",
+    "ISC",
+    "ICN",
+    "LOG",
+    "PIE",
+    "SLF",
+    "SLOT",
+    "PGH",
+    "INT",
+    "TD",
+    "FIX",
+    "NPY",
+    "INP",
+    "UP",
+    "RET",
+    "BLE",
+    "FBT",
+    # "CPY",
+    "DTZ",
+    "EM",
+    "FA",
+    "SIM",
+    "TID",
+    "TC",
+    "ARG",
+    "PTH",
+    "ERA",
+    "PD",
+    # "PL",
+    "TRY",
+    "FLY",
+    "AIR",
+    "PERF",
+    "FURB",
+    "DOC",
+    "RUF",
+]
+
 "*" = ["B026", "FIX", "D102", "ANN002"]
 "**/{tests,docs,tools}/*" = ["E402", "S", "D100", "D104", "ANN", "D417", "N818"]
 
