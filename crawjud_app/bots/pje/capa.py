@@ -8,8 +8,8 @@ dos processos e salvar os resultados no storage.
 
 from __future__ import annotations
 
+import threading
 import traceback
-from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from threading import Semaphore
 from typing import TYPE_CHECKING, ClassVar
@@ -24,6 +24,7 @@ from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task, wrap_cls
 
 if TYPE_CHECKING:
+    from concurrent.futures import Future
     from datetime import datetime
 
     from interface.types import BotData
@@ -66,29 +67,32 @@ class Capa[T](PjeBot):  # noqa: D101
         # Autentica e processa cada região
 
         semaforo_regiao = Semaphore(4)
-        with ThreadPoolExecutor(max_workers=4) as pool:
-            for regiao, data_regiao in self.regioes():
-                with semaforo_regiao:
-                    try:
-                        self.print_msg(message=f"Autenticando no TRT {regiao}")
-                        if self.autenticar("pje"):
-                            self.print_msg(
-                                message="Autenticado com sucesso!",
-                                type_log="info",
-                            )
-                            pool.submit(
-                                self.queue_processo,
-                                data=data_regiao,
-                                base_url=self.base_url,
-                                headers=self.headers,
-                                cookies=self.cookies,
-                            )
-
-                    except (ExecutionError, Exception) as e:
+        for regiao, data_regiao in self.regioes():
+            with semaforo_regiao:
+                try:
+                    self.print_msg(message=f"Autenticando no TRT {regiao}")
+                    if self.autenticar("pje"):
                         self.print_msg(
-                            message="\n".join(traceback.format_exception(e)),
-                            type_log="error",
+                            message="Autenticado com sucesso!",
+                            type_log="info",
                         )
+                        thread_ = threading.Thread(
+                            target=self.queue_processo,
+                            kwargs={
+                                "data": data_regiao,
+                                "base_url": self.base_url,
+                                "headers": self.headers,
+                                "cookies": self.cookies,
+                            },
+                        )
+
+                        thread_.start()
+
+                except (ExecutionError, Exception) as e:
+                    self.print_msg(
+                        message="\n".join(traceback.format_exception(e)),
+                        type_log="error",
+                    )
 
     def queue_processo(
         self,
@@ -125,7 +129,7 @@ class Capa[T](PjeBot):  # noqa: D101
 
         list_tasks: list[Future] = []
 
-        with cl as client, ThreadPoolExecutor(max_workers=4) as pool:
+        with cl as client:
             for item in data:
                 try:
                     # Atualiza dados do item para processamento
@@ -148,17 +152,23 @@ class Capa[T](PjeBot):  # noqa: D101
                                 },
                             )
 
-                            list_tasks.append(
-                                pool.submit(
-                                    self.copia_integral,
-                                    row=row,
-                                    data=item,
-                                    client=client,
-                                    semaforo=semaforo_file,
-                                    id_processo=resultado["id_processo"],
-                                    captchatoken=resultado["captchatoken"],
-                                ),
+                            thread_ = threading.Thread(
+                                target=self.copia_integral,
+                                kwargs={
+                                    "row": row,
+                                    "data": item,
+                                    "client": client,
+                                    "semaforo": semaforo_file,
+                                    "id_processo": resultado["id_processo"],
+                                    "captchatoken": resultado["captchatoken"],
+                                },
                             )
+
+                            list_tasks.append(
+                                thread_,
+                            )
+
+                            thread_.start()
 
                             message = (
                                 f"Informações do processo "
@@ -177,9 +187,9 @@ class Capa[T](PjeBot):  # noqa: D101
                         type_log="error",
                     )
 
-            for future in list_tasks:
-                with suppress(Exception):
-                    future.result()
+        for future in list_tasks:
+            with suppress(Exception):
+                future.result()
 
     def copia_integral(  # noqa: D417
         self,
