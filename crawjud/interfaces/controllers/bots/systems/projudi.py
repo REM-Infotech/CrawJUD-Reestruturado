@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from crawjud.interfaces.controllers.bots.master.cnj_bots import CNJBots as ClassBot
+from crawjud.interfaces.controllers.bots.master import ClassBot
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]

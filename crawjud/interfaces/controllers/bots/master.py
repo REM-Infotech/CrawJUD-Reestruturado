@@ -4,26 +4,49 @@ from __future__ import annotations
 
 from datetime import datetime
 from io import BytesIO
+from threading import Semaphore
 from typing import TYPE_CHECKING, ClassVar
+from zoneinfo import ZoneInfo
 
 import base91
 from pandas import Timestamp, read_excel
+from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.custom.canvas import subtask
 from crawjud.custom.task import ContextTask
-from crawjud.interfaces.controllers.bots.master.abs_master import AbstractCrawJUD
 from crawjud.interfaces.dict.bot import BotData
+from crawjud.utils.models.logs import MessageLogDict
+from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:
+    from typing import ClassVar
+
     from socketio import SimpleClient
 
     from crawjud.interfaces.dict.bot import DictFiles
-    from crawjud.utils.storage import Storage
+
+func_dict_check = {
+    "bot": ["execution"],
+    "search": ["buscar_processo"],
+}
 
 
-class ClassBot[T](AbstractCrawJUD, ContextTask):
+class AbstractCrawJUD:
     """Classe base para todos os bots."""
+
+    @classmethod
+    def __subclasshook__(cls, subclass: type) -> bool:
+        """Verifica se a subclasse implementa todos os métodos obrigatórios."""
+        tqdm.write("ok")
+
+    def __init_subclass__(cls) -> None:
+        """Empty."""
+        cls.tasks_cls[cls.__name__] = cls
+
+
+class CrawJUD[T](AbstractCrawJUD, ContextTask):
+    """Classe CrawJUD."""
 
     current_task: ContextTask
     sio: SimpleClient
@@ -33,6 +56,69 @@ class ClassBot[T](AbstractCrawJUD, ContextTask):
     _downloaded_files: ClassVar[list[DictFiles]] = []
     _bot_data: ClassVar[list[BotData]] = {}
     posicoes_processos: ClassVar[dict[str, int]] = {}
+
+    tasks_cls: ClassVar[dict] = {}
+    # Atributos Globais
+    _pid: str | None = None
+    _total_rows: int = 0
+    _start_time: str | None = None
+    _regiao: str | None = None
+    _data_regiao: list[BotData] | None = None
+    _cookies: dict[str, str] | None = None
+    _headers: dict[str, str] | None = None
+    _base_url: str | None = None
+
+    semaforo_save = Semaphore(1)
+    _storage = Storage("minio")
+
+    def print_msg(  # noqa: D417
+        self,
+        message: str,
+        row: int = 0,
+        errors: int = 0,
+        type_log: str = "log",
+    ) -> None:
+        """Envia mensagem de log para o sistema de tarefas assíncronas.
+
+        Args:
+            pid (str): Identificador do processo.
+            message (str): Mensagem a ser registrada.
+            row (int): Linha atual do processamento.
+            type_log (str): Tipo de log (info, error, etc).
+            total_rows (int): Total de linhas a serem processadas.
+            start_time (str): Horário de início do processamento.
+            status (str): Status atual do processamento (default: "Em Execução").
+
+
+
+        """
+        # Obtém o horário atual formatado
+        time_exec = datetime.now(tz=ZoneInfo("America/Manaus")).strftime("%H:%M:%S")
+        # Monta o prompt da mensagem
+        prompt = (
+            f"[({self._pid[:6].upper()}, {type_log}, {row}, {time_exec})> {message}]"
+        )
+
+        # Cria objeto de log da mensagem
+        data = {
+            "data": MessageLogDict(
+                message=str(prompt),
+                pid=str(self._pid),
+                row=int(row),
+                type=type_log,
+                status="Em Execução",
+                total=int(self._total_rows),
+                success=0,
+                errors=errors,
+                remaining=int(self._total_rows),
+                start_time=self._start_time,
+            ),
+        }
+
+        self.sio.emit(
+            event="log_execution",
+            data=data,
+        )
 
     @property
     def pid(self) -> str:

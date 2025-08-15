@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud.common.exceptions.validacao import ValidacaoStringError
-from crawjud.interfaces.controllers.bots.master.cnj_bots import CNJBots as ClassBot
+from crawjud.interfaces.controllers.bots.master import ClassBot
 from crawjud.interfaces.dict.bot import BotData
 from crawjud.interfaces.types.custom import StrProcessoCNJ
 from crawjud.interfaces.types.pje import (
