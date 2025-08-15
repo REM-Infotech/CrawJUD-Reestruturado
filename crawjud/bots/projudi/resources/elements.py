@@ -6,6 +6,11 @@ de documentos no Projudi.
 
 """
 
+command_select_parte_protocolo = (
+    'document.getElementById("{id_radio}").removeAttribute("disabled");'
+)
+command_sel_parte_protocolo2 = "return document.getElementById('{id_part}').checked"
+
 url_login = "https://projudi.tjam.jus.br/projudi/usuario/logon.do?actionType=inicio"
 campo_username = "#login"
 campo_2_login = "#senha"  # nosec: B105

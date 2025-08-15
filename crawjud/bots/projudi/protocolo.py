@@ -1,16 +1,10 @@
-"""Module: protocolo.
-
-Handles protocol-related functionalities in the Projudi system. Extend CrawJUD to manage
-protocol operations such as adding moves, uploading files, signing documents, and capturing screenshots.
-"""
+"""Empty."""
 
 import os
-import time
-import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
-from typing import Self
+from typing import TYPE_CHECKING
 
 import dotenv
 from PIL import Image
@@ -19,68 +13,32 @@ from selenium.common.exceptions import (
     StaleElementReferenceException,
     TimeoutException,
 )
-from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot as ClassBot
 
+from .resources import elements as el
+
 dotenv.load_dotenv()
 
 
+if TYPE_CHECKING:
+    from selenium.webdriver.common.alert import Alert
+    from selenium.webdriver.remote.webelement import WebElement
+
+
+def _raise_execution_error(message: str) -> os.NoReturn:
+    raise ExecutionError(message=message)
+
+
 class Protocolo(ClassBot):
-    """Handle protocol operations and execute moves, uploads, signing, and screenshot capture in Projudi.
-
-    This class extends CrawJUD to manage protocols by sequentially processing moves,
-    file uploads, digital signing and capturing confirmation screenshots.
-    """
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize a Protocolo instance with provided arguments.
-
-        Args:
-            *args (tuple[str | int]): Variable length positional arguments.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        Returns:
-            Self: The initialized Protocolo instance.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Protocolo instance and set up authentication.
-
-        Args:
-            *args (tuple[str | int]): Positional arguments.
-            **kwargs (dict[str | int]): Keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
+    """Empty."""
 
     def execution(self) -> None:
-        """Execute protocol processing over each data frame entry and handle errors.
-
-        Iterates through the data rows and executes protocol operations including moves,
-        file uploads, signing and final finalization.
-        """
+        """Empty."""
         frame = self.dataFrame()
         self.max_rows = len(frame)
 
@@ -97,19 +55,10 @@ class Protocolo(ClassBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
-                # windows = self.driver.window_handles
-
-                # if len(windows) == 0:
-                #     with suppress(Exception):
-                #         self.driver_launch(message="Webdriver encerrado inesperadamente, reinicializando...")
-
-                #     old_message = self.message
-
-                #     self.auth_bot()
 
                 if old_message is None:
                     old_message = self.message
@@ -138,12 +87,9 @@ class Protocolo(ClassBot):
             search = self.search_bot()
 
             if search is not True:
-                raise ExecutionError(message="Processo não encontrado!")
+                _raise_execution_error(message="Processo não encontrado!")
 
             self.add_new_move()
-
-            # if self.set_parte() is not True:
-            #     raise ExecutionError(message="Não foi possível selecionar parte")
 
             self.add_new_file()
             if self.bot_data.get("ANEXOS", None) is not None:
@@ -165,14 +111,14 @@ class Protocolo(ClassBot):
                 confirm_protocol = self.confirm_protocol()
                 if not confirm_protocol:
                     if self.set_parte() is not True:
-                        raise ExecutionError(
+                        _raise_execution_error(
                             message="Nao foi possivel confirmar protocolo",
                         )
 
                     self.finish_move()
                     confirm_protocol = self.confirm_protocol()
                     if not confirm_protocol:
-                        raise ExecutionError(
+                        _raise_execution_error(
                             message="Nao foi possivel confirmar protocolo",
                         )
 
@@ -184,11 +130,10 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
     def confirm_protocol(self) -> str | None:
-        """Confirm protocol action and extract the protocol number from the success message.
+        """Empty.
 
         Returns:
             str | None: The extracted protocol number if available; otherwise, None.
@@ -210,16 +155,12 @@ class Protocolo(ClassBot):
         return successMessage
 
     def set_parte(self) -> bool:
-        """Select the appropriate party as specified in bot data.
+        """Selecione a parte apropriada conforme especificado nos dados do bot.
 
         Returns:
-            bool: True if the party is successfully selected, otherwise False.
-
-        Raises:
-            ExecutionError: If selection of the specified party fails.
+            bool: Retorna True se a parte for selecionada com sucesso, caso contrário False.
 
         """
-        # self.driver.switch_to.frame(self.driver.find_element(By.CSS_SELECTOR, 'iframe[name="userMainFrame"]'))
         self.message = "Selecionando parte"
         self.type_log = "log"
         self.prt()
@@ -233,83 +174,133 @@ class Protocolo(ClassBot):
             "tr",
         )
 
-        selected_parte = False
+        parte_peticao = self.bot_data.get("PARTE_PETICIONANTE").upper()
 
         for pos, item in enumerate(table_partes):
             td_partes = table_partes[pos + 1].find_element(By.TAG_NAME, "td")
 
-            # if os.getenv("DEBUG", "False").lower() in ("false", "f", "0"):
-            if "Advogado já representa essa parte" in td_partes.text:
+            if self._advogado_ja_representa(td_partes):
                 return True
 
-            parte_peticao = self.bot_data.get("PARTE_PETICIONANTE").upper()
-            chk_info = (td_partes.text.upper() == parte_peticao.upper()) or (
-                parte_peticao.upper() in td_partes.text.upper()
-            )
-            if "\n" in td_partes.text:
-                partes = td_partes.text.split("\n")
-                for enum, parte in enumerate(partes):
-                    if (
-                        parte.upper()
-                        == self.bot_data.get("PARTE_PETICIONANTE").upper()
-                    ):
-                        radio_item = item.find_element(
-                            By.CSS_SELECTOR,
-                            "input[type='radio']",
-                        )
-                        id_radio = radio_item.get_attribute("id")
+            if self._seleciona_parte_por_linha(td_partes, parte_peticao, item):
+                return True
 
-                        command = f'document.getElementById("{id_radio}").removeAttribute("disabled");'
-                        self.driver.execute_script(command)
+            if self._seleciona_parte_por_texto(td_partes, parte_peticao, item):
+                return True
 
-                        radio_item.click()
-                        set_parte = td_partes.find_elements(By.TAG_NAME, "input")[
-                            enum
-                        ]
+        return False
 
-                        self.id_part = set_parte.get_attribute("id")
-                        cmd2 = f"return document.getElementById('{self.id_part}').checked"
-                        return_cmd = self.driver.execute_script(cmd2)
-                        if return_cmd is False:
-                            set_parte.click()
-                            cmd2 = f"return document.getElementById('{self.id_part}').checked"
-                            return_cmd = self.driver.execute_script(cmd2)
-                            if return_cmd is False:
-                                raise ExecutionError(
-                                    message="Não é possivel selecionar parte",
-                                )
+    def _advogado_ja_representa(self, td_partes: "WebElement") -> bool:
+        """Verifica se o advogado já representa a parte.
 
-                        selected_parte = True
-                        break
+        Returns:
+            bool: Retorno da verificação
 
-            elif chk_info:
+        """
+        return "Advogado já representa essa parte" in td_partes.text
+
+    def _seleciona_parte_por_linha(
+        self,
+        td_partes: "WebElement",
+        parte_peticao: str,
+        item: "WebElement",
+    ) -> bool:
+        """Seleciona a parte caso haja múltiplas linhas no texto.
+
+        Returns:
+            bool: Retorno da verificação
+
+        Raises:
+            ExecutionError: Erro de execução
+
+        """
+        if "\n" not in td_partes.text:
+            return False
+        partes = td_partes.text.split("\n")
+        for enum, parte in enumerate(partes):
+            if parte.upper() == parte_peticao:
                 radio_item = item.find_element(
                     By.CSS_SELECTOR,
-                    self.elements.input_radio,
+                    "input[type='radio']",
+                )
+                id_radio = radio_item.get_attribute("id")
+                self.driver.execute_script(
+                    str(el.command_select_parte_protocolo).format(
+                        id_radio=id_radio,
+                    ),
                 )
                 radio_item.click()
-
-                set_parte = td_partes.find_element(By.TAG_NAME, "input")
-
+                set_parte = td_partes.find_elements(By.TAG_NAME, "input")[enum]
                 self.id_part = set_parte.get_attribute("id")
-                cmd2 = f"return document.getElementById('{self.id_part}').checked"
-                return_cmd = self.driver.execute_script(cmd2)
-                if return_cmd is False:
-                    set_parte.click()
-                    cmd2 = f"return document.getElementById('{self.id_part}').checked"
-                    return_cmd = self.driver.execute_script(cmd2)
-                    if return_cmd is False:
-                        raise ExecutionError(
-                            message="Não é possivel selecionar parte",
-                        )
+                id_part = self.id_part
+                return_cmd = self.driver.execute_script(
+                    el.command_sel_parte_protocolo2.format(
+                        id_part=id_part,
+                    ),
+                )
+                if not self._confirma_selecao_parte(set_parte, id_part, return_cmd):
+                    raise ExecutionError(
+                        message="Não é possivel selecionar parte",
+                    )
+                return True
+        return False
 
-                selected_parte = True
-                break
+    def _seleciona_parte_por_texto(
+        self,
+        td_partes: "WebElement",
+        parte_peticao: str,
+        item: "WebElement",
+    ) -> bool:
+        """Seleciona a parte caso o texto corresponda diretamente.
 
-            if selected_parte:
-                break
+        Returns:
+            bool: Retorno da verificação
 
-        return selected_parte
+        Raises:
+            ExecutionError: Erro de execução
+
+        """
+        chk_info = (td_partes.text.upper() == parte_peticao) or (
+            parte_peticao in td_partes.text.upper()
+        )
+        if not chk_info:
+            return False
+        radio_item = item.find_element(
+            By.CSS_SELECTOR,
+            self.elements.input_radio,
+        )
+        radio_item.click()
+        set_parte = td_partes.find_element(By.TAG_NAME, "input")
+        self.id_part = set_parte.get_attribute("id")
+        cmd2 = f"return document.getElementById('{self.id_part}').checked"
+        return_cmd = self.driver.execute_script(cmd2)
+        if not self._confirma_selecao_parte(set_parte, self.id_part, return_cmd):
+            raise ExecutionError(
+                message="Não é possivel selecionar parte",
+            )
+        return True
+
+    def _confirma_selecao_parte(
+        self,
+        set_parte: "WebElement",
+        id_part: str,
+        *,
+        return_cmd: bool,
+    ) -> bool:
+        """Confirma se a parte foi selecionada corretamente.
+
+        Returns:
+            bool: Retorno da verificação
+
+
+        """
+        if return_cmd is False:
+            set_parte.click()
+            cmd2 = f"return document.getElementById('{id_part}').checked"
+            return_cmd = self.driver.execute_script(cmd2)
+            if return_cmd is False:
+                return False
+        return True
 
     def add_new_move(self) -> None:
         """Initiate the addition of a new protocol move with necessary web interactions.
@@ -364,7 +355,7 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def add_new_file(self) -> None:
@@ -375,17 +366,6 @@ class Protocolo(ClassBot):
 
         """
         try:
-            """PARA CORRIGIR"""
-            # file = str(self.bot_data.get("PETICAO_PRINCIPAL"))
-            # self.message = "Inserindo Petição/Anexos..."
-            # self.type_log = "log"
-            # self.prt()
-            # button_new_file = self.driver.find_element(
-            #     By.CSS_SELECTOR, self.elements.includeContent
-            # )
-            # button_new_file.click()
-            """ PARA CORRIGIR """
-
             file = str(self.bot_data.get("PETICAO_PRINCIPAL"))
             self.message = "Inserindo Petição/Anexos..."
             self.type_log = "log"
@@ -405,6 +385,7 @@ class Protocolo(ClassBot):
             self.type_log = "log"
             self.prt()
 
+            file_inpt = Path(self.path_args).parent.resolve()
             css_inptfile = 'input[id="conteudo"]'
             input_file_element: WebElement = WebDriverWait(self.driver, 10).until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_inptfile)),
@@ -412,10 +393,7 @@ class Protocolo(ClassBot):
 
             file_to_upload = self.format_string(file)
 
-            path_file = os.path.join(
-                Path(self.path_args).parent.resolve(),
-                file_to_upload,
-            )
+            path_file = str(file_inpt.joinpath(file_to_upload))
 
             input_file_element.send_keys(path_file)
 
@@ -440,7 +418,7 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def set_file_principal(self) -> None:
@@ -467,7 +445,7 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def more_files(self) -> None:
@@ -480,6 +458,7 @@ class Protocolo(ClassBot):
         try:
             sleep(0.5)
 
+            work_dir = Path(self.path_args).parent.resolve()
             anexos_list = [str(self.bot_data.get("ANEXOS"))]
             if "," in self.bot_data.get("ANEXOS"):
                 anexos_list = self.bot_data.get("ANEXOS").__str__().split(",")
@@ -495,9 +474,10 @@ class Protocolo(ClassBot):
                         self.elements.conteudo,
                     )),
                 )
-                input_file_element.send_keys(
-                    f"{os.path.join(Path(self.path_args).parent.resolve())}/{file_to_upload}",
-                )
+
+                inpt_file = str(work_dir.joinpath(file_to_upload))
+
+                input_file_element.send_keys(inpt_file)
                 self.wait_progressbar()
                 self.message = f"Arquivo '{file}' enviado com sucesso!"
                 self.type_log = "log"
@@ -515,11 +495,11 @@ class Protocolo(ClassBot):
             for pos, _ in enumerate(checkfiles):
                 numbertipo = pos + 1
                 sleep(0.75)
-                try:
+
+                with suppress(Exception):
                     type_file = self.driver.find_element(By.ID, f"tipo{numbertipo}")
                     type_file.click()
-                except Exception:
-                    break
+
                 sleep(0.25)
                 type_options = type_file.find_elements(By.TAG_NAME, "option")
                 type_anexos = str(self.bot_data.get("TIPO_ANEXOS")).lower()
@@ -531,7 +511,7 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def sign_files(self) -> None:
@@ -570,15 +550,7 @@ class Protocolo(ClassBot):
                 )
 
             if check_p_element != "":
-                raise ExecutionError(message="Senha Incorreta!")
-
-            """ PARA CORRIGIR """
-            # confirm_button = self.driver.find_element(
-            #     By.CSS_SELECTOR, self.elements.botao_confirmar
-            # )
-            # confirm_button.click()
-            # sleep(1)
-            """ PARA CORRIGIR """
+                _raise_execution_error(message="Senha Incorreta!")
 
             confirm_button = self.driver.find_element(
                 By.CSS_SELECTOR,
@@ -595,24 +567,14 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def finish_move(self) -> None:
-        """Finalize the protocol move by confirming selections and concluding the operation."""
+        """Empty."""
         self.message = f"Concluindo peticionamento do processo {self.bot_data.get('NUMERO_PROCESSO')}"
         self.type_log = "log"
         self.prt()
-        # return_cmd = False
-
-        # id_parte = self.id_part
-
-        # if id_parte:
-        #     with suppress(JavascriptException):
-        #         cmd2 = f"return document.getElementById('{self.id_part}').checked"
-        #         return_cmd = self.driver.execute_script(cmd2)
-        #     if return_cmd is False:
-        #         self.driver.find_element(By.ID, self.id_part).click()
 
         finish_button = self.driver.find_element(
             By.CSS_SELECTOR,
@@ -630,6 +592,10 @@ class Protocolo(ClassBot):
             ExecutionError: If an error occurs during the screenshot capture.
 
         """
+        out_dir_path = Path(self.output_dir_path)
+        pid = self.pid
+        numproc = self.bot_data.get("NUMERO_PROCESSO")
+
         try:
             table_moves = self.driver.find_element(By.CLASS_NAME, "resultTable")
             table_moves = table_moves.find_elements(
@@ -637,7 +603,7 @@ class Protocolo(ClassBot):
                 './/tr[contains(@class, "odd") or contains(@class, "even")][not(@style="display:none;")]',
             )
 
-            table_moves[0].screenshot(os.path.join(self.output_dir_path, "tr_0.png"))
+            table_moves[0].screenshot(out_dir_path.joinpath("tr_0.png"))
 
             expand = table_moves[0].find_element(
                 By.CSS_SELECTOR,
@@ -647,11 +613,11 @@ class Protocolo(ClassBot):
 
             sleep(1.5)
 
-            table_moves[1].screenshot(os.path.join(self.output_dir_path, "tr_1.png"))
+            table_moves[1].screenshot(out_dir_path.joinpath("tr_1.png"))
 
             # Abra as imagens
-            im_tr1 = Image.open(os.path.join(self.output_dir_path, "tr_0.png"))
-            im_tr2 = Image.open(os.path.join(self.output_dir_path, "tr_1.png"))
+            im_tr1 = Image.open(out_dir_path.joinpath("tr_0.png"))
+            im_tr2 = Image.open(out_dir_path.joinpath("tr_1.png"))
 
             # Obtenha as dimensões das imagens
             width1, height1 = im_tr1.size
@@ -669,15 +635,18 @@ class Protocolo(ClassBot):
             combined_image.paste(im_tr2, (0, height1))
 
             # Salve a imagem combinada
-            comprovante1 = f"{self.pid} - COMPROVANTE 1 - {self.bot_data.get('NUMERO_PROCESSO')}.png"
-            combined_image.save(os.path.join(self.output_dir_path, comprovante1))
 
-            filename = f"Protocolo - {self.bot_data.get('NUMERO_PROCESSO')} - PID{self.pid}.png"
-            self.driver.get_screenshot_as_file(
-                os.path.join(self.output_dir_path, filename),
+            comprovante1 = f"{pid} - COMPROVANTE 1 - {numproc}.png"
+            combined_image.save(
+                str(out_dir_path.joinpath(comprovante1)),
             )
 
-            self.message = f"Peticionamento do processo Nº{self.bot_data.get('NUMERO_PROCESSO')} concluído com sucesso!"
+            filename = f"Protocolo - {numproc} - PID{pid}.png"
+            self.driver.get_screenshot_as_file(
+                str(out_dir_path.joinpath(filename)),
+            )
+
+            self.message = "Peticionamento concluído com sucesso!"
 
             self.type_log = "log"
             self.prt()
@@ -687,16 +656,10 @@ class Protocolo(ClassBot):
         except Exception as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
     def remove_files(self) -> None:
-        """Delete the uploaded files from the protocol after processing.
-
-        Raises:
-            ExecutionError: If file removal fails.
-
-        """
+        """Delete the uploaded files from the protocol after processing."""
         tablefiles = None
         with suppress(TimeoutException):
             tablefiles: WebElement = WebDriverWait(self.driver, 5).until(
@@ -740,7 +703,7 @@ class Protocolo(ClassBot):
     def wait_progressbar(self) -> None:
         """Wait until the progress bar completes the file upload or processing."""
         while True:
-            try:
+            with suppress(Exception):
                 divprogressbar: WebElement = self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
@@ -752,11 +715,8 @@ class Protocolo(ClassBot):
                     self.elements.css_divprogressbar,
                 )
                 sleep(1)
-                try:
-                    # adicionar um suppress StaleElementReferenceException
+                with suppress(Exception):
                     get_style = divprogressbar.get_attribute("style")
-                except Exception:
-                    break
 
                 if get_style != "":
                     sleep(1)
@@ -764,5 +724,5 @@ class Protocolo(ClassBot):
                 elif get_style == "":
                     break
 
-            except Exception:
-                break
+                continue
+            break
