@@ -185,6 +185,10 @@ class Capa[T](PjeBot):  # noqa: D101
                 threads_processos.append(thread_proc)
                 thread_proc.start()
 
+            for th in threads_processos:
+                with suppress(Exception):
+                    th.join()
+
             for th in thread_download_file:
                 with suppress(Exception):
                     th.join()
