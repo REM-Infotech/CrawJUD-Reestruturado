@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, TypedDict
 TDict = dict[str, str]
 
 if TYPE_CHECKING:
-    from crawjud.interface.dict.bot import BotData
+    from crawjud.interfaces.dict.bot import BotData
 
 
 class DictSeparaRegiao(TypedDict):

@@ -11,14 +11,14 @@ from pandas import Timestamp, read_excel
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.master.abs_master import AbstractCrawJUD
-from crawjud.interface.dict.bot import BotData
+from crawjud.interfaces.dict.bot import BotData
 from crawjud_app.custom.canvas import subtask
 from crawjud_app.custom.task import ContextTask
 
 if TYPE_CHECKING:
     from socketio import SimpleClient
 
-    from crawjud.interface.dict.bot import DictFiles
+    from crawjud.interfaces.dict.bot import DictFiles
     from crawjud.utils.storage import Storage
 
 

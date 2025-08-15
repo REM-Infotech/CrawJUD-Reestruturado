@@ -28,8 +28,8 @@ if TYPE_CHECKING:
     from concurrent.futures import Future
     from datetime import datetime
 
-    from crawjud.interface.types import BotData
-    from crawjud.interface.types.pje import DictResults
+    from crawjud.interfaces.types import BotData
+    from crawjud.interfaces.types.pje import DictResults
 load_dotenv()
 
 

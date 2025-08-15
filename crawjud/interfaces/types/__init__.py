@@ -8,7 +8,7 @@ de dados, parâmetros e retornos em funções e classes do projeto.
 from datetime import datetime, timedelta
 from os import PathLike
 
-from crawjud.interface.dict.bot import BotData
+from crawjud.interfaces.dict.bot import BotData
 
 # Tipos de retorno das funções
 

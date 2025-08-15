@@ -14,7 +14,7 @@ from crawjud.utils.models.logs import MessageLogDict
 if TYPE_CHECKING:
     from typing import ClassVar
 
-    from crawjud.interface.dict.bot import BotData
+    from crawjud.interfaces.dict.bot import BotData
 
 func_dict_check = {
     "bot": ["execution"],

@@ -21,8 +21,8 @@ if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from selenium.webdriver.remote.webelement import WebElement
 
-    from crawjud.interface.dict.bot import BotData
-    from crawjud.interface.types.pje import DictResults
+    from crawjud.interfaces.dict.bot import BotData
+    from crawjud.interfaces.types.pje import DictResults
 CSS_INPUT_PROCESSO = {
     "1": "#numeroProcesso",
     "2": "#numeroRecurso",

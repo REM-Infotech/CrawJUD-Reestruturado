@@ -21,7 +21,7 @@ from typing import (
 
 from redis_om import Field, HashModel, JsonModel, NotFoundError
 
-from crawjud.interface.types.pje import Processo
+from crawjud.interfaces.types.pje import Processo
 from crawjud.utils.interfaces import ItemMessageList
 
 description_message = (

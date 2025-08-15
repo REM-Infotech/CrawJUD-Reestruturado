@@ -18,9 +18,9 @@ from tqdm import tqdm
 from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud.common.exceptions.validacao import ValidacaoStringError
 from crawjud.controllers.bots.master.cnj_bots import CNJBots as ClassBot
-from crawjud.interface.dict.bot import BotData
-from crawjud.interface.types.custom import StrProcessoCNJ
-from crawjud.interface.types.pje import (
+from crawjud.interfaces.dict.bot import BotData
+from crawjud.interfaces.types.custom import StrProcessoCNJ
+from crawjud.interfaces.types.pje import (
     DictDesafio,
     DictResults,
     DictSeparaRegiao,
@@ -34,7 +34,7 @@ from crawjud_app.iterators import RegioesIterator
 if TYPE_CHECKING:
     from httpx import Client, Response
 
-    from crawjud.interface.dict.bot import BotData
+    from crawjud.interfaces.dict.bot import BotData
 
 DictData = dict[str, str | datetime]
 ListData = list[DictData]

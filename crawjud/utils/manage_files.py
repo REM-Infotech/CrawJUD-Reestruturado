@@ -12,7 +12,7 @@ import base91
 from werkzeug.utils import secure_filename
 
 from crawjud.decorators import shared_task
-from crawjud.interface.dict.bot import DictFiles
+from crawjud.interfaces.dict.bot import DictFiles
 from crawjud.utils.storage import Storage
 
 work_dir = Path(__file__).cwd()
