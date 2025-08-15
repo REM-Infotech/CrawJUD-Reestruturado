@@ -15,8 +15,8 @@ from quart import (
 from quart import current_app as app
 from quart_jwt_extended import get_jwt_identity, jwt_required
 
-from api.models import LicensesUsers, Users
-from api.models import SuperUser as SuperUser
+from crawjud.models import LicensesUsers, Users
+from crawjud.models import SuperUser as SuperUser
 
 from . import admin
 

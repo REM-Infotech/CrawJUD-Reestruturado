@@ -95,7 +95,7 @@ async def database_start(app: Quart) -> None:
         - HOSTNAME: The address of the server
 
     """
-    from api.models import init_database
+    from crawjud.models import init_database
 
     async with app.app_context():
         await init_database()

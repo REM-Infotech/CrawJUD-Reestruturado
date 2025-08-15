@@ -8,11 +8,11 @@ import pandas as pd
 from dotenv import dotenv_values
 from tqdm import tqdm
 
-from api.models.bots import BotsCrawJUD, Credentials, Executions, ThreadBots
-from api.models.schedule import CrontabModel, ScheduleModel
-from api.models.secondaries import admins, execution_bots
-from api.models.users import LicensesUsers, SuperUser, Users
 from crawjud.api import app, db
+from crawjud.models.bots import BotsCrawJUD, Credentials, Executions, ThreadBots
+from crawjud.models.schedule import CrontabModel, ScheduleModel
+from crawjud.models.secondaries import admins, execution_bots
+from crawjud.models.users import LicensesUsers, SuperUser, Users
 
 __all__ = [
     "BotsCrawJUD",

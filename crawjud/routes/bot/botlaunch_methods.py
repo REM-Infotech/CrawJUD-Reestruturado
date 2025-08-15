@@ -20,10 +20,10 @@ from quart import (
 )
 from werkzeug.utils import secure_filename
 
-from api.models.users import LicensesUsers
 from crawjud.common.exceptions._form import LoadFormError
 from crawjud.interfaces.formbot import FormDict
 from crawjud.interfaces.session import SessionDict
+from crawjud.models.users import LicensesUsers
 from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:
@@ -31,8 +31,8 @@ if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
     from werkzeug.datastructures import MultiDict
 
-    from api.models import BotsCrawJUD
-    from api.models.bots import Credentials
+    from crawjud.models import BotsCrawJUD
+    from crawjud.models.bots import Credentials
 workdir = Path(__file__).cwd()
 
 

@@ -6,7 +6,6 @@ tilitários para construção dinâmica de dicionários de formulário.
 
 from typing import Any, AnyStr, Self
 
-from api.models.bots import BotsCrawJUD
 from crawjud.interfaces.formbot.administrativo import (
     AdministrativoFormFileAuth,
     AdministrativoFormMultipleFiles,
@@ -20,6 +19,7 @@ from crawjud.interfaces.formbot.juridico import (
     JuridicoFormPJE,
     JuridicoFormProcParte,
 )
+from crawjud.models.bots import BotsCrawJUD
 
 type ClassFormDict = (
     JuridicoFormFileAuth
