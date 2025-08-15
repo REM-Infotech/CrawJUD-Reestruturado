@@ -10,6 +10,7 @@ from pathlib import Path
 from platform import node
 from sys import argv
 from time import sleep
+from uuid import uuid4
 
 from celery.apps.beat import Beat
 from celery.apps.worker import Worker
@@ -21,11 +22,10 @@ from tqdm import tqdm
 
 from crawjud_app import app as app
 from crawjud_app import make_celery
-from crawjud_app.addons import worker_name_generator
 
 clear()
 envdot = dotenv_values()
-environ["WORKER_NAME"] = f"{worker_name_generator()}@{node()}"
+environ["WORKER_NAME"] = f"{uuid4().hex[:5].upper()}@{node()}"
 
 work_dir = Path(__file__).cwd()
 
