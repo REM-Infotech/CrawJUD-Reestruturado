@@ -17,7 +17,7 @@ from quart_socketio.config.python_socketio import AsyncSocketIOConfig
 from tqdm import tqdm
 
 from crawjud.celery_app import make_celery
-from crawjud.utils.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
+from crawjud.utils.middleware import ProxyHeadersMiddleware
 
 
 def check_cors_allowed_origins(*args) -> bool:

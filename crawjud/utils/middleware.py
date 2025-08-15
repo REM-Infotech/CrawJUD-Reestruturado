@@ -9,7 +9,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from hypercorn.typing import ASGIFramework, Scope
 
 
-class ProxyFixMiddleware:
+class ProxyHeadersMiddleware:
     """Implemente um middleware para ajustar cabeçalhos de proxy em aplicações ASGI.
 
     Args:
