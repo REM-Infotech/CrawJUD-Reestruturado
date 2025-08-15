@@ -201,7 +201,7 @@ class PjeBot[T](ClassBot):
 
         """
         with suppress(Exception):
-            cache = CachedExecution(processo=processo, data=data, pid=self.pid)
+            cache = CachedExecution(processo=processo.data, data=data, pid=self.pid)
             cache.save()
 
     def desafio_captcha(

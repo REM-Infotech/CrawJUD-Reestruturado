@@ -9,6 +9,8 @@ dos processos e salvar os resultados no storage.
 from __future__ import annotations
 
 import traceback
+from contextlib import suppress
+from threading import Thread
 from typing import TYPE_CHECKING, ClassVar
 
 from dotenv import load_dotenv
@@ -117,6 +119,9 @@ class Capa[T](PjeBot):  # noqa: D101
             cookies=cookies,
             follow_redirects=True,
         )
+
+        thread_download_file: list[Thread] = []
+
         with cl as client:
             for item in data:
                 try:
@@ -137,13 +142,19 @@ class Capa[T](PjeBot):  # noqa: D101
                                 processo=item["NUMERO_PROCESSO"],
                             )
 
-                            self.copia_integral(
-                                row=row,
-                                data=item,
-                                client=client,
-                                id_processo=resultado["id_processo"],
-                                captchatoken=resultado["captchatoken"],
+                            thread_file_ = Thread(
+                                target=self.copia_integral,
+                                kwargs={
+                                    "row": row,
+                                    "data": item,
+                                    "client": client,
+                                    "id_processo": resultado["id_processo"],
+                                    "captchatoken": resultado["captchatoken"],
+                                },
                             )
+
+                            thread_file_.start()
+                            thread_download_file.append(thread_file_)
 
                             message = (
                                 f"Informações do processo "
@@ -161,6 +172,10 @@ class Capa[T](PjeBot):  # noqa: D101
                         row=row,
                         type_log="error",
                     )
+
+        for th in thread_download_file:
+            with suppress(Exception):
+                th.join()
 
     def copia_integral(  # noqa: D417
         self,
@@ -210,7 +225,11 @@ class Capa[T](PjeBot):  # noqa: D101
                 ),
             )
             if len(pdf_content) > 0:
-                self.save_file_downloaded(file_name, response=response, data=data)
+                self.save_file_downloaded(
+                    file_name=file_name,
+                    response_data=response,
+                    data_bot=data,
+                )
 
         except ExecutionError as e:
             tqdm.write("\n".join(traceback.format_exception(e)))
