@@ -1,6 +1,5 @@
 """Quart application package."""
 
-import patches.patch_numpy  # noqa: F401, I001
 import re
 from importlib import import_module
 from pathlib import Path

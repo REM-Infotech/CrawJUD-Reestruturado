@@ -1,7 +1,5 @@
 """Módulo Celery App do CrawJUD Automatização."""
 
-import patches.patch_numpy  # noqa: F401, I001
-
 import importlib
 
 from crawjud_app.custom import AsyncCelery as Celery
