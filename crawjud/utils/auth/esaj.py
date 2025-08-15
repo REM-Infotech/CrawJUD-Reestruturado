@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from crawjud.controllers.bots.systems.esaj import ESajBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot
 
 
 class EsajAuth(ESajBot):

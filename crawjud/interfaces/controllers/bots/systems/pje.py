@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud.common.exceptions.validacao import ValidacaoStringError
-from crawjud.controllers.bots.master.cnj_bots import CNJBots as ClassBot
+from crawjud.interfaces.controllers.bots.master.cnj_bots import CNJBots as ClassBot
 from crawjud.interfaces.dict.bot import BotData
 from crawjud.interfaces.types.custom import StrProcessoCNJ
 from crawjud.interfaces.types.pje import (
@@ -26,10 +26,10 @@ from crawjud.interfaces.types.pje import (
     DictSeparaRegiao,
     Processo,
 )
+from crawjud.utils.iterators import RegioesIterator
 from crawjud.utils.models.logs import CachedExecution
 from crawjud.utils.recaptcha import captcha_to_image
 from crawjud.utils.storage import Storage
-from crawjud_app.iterators import RegioesIterator
 
 if TYPE_CHECKING:
     from httpx import Client, Response

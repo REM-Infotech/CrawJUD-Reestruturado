@@ -26,7 +26,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
 
 type_doc = {11: "cpf", 14: "cnpj"}
 

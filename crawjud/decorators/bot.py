@@ -13,7 +13,7 @@ from dotenv import dotenv_values
 from socketio import SimpleClient
 from tqdm import tqdm
 
-from crawjud.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
 
 environ = dotenv_values()
 

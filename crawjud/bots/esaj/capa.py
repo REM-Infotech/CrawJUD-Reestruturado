@@ -14,7 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.systems.esaj import ESajBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot as ClassBot
 
 
 class Capa(ClassBot):

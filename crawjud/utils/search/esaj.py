@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.systems.esaj import ESajBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot
 
 
 class EsajSearch(ESajBot):

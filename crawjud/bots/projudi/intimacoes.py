@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.systems.projudi import ProjudiBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot as ClassBot
 
 
 class Intimacoes(ClassBot):

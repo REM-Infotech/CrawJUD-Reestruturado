@@ -19,9 +19,9 @@ from httpx import Client
 from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.systems.pje import PjeBot
 from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task, wrap_cls
+from crawjud.interfaces.controllers.bots.systems.pje import PjeBot
 from crawjud.utils.formatadores import formata_tempo
 
 if TYPE_CHECKING:

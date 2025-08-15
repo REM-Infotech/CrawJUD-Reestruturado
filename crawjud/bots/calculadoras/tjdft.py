@@ -22,7 +22,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
 
 cookieaceito = []
 

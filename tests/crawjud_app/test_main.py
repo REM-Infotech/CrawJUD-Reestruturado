@@ -1,7 +1,5 @@
-import pytest
-from multiprocessing import Process
-from collections.abc import Callable
 import time
+from multiprocessing import Process
 
 """Testa funções principais do módulo main.py do CrawJUD.
 
@@ -10,7 +8,7 @@ Testa inicialização, reinício e parada dos serviços Celery Worker e Beat.
 """
 
 
-import crawjud_app.main as main
+import crawjud.main as main
 
 
 def dummy_func() -> None:
@@ -49,13 +47,23 @@ def test_start_worker_and_start_beat_do_not_raise(monkeypatch) -> None:
     Usa monkeypatch para evitar execução real do Celery.
     """
     monkeypatch.setattr(main, "make_celery", lambda: None)
+
     class DummyWorker:
-        def __init__(self, **kwargs) -> None: pass
-        def start(self) -> None: pass
-        def stop(self) -> None: pass
+        def __init__(self, **kwargs) -> None:
+            pass
+
+        def start(self) -> None:
+            pass
+
+        def stop(self) -> None:
+            pass
+
     class DummyBeat:
-        def __init__(self, **kwargs) -> None: pass
-        def run(self) -> None: pass
+        def __init__(self, **kwargs) -> None:
+            pass
+
+        def run(self) -> None:
+            pass
 
     monkeypatch.setattr(main, "Worker", DummyWorker)
     monkeypatch.setattr(main, "Beat", DummyBeat)

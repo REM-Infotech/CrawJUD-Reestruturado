@@ -16,7 +16,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.controllers.bots.systems.esaj import ESajBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot as ClassBot
 
 
 class Movimentacao(ClassBot):
