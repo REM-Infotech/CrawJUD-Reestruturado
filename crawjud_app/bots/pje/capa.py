@@ -121,6 +121,7 @@ class Capa[T](PjeBot):  # noqa: D101
         )
 
         thread_download_file: list[Thread] = []
+        threads_processos: list[Thread] = []
         semaphore = Semaphore(6)
         with cl as client:
             for item in data:
@@ -180,7 +181,9 @@ class Capa[T](PjeBot):  # noqa: D101
                                 type_log="error",
                             )
 
-                threaded_func(semafore_bot=semaphore, item=item)
+                thread_proc = Thread(target=threaded_func, args=(semaphore, item))
+                threads_processos.append(thread_proc)
+                thread_proc.start()
 
             for th in thread_download_file:
                 with suppress(Exception):
