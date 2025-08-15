@@ -23,14 +23,14 @@ from crawjud.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task
-from crawjud.interfaces.controllers.bots.systems.pje import PjeBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.pje import PjeBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)
-class Pauta(ContextTask, ClassBot):
+class Pauta(PjeBot):
     """Implemente a automação para buscar e processar pautas de audiências judiciais.
 
     Esta classe executa tarefas automatizadas para extração de pautas de audiências

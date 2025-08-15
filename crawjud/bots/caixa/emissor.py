@@ -19,13 +19,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.master import CrawJUD
 
 
 class OtherUtils: ...  # noqa: D101
 
 
-class Emissor(ClassBot):
+class Emissor(CrawJUD):
     """Manage creation and processing of judicial deposit documents using the Emissor bot fully.
 
     Offer a range of functionalities to access deposit pages, handle login flows,

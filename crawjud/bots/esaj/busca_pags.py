@@ -14,13 +14,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
 
 
-class BuscaPags(ClassBot):
+class BuscaPags(ESajBot):
     """Class BuscaPags.
 
     Manages page search and the extraction of cost-related information.

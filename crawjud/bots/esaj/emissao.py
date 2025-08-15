@@ -21,7 +21,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot
 
 
 class OtherUtils: ...  # noqa: D101
@@ -55,7 +55,7 @@ type_docscss = {
 }
 
 
-class Emissao(ClassBot):
+class Emissao(ESajBot):
     """Perform emission tasks by generating docs and extracting PDF barcodes.
 
     This class executes the complete workflow for document emission. It
@@ -329,7 +329,7 @@ class Emissao(ClassBot):
             last_avançar.click()
 
             sleep(1)
-            css_val_doc = "body > table:nth-child(4) > tbody > tr > td > table:nth-child(10) > tbody > tr:nth-child(3) > td:nth-child(3) > strong"  # noqa: E501
+            css_val_doc = "body > table:nth-child(4) > tbody > tr > td > table:nth-child(10) > tbody > tr:nth-child(3) > td:nth-child(3) > strong"
             self.valor_doc: WebElement = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_val_doc)),
             ).text

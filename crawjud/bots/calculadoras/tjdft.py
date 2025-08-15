@@ -11,23 +11,25 @@ import time
 import traceback
 from contextlib import suppress
 from time import sleep
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.print_page_options import PrintOptions
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.master import CrawJUD
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
 
 cookieaceito = []
 
 
-class Tjdft(ClassBot):
+class Tjdft(CrawJUD):
     """The Tjdft class extends CrawJUD to handle calculations for the TJD-Federal Tribunal.
 
     Attributes:

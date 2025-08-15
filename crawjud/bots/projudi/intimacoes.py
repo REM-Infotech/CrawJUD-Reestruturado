@@ -14,10 +14,10 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot
 
 
-class Intimacoes(ClassBot):
+class Intimacoes(ProjudiBot):
     """Extract and process intimations in Projudi by navigating pages and extracting data.
 
     This class extends CrawJUD to enter the intimacoes tab, set page sizes,

@@ -20,10 +20,10 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.systems.elaw import ElawBot
 
 
-class Andamentos(ClassBot):
+class Andamentos(ElawBot):
     """The Andamentos class manages the andamento tracking bot."""
 
     @classmethod

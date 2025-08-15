@@ -13,8 +13,6 @@ from dotenv import dotenv_values
 from socketio import SimpleClient
 from tqdm import tqdm
 
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
-
 environ = dotenv_values()
 
 server = environ.get("SOCKETIO_SERVER_URL", "http://localhost:5000")

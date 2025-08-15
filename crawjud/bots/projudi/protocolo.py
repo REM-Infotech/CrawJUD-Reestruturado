@@ -18,23 +18,22 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot
 
 from .resources import elements as el
-
-dotenv.load_dotenv()
-
 
 if TYPE_CHECKING:
     from selenium.webdriver.common.alert import Alert
     from selenium.webdriver.remote.webelement import WebElement
+
+dotenv.load_dotenv()
 
 
 def _raise_execution_error(message: str) -> os.NoReturn:
     raise ExecutionError(message=message)
 
 
-class Protocolo(ClassBot):
+class Protocolo(ProjudiBot):
     """Empty."""
 
     def execution(self) -> None:

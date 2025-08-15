@@ -24,14 +24,14 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.systems.elaw import ElawBot
 
 type_doc = {"11": "cpf", "14": "cnpj"}
 
 ELEMENT_LOAD = 'div[id="j_id_48"]'
 
 
-class PreCadastro(ClassBot):
+class PreCadastro(ElawBot):
     def area_direito(self) -> None:
         wait = self.wait
         self.message = "Informando área do direito"

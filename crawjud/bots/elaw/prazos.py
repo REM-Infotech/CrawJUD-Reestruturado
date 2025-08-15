@@ -20,10 +20,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.master.bot_head import ClassBot
+from crawjud.interfaces.controllers.bots.systems.elaw import ElawBot
 
 
-class Prazos(ClassBot):
+class Prazos(ElawBot):
     """The Prazos class extends CrawJUD to handle deadline-related tasks within the application.
 
     Attributes:

@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError, FileUploadError
 from crawjud.common.exceptions.validacao import ValidacaoStringError
-from crawjud.interfaces.controllers.bots.master import ClassBot
+from crawjud.interfaces.controllers.bots.master import CrawJUD
 from crawjud.interfaces.dict.bot import BotData
 from crawjud.interfaces.types.custom import StrProcessoCNJ
 from crawjud.interfaces.types.pje import (
@@ -43,7 +43,7 @@ HTTP_STATUS_FORBIDDEN = 403  # Constante para status HTTP Forbidden
 COUNT_TRYS = 15
 
 
-class PjeBot[T](ClassBot):
+class PjeBot[T](CrawJUD):
     """Classe de controle para robôs do PJe."""
 
     pje_classes: ClassVar[dict[str, type[PjeBot]]] = {}

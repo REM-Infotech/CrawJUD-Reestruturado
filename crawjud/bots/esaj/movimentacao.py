@@ -16,10 +16,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot as ClassBot
+from crawjud.interfaces.controllers.bots.systems.esaj import ESajBot
 
 
-class Movimentacao(ClassBot):
+class Movimentacao(ESajBot):
     """Class Movimentacao.
 
     Handles all movement-related tasks in the Esaj system.
@@ -250,7 +250,7 @@ class Movimentacao(ClassBot):
             - "%Y/%m/%d"
             - "%Y/%d/%m"
 
-            """  # noqa: E501
+            """
             patterns = [
                 ("%d/%m/%Y", r"\b(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}\b"),
                 ("%m/%d/%Y", r"\b(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/\d{4}\b"),
