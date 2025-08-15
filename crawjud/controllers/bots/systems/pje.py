@@ -11,7 +11,6 @@ from pathlib import Path
 from threading import Semaphore
 from time import sleep
 from typing import TYPE_CHECKING, ClassVar, cast
-from uuid import uuid4
 
 from tqdm import tqdm
 
@@ -139,7 +138,9 @@ class PjeBot[T](ClassBot):
 
         """
         try:
-            path_temp = workdir.joinpath("temp", uuid4().hex)
+            path_temp = workdir.joinpath("temp", self.pid)
+
+            path_temp.mkdir(parents=True, exist_ok=True)
 
             chunk = 8 * 1024 * 1024
             file_path = path_temp.joinpath(file_name)
