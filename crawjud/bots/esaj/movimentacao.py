@@ -12,7 +12,6 @@ from time import sleep
 from typing import Self
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
@@ -211,7 +210,7 @@ class Movimentacao(ESajBot):
         if encontrado is False:
             raise ExecutionError(message="Nenhuma movimentação encontrada")
 
-    def filter_moves(self, move: WebElement) -> bool:
+    def filter_moves(self, move) -> bool:
         """Filter a movement element based on given date and keyword criteria.
 
         Args:
@@ -536,7 +535,7 @@ class Movimentacao(ESajBot):
 
         # Inline: Scroll to element, reveal table, then iterate through rows.
         """
-        show_all: WebElement = self.wait.until(
+        show_all = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'a[id="linkmovimentacoes"]',

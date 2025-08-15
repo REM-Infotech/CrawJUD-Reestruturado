@@ -7,15 +7,14 @@ Classes:
     Andamentos: Manages process progress by extending the CrawJUD base class
 """
 
-import time
+from __future__ import annotations
+
 import traceback
 from contextlib import suppress
 from time import sleep
-from typing import Self
 
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -25,40 +24,6 @@ from crawjud.interfaces.controllers.bots.systems.elaw import ElawBot
 
 class Andamentos(ElawBot):
     """The Andamentos class manages the andamento tracking bot."""
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize bot instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Andamentos instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute the main processing loop for andamentos.
@@ -127,7 +92,7 @@ class Andamentos(ElawBot):
             search = self.search_bot()
             if search is True:
                 btn_newmove = self.elements.botao_andamento
-                new_move: WebElement = self.wait.until(
+                new_move = self.wait.until(
                     ec.presence_of_element_located((By.CSS_SELECTOR, btn_newmove)),
                 )
                 new_move.click()
@@ -170,7 +135,7 @@ class Andamentos(ElawBot):
             self.type_log = "log"
             self.prt()
             css_Data = self.elements.input_data  # noqa: N806
-            campo_data: WebElement = self.wait.until(
+            campo_data = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_Data)),
             )
             campo_data.click()
@@ -293,7 +258,7 @@ class Andamentos(ElawBot):
             ) from e
 
         try:
-            check_save: WebElement = WebDriverWait(self.driver, 10).until(
+            check_save = WebDriverWait(self.driver, 10).until(
                 ec.url_to_be("https://amazonas.elaw.com.br/processoView.elaw"),
             )
             if check_save:

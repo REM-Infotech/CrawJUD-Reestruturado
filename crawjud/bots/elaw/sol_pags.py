@@ -23,7 +23,6 @@ from zoneinfo import ZoneInfo
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -162,7 +161,7 @@ class SolPags(ElawBot):
 
         """
         try:
-            tab_pagamentos: WebElement = self.wait.until(
+            tab_pagamentos = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.valor_pagamento,
@@ -170,7 +169,7 @@ class SolPags(ElawBot):
             )
             tab_pagamentos.click()
 
-            novo_pgto: WebElement = self.wait.until(
+            novo_pgto = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.botao_novo_pagamento,
@@ -199,7 +198,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            type_itens: WebElement = self.wait.until(
+            type_itens = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_typeitens,
@@ -209,7 +208,7 @@ class SolPags(ElawBot):
 
             sleep(0.5)
 
-            list_itens: WebElement = self.wait.until(
+            list_itens = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.listitens_css,
@@ -218,7 +217,7 @@ class SolPags(ElawBot):
             list_itens = list_itens.find_elements(By.TAG_NAME, "li")
 
             for item in list_itens:
-                item: WebElement = item
+                item = item
 
                 normalizado_text = self.format_string(item.text)
 
@@ -254,7 +253,7 @@ class SolPags(ElawBot):
             self.prt()
 
             text = self.bot_data.get("VALOR_GUIA")
-            element: WebElement = self.wait.until(
+            element = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_element,
@@ -271,7 +270,7 @@ class SolPags(ElawBot):
 
             self.interact.sleep_load('div[id="j_id_2x"]')
 
-            div_type_doc: WebElement = self.wait.until(
+            div_type_doc = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.type_doc_css,
@@ -280,7 +279,7 @@ class SolPags(ElawBot):
             div_type_doc.click()
             sleep(0.5)
 
-            list_type_doc: WebElement = self.wait.until(
+            list_type_doc = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.list_type_doc_css,
@@ -289,7 +288,7 @@ class SolPags(ElawBot):
             list_type_doc = list_type_doc.find_elements(By.TAG_NAME, "li")
 
             for item in list_type_doc:
-                item: WebElement = item
+                item = item
                 if item.text.lower() == "guia de pagamento":
                     item.click()
                     break
@@ -312,7 +311,7 @@ class SolPags(ElawBot):
 
             for doc in docs:
                 doc = self.format_string(doc.upper())
-                insert_doc: WebElement = self.wait.until(
+                insert_doc = self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.editar_pagamento,
@@ -327,7 +326,7 @@ class SolPags(ElawBot):
             self.message = "Informando tipo de condenação"
             self.type_log = "log"
             self.prt()
-            div_condenacao_type: WebElement = self.wait.until(
+            div_condenacao_type = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_div_condenacao_type,
@@ -358,7 +357,7 @@ class SolPags(ElawBot):
 
             desc_pagamento = str(self.bot_data.get("DESC_PAGAMENTO"))
 
-            desc_pgto: WebElement = self.wait.until(
+            desc_pgto = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_desc_pgto,
@@ -381,7 +380,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            data_lancamento: WebElement = self.wait.until(
+            data_lancamento = self.wait.until(
                 ec.element_to_be_clickable((By.CSS_SELECTOR, self.elements.css_data)),
             )
             data_lancamento.click()
@@ -396,7 +395,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            input_favorecido: WebElement = WebDriverWait(self.driver, 10).until(
+            input_favorecido = WebDriverWait(self.driver, 10).until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_inputfavorecido,
@@ -410,7 +409,7 @@ class SolPags(ElawBot):
                 self.bot_data.get("CNPJ_FAVORECIDO", "00.360.305/0001-04"),
             )
 
-            result_favorecido: WebElement = WebDriverWait(self.driver, 10).until(
+            result_favorecido = WebDriverWait(self.driver, 10).until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.resultado_favorecido,
@@ -435,7 +434,7 @@ class SolPags(ElawBot):
 
             self.interact.sleep_load('div[id="j_id_2x"]')
 
-            campo_cod_barras: WebElement = self.wait.until(
+            campo_cod_barras = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_cod_bars,
@@ -455,7 +454,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            centro_custas: WebElement = self.wait.until(
+            centro_custas = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_centro_custas,
@@ -473,7 +472,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            div_conta_debito: WebElement = self.wait.until(
+            div_conta_debito = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.css_div_conta_debito,
@@ -507,7 +506,7 @@ class SolPags(ElawBot):
 
             valor_doc = self.bot_data.get("VALOR_GUIA").replace(".", ",")
 
-            element: WebElement = self.wait.until(
+            element = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.valor_guia,
@@ -526,7 +525,7 @@ class SolPags(ElawBot):
 
             sleep(0.5)
 
-            list_tipo_doc: WebElement = self.wait.until(
+            list_tipo_doc = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.type_doc_css,
@@ -547,7 +546,7 @@ class SolPags(ElawBot):
 
             for doc in docs:
                 doc = self.format_string(doc)
-                insert_doc: WebElement = self.wait.until(
+                insert_doc = self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.editar_pagamento,
@@ -555,7 +554,7 @@ class SolPags(ElawBot):
                 )
                 insert_doc.send_keys(f"{self.output_dir_path}/{doc}")
 
-                wait_upload: WebElement = (
+                wait_upload = (
                     WebDriverWait(self.driver, 20)
                     .until(
                         ec.presence_of_element_located((
@@ -573,7 +572,7 @@ class SolPags(ElawBot):
 
             solicitante = str(self.bot_data.get("SOLICITANTE")).lower()
             if solicitante == "monitoria" or solicitante.lower() == "monitória":
-                desc_pgto: WebElement = self.wait.until(
+                desc_pgto = self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.css_desc_pgto,
@@ -596,7 +595,7 @@ class SolPags(ElawBot):
             sleep(1)
 
             tipo_guia = str(self.bot_data.get("TIPO_GUIA"))
-            list_tipo_custa: WebElement = self.wait.until(
+            list_tipo_custa = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_listcusta,
@@ -604,7 +603,7 @@ class SolPags(ElawBot):
             )
             list_tipo_custa = list_tipo_custa.find_elements(By.TAG_NAME, "li")
             for item in list_tipo_custa:
-                item: WebElement = item
+                item = item
                 if tipo_guia.lower() == item.text.lower():
                     sleep(0.5)
                     item.click()
@@ -638,7 +637,7 @@ class SolPags(ElawBot):
 
             self.interact.sleep_load('div[id="j_id_2x"]')
 
-            campo_cod_barras: WebElement = self.wait.until(
+            campo_cod_barras = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_cod_bars,
@@ -656,7 +655,7 @@ class SolPags(ElawBot):
             self.prt()
 
             sleep(2)
-            input_favorecido: WebElement = self.wait.until(
+            input_favorecido = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_inputfavorecido,
@@ -670,7 +669,7 @@ class SolPags(ElawBot):
                 self.bot_data.get("CNPJ_FAVORECIDO", "04.812.509/0001-90"),
             )
 
-            result_favorecido: WebElement = self.wait.until(
+            result_favorecido = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.resultado_favorecido,
@@ -687,7 +686,7 @@ class SolPags(ElawBot):
 
             sleep(1)
 
-            centro_custas: WebElement = self.wait.until(
+            centro_custas = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_centro_custas,
@@ -702,7 +701,7 @@ class SolPags(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            div_conta_debito: WebElement = self.wait.until(
+            div_conta_debito = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_div_conta_debito,
@@ -737,7 +736,7 @@ class SolPags(ElawBot):
             self.message = "Salvando alterações"
             self.type_log = "log"
             self.prt()
-            save: WebElement = self.wait.until(
+            save = self.wait.until(
                 ec.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     self.elements.botao_salvar_pagamento,
@@ -759,7 +758,7 @@ class SolPags(ElawBot):
 
         """
         try:
-            tab_pagamentos: WebElement = self.wait.until(
+            tab_pagamentos = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.valor_pagamento,
@@ -767,7 +766,7 @@ class SolPags(ElawBot):
             )
             tab_pagamentos.click()
 
-            enter_table: WebElement = (
+            enter_table = (
                 self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,

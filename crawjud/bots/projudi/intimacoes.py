@@ -151,7 +151,7 @@ class Intimacoes(ProjudiBot):
         )
         select.select_by_value("100")
 
-    def calculate_pages(self, aba_intimacoes: WebElement) -> int:
+    def calculate_pages(self, aba_intimacoes) -> int:
         """Calculate the total number of intimation pages using table info.
 
         Args:
@@ -255,7 +255,7 @@ class Intimacoes(ProjudiBot):
 
     def get_intimacoes(
         self,
-        aba_intimacoes: WebElement,
+        aba_intimacoes,
     ) -> tuple[list[WebElement], list[WebElement]]:
         """Retrieve the header and row elements from the intimações table.
 

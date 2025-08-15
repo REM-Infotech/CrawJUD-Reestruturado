@@ -15,7 +15,6 @@ from typing import Self
 
 from pypdf import PdfReader
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
@@ -164,7 +163,7 @@ class Emissor(CrawJUD):
             "https://depositojudicial.caixa.gov.br/sigsj_internet/depositos-judiciais/justica-estadual/",
         )
         sleep(0.5)
-        list_opt: WebElement = self.wait.until(
+        list_opt = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'select[id="j_id5:filtroView:j_id6:tpDeposito"]',
@@ -180,7 +179,7 @@ class Emissor(CrawJUD):
                 break
 
         sleep(0.5)
-        captchainput: WebElement = self.wait.until(
+        captchainput = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'input[id="autoCaptcha"',
@@ -188,7 +187,7 @@ class Emissor(CrawJUD):
         )
         val_captcha = captchainput.get_attribute("value")
 
-        inputcaptcha: WebElement = self.wait.until(
+        inputcaptcha = self.wait.until(
             ec.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
@@ -205,7 +204,7 @@ class Emissor(CrawJUD):
         next_btn.click()
 
         sleep(2)
-        next_btn: WebElement = self.wait.until(
+        next_btn = self.wait.until(
             ec.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
@@ -226,7 +225,7 @@ class Emissor(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        lista_tribunal: WebElement = self.wait.until(
+        lista_tribunal = self.wait.until(
             ec.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
@@ -235,7 +234,7 @@ class Emissor(CrawJUD):
             ),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_tribunal:
-            item: WebElement = item
+            item = item
             if str(self.bot_data.get("TRIBUNAL")).lower() in item.text.lower():
                 item.click()
                 break
@@ -246,14 +245,14 @@ class Emissor(CrawJUD):
         self.type_log = "log"
         self.prt()
 
-        lista_comarca: WebElement = self.wait.until(
+        lista_comarca = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'select[id="j_id5:filtroView:formFormulario:coComarca"]',
             )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_comarca:
-            item: WebElement = item
+            item = item
             if str(self.bot_data.get("COMARCA")).lower() in item.text.lower():
                 item.click()
                 break
@@ -262,14 +261,14 @@ class Emissor(CrawJUD):
         self.message = "Informando vara"
         self.type_log = "log"
         self.prt()
-        lista_vara: WebElement = self.wait.until(
+        lista_vara = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'select[id="j_id5:filtroView:formFormulario:coVara"]',
             )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_vara:
-            item: WebElement = item
+            item = item
             if str(self.bot_data.get("VARA")).lower() in item.text.lower():
                 item.click()
                 break
@@ -278,14 +277,14 @@ class Emissor(CrawJUD):
         self.message = "Informando agencia"
         self.type_log = "log"
         self.prt()
-        lista_agencia: WebElement = self.wait.until(
+        lista_agencia = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 'select[id="j_id5:filtroView:formFormulario:coAgencia"]',
             )),
         ).find_elements(By.TAG_NAME, "option")
         for item in lista_agencia:
-            item: WebElement = item
+            item = item
             if str(self.bot_data.get("AGENCIA")).lower() in item.text.lower():
                 item.click()
                 break
@@ -305,7 +304,7 @@ class Emissor(CrawJUD):
         self.message = "Informando numero do processo"
         self.type_log = "log"
         self.prt()
-        num_process: WebElement = self.wait.until(
+        num_process = self.wait.until(
             ec.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
@@ -324,7 +323,7 @@ class Emissor(CrawJUD):
             'select[id="j_id5:filtroView:formFormulario:idOrigemAcao"]',
         ).find_elements(By.TAG_NAME, "option")
         for item in list_type_acao_process:
-            item: WebElement = item
+            item = item
             if str(self.bot_data.get("TIPO_ACAO")).lower() in item.text.lower():
                 item.click()
                 break
@@ -370,7 +369,7 @@ class Emissor(CrawJUD):
         ).find_elements(By.TAG_NAME, "option")
 
         for item in doctype_autor:
-            item: WebElement = item
+            item = item
             if item.text.lower() == doct_type.lower():
                 item.click()
                 break

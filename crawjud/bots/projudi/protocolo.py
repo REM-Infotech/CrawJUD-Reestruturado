@@ -328,7 +328,7 @@ class Protocolo(ProjudiBot):
             self.message = "Informando tipo de protocolo..."
             self.type_log = "log"
             self.prt()
-            input_tipo_move: WebElement = self.wait.until(
+            input_tipo_move = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'input[name="descricaoTipoDocumento"]',
@@ -340,7 +340,7 @@ class Protocolo(ProjudiBot):
 
             sleep(1.5)
 
-            input_move_option: WebElement = self.wait.until(
+            input_move_option = self.wait.until(
                 ec.presence_of_element_located(
                     (
                         By.CSS_SELECTOR,
@@ -386,7 +386,7 @@ class Protocolo(ProjudiBot):
 
             file_inpt = Path(self.path_args).parent.resolve()
             css_inptfile = 'input[id="conteudo"]'
-            input_file_element: WebElement = WebDriverWait(self.driver, 10).until(
+            input_file_element = WebDriverWait(self.driver, 10).until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_inptfile)),
             )
 
@@ -403,7 +403,7 @@ class Protocolo(ProjudiBot):
             self.prt()
 
             sleep(1)
-            type_file: WebElement = self.wait.until(
+            type_file = self.wait.until(
                 ec.presence_of_element_located((By.ID, "tipo0")),
             )
             type_file.click()
@@ -428,7 +428,7 @@ class Protocolo(ProjudiBot):
 
         """
         try:
-            tablefiles: WebElement = self.wait.until(
+            tablefiles = self.wait.until(
                 ec.presence_of_element_located((By.CLASS_NAME, "resultTable")),
             )
             checkfiles = tablefiles.find_element(By.TAG_NAME, "tbody").find_elements(
@@ -467,7 +467,7 @@ class Protocolo(ProjudiBot):
                 file_to_upload = self.format_string(file)
                 self.type_log = "log"
                 self.prt()
-                input_file_element: WebElement = WebDriverWait(self.driver, 10).until(
+                input_file_element = WebDriverWait(self.driver, 10).until(
                     ec.presence_of_element_located((
                         By.XPATH,
                         self.elements.conteudo,
@@ -483,7 +483,7 @@ class Protocolo(ProjudiBot):
             self.prt()
 
             sleep(3)
-            tablefiles: WebElement = self.wait.until(
+            tablefiles = self.wait.until(
                 ec.presence_of_element_located((By.CLASS_NAME, "resultTable")),
             )
             checkfiles = tablefiles.find_element(By.TAG_NAME, "tbody").find_elements(
@@ -537,7 +537,7 @@ class Protocolo(ProjudiBot):
 
             check_p_element = ""
             with suppress(TimeoutException):
-                check_p_element: WebElement = WebDriverWait(
+                check_p_element = WebDriverWait(
                     self.driver,
                     5,
                     0.01,
@@ -661,7 +661,7 @@ class Protocolo(ProjudiBot):
         """Delete the uploaded files from the protocol after processing."""
         tablefiles = None
         with suppress(TimeoutException):
-            tablefiles: WebElement = WebDriverWait(self.driver, 5).until(
+            tablefiles = WebDriverWait(self.driver, 5).until(
                 ec.presence_of_element_located((By.CLASS_NAME, "resultTable")),
             )
 
@@ -703,7 +703,7 @@ class Protocolo(ProjudiBot):
         """Wait until the progress bar completes the file upload or processing."""
         while True:
             with suppress(Exception):
-                divprogressbar: WebElement = self.wait.until(
+                divprogressbar = self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         self.elements.css_containerprogressbar,

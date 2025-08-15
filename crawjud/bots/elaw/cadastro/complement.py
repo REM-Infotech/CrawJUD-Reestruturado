@@ -13,15 +13,11 @@ Attributes:
 """
 
 from time import sleep
-from typing import TYPE_CHECKING
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.interfaces.controllers.bots.systems.elaw import ElawBot
-
-if TYPE_CHECKING:
-    from selenium.webdriver.remote.webelement import WebElement
 
 type_doc = {11: "cpf", 14: "cnpj"}
 
@@ -88,7 +84,7 @@ class CadastroComplementar(ElawBot):
         self.type_log = "log"
         self.prt()
 
-        input_uc: WebElement = self.wait.until(
+        input_uc = self.wait.until(
             ec.presence_of_element_located((By.XPATH, self.elements.css_input_uc)),
         )
         input_uc.click()
@@ -223,7 +219,7 @@ class CadastroComplementar(ElawBot):
         self.type_log = "log"
         self.prt()
 
-        data_citacao: WebElement = self.wait.until(
+        data_citacao = self.wait.until(
             ec.presence_of_element_located((By.XPATH, self.elements.data_citacao)),
         )
         self.interact.clear(data_citacao)

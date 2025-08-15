@@ -156,7 +156,7 @@ class BuscaPags(ESajBot):
 
         # Inline: Use Selenium to get the onclick attribute and redirect.
         """
-        generatepdf: WebElement = self.wait.until(
+        generatepdf = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.get_page_custas_pagas,

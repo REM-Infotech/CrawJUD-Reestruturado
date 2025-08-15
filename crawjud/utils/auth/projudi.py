@@ -16,7 +16,6 @@ from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot
 
 if TYPE_CHECKING:
     from selenium.webdriver.common.alert import Alert
-    from selenium.webdriver.remote.webelement import WebElement
 
 
 class ProjudiAuth(ProjudiBot):
@@ -31,7 +30,7 @@ class ProjudiAuth(ProjudiBot):
 
             self.driver.refresh()
 
-            username: WebElement = self.wait.until(
+            username = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.campo_username,

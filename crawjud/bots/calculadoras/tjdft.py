@@ -11,7 +11,7 @@ import time
 import traceback
 from contextlib import suppress
 from time import sleep
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -22,9 +22,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.interfaces.controllers.bots.master import CrawJUD
-
-if TYPE_CHECKING:
-    from selenium.webdriver.remote.webelement import WebElement
 
 cookieaceito = []
 
@@ -185,7 +182,7 @@ class Tjdft(CrawJUD):
                 aceitar_cookies_css = (
                     'button[class="btn btn-primary btn-sm acceptcookies"]'
                 )
-                aceitar_cookies: WebElement = self.driver.find_element(
+                aceitar_cookies = self.driver.find_element(
                     By.CSS_SELECTOR,
                     aceitar_cookies_css,
                 )
@@ -213,7 +210,7 @@ class Tjdft(CrawJUD):
             self.type_log = "log"
             self.prt()
             css_input_numproc = 'input[id="num_processo"][name="num_processo"]'
-            get_input_process: WebElement = self.wait.until(
+            get_input_process = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_input_numproc)),
             )
             get_input_process.click()
@@ -247,7 +244,7 @@ class Tjdft(CrawJUD):
             self.message = "Informando requerente"
             self.type_log = "log"
             self.prt()
-            get_name_requerente: WebElement = self.wait.until(
+            get_name_requerente = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     css_name_requerente,
@@ -281,7 +278,7 @@ class Tjdft(CrawJUD):
             self.message = "Informado requerido"
             self.type_log = "log"
             self.prt()
-            get_name_requerido: WebElement = self.wait.until(
+            get_name_requerido = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_name_requerido)),
             )
             get_name_requerido.click()
@@ -380,7 +377,7 @@ class Tjdft(CrawJUD):
             self.message = "Informando data valor devido"
             self.type_log = "log"
             self.prt()
-            data_valor_devido: WebElement = self.wait.until(
+            data_valor_devido = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     css_data_valor_devido,
@@ -394,7 +391,7 @@ class Tjdft(CrawJUD):
             self.message = "Informando valor devido"
             self.type_log = "log"
             self.prt()
-            valor_devido: WebElement = self.wait.until(
+            valor_devido = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_valor_devido)),
             )
             valor_devido.click()
@@ -431,7 +428,7 @@ class Tjdft(CrawJUD):
                 self.prt()
 
                 if self.bot_data.get("MULTA_PERCENTUAL", None):
-                    multa_percentual: WebElement = self.wait.until(
+                    multa_percentual = self.wait.until(
                         ec.presence_of_element_located((
                             By.CSS_SELECTOR,
                             css_multa_percentual,
@@ -484,7 +481,7 @@ class Tjdft(CrawJUD):
                 disabled_state = ""
 
                 if self.bot_data.get("HONORARIO_SUCUMB_PERCENT", None):
-                    honorario_sucumb: WebElement = self.wait.until(
+                    honorario_sucumb = self.wait.until(
                         ec.presence_of_element_located((
                             By.CSS_SELECTOR,
                             css_honorario_sucumb,
@@ -572,7 +569,7 @@ class Tjdft(CrawJUD):
                 disabled_state = ""
 
                 if self.bot_data.get("HONORARIO_CUMPRIMENTO_PERCENT", None):
-                    honorario_exec: WebElement = self.wait.until(
+                    honorario_exec = self.wait.until(
                         ec.presence_of_element_located((
                             By.CSS_SELECTOR,
                             css_honorario_exec,
@@ -639,7 +636,7 @@ class Tjdft(CrawJUD):
                 self.message = "Informando valor custas"
                 self.type_log = "log"
                 self.prt()
-                data_custas: WebElement = self.driver.find_element(
+                data_custas = self.driver.find_element(
                     By.CSS_SELECTOR,
                     css_data_custas,
                 )
@@ -651,7 +648,7 @@ class Tjdft(CrawJUD):
                 self.message = "Informando valor devido"
                 self.type_log = "log"
                 self.prt()
-                custas_valor: WebElement = self.driver.find_element(
+                custas_valor = self.driver.find_element(
                     By.CSS_SELECTOR,
                     css_custas_valor,
                 )
@@ -694,7 +691,7 @@ class Tjdft(CrawJUD):
             calcular = self.driver.find_element(By.CSS_SELECTOR, css_calcular)
             calcular.click()
 
-            table_valorcalc: WebElement = self.wait.until(
+            table_valorcalc = self.wait.until(
                 ec.presence_of_all_elements_located((
                     By.CSS_SELECTOR,
                     'table[class="grid listing"]',

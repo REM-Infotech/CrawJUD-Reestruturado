@@ -16,7 +16,6 @@ from typing import Self
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -194,7 +193,7 @@ class Protocolo(ESajBot):
                     "log",
                     "Processo encontrado! Inicializando peticionamento...",
                 )
-                button_peticionamento: WebElement = WebDriverWait(
+                button_peticionamento = WebDriverWait(
                     self.driver,
                     10,
                 ).until(
@@ -205,7 +204,7 @@ class Protocolo(ESajBot):
                 sleep(5)
 
             except Exception:
-                button_enterproc: WebElement = WebDriverWait(self.driver, 5).until(
+                button_enterproc = WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
                         "#processoSelecionado",
@@ -213,14 +212,14 @@ class Protocolo(ESajBot):
                 )
                 button_enterproc.click()
 
-                enterproc: WebElement = WebDriverWait(self.driver, 5).until(
+                enterproc = WebDriverWait(self.driver, 5).until(
                     ec.element_to_be_clickable((
                         By.CSS_SELECTOR,
                         "#botaoEnviarIncidente",
                     )),
                 )
                 enterproc.click()
-                button_peticionamento: WebElement = WebDriverWait(
+                button_peticionamento = WebDriverWait(
                     self.driver,
                     10,
                 ).until(
@@ -248,7 +247,7 @@ class Protocolo(ESajBot):
         try:
             self.interact.sleep_load('div[id="loadFeedback"]')
             self.prt.print_log("log", "Informando tipo de peticionamento")
-            button_classification: WebElement = self.wait.until(
+            button_classification = self.wait.until(
                 ec.presence_of_element_located((
                     By.ID,
                     self.elements.editar_classificacao,
@@ -256,7 +255,7 @@ class Protocolo(ESajBot):
             )
             self.interact.click(button_classification)
 
-            select_tipo_peticao: WebElement = self.wait.until(
+            select_tipo_peticao = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.selecionar_classe,
@@ -268,7 +267,7 @@ class Protocolo(ESajBot):
             )
             self.interact.click(select_tipo_peticao)
 
-            input_tipo_peticao: WebElement = self.wait.until(
+            input_tipo_peticao = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.input_classe,
@@ -299,7 +298,7 @@ class Protocolo(ESajBot):
         """
         try:
             self.prt.print_log("log", "Informando subtipo de peticionamento")
-            select_categoria_peticao: WebElement = self.wait.until(
+            select_categoria_peticao = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.select_categoria,
@@ -311,7 +310,7 @@ class Protocolo(ESajBot):
             )
             self.interact.click(select_categoria_peticao)
 
-            input_categoria_peticao: WebElement = self.wait.until(
+            input_categoria_peticao = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.input_categoria,
@@ -322,7 +321,7 @@ class Protocolo(ESajBot):
                 self.bot_data.get("SUBTIPO_PROTOCOLO"),
             )
 
-            input_categoria_peticao_option: WebElement = self.wait.until(
+            input_categoria_peticao_option = self.wait.until(
                 ec.presence_of_element_located((
                     By.XPATH,
                     self.elements.selecionar_grupo,
@@ -349,7 +348,7 @@ class Protocolo(ESajBot):
         """
         try:
             self.prt.print_log("log", "Anexando petição")
-            input_file: WebElement = self.wait.until(
+            input_file = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.input_documento,
@@ -371,7 +370,7 @@ class Protocolo(ESajBot):
 
             file_uploaded = ""
             with suppress(TimeoutException):
-                file_uploaded: WebElement = WebDriverWait(self.driver, 25).until(
+                file_uploaded = WebDriverWait(self.driver, 25).until(
                     ec.presence_of_element_located((
                         By.XPATH,
                         self.elements.documento,
@@ -400,7 +399,7 @@ class Protocolo(ESajBot):
         try:
             parte_peticao = self.bot_data.get("PARTE_PETICIONANTE").__str__().lower()
             self.prt.print_log("log", "Vinculando parte a petição...")
-            partes: WebElement = self.wait.until(
+            partes = self.wait.until(
                 ec.presence_of_all_elements_located((
                     By.CSS_SELECTOR,
                     self.elements.processo_view,
@@ -408,7 +407,7 @@ class Protocolo(ESajBot):
             )
             if partes:
                 for parte in partes:
-                    parte: WebElement = parte
+                    parte = parte
                     parte_name = parte.find_element(
                         By.CSS_SELECTOR,
                         self.elements.nome,
@@ -481,7 +480,7 @@ class Protocolo(ESajBot):
         finish_button.click()
         sleep(5)
 
-        confirm_button: WebElement = self.wait.until(
+        confirm_button = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.botao_confirmar,
@@ -504,7 +503,7 @@ class Protocolo(ESajBot):
 
         """
         try:
-            getlinkrecibo: WebElement = WebDriverWait(self.driver, 60).until(
+            getlinkrecibo = WebDriverWait(self.driver, 60).until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.botao_recibo,

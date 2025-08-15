@@ -9,7 +9,6 @@ from contextlib import suppress
 from datetime import datetime, timedelta
 from pathlib import Path
 from time import sleep
-from typing import TYPE_CHECKING
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -24,9 +23,6 @@ from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task
 from crawjud.interfaces.controllers.bots.systems.pje import PjeBot
-
-if TYPE_CHECKING:
-    from selenium.webdriver.remote.webelement import WebElement
 
 
 @shared_task(name="pje.pauta", bind=True, base=ContextTask)
@@ -176,8 +172,8 @@ class Pauta(PjeBot):
         try:
             self.driver.implicitly_wait(10)
             times = 4
-            itens_pautas: WebElement = None
-            table_pautas: WebElement = self.wait.until(
+            itens_pautas = None
+            table_pautas = self.wait.until(
                 ec.all_of(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,

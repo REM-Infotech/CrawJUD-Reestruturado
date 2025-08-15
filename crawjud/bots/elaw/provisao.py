@@ -22,7 +22,6 @@ from typing import Self
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
@@ -200,7 +199,7 @@ class Provisao(ElawBot):
             self.type_log = "info"
             self.prt()
 
-        edit_button: WebElement = self.wait.until(
+        edit_button = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.css_btn_edit,
@@ -235,7 +234,7 @@ class Provisao(ElawBot):
             str: Description of the process values.
 
         """
-        get_valores: WebElement = self.wait.until(
+        get_valores = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.ver_valores,
@@ -243,7 +242,7 @@ class Provisao(ElawBot):
         )
         get_valores.click()
 
-        check_exists_provisao: WebElement = self.wait.until(
+        check_exists_provisao = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.table_valores_css,
@@ -252,7 +251,7 @@ class Provisao(ElawBot):
         check_exists_provisao = check_exists_provisao.find_elements(By.TAG_NAME, "tr")
 
         for item in check_exists_provisao:
-            item: WebElement = item
+            item = item
             item_text = str(item.text).split("\n")  # noqa: F841
             valueprovisao = item.find_elements(By.TAG_NAME, "td")[0].text
             with suppress(NoSuchElementException):
@@ -274,7 +273,7 @@ class Provisao(ElawBot):
 
         """
         try:
-            div_tipo_obj: WebElement = self.wait.until(
+            div_tipo_obj = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.div_tipo_obj_css,
@@ -283,7 +282,7 @@ class Provisao(ElawBot):
 
             div_tipo_obj.click()
 
-            item_obj_div: WebElement = (
+            item_obj_div = (
                 self.wait.until(
                     ec.presence_of_element_located((
                         By.CSS_SELECTOR,
@@ -316,7 +315,7 @@ class Provisao(ElawBot):
 
     def edit_valor(self) -> None:
         """Edit an existing value entry."""
-        editar_pedido: WebElement = self.wait.until(
+        editar_pedido = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.botao_editar,
@@ -405,7 +404,7 @@ class Provisao(ElawBot):
                 './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
             )
 
-            # def filter_risk(x: WebElement) -> bool:
+            # def filter_risk(x) -> bool:
             #     td_values = x.find_elements(By.TAG_NAME, "td")
             #     input_values = td_values[9].find_element(By.CSS_SELECTOR, 'input[id*="_input"]')
             #     value_attribute = input_values.get_attribute("value")
@@ -529,7 +528,7 @@ class Provisao(ElawBot):
             self.message = "Informando justificativa"
             self.type_log = "log"
             self.prt()
-            informar_motivo: WebElement = self.wait.until(
+            informar_motivo = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.texto_motivo,
@@ -565,7 +564,7 @@ class Provisao(ElawBot):
 
         check_provisao_atualizada = None
         with suppress(TimeoutException):
-            check_provisao_atualizada: WebElement = self.wait.until(
+            check_provisao_atualizada = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     "#valoresGeralPanel_header > span",

@@ -16,7 +16,6 @@ from time import sleep
 from typing import Self
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
@@ -170,7 +169,7 @@ class Download(ElawBot):
         self.message = "Acessando página de anexos"
         self.type_log = "log"
         self.prt()
-        anexosbutton: WebElement = self.wait.until(
+        anexosbutton = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.anexosbutton_css,
@@ -189,7 +188,7 @@ class Download(ElawBot):
             DocumentDownloadError: If an error occurs during downloading.
 
         """
-        table_doc: WebElement = self.wait.until(
+        table_doc = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.css_table_doc,
@@ -213,7 +212,7 @@ class Download(ElawBot):
         self.prt()
 
         for item in table_doc:
-            item: WebElement = item
+            item = item
             get_name_file = str(
                 item.find_elements(By.TAG_NAME, "td")[3]
                 .find_element(By.TAG_NAME, "a")

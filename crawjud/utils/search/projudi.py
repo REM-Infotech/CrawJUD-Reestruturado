@@ -19,7 +19,6 @@ from crawjud.interfaces.controllers.bots.systems.projudi import ProjudiBot
 if TYPE_CHECKING:
     from httpx import Client
     from selenium.webdriver.remote.webdriver import WebDriver
-    from selenium.webdriver.remote.webelement import WebElement
 
     from crawjud.interfaces.dict.bot import BotData
     from crawjud.interfaces.types.pje import DictResults
@@ -109,7 +108,7 @@ class ProjudiSearch(ProjudiBot):
                 return False
 
             with suppress(TimeoutException):
-                enterproc: WebElement = WebDriverWait(self.driver, 5).until(
+                enterproc = WebDriverWait(self.driver, 5).until(
                     ec.presence_of_element_located((By.CLASS_NAME, "link")),
                 )
 
@@ -213,7 +212,7 @@ class ProjudiSearch(ProjudiBot):
         sleep(3)
 
         with suppress(TimeoutException):
-            enterproc: WebElement = self.wait.until(
+            enterproc = self.wait.until(
                 ec.presence_of_element_located((By.CLASS_NAME, "link")),
             )
 

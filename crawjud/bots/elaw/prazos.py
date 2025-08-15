@@ -220,7 +220,7 @@ class Prazos(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            selectortipoaudiencia: WebElement = self.wait.until(
+            selectortipoaudiencia = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.selectortipoaudiencia,
@@ -252,7 +252,7 @@ class Prazos(ElawBot):
             self.type_log = "log"
             self.prt()
 
-            DataAudiencia: WebElement = self.wait.until(  # noqa: N806
+            DataAudiencia = self.wait.until(  # noqa: N806
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.DataAudiencia,
@@ -303,7 +303,7 @@ class Prazos(ElawBot):
 
         """
         try:
-            tableprazos: WebElement = self.wait.until(
+            tableprazos = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.tableprazos,

@@ -314,7 +314,7 @@ class Capa(ProjudiBot):
 
     def _extrai_tabela_info_geral(
         self,
-        incl: WebElement,
+        incl,
         process_info: dict[str, str | int | datetime],
     ) -> None:
         """Extrai dados das tabelas de informações gerais.
@@ -499,7 +499,7 @@ class Capa(ProjudiBot):
 
     def _extrai_tabela_partes(
         self,
-        parte_info: WebElement,
+        parte_info,
         nome_colunas: list[str],
         tipo_parte: str,
         process_info: dict[str, str | int | datetime],

@@ -207,7 +207,7 @@ class Movimentacao(ProjudiBot):
         if encontrado is False:
             raise ExecutionError(message="Nenhuma movimentação encontrada")
 
-    def filter_moves(self, move: WebElement) -> bool:
+    def filter_moves(self, move) -> bool:
         """Filter a movement element based on given date and keyword criteria.
 
         Args:
@@ -506,8 +506,8 @@ class Movimentacao(ProjudiBot):
 
         """
 
-        def getmovewithdoc(move: WebElement) -> bool:
-            def check_namemov(move: WebElement) -> bool:
+        def getmovewithdoc(move) -> bool:
+            def check_namemov(move) -> bool:
                 itensmove = move.find_elements(By.TAG_NAME, "td")
                 text_mov = itensmove[3].find_element(By.TAG_NAME, "b").text
                 return keyword.upper() == text_mov.upper()
@@ -516,7 +516,7 @@ class Movimentacao(ProjudiBot):
 
         return list(filter(getmovewithdoc, self.table_moves))
 
-    def movecontainsdoc(self, move: WebElement) -> bool:
+    def movecontainsdoc(self, move) -> bool:
         """Determine if a movement element includes an associated document.
 
         Args:
@@ -537,7 +537,7 @@ class Movimentacao(ProjudiBot):
 
         return expand is not None
 
-    def getdocmove(self, move: WebElement, save_in_anotherfile: bool = None) -> str:
+    def getdocmove(self, move, save_in_anotherfile: bool = None) -> str:
         """Extract the document text from the movement element.
 
         Args:
@@ -572,7 +572,7 @@ class Movimentacao(ProjudiBot):
         id_tr = expandattrib.replace("linkArquivos", "row")
         css_tr = f'tr[id="{id_tr}"]'
 
-        table_docs: WebElement = self.wait.until(
+        table_docs = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)),
         )
         style_expand = table_docs.get_attribute("style")
@@ -585,7 +585,7 @@ class Movimentacao(ProjudiBot):
         text_doc_1 = ""
 
         sleep(2)
-        table_docs: WebElement = self.wait.until(
+        table_docs = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, css_tr)),
         )
         rows = table_docs.find_elements(By.TAG_NAME, "tr")

@@ -92,7 +92,7 @@ class WebElementBot(WebElement):  # noqa: D101
     #         load = None
     #         aria_value = None
     #         with suppress(TimeoutException):
-    #             load: WebElement = WebDriverWait(self.driver, 5).until(
+    #             load = WebDriverWait(self.driver, 5).until(
     #                 ec.presence_of_element_located((By.CSS_SELECTOR, element)),
     #             )
 
@@ -138,7 +138,7 @@ class WebElementBot(WebElement):  # noqa: D101
             with suppress(NoSuchElementException):
                 check_wait = super().find_element(
                     By.CSS_SELECTOR,
-                    'div[id="modal:waitContainer"][style="position: absolute; z-index: 100; background-color: inherit; display: none;"]',  # noqa: E501
+                    'div[id="modal:waitContainer"][style="position: absolute; z-index: 100; background-color: inherit; display: none;"]',
                 )
 
             if check_wait:
@@ -178,7 +178,7 @@ class WebElementBot(WebElement):  # noqa: D101
             to_search (str): The option text to search and select.
 
         """
-        # selector: WebElement = self.wait.until(
+        # selector = self.wait.until(
         #     ec.presence_of_element_located((By.CSS_SELECTOR, element_select))
         # )
 

@@ -11,6 +11,8 @@ Attributes:
 
 """
 
+from __future__ import annotations
+
 import traceback
 from contextlib import suppress
 from pathlib import Path
@@ -19,7 +21,6 @@ from time import sleep
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -73,7 +74,7 @@ class PreCadastro(ElawBot):
         self.prt()
 
     def next_page(self) -> None:
-        next_page: WebElement = self.wait.until(
+        next_page = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.css_button,
@@ -247,7 +248,7 @@ class PreCadastro(ElawBot):
         self.type_log = "log"
         self.prt()
 
-        campo_processo: WebElement = self.wait.until(
+        campo_processo = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, css_campo_processo)),
             message="Erro ao encontrar elemento",
         )
@@ -358,7 +359,7 @@ class PreCadastro(ElawBot):
         self.select2_elaw(select_tipo_doc, tipo_doc)
 
         self.interact.sleep_load(ELEMENT_LOAD)
-        campo_doc: WebElement = self.wait.until(
+        campo_doc = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.css_campo_doc,
@@ -372,7 +373,7 @@ class PreCadastro(ElawBot):
         self.interact.send_key(campo_doc, self.bot_data.get("DOC_PARTE_CONTRARIA"))
         self.interact.sleep_load(ELEMENT_LOAD)
 
-        search_button_parte: WebElement = self.wait.until(
+        search_button_parte = self.wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.css_search_button,
@@ -423,7 +424,7 @@ class PreCadastro(ElawBot):
         self.interact.sleep_load(ELEMENT_LOAD)
 
         if str(self.bot_data.get("CAPITAL_INTERIOR")).lower() == "outro estado":
-            other_location: WebElement = self.wait.until(
+            other_location = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.css_other_location,
@@ -447,7 +448,7 @@ class PreCadastro(ElawBot):
         self.type_log = "log"
         self.prt()
 
-        div_comboProcessoTipo: WebElement = self.wait.until(  # noqa: N806
+        div_comboProcessoTipo = self.wait.until(  # noqa: N806
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 self.elements.comboProcessoTipo,
@@ -489,7 +490,7 @@ class PreCadastro(ElawBot):
         self.prt()
 
         self.interact.sleep_load(ELEMENT_LOAD)
-        data_distribuicao: WebElement = self.wait.until(
+        data_distribuicao = self.wait.until(
             ec.element_to_be_clickable((
                 By.CSS_SELECTOR,
                 self.elements.css_data_distribuicao,
@@ -523,7 +524,7 @@ class PreCadastro(ElawBot):
         self.type_log = "log"
         prt()
 
-        input_adv_responsavel: WebElement = wait.until(
+        input_adv_responsavel = wait.until(
             ec.presence_of_element_located((By.XPATH, elements.adv_responsavel)),
         )
         input_adv_responsavel.click()
@@ -538,7 +539,7 @@ class PreCadastro(ElawBot):
         wait_adv = None
 
         with suppress(TimeoutException):
-            wait_adv: WebElement = WebDriverWait(driver, 25).until(
+            wait_adv = WebDriverWait(driver, 25).until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_wait_adv)),
             )
 
@@ -585,7 +586,7 @@ class PreCadastro(ElawBot):
         self.message = "Informando Adv. Parte contrária"
         self.type_log = "log"
 
-        campo_adv: WebElement = wait.until(
+        campo_adv = wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, elements.css_input_adv)),
             message="Erro ao encontrar elemento",
         )
@@ -607,7 +608,7 @@ class PreCadastro(ElawBot):
         interact.sleep_load(ELEMENT_LOAD)
 
         with suppress(TimeoutException):
-            check_adv: WebElement = (
+            check_adv = (
                 WebDriverWait(driver, 15)
                 .until(
                     ec.presence_of_element_located((
@@ -653,7 +654,7 @@ class PreCadastro(ElawBot):
         self.type_log = "log"
         prt()
 
-        valor_causa: WebElement = wait.until(
+        valor_causa = wait.until(
             ec.presence_of_element_located((By.XPATH, elements.valor_causa)),
             message="Erro ao encontrar elemento",
         )
@@ -691,7 +692,7 @@ class PreCadastro(ElawBot):
         self.type_log = "log"
         prt()
 
-        div_escritrorioexterno: WebElement = wait.until(
+        div_escritrorioexterno = wait.until(
             ec.presence_of_element_located((By.XPATH, elements.escritrorio_externo)),
             message="Erro ao encontrar elemento",
         )
@@ -772,7 +773,7 @@ class PreCadastro(ElawBot):
             self.type_log = "log"
             prt()
 
-            add_parte: WebElement = wait.until(
+            add_parte = wait.until(
                 ec.presence_of_element_located((
                     By.XPATH,
                     elements.btn_novo_advogado_contra,
@@ -785,7 +786,7 @@ class PreCadastro(ElawBot):
 
             main_window = driver.current_window_handle
 
-            iframe: WebElement = WebDriverWait(driver, 10).until(
+            iframe = WebDriverWait(driver, 10).until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.iframe_cadastro_advogado_contra,
@@ -798,7 +799,7 @@ class PreCadastro(ElawBot):
 
             sleep(0.5)
 
-            naoinfomadoc: WebElement = wait.until(
+            naoinfomadoc = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.css_naoinfomadoc,
@@ -809,7 +810,7 @@ class PreCadastro(ElawBot):
 
             """ CORRIGIR """
             # sleep(0.5)
-            # continuebutton: WebElement = self.wait.until(
+            # continuebutton = self.wait.until(
             #     ec.presence_of_element_located(
             #         (By.CSS_SELECTOR, self.elements.bota_continuar)
             #     ),
@@ -821,7 +822,7 @@ class PreCadastro(ElawBot):
             """ CORRIGIR """
 
             sleep(0.5)
-            continuebutton: WebElement = wait.until(
+            continuebutton = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.botao_continuar,
@@ -833,7 +834,7 @@ class PreCadastro(ElawBot):
             interact.sleep_load('div[id="j_id_1o"]')
             sleep(0.5)
 
-            input_nomeadv: WebElement = wait.until(
+            input_nomeadv = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.css_input_nomeadv,
@@ -848,7 +849,7 @@ class PreCadastro(ElawBot):
             )
 
             sleep(0.05)
-            salvar: WebElement = wait.until(
+            salvar = wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, elements.salvarcss)),
                 message="Erro ao encontrar elemento",
             )
@@ -903,7 +904,7 @@ class PreCadastro(ElawBot):
             bot_data = self.bot_data
             select2_elaw = self.select2_elaw
 
-            add_parte: WebElement = wait.until(
+            add_parte = wait.until(
                 ec.presence_of_element_located((By.XPATH, elements.parte_contraria)),
                 message="Erro ao encontrar elemento",
             )
@@ -915,7 +916,7 @@ class PreCadastro(ElawBot):
 
             main_window = driver.current_window_handle
 
-            iframe: WebElement = WebDriverWait(driver, 10).until(
+            iframe = WebDriverWait(driver, 10).until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.iframe_cadastro_parte_contraria,
@@ -927,7 +928,7 @@ class PreCadastro(ElawBot):
             driver.get(link_iframe)
             sleep(0.5)
             with suppress(TimeoutException, NoSuchElementException):
-                set_infomar_cpf: WebElement = (
+                set_infomar_cpf = (
                     wait.until(
                         ec.presence_of_element_located((
                             By.CSS_SELECTOR,
@@ -962,7 +963,7 @@ class PreCadastro(ElawBot):
             if tipo_doc == "cnpj":
                 css_input_doc = elements.tipo_cnpj
 
-            input_doc: WebElement = wait.until(
+            input_doc = wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_input_doc)),
                 message="Erro ao encontrar elemento",
             )
@@ -977,7 +978,7 @@ class PreCadastro(ElawBot):
             continuar.click()
 
             interact.sleep_load('div[id="j_id_1o"]')
-            name_parte: WebElement = wait.until(
+            name_parte = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.css_name_parte,
@@ -994,7 +995,7 @@ class PreCadastro(ElawBot):
                 f"document.querySelector('{elements.css_name_parte}').blur()",
             )
 
-            save_parte: WebElement = wait.until(
+            save_parte = wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     elements.css_save_button,
@@ -1034,7 +1035,7 @@ class PreCadastro(ElawBot):
         elements = self.elements
         interact = self.interact
         interact.sleep_load(ELEMENT_LOAD)
-        salvartudo: WebElement = wait.until(
+        salvartudo = wait.until(
             ec.presence_of_element_located((
                 By.CSS_SELECTOR,
                 elements.css_salvar_proc,
@@ -1127,7 +1128,7 @@ class PreCadastro(ElawBot):
         wait_confirm_save = None
 
         with suppress(TimeoutException):
-            wait_confirm_save: WebElement = WebDriverWait(driver, 20).until(
+            wait_confirm_save = WebDriverWait(driver, 20).until(
                 ec.url_to_be("https://amazonas.elaw.com.br/processoView.elaw"),
                 message="Erro ao encontrar elemento",
             )

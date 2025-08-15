@@ -16,7 +16,6 @@ import requests
 from pypdf import PdfReader
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -205,7 +204,7 @@ class Emissao(ESajBot):
         self.type_log = "log"
         self.prt()
 
-        set_foro: WebElement = self.wait.until(
+        set_foro = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.ome_foro)),
         )
         set_foro.send_keys(self.bot_data.get("FORO"))
@@ -253,7 +252,7 @@ class Emissao(ESajBot):
         self.valor_doc = ""
         with suppress(TimeoutException):
             css_val_doc = self.elements.css_val_doc_custas_ini
-            self.valor_doc: WebElement = self.wait.until(
+            self.valor_doc = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_val_doc)),
             ).text
 
@@ -269,7 +268,7 @@ class Emissao(ESajBot):
         elif str(portal).lower() == "projudi":
             self.driver.get(self.elements.url_preparo_projudi)
 
-            set_foro: WebElement = self.wait.until(
+            set_foro = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.nome_foro,
@@ -313,7 +312,7 @@ class Emissao(ESajBot):
             avançar.click()
 
             sleep(1)
-            set_recurso_inominado: WebElement = self.wait.until(
+            set_recurso_inominado = self.wait.until(
                 ec.presence_of_element_located((
                     By.CSS_SELECTOR,
                     self.elements.check,
@@ -330,7 +329,7 @@ class Emissao(ESajBot):
 
             sleep(1)
             css_val_doc = "body > table:nth-child(4) > tbody > tr > td > table:nth-child(10) > tbody > tr:nth-child(3) > td:nth-child(3) > strong"
-            self.valor_doc: WebElement = self.wait.until(
+            self.valor_doc = self.wait.until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, css_val_doc)),
             ).text
 
@@ -374,7 +373,7 @@ class Emissao(ESajBot):
 
         """
         self.original_window = original_window = self.driver.current_window_handle
-        generatepdf: WebElement = self.wait.until(
+        generatepdf = self.wait.until(
             ec.presence_of_element_located((By.CSS_SELECTOR, self.elements.boleto)),
         )
         onclick_value = generatepdf.get_attribute("onclick")
@@ -389,7 +388,7 @@ class Emissao(ESajBot):
         # Checar se não ocorreu o erro "Boleto inexistente"
         check = None
         with suppress(TimeoutException):
-            check: WebElement = (
+            check = (
                 WebDriverWait(self.driver, 3)
                 .until(
                     ec.presence_of_element_located((
