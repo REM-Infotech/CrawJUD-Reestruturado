@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from pathlib import Path
-from typing import Any, BinaryIO, Literal
+from typing import TYPE_CHECKING, Any, BinaryIO, Literal
 
 from dotenv import dotenv_values
 from minio import Minio as Client
 from minio.credentials import EnvMinioProvider
-from minio.datatypes import Object
-from minio.helpers import ObjectWriteResult
 from minio.xml import unmarshal
 from tqdm import tqdm
 
@@ -20,8 +17,33 @@ from crawjud.utils.storage.credentials.providers import (
     GoogleStorageCredentialsProvider,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from minio.datatypes import Object
+    from minio.helpers import ObjectWriteResult
 environ = dotenv_values()
 storages = Literal["google", "minio"]
+
+
+class ArquivoNaoEncontradoError(FileNotFoundError):
+    """Empty."""
+
+    message: str
+
+    def __init__(self, message: str, *args) -> None:
+        """Empty."""
+        self.message = message
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        """Empty.
+
+        Returns:
+            str: string
+
+        """
+        return self.message
 
 
 class Storage[T](Client):  # noqa: D101
@@ -43,16 +65,17 @@ class Storage[T](Client):  # noqa: D101
 
     def list_objects(
         self,
-        prefix: str = None,
-        recursive: str = False,
-        start_after: str = None,
-        include_user_meta: str = False,
-        include_version: str = False,
-        use_api_v1: str = False,
-        use_url_encoding_type: str = True,
-        fetch_owner: str = False,
-        extra_headers: str = None,
-        extra_query_params: str = None,
+        prefix: str | None = None,
+        start_after: str | None = None,
+        extra_headers: str | None = None,
+        extra_query_params: str | None = None,
+        *,
+        recursive: str | None = False,
+        include_user_meta: str | None = False,
+        include_version: str | None = False,
+        use_api_v1: str | bool = False,
+        use_url_encoding_type: str | None = True,
+        fetch_owner: str | bool = False,
     ) -> Generator[Blob, Any, None]:
         return self.bucket.list_objects(
             prefix=prefix,
@@ -70,7 +93,8 @@ class Storage[T](Client):  # noqa: D101
     def list_buckets(self) -> list[Bucket]:
         """List information of all accessible buckets.
 
-        :return: List of :class:`Bucket <Bucket>` object.
+        Returns:
+            list: List of :class:`Bucket <Bucket>` object.
 
         Example::
             buckets = client.list_buckets()
@@ -92,32 +116,36 @@ class Storage[T](Client):  # noqa: D101
 
 
         Raises:
-            FileNotFoundError: Caso o arquivo não seja encontrado.
+            ArquivoNaoEncontradoError: Caso o arquivo não seja encontrado.
 
         """
         # Verifica se o arquivo existe
         if not file_path.exists():
-            raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
+            raise ArquivoNaoEncontradoError(
+                message=f"Arquivo não encontrado: {file_path}",
+            )
 
         file_size = file_path.stat().st_size
         chunk_size = 1024  # Tamanho do chunk em bytes
 
         # Abre o arquivo em modo binário
-        with file_path.open("rb") as f:
-            # Inicializa barra de progresso
-            with tqdm(
+        with (
+            file_path.open("rb") as f,
+            tqdm(
                 total=file_size,
                 unit="B",
                 unit_scale=True,
                 desc=file_name,
-            ) as pbar:
-                while True:
-                    print(f)
-                    chunk = f.read(chunk_size)
-                    if not chunk:
-                        break
-                    pbar.update(len(chunk))
-                    self.bucket.append_object(file_name, chunk, 0)
+            ) as pbar,
+        ):
+            # Inicializa barra de progresso
+            while True:
+                tqdm.write(str(f))
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                pbar.update(len(chunk))
+                self.bucket.append_object(file_name, chunk, 0)
 
     def fget_object(
         self,
@@ -155,6 +183,7 @@ class Storage[T](Client):  # noqa: D101
         num_parallel_uploads: int = 3,
         tags: T | None = None,
         retention: T | None = None,
+        *,
         legal_hold: bool = False,
     ) -> ObjectWriteResult:
         bucket_name = self.bucket.name
@@ -179,15 +208,16 @@ class Storage[T](Client):  # noqa: D101
         data: BinaryIO,
         length: int,
         content_type: str = "application/octet-stream",
-        metadata: Any | None = None,
-        sse: Any | None = None,
-        progress: Any | None = None,
+        metadata: T | None = None,
+        sse: T | None = None,
+        progress: T | None = None,
         part_size: int = 0,
         num_parallel_uploads: int = 3,
-        tags: Any | None = None,
-        retention: Any | None = None,
-        legal_hold: bool = False,
+        tags: T | None = None,
+        retention: T | None = None,
         write_offset: int | None = None,
+        *,
+        legal_hold: bool = False,
     ) -> ObjectWriteResult:
         bucket_name = self.bucket.name
 
@@ -213,9 +243,9 @@ class Storage[T](Client):  # noqa: D101
         object_name: str,
         data: bytes,
         length: int,
-        chunk_size: int = None,
-        progress: Any = None,
-        extra_headers: Any = None,
+        chunk_size: int | None = None,
+        progress: T = None,
+        extra_headers: T = None,
     ) -> ObjectWriteResult:
         bucket_name = self.bucket.name
         return super().append_object(
