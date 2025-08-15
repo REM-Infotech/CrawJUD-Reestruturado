@@ -20,9 +20,9 @@ from tqdm import tqdm
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.systems.pje import PjeBot
+from crawjud.utils.formatadores import formata_tempo
 from crawjud_app.custom.task import ContextTask
 from crawjud_app.decorators import shared_task, wrap_cls
-from crawjud_app.resources.formatadores import formata_tempo
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
