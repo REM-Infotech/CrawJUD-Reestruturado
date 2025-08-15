@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import traceback
 from contextlib import suppress
-from threading import Thread
+from threading import Semaphore, Thread
 from typing import TYPE_CHECKING, ClassVar
 
 from dotenv import load_dotenv
@@ -90,7 +90,7 @@ class Capa[T](PjeBot):  # noqa: D101
 
     def queue_processo(
         self,
-        data: BotData,
+        data: list[BotData],
         base_url: str,
         headers: str,
         cookies: str,
@@ -121,61 +121,70 @@ class Capa[T](PjeBot):  # noqa: D101
         )
 
         thread_download_file: list[Thread] = []
-
+        semaphore = Semaphore(6)
         with cl as client:
             for item in data:
-                try:
-                    # Atualiza dados do item para processamento
-                    row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
-                    resultado: DictResults = self.buscar_processo(
-                        data=item,
-                        row=row,
-                        client=client,
-                    )
 
-                    if resultado:
-                        data_request = resultado.get("data_request")
-                        if data_request:
-                            # Salva dados em cache
-                            self.save_success_cache(
-                                data=data_request,
-                                processo=item["NUMERO_PROCESSO"],
-                            )
-
-                            thread_file_ = Thread(
-                                target=self.copia_integral,
-                                kwargs={
-                                    "row": row,
-                                    "data": item,
-                                    "client": client,
-                                    "id_processo": resultado["id_processo"],
-                                    "captchatoken": resultado["captchatoken"],
-                                },
-                            )
-
-                            thread_file_.start()
-                            thread_download_file.append(thread_file_)
-
-                            message = (
-                                f"Informações do processo "
-                                f"{item['NUMERO_PROCESSO']} salvas com sucesso!"
-                            )
-                            self.print_msg(
-                                message=message,
+                def threaded_func(semaphore_bot: Semaphore, item: BotData) -> None:
+                    with semaphore_bot:
+                        try:
+                            # Atualiza dados do item para processamento
+                            row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
+                            resultado: DictResults = self.buscar_processo(
+                                data=item,
                                 row=row,
-                                type_log="success",
+                                client=client,
                             )
 
-                except ExecutionError:
-                    self.print_msg(
-                        message="Erro ao buscar processo",
-                        row=row,
-                        type_log="error",
-                    )
+                            if resultado:
+                                data_request = resultado.get("data_request")
+                                if data_request:
+                                    # Salva dados em cache
+                                    self.save_success_cache(
+                                        data=data_request,
+                                        processo=item["NUMERO_PROCESSO"],
+                                    )
 
-        for th in thread_download_file:
-            with suppress(Exception):
-                th.join()
+                                    thread_file_ = Thread(
+                                        target=self.copia_integral,
+                                        kwargs={
+                                            "row": row,
+                                            "data": item,
+                                            "client": client,
+                                            "id_processo": resultado["id_processo"],
+                                            "captchatoken": resultado["captchatoken"],
+                                        },
+                                    )
+
+                                    thread_file_.start()
+                                    thread_download_file.append(thread_file_)
+
+                                    part_1_msg = (
+                                        "Informações do processo {numproc} ".format(
+                                            numproc=item["NUMERO_PROCESSO"],
+                                        )
+                                    )
+
+                                    part_2_msg = "salvas com sucesso!"
+                                    message = f"{part_1_msg}{part_2_msg}"
+                                    self.print_msg(
+                                        message=message,
+                                        row=row,
+                                        type_log="success",
+                                    )
+
+                        except ExecutionError:
+                            self.print_msg(
+                                message="Erro ao buscar processo",
+                                row=row,
+                                type_log="error",
+                            )
+
+                threaded_func(semafore_bot=semaphore, item=item)
+
+            for th in thread_download_file:
+                with suppress(Exception):
+                    th.join()
 
     def copia_integral(  # noqa: D417
         self,
