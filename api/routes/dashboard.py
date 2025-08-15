@@ -13,8 +13,8 @@ from quart import Blueprint, Response, abort, current_app, jsonify, make_respons
 from quart_jwt_extended import jwt_required
 
 from api import db
-from api.addons.colors import escurecer_cor, gerar_cor_base, rgb_to_hex
 from api.models import Executions
+from crawjud.utils.colors import escurecer_cor, gerar_cor_base, rgb_to_hex
 
 if TYPE_CHECKING:
     from api.models.bots import BotsCrawJUD

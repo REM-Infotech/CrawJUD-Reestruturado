@@ -46,7 +46,7 @@ def verify_jwt_websocket[T](func: Callable) -> T:
     """
 
     @functools.wraps(func)
-    async def decorated_function[T](*args, **kwargs) -> T:  # noqa: ANN002, ANN003
+    async def decorated_function[T](*args, **kwargs) -> T:  # noqa: ANN003
         valid = False
         with suppress(Exception):
             decode_token(
