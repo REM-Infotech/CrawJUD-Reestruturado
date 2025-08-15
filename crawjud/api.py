@@ -21,7 +21,7 @@ from crawjud.utils.middleware import ProxyFixMiddleware as ProxyHeadersMiddlewar
 
 
 def check_cors_allowed_origins(*args) -> bool:
-    tqdm.write(f"CORS allowed origins check: {args}")
+    tqdm.write(f"CORS allowed origins check: {args[0]}")
 
     return True
 
