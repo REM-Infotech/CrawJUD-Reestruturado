@@ -6,8 +6,8 @@ This module exposes all available namespaces for direct import.
 from quart import request, websocket
 from quart_socketio import Namespace, SocketIO
 
-from api.namespaces.bots import BotsNamespace
-from api.namespaces.system import SystemNamespace
+from crawjud.routes.namespaces.bots import BotsNamespace
+from crawjud.routes.namespaces.system import SystemNamespace
 
 from .files import FileNamespaces
 from .logs import LogsNamespace

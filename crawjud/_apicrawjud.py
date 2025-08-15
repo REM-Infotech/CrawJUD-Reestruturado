@@ -6,8 +6,8 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from api.namespaces import register_namespaces
 from crawjud.api import check_cors_allowed_origins, create_app, io
+from crawjud.routes.namespaces import register_namespaces
 from crawjud.utils.logger import dict_config
 
 
