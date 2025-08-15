@@ -23,7 +23,7 @@ from quart import (
 )
 from quart_jwt_extended import decode_token
 
-from api import io
+from crawjud.api import io
 
 P = ParamSpec("P", bound=AnyStr)
 if TYPE_CHECKING:
