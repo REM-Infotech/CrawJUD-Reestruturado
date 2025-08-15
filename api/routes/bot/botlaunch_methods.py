@@ -166,12 +166,12 @@ class LoadForm:  # noqa: D101
         sid = getattr(session, "sid", None)
         sid_ = sid or uuid4().hex
 
-        path_minio = str(Path(sid_.upper()).joinpath(json_file.name))
+        dest_path = str(Path(sid_.upper()).joinpath(json_file.name).as_posix())
 
         async with aiofiles.open(json_file, "rb") as f:
             byte_ = await f.read()
             size_ = len(byte_)
-            storage.put_object(path_minio, io.BytesIO(byte_), length=size_)
+            storage.put_object(dest_path, io.BytesIO(byte_), length=size_)
 
         shutil.rmtree(self.upload_folder)
 

@@ -3,9 +3,8 @@
 import io
 import shutil
 import traceback
-from os import path
 from pathlib import Path
-from typing import Any, AnyStr
+from typing import AnyStr, NoReturn
 
 import aiofiles
 from clear import clear
@@ -19,7 +18,51 @@ from crawjud.utils.storage import Storage
 workdir_path = Path(__file__).cwd()
 
 
-class FileService:
+class ChunkIncompletoError(ValueError):
+    """Empty."""
+
+    message: str
+
+    def __init__(self, message: str, *args) -> None:
+        """Empty."""
+        self.message = message
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        """Empty.
+
+        Returns:
+            str: string
+
+        """
+        return self.message
+
+
+class UploadFileError(Exception):
+    """Empty."""
+
+    message: str
+
+    def __init__(self, message: str, *args) -> None:
+        """Empty."""
+        self.message = message
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        """Empty.
+
+        Returns:
+            str: string
+
+        """
+        return self.message
+
+
+def _raise_val_err() -> NoReturn:
+    raise ChunkIncompletoError(message="Dados do chunk incompletos.")
+
+
+class FileService[T]:
     """Serviço de domínio para manipulação de arquivos e sessões de usuário."""
 
     async def save_file(self) -> None:
@@ -28,21 +71,21 @@ class FileService:
 
         try:
             data = await request.form
-            _file = await request.files
+            file_ = await request.files
             sid = str(session.sid)
 
             file_name = str(data.get("name"))
             index = int(data.get("index", 0))
 
             _total = int(data.get("total", 1)) * 1024
-            chunk = data.get("chunk", _file.get("chunk", b""))
+            chunk = data.get("chunk", file_.get("chunk", b""))
             chunksize = int(data.get("chunksize", 1024))
             file_size = int(data.get("file_size"))
             if isinstance(chunk, FileStorage):
                 chunk = chunk.stream.read()
 
-            _start = index * chunksize
-            _end = min(file_size, _start + chunksize)
+            start_ = index * chunksize
+            end_ = min(file_size, start_ + chunksize)
 
             content_type = str(data.get("content_type"))
 
@@ -51,7 +94,7 @@ class FileService:
                 if chunk == b"":
                     return
 
-                raise ValueError("Dados do chunk incompletos.")
+                _raise_val_err()
 
             # Define diretório temporário para armazenar os chunks
             path_temp = Path(__file__).cwd().joinpath("temp", sid.upper())
@@ -64,26 +107,30 @@ class FileService:
             async with aiofiles.open(file_path, mode) as f:
                 await f.write(chunk)
 
-            if _end >= file_size:
+            if end_ >= file_size:
                 async with aiofiles.open(file_path, "rb") as f:
-                    _data = io.BytesIO(await f.read())
-                    dest_path = path.join(sid.upper(), secure_filename(file_name))
+                    data_ = io.BytesIO(await f.read())
+                    dest_path = str(
+                        Path(sid.upper())
+                        .joinpath(secure_filename(file_name))
+                        .as_posix(),
+                    )
                     storage.put_object(
                         object_name=dest_path,
-                        data=_data,
-                        length=_end,
+                        data=data_,
+                        length=end_,
                         content_type=content_type,
                     )
 
                 shutil.rmtree(file_path.parent)
 
-        except Exception as e:
+        except UploadFileError as e:
             clear()
             tqdm.write("\n".join(traceback.format_exception(e)))
 
     async def save_session(
         self,
-        server: Any,
+        server: T,
         sid: str,
         session: dict[str, AnyStr],
         namespace: str | None = None,
