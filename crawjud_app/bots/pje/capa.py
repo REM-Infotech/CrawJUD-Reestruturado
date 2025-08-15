@@ -9,6 +9,7 @@ dos processos e salvar os resultados no storage.
 from __future__ import annotations
 
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from threading import Semaphore, Thread
 from typing import TYPE_CHECKING, ClassVar
@@ -112,6 +113,64 @@ class Capa[T](PjeBot):  # noqa: D101
 
 
         """
+
+        def threaded_func(
+            semaphore_bot: Semaphore,
+            item: BotData,
+            client: Client,
+        ) -> None:
+            with semaphore_bot:
+                try:
+                    # Atualiza dados do item para processamento
+                    row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
+                    resultado: DictResults = self.buscar_processo(
+                        data=item,
+                        row=row,
+                        client=client,
+                    )
+
+                    if resultado:
+                        data_request = resultado.get("data_request")
+                        if data_request:
+                            # Salva dados em cache
+                            self.save_success_cache(
+                                data=data_request,
+                                processo=item["NUMERO_PROCESSO"],
+                            )
+
+                            thread_file_ = Thread(
+                                target=self.copia_integral,
+                                kwargs={
+                                    "row": row,
+                                    "data": item,
+                                    "client": client,
+                                    "id_processo": resultado["id_processo"],
+                                    "captchatoken": resultado["captchatoken"],
+                                },
+                            )
+
+                            thread_file_.start()
+                            thread_download_file.append(thread_file_)
+
+                            part_1_msg = "Informações do processo {numproc} ".format(
+                                numproc=item["NUMERO_PROCESSO"],
+                            )
+
+                            part_2_msg = "salvas com sucesso!"
+                            message = f"{part_1_msg}{part_2_msg}"
+                            self.print_msg(
+                                message=message,
+                                row=row,
+                                type_log="success",
+                            )
+
+                except ExecutionError:
+                    self.print_msg(
+                        message="Erro ao buscar processo",
+                        row=row,
+                        type_log="error",
+                    )
+
         cl = Client(
             base_url=base_url,
             timeout=30,
@@ -121,73 +180,24 @@ class Capa[T](PjeBot):  # noqa: D101
         )
 
         thread_download_file: list[Thread] = []
-        threads_processos: list[Thread] = []
-        semaphore = Semaphore(6)
-        with cl as client:
+        threads_processos: list[Future] = []
+        semaphore = Semaphore(1)
+        executor = ThreadPoolExecutor(8)
+
+        with cl as client, executor as pool:
             for item in data:
-
-                def threaded_func(semaphore_bot: Semaphore, item: BotData) -> None:
-                    with semaphore_bot:
-                        try:
-                            # Atualiza dados do item para processamento
-                            row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
-                            resultado: DictResults = self.buscar_processo(
-                                data=item,
-                                row=row,
-                                client=client,
-                            )
-
-                            if resultado:
-                                data_request = resultado.get("data_request")
-                                if data_request:
-                                    # Salva dados em cache
-                                    self.save_success_cache(
-                                        data=data_request,
-                                        processo=item["NUMERO_PROCESSO"],
-                                    )
-
-                                    thread_file_ = Thread(
-                                        target=self.copia_integral,
-                                        kwargs={
-                                            "row": row,
-                                            "data": item,
-                                            "client": client,
-                                            "id_processo": resultado["id_processo"],
-                                            "captchatoken": resultado["captchatoken"],
-                                        },
-                                    )
-
-                                    thread_file_.start()
-                                    thread_download_file.append(thread_file_)
-
-                                    part_1_msg = (
-                                        "Informações do processo {numproc} ".format(
-                                            numproc=item["NUMERO_PROCESSO"],
-                                        )
-                                    )
-
-                                    part_2_msg = "salvas com sucesso!"
-                                    message = f"{part_1_msg}{part_2_msg}"
-                                    self.print_msg(
-                                        message=message,
-                                        row=row,
-                                        type_log="success",
-                                    )
-
-                        except ExecutionError:
-                            self.print_msg(
-                                message="Erro ao buscar processo",
-                                row=row,
-                                type_log="error",
-                            )
-
-                thread_proc = Thread(target=threaded_func, args=(semaphore, item))
+                thread_proc = pool.submit(
+                    threaded_func,
+                    semaphore_bot=semaphore,
+                    item=item,
+                    client=client,
+                )
                 threads_processos.append(thread_proc)
-                thread_proc.start()
 
             for th in threads_processos:
                 with suppress(Exception):
-                    th.join()
+                    th.result()
+                    tqdm.write("ok")
 
             for th in thread_download_file:
                 with suppress(Exception):
