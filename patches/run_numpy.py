@@ -1,5 +1,6 @@
 import argparse
 import ast
+from pathlib import Path
 import dill as pickle
 import numpy as np
 import sys
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     else:
         result = func
 
-    with open(f"{function_name}.pkl", "wb") as f:
+    with Path(__file__).parent.joinpath(f"{function_name}.pkl").open("wb") as f:
         pickle.dump(result, f)
 
     print(f"{function_name}.pkl")

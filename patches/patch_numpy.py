@@ -2,25 +2,63 @@ import inspect
 import subprocess
 import sys
 import threading
+import traceback
 import dill as pickle
 from pathlib import Path
 import ast
 
-last_check = None
+last_check: str = None
 
 
 class Dummy(object): ...
 
 
+p = sys.exec_prefix
+
+
+def _desspicklable_me(PATH_FILE: Path):
+    with PATH_FILE.open("rb") as f:
+        readed = pickle.load(f)
+        if readed:
+            return readed
+
+        return "2.1.0"
+
+
+def call_func(*args, **kwargs) -> None:
+    global last_check
+    filename = f"{last_check}.pkl"
+    PATH_FILE = Path(__file__).parent.joinpath(filename)
+    if PATH_FILE.exists():
+        return _desspicklable_me(PATH_FILE)
+
+    subprocess.run(
+        [
+            str(Path(p).joinpath("python").as_posix()),  # Caminho para o Python
+            str(
+                Path(__file__).parent.joinpath("run_numpy.py")
+            ),  # Arquivo que vai rodar o código no subprocesso
+            "--function",
+            last_check,  # Função que será chamada
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    return _desspicklable_me(PATH_FILE)
+
+
 # O objetivo de fazer isso é que, ao chamar qualquer função do NumPy, ela será redirecionada para um subprocesso.
 class ModCall[T]:
     def __getattribute__(self, attr):
-        global last_check
+        filename = f"{attr}.pkl"
+        PATHFILE = Path(__file__).parent.joinpath(filename)
         try:
-            last_check = attr
+            if PATHFILE.exists():
+                return _desspicklable_me(PATHFILE)
 
             p = sys.exec_prefix
-            result = subprocess.run(
+            subprocess.run(
                 [
                     str(
                         Path(p).joinpath("python").as_posix()
@@ -29,50 +67,19 @@ class ModCall[T]:
                         Path(__file__).parent.joinpath("run_numpy.py")
                     ),  # Arquivo que vai rodar o código no subprocesso
                     "--function",
-                    last_check,  # Função que será chamada
+                    attr,  # Função que será chamada
                 ],
                 capture_output=True,
                 text=True,
             )
 
-            filename = f"{last_check}.pkl"
-            try:
-                with open(filename, "rb") as f:
-                    return pickle.load(f)
-            except EOFError:
-                # Arquivo está vazio ou corrompido
-                print(f"Erro: arquivo {filename} está vazio ou corrompido.")
-                return Dummy
-            return result
-        except Exception:
+            return _desspicklable_me(PATHFILE)
+
+        except Exception as e:
+            global last_check
             last_check = attr
 
-            def call_func(*args, **kwargs) -> None:
-                p = sys.exec_prefix
-                result = subprocess.run(
-                    [
-                        str(
-                            Path(p).joinpath("python").as_posix()
-                        ),  # Caminho para o Python
-                        str(
-                            Path(__file__).parent.joinpath("run_numpy.py")
-                        ),  # Arquivo que vai rodar o código no subprocesso
-                        "--function",
-                        last_check,  # Função que será chamada
-                    ],
-                    capture_output=True,
-                    text=True,
-                )
-
-                filename = f"{last_check}.pkl"
-                try:
-                    with open(filename, "rb") as f:
-                        return pickle.load(f)
-                except EOFError:
-                    # Arquivo está vazio ou corrompido
-                    print(f"Erro: arquivo {filename} está vazio ou corrompido.")
-                    return Dummy
-                return result
+            print(e)
 
             return call_func
 
@@ -92,6 +99,9 @@ class NumPy:
 class NumpyImportHook:
     def find_spec(self, fullname, path, target=None):
         if fullname == "numpy":
+            print(fullname)
+            print(path)
+            print(target)
             return (
                 NumPy()
             )  # Intercepta a importação do numpy e retorna nossa versão modificada
@@ -100,26 +110,3 @@ class NumpyImportHook:
 
 # Registrar o import hook
 sys.meta_path.insert(0, NumpyImportHook())
-
-# Teste simples: Ao importar numpy, ele já será patchado automaticamente
-if __name__ == "__main__":
-    import numpy as np
-
-    # Testando a execução de múltiplas threads com numpy
-    arr = np.array([1, 2, 3, 4, 5])
-
-    # Função exemplo que utiliza o numpy
-    def func():
-        print(
-            np.sum(arr)
-        )  # A chamada a np.sum será automaticamente redirecionada para subprocesso
-
-    # Criando threads para testar
-    threads = []
-    for _ in range(5):  # Criando 5 threads
-        thread = threading.Thread(target=func)
-        thread.start()
-        threads.append(thread)
-
-    for thread in threads:
-        thread.join()
