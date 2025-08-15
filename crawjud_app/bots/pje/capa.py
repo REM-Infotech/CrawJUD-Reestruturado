@@ -11,7 +11,7 @@ from __future__ import annotations
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
-from threading import Lock, Thread
+from threading import Semaphore, Thread
 from typing import TYPE_CHECKING, ClassVar
 
 from dotenv import load_dotenv
@@ -113,13 +113,14 @@ class Capa[T](PjeBot):  # noqa: D101
 
 
         """
-        lock = Lock()
+        semaforo_bot = Semaphore(4)
 
         def threaded_func(
             item: BotData,
             client: Client,
+            semaforo: Semaphore,
         ) -> None:
-            with lock:
+            with semaforo:
                 try:
                     # Atualiza dados do item para processamento
                     row = self.list_posicao_processo[item["NUMERO_PROCESSO"]]
@@ -190,6 +191,7 @@ class Capa[T](PjeBot):  # noqa: D101
                     threaded_func,
                     item=item,
                     client=client,
+                    semaforo=semaforo_bot,
                 )
                 threads_processos.append(thread_proc)
 
