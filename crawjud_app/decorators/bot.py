@@ -5,6 +5,7 @@ Este módulo fornece:
 - wrap_cls: decora classes bot para execução sob controle de conexão Socket.IO.
 """
 
+from contextlib import suppress
 from functools import wraps
 from uuid import uuid4
 
@@ -21,6 +22,33 @@ namespace = environ.get("SOCKETIO_SERVER_NAMESPACE", "/")
 
 transports = ["websocket"]
 headers = {"Content-Type": "application/json"}
+
+
+class _CustomSimpleClass[T](SimpleClient):
+    def emit(self, event: T, data: T = None) -> None:
+        with suppress(Exception):
+            return super().emit(event, data)
+
+    def connect(
+        self,
+        url: T,
+        headers: T = ...,
+        auth: T = None,
+        transports: T = None,
+        namespace: T = "/",
+        socketio_path: T = "socket.io",
+        wait_timeout: T = 5,
+    ) -> None:
+        with suppress(Exception):
+            return super().connect(
+                url,
+                headers,
+                auth,
+                transports,
+                namespace,
+                socketio_path,
+                wait_timeout,
+            )
 
 
 def wrap_init[T](cls: type[ClassBot]) -> type[T]:
@@ -65,7 +93,7 @@ def wrap_cls[T](cls: type[ClassBot]) -> type[T]:
         *args: T,
         **kwargs: T,
     ) -> None:
-        with SimpleClient(
+        with _CustomSimpleClass(
             reconnection_attempts=20,
             reconnection_delay=5,
         ) as sio:
@@ -76,6 +104,7 @@ def wrap_cls[T](cls: type[ClassBot]) -> type[T]:
                 namespace=namespace,
                 headers=headers,
                 transports=transports,
+                wait_timeout=300,
             )
             cls = original_cls()
             sio.emit(
