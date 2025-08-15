@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from crawjud.decorators import shared_task
 from crawjud_app.addons.mail import Mail
-from crawjud_app.decorators import shared_task
 
 if TYPE_CHECKING:
     from crawjud.interface.types import TReturnMessageMail

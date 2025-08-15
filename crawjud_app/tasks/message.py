@@ -12,8 +12,8 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
+from crawjud.decorators import shared_task
 from crawjud_app.custom.task import ContextTask
-from crawjud_app.decorators import shared_task
 
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()
@@ -35,7 +35,7 @@ class PrintMessage[T](ContextTask):
         *args: T,
         **kwargs: T,
     ) -> None:
-        self.print_msg(event=event, data=data, room=room, *args, **kwargs)  # noqa: B026
+        self.print_msg(event=event, data=data, room=room, *args, **kwargs)
 
     def print_msg(
         self,

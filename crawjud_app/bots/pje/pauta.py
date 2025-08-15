@@ -21,9 +21,9 @@ from selenium.webdriver.support import expected_conditions as ec
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.systems.pje import PjeBot as ClassBot
+from crawjud.decorators import shared_task
 from crawjud_app.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud_app.custom.task import ContextTask
-from crawjud_app.decorators import shared_task
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webelement import WebElement
