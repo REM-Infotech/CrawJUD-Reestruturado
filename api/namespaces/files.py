@@ -8,19 +8,18 @@ from quart import session
 from quart_socketio import Namespace, SocketIO
 from tqdm import tqdm
 
-from api.constructor.file import UploadableFile
 from api.domains.file_service import FileService
 from api.types import ASyncServerType
 
 
 class FileNamespaces(Namespace):
-    """Socket.IO namespace for handling file uploads, session management, and selector data for bots."""
+    """Socket.IO namespace for handling file uploads."""
 
     namespace: str
     server: ASyncServerType
 
     def __init__(self, namespace: str, io: SocketIO) -> None:
-        """Initialize FileNamespaces with namespace and server, and inject FileService."""
+        """Initialize FileNamespaces with namespace and server."""
         super().__init__(namespace, io)
         self.namespace = namespace
         self.file_service = FileService()
@@ -28,7 +27,8 @@ class FileNamespaces(Namespace):
     async def on_add_file(self) -> None:
         """Handle file upload event from a client (e.g., FormBot).
 
-        Receives file data, constructs an UploadableFile, and saves it asynchronously to a temporary directory.
+        Receives file data, constructs an UploadableFile, and saves it asynchronously
+        to a temporary directory.
 
         Args:
             sid: The session ID of the client.
@@ -65,11 +65,10 @@ class FileNamespaces(Namespace):
                 shutil.rmtree(path_temp)
 
     async def save_session(
-        self, sid: str, session: dict[str, AnyStr], namespace: str | None = None
+        self,
+        sid: str,
+        session: dict[str, AnyStr],
+        namespace: str | None = None,
     ) -> None:
         """Delegate to FileService.save_session (deprecated)."""
         await self.file_service.save_session(self.server, sid, session, namespace)
-
-    async def save_file(self, file: UploadableFile, path_temp: Path) -> None:
-        """Delegate to FileService.save_file (deprecated)."""
-        await self.file_service.save_file(file, path_temp)
