@@ -188,18 +188,18 @@ class Storage[T](Client):  # noqa: D101
     ) -> ObjectWriteResult:
         bucket_name = self.bucket.name
         return super().fput_object(
-            bucket_name,
-            object_name,
-            file_path,
-            content_type,
-            metadata,
-            sse,
-            progress,
-            part_size,
-            num_parallel_uploads,
-            tags,
-            retention,
-            legal_hold,
+            bucket_name=bucket_name,
+            object_name=object_name,
+            file_path=file_path,
+            content_type=content_type,
+            metadata=metadata,
+            sse=sse,
+            progress=progress,
+            part_size=part_size,
+            num_parallel_uploads=num_parallel_uploads,
+            tags=tags,
+            retention=retention,
+            legal_hold=legal_hold,
         )
 
     def put_object(

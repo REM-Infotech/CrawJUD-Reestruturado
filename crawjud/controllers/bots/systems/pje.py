@@ -137,7 +137,7 @@ class PjeBot[T](ClassBot):
             row (int): row do loop.
 
         """
-        path_temp = workdir.joinpath("temp", self.pid)
+        path_temp = workdir.joinpath("temp", self.pid.upper())
 
         path_temp.mkdir(parents=True, exist_ok=True)
 
@@ -149,7 +149,8 @@ class PjeBot[T](ClassBot):
             dest_name = str(Path(self.pid.upper()).joinpath(file_name).as_posix())
             upload_file = False
 
-            file_path.touch(exist_ok=True)
+            with file_path.open("wb") as f:
+                f.write(b"")
 
             try:
                 self.storage.fput_object(object_name=dest_name, file_path=file_path)
