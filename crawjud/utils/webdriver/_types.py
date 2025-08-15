@@ -54,30 +54,24 @@ FirefoxPreferences = TypedDict(
 )
 
 
-ChromeConfig = TypedDict(
-    "ChromeConfig",
-    {
-        "name": str,
-        "service": Type[ChromeService],
-        "executor": Type[ChromeRemoteConnection],
-        "options": driver_options,
-        "manager": Type[ChromeDriverManager],
-    },
-)
+class ChromeConfig(TypedDict):
+    name: str
+    service: Type[ChromeService]
+    executor: Type[ChromeRemoteConnection]
+    options: driver_options
+    manager: Type[ChromeDriverManager]
 
-FirefoxConfig = TypedDict(
-    "FirefoxConfig",
-    {
-        "name": str,
-        "service": Type[GeckoService],
-        "executor": Type[FirefoxRemoteConnection],
-        "options": driver_options,
-        "manager": Type[GeckoDriverManager],
-        "args_executor": dict[str, str],
-    },
-)
 
-OptionsConfig = TypedDict(
-    "OptionsConfig",
-    {"chrome": ChromeConfig, "firefox": FirefoxConfig, "gecko": FirefoxConfig},
-)
+class FirefoxConfig(TypedDict):
+    name: str
+    service: Type[GeckoService]
+    executor: Type[FirefoxRemoteConnection]
+    options: driver_options
+    manager: Type[GeckoDriverManager]
+    args_executor: dict[str, str]
+
+
+class OptionsConfig(TypedDict):
+    chrome: ChromeConfig
+    firefox: FirefoxConfig
+    gecko: FirefoxConfig

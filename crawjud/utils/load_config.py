@@ -53,7 +53,7 @@ class Config:
         """
         return cls(**kwrgs)
 
-    def convert_bool(self, v: str) -> bool:  # noqa: D102
+    def convert_bool(self, v: str) -> bool:
         return v.lower() == "true" or v == 1
 
     def __init__(self, **kwargs: AnyStr) -> None:

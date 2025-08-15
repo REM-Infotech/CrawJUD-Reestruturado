@@ -3,8 +3,7 @@ from typing import TypedDict
 
 
 class ItemMessageList(TypedDict):
-    """
-    TypedDict representing a log message item.
+    """TypedDict representing a log message item.
 
     Attributes:
         id_log (int | None): Unique identifier for the log entry. Example: 1.

@@ -22,7 +22,7 @@ class WebElementBot(WebElement):  # noqa: D101
     _cuurent_driver: WebDriver = None
 
     @classmethod
-    def set_driver(cls, _driver: WebDriver) -> type[Self]:  # noqa: D102
+    def set_driver(cls, _driver: WebDriver) -> type[Self]:
         cls._cuurent_driver = _driver
         return cls
 
@@ -39,7 +39,7 @@ class WebElementBot(WebElement):  # noqa: D101
         super().click()
         sleep(0.05)
 
-    def send_keys(self, word: any) -> None:  # noqa: D102
+    def send_keys(self, word: any) -> None:
         send = None
         for key in dir(Keys):
             if getattr(Keys, key) == word:
@@ -79,7 +79,7 @@ class WebElementBot(WebElement):  # noqa: D101
         #     text,
         # )
 
-    def clear(self) -> None:  # noqa: D102
+    def clear(self) -> None:
         self.click()
         sleep(0.5)
         super().clear()

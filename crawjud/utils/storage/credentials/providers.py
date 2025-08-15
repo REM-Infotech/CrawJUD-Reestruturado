@@ -11,7 +11,7 @@ load_dotenv()
 
 
 class GoogleStorageCredentialsProvider(Provider):  # noqa: D101
-    def retrieve(self) -> Credentials:  # noqa: D102
+    def retrieve(self) -> Credentials:
         json_credentials = json.loads(environ["GCS_CREDENTIALS"])
         credentials = GoogleCredentials.from_service_account_info(json_credentials)
         credentials = GoogleCredentials.with_scopes(
@@ -19,5 +19,6 @@ class GoogleStorageCredentialsProvider(Provider):  # noqa: D101
         )
 
         return Credentials(
-            access_key=credentials.token, expiration=credentials.expiry
+            access_key=credentials.token,
+            expiration=credentials.expiry,
         )
