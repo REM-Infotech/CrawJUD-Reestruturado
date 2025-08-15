@@ -22,10 +22,10 @@ from quart_jwt_extended import (
     jwt_required,
 )
 
-from api import db
 from api.models import Executions, Users
 from api.models import SuperUser as SuperUser
 from api.models import admins as admins
+from crawjud.api import db
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy

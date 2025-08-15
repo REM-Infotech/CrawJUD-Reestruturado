@@ -16,8 +16,8 @@ from quart_socketio import SocketIO
 from quart_socketio.config.python_socketio import AsyncSocketIOConfig
 from tqdm import tqdm
 
-from api.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
-from crawjud_app import make_celery
+from crawjud.celery_app import make_celery
+from crawjud.utils.middleware import ProxyFixMiddleware as ProxyHeadersMiddleware
 
 
 def check_cors_allowed_origins(*args) -> bool:
@@ -121,12 +121,12 @@ async def register_routes(app: Quart) -> None:
         # Dynamically import additional route modules as needed.
         import_module("api.routes", package=__package__)
 
-    from api.routes.auth import auth
-    from api.routes.bot import bot
-    from api.routes.config import admin
-    from api.routes.credentials import cred
-    from api.routes.dashboard import dash
-    from api.routes.execution import exe
+    from crawjud.routes.auth import auth
+    from crawjud.routes.bot import bot
+    from crawjud.routes.config import admin
+    from crawjud.routes.credentials import cred
+    from crawjud.routes.dashboard import dash
+    from crawjud.routes.execution import exe
 
     list_blueprints = [bot, auth, exe, dash, cred, admin]
 

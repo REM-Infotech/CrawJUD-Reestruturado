@@ -2,7 +2,7 @@
 
 from quart_socketio import Namespace
 
-from api.types import ASyncServerType
+from crawjud.interfaces import ASyncServerType
 
 
 class SystemNamespace(Namespace):

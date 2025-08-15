@@ -1,6 +1,7 @@
 """Define TypedDicts para formulários jurídicos utilizados na interface FormBot.
 
-Inclui estruturas para autenticação, upload de arquivos, pautas, partes de processo e PJE.
+Inclui estruturas para autenticação, upload de arquivos,
+pautas, partes de processo e PJE.
 """
 
 from datetime import datetime
@@ -72,7 +73,7 @@ class JuridicoFormMultipleFiles(TypedDict):
 
 
 class JuridicoFormOnlyAuth(TypedDict):
-    """Representa formulário contendo apenas autenticação e opções de agendamento.
+    """Representa formulário contendo apenas autenticação.
 
     Args:
         creds (str): Credenciais do usuário.
@@ -100,7 +101,7 @@ class JuridicoFormOnlyAuth(TypedDict):
 
 
 class JuridicoFormOnlyFile(TypedDict):
-    """Representa formulário contendo apenas arquivo principal e opções de agendamento.
+    """Representa formulário contendo apenas arquivo principal.
 
     Args:
         xlsx (FileMultiDict): Arquivo Excel enviado.

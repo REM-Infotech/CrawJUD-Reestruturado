@@ -2,13 +2,13 @@
 
 from quart_socketio import Namespace
 
-from api import db
-from api.interface.credentials import (
+from api.models.bots import BotsCrawJUD, Credentials
+from crawjud.api import db
+from crawjud.decorators.api import verify_jwt_websocket
+from crawjud.interfaces import ASyncServerType
+from crawjud.interfaces.credentials import (
     CredendialDictSelect,
 )
-from api.models.bots import BotsCrawJUD, Credentials
-from api.types import ASyncServerType
-from crawjud.decorators.api import verify_jwt_websocket
 
 
 class BotsNamespace(Namespace):

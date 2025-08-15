@@ -8,8 +8,8 @@ import traceback
 from collections.abc import Callable
 from typing import Union
 
+from crawjud.bots.calculadoras.tjdft import Tjdft
 from crawjud.common.exceptions.bot import StartError
-from crawjud_app.bots.calculadoras.tjdft import Tjdft
 
 __all__ = ["Tjdft"]
 logger_ = logging.getLogger(__name__)

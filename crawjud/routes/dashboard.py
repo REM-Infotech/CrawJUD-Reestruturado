@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 from quart import Blueprint, Response, abort, current_app, jsonify, make_response
 from quart_jwt_extended import jwt_required
 
-from api import db
 from api.models import Executions
+from crawjud.api import db
 from crawjud.utils.colors import escurecer_cor, gerar_cor_base, rgb_to_hex
 
 if TYPE_CHECKING:

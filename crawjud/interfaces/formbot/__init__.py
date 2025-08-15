@@ -1,16 +1,17 @@
-"""Fornece integração e configuração de formulários para bots jurídicos e administrativos.
+"""Integração e configuração de formulários para bots jurídicos e administrativos.
 
-Define tipos de formulários, mapeamento de configurações e utilitários para construção dinâmica de dicionários de formulário.
+Define tipos de formulários, mapeamento de configurações e u
+tilitários para construção dinâmica de dicionários de formulário.
 """
 
-# noqa: D104
-from typing import Any, AnyStr, Self, Union
+from typing import Any, AnyStr, Self
 
-from api.interface.formbot.administrativo import (
+from api.models.bots import BotsCrawJUD
+from crawjud.interfaces.formbot.administrativo import (
     AdministrativoFormFileAuth,
     AdministrativoFormMultipleFiles,
 )
-from api.interface.formbot.juridico import (
+from crawjud.interfaces.formbot.juridico import (
     JuridicoFormFileAuth,
     JuridicoFormMultipleFiles,
     JuridicoFormOnlyAuth,
@@ -19,20 +20,19 @@ from api.interface.formbot.juridico import (
     JuridicoFormPJE,
     JuridicoFormProcParte,
 )
-from api.models.bots import BotsCrawJUD
 
-class_form_dict = Union[
-    JuridicoFormFileAuth,
-    JuridicoFormMultipleFiles,
-    JuridicoFormOnlyAuth,
-    JuridicoFormOnlyFile,
-    JuridicoFormPautas,
-    JuridicoFormProcParte,
-    AdministrativoFormFileAuth,
-    AdministrativoFormMultipleFiles,
-]
+type ClassFormDict = (
+    JuridicoFormFileAuth
+    | JuridicoFormMultipleFiles
+    | JuridicoFormOnlyAuth
+    | JuridicoFormOnlyFile
+    | JuridicoFormPautas
+    | JuridicoFormProcParte
+    | AdministrativoFormFileAuth
+    | AdministrativoFormMultipleFiles
+)
 
-FORM_CONFIG: dict[str, dict[str, class_form_dict]] = {
+FORM_CONFIG: dict[str, dict[str, ClassFormDict]] = {
     "JURIDICO": {
         "only_auth": JuridicoFormOnlyAuth,
         "file_auth": JuridicoFormFileAuth,
@@ -66,10 +66,10 @@ class FormDict(
 
     @classmethod
     async def constructor(cls, bot: BotsCrawJUD, data: dict[str, AnyStr]) -> Self:
-        """Construa dinamicamente um formulário baseado na classificação e configuração do bot.
+        """Construa dinamicamente um formulário baseado na configuração do bot.
 
         Args:
-            bot (BotsCrawJUD): Instância do bot contendo classificação e configuração.
+            bot (BotsCrawJUD): Instância do bot contendo configuração.
             data (dict[str, AnyStr]): Dados para inicializar o formulário.
 
         Returns:
@@ -82,7 +82,7 @@ class FormDict(
 
     @classmethod
     def get_annotations(cls, classification: str, config: str) -> dict[str, Any]:
-        """Recupere as anotações de tipo do formulário conforme classificação e configuração.
+        """Recupere as anotações de tipo do formulário conforme configuração.
 
         Args:
             classification (str): Classificação do formulário (ex: 'JURIDICO').

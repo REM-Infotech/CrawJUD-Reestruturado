@@ -8,8 +8,8 @@ from quart import session
 from quart_socketio import Namespace, SocketIO
 from tqdm import tqdm
 
-from api.domains.file_service import FileService
-from api.types import ASyncServerType
+from crawjud.interfaces import ASyncServerType
+from crawjud.interfaces.controllers.file_service import FileService
 
 
 class FileNamespaces(Namespace):

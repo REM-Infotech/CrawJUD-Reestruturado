@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 import bcrypt
 from quart_jwt_extended import get_current_user
 
-from api import db, jwt
+from crawjud.api import db, jwt
 
 salt = bcrypt.gensalt()
 

@@ -1,3 +1,5 @@
+"""Empty."""
+
 import time
 import traceback
 from contextlib import suppress
@@ -6,10 +8,10 @@ from time import sleep
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
-from api.common.exceptions.raises import raise_execution_error
+from crawjud.bots.elaw.cadastro.cadastro import PreCadastro
+from crawjud.bots.elaw.cadastro.complement import CadastroComplementar
 from crawjud.common.exceptions.bot import ExecutionError
-from crawjud_app.bots.elaw.cadastro.cadastro import PreCadastro
-from crawjud_app.bots.elaw.cadastro.complement import CadastroComplementar
+from crawjud.common.exceptions.raises import raise_execution_error
 
 campos_validar: list[str] = [
     "estado",
@@ -33,6 +35,8 @@ campos_validar: list[str] = [
 
 
 class ElawCadadastro(CadastroComplementar, PreCadastro):
+    """Empty."""
+
     def __init__(
         self,
         *args: str | int,

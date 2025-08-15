@@ -20,8 +20,8 @@ from inquirer import List, prompt
 from inquirer.themes import GreenPassion
 from tqdm import tqdm
 
-from crawjud_app import app as app
-from crawjud_app import make_celery
+from crawjud import app as app
+from crawjud.celery_app import make_celery
 
 clear()
 envdot = dotenv_values()

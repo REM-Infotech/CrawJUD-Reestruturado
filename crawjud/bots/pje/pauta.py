@@ -11,7 +11,6 @@ from pathlib import Path
 from time import sleep
 from typing import TYPE_CHECKING
 
-from crawjud_app.bots.pje.resources._varas_dict import varas as varas_pje
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -20,6 +19,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 
+from crawjud.bots.pje.resources._varas_dict import varas as varas_pje
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task

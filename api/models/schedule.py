@@ -1,5 +1,4 @@
-"""
-Defines schedule-related models for the CrawJUD-Bots application.
+"""Defines schedule-related models for the CrawJUD-Bots application.
 
 Includes scheduled jobs and their corresponding crontab configurations.
 """
@@ -8,15 +7,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from api import db
+from crawjud.api import db
 
 if TYPE_CHECKING:
     from datetime import datetime
 
 
 class ScheduleModel(db.Model):
-    """
-    Represents a scheduled job with execution details.
+    """Represents a scheduled job with execution details.
 
     Attributes:
         id (int): Primary key for the scheduled job.
@@ -39,12 +37,16 @@ class ScheduleModel(db.Model):
     email: str = db.Column(db.String(128), nullable=True)
 
     schedule_id = db.Column(
-        db.Integer, db.ForeignKey("crontab_model.id"), nullable=False
+        db.Integer,
+        db.ForeignKey("crontab_model.id"),
+        nullable=False,
     )
     schedule = db.relationship("CrontabModel", backref="schedule", lazy=True)
 
     args: str = db.Column(
-        db.Text, nullable=True, default="[]"
+        db.Text,
+        nullable=True,
+        default="[]",
     )  # JSON para argumentos
 
     kwargs: str = db.Column(db.Text, nullable=True, default="{}")  # JSON para kwargs
@@ -52,22 +54,24 @@ class ScheduleModel(db.Model):
 
     license_id: int = db.Column(db.Integer, db.ForeignKey("licenses_users.id"))
     license_usr = db.relationship(
-        "LicensesUsers", backref=db.backref("scheduled_execution", lazy=True)
+        "LicensesUsers",
+        backref=db.backref("scheduled_execution", lazy=True),
     )
 
     user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
     user = db.relationship(
-        "Users", backref=db.backref("scheduled_execution", lazy=True)
+        "Users",
+        backref=db.backref("scheduled_execution", lazy=True),
     )
 
     exec_id: int = db.Column(db.Integer, db.ForeignKey("executions.id"))
     exec = db.relationship(
-        "Executions", backref=db.backref("scheduled_execution", lazy=True)
+        "Executions",
+        backref=db.backref("scheduled_execution", lazy=True),
     )
 
     def __repr__(self) -> str:  # pragma: no cover
-        """
-        Return the string representation of the scheduled job.
+        """Return the string representation of the scheduled job.
 
         Returns:
             str: String representation of the scheduled job.
@@ -77,8 +81,7 @@ class ScheduleModel(db.Model):
 
 
 class CrontabModel(db.Model):
-    """
-    Represents a crontab configuration for scheduling.
+    """Represents a crontab configuration for scheduling.
 
     Attributes:
         id (int): Primary key for the crontab entry.
@@ -107,8 +110,7 @@ class CrontabModel(db.Model):
         *args: str | int,
         **kwargs: str | int,
     ) -> None:  # pragma: no cover
-        """
-        Initialize the crontab configuration with default or provided values.
+        """Initialize the crontab configuration with default or provided values.
 
         Args:
             minute (str): The minute to run the task.

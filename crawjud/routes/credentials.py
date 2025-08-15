@@ -31,10 +31,10 @@ from quart.datastructures import FileStorage
 from quart_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.utils import secure_filename
 
-from api import db
-from api.interface.credentials import CredendialsDict
-from api.interface.session import SessionDict
 from api.models import BotsCrawJUD, Credentials, LicensesUsers, Users
+from crawjud.api import db
+from crawjud.interfaces.credentials import CredendialsDict
+from crawjud.interfaces.session import SessionDict
 
 cred = Blueprint("creds", __name__)
 

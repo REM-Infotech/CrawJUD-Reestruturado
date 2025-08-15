@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm.relationships import RelationshipProperty
 
-from api import db
+from crawjud.api import db
 
 
 class BotsCrawJUD(db.Model):

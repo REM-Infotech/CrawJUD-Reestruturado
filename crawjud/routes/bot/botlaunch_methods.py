@@ -20,10 +20,10 @@ from quart import (
 )
 from werkzeug.utils import secure_filename
 
-from api.common.exceptions._form import LoadFormError
-from api.interface.formbot import FormDict
-from api.interface.session import SessionDict
 from api.models.users import LicensesUsers
+from crawjud.common.exceptions._form import LoadFormError
+from crawjud.interfaces.formbot import FormDict
+from crawjud.interfaces.session import SessionDict
 from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:

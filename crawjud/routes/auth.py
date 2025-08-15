@@ -45,9 +45,9 @@ from quart_jwt_extended import (
     unset_jwt_cookies,
 )
 
-from api.interface.session import CurrentUser, LicenseUserDict
 from api.models.users import TokenBlocklist as TokenBlocklist
 from api.models.users import Users
+from crawjud.interfaces.session import CurrentUser, LicenseUserDict
 
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
