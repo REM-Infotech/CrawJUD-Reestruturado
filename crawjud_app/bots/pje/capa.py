@@ -182,7 +182,7 @@ class Capa[T](PjeBot):  # noqa: D101
         thread_download_file: list[Thread] = []
         threads_processos: list[Future] = []
 
-        executor = ThreadPoolExecutor(1)
+        executor = ThreadPoolExecutor(6)
 
         with cl as client, executor as pool:
             for item in data:
