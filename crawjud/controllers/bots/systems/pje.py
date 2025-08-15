@@ -148,6 +148,16 @@ class PjeBot[T](ClassBot):
             size: int = response_data.headers.get("Content-Length")
             dest_name = str(Path(self.pid.upper()).joinpath(file_name).as_posix())
             upload_file = False
+
+            file_path.touch(exist_ok=True)
+
+            try:
+                self.storage.fput_object(object_name=dest_name, file_path=file_path)
+
+            except (FileUploadError, Exception) as e:
+                upload_file = False
+                tqdm.write("\n".join(traceback.format_exception(e)))
+
             with file_path.open("wb") as f:
                 for _bytes in response_data.iter_bytes(chunk):
                     f.write(_bytes)
