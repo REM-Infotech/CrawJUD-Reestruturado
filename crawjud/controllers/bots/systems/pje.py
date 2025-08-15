@@ -137,11 +137,11 @@ class PjeBot[T](ClassBot):
             row (int): row do loop.
 
         """
+        path_temp = workdir.joinpath("temp", self.pid)
+
+        path_temp.mkdir(parents=True, exist_ok=True)
+
         try:
-            path_temp = workdir.joinpath("temp", self.pid)
-
-            path_temp.mkdir(parents=True, exist_ok=True)
-
             chunk = 8 * 1024
             file_path = path_temp.joinpath(file_name)
             # Salva arquivo em chunks no storage
