@@ -169,9 +169,8 @@ class PjeBot[T](ClassBot):
                             chunk,
                             int(size),
                         )
-                    except (FileUploadError, Exception) as e:
+                    except (FileUploadError, Exception):
                         upload_file = False
-                        tqdm.write("\n".join(traceback.format_exception(e)))
 
             if not upload_file:
                 file_size = file_path.stat().st_size
