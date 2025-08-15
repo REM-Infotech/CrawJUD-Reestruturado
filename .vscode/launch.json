@@ -28,36 +28,23 @@
     //   "justMyCode": false
     // },
     {
-      "name": "Debug CrawJUD Bot",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "crawjud",
-      "args": "${command:pickArgs}"
-    },
-    {
       "name": "Debug API CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "api"
-    },
-    {
-      "name": "Debug SocketIO CrawJUD",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "socketio_server"
+      "program": "_apicrawjud.py"
     },
     {
       "name": "Debug Celery-Worker CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "crawjud_app",
+      "program": "_crawjudapp.py",
       "args": ["--type", "worker"]
     },
     {
       "name": "Debug Celery-Beat CrawJUD",
       "type": "debugpy",
       "request": "launch",
-      "module": "crawjud_app",
+      "program": "_crawjudapp.py",
       "args": ["--type", "beat"]
     }
   ],
