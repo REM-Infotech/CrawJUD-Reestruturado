@@ -146,7 +146,6 @@ class PjeBot[T](ClassBot):
             chunk = 8 * 1024
             file_path = path_temp.joinpath(file_name)
             # Salva arquivo em chunks no storage
-            size: int = response_data.headers.get("Content-Length")
             dest_name = str(Path(self.pid.upper()).joinpath(file_name).as_posix())
             upload_file = False
 
@@ -163,16 +162,6 @@ class PjeBot[T](ClassBot):
             with file_path.open("wb") as f:
                 for _bytes in response_data.iter_bytes(chunk):
                     f.write(_bytes)
-                    try:
-                        upload_file = True
-                        self.storage.append_object(
-                            dest_name,
-                            _bytes,
-                            chunk,
-                            int(size),
-                        )
-                    except (FileUploadError, Exception):
-                        upload_file = False
 
             if not upload_file:
                 file_size = file_path.stat().st_size
