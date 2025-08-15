@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from datetime import datetime
+from threading import Semaphore
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from tqdm import tqdm
 
 from crawjud.utils.models.logs import MessageLogDict
+from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -35,6 +37,9 @@ class AbstractCrawJUD:
     _cookies: dict[str, str] | None = None
     _headers: dict[str, str] | None = None
     _base_url: str | None = None
+
+    semaforo_save = Semaphore(1)
+    _storage = Storage("minio")
 
     def print_msg(  # noqa: D417
         self,

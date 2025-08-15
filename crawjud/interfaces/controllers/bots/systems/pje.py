@@ -9,7 +9,6 @@ from contextlib import suppress
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from threading import Semaphore
 from time import sleep
 from typing import TYPE_CHECKING, ClassVar, cast
 
@@ -29,7 +28,6 @@ from crawjud.interfaces.types.pje import (
 from crawjud.utils.iterators import RegioesIterator
 from crawjud.utils.models.logs import CachedExecution
 from crawjud.utils.recaptcha import captcha_to_image
-from crawjud.utils.storage import Storage
 
 if TYPE_CHECKING:
     from httpx import Client, Response
@@ -50,9 +48,6 @@ class PjeBot[T](ClassBot):
 
     pje_classes: ClassVar[dict[str, type[PjeBot]]] = {}
     subclasses_search: ClassVar[dict[str, type[PjeBot]]] = {}
-
-    semaforo_save = Semaphore(1)
-    _storage = Storage("minio")
 
     @property
     def list_posicao_processo(self) -> dict[str, int]:
