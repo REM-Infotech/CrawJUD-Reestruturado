@@ -13,7 +13,6 @@ Attributes:
 
 from __future__ import annotations
 
-import traceback
 from contextlib import suppress
 from pathlib import Path
 from time import sleep
@@ -33,6 +32,8 @@ ELEMENT_LOAD = 'div[id="j_id_48"]'
 
 
 class PreCadastro(ElawBot):
+    """Empty."""
+
     def area_direito(self) -> None:
         wait = self.wait
         self.message = "Informando área do direito"
@@ -391,10 +392,10 @@ class PreCadastro(ElawBot):
                 self.driver.switch_to.default_content()
                 self.interact.sleep_load(ELEMENT_LOAD)
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-                self.logger.exception("".join(traceback.format_exception(e)))
+
                 raise ExecutionError(
                     message="Não foi possível cadastrar parte",
                     e=e,
@@ -767,7 +768,7 @@ class PreCadastro(ElawBot):
             elements = self.elements
             interact = self.interact
             bot_data = self.bot_data
-            # select2_elaw = self.select2_elaw
+
             prt = self.prt
             self.message = "Cadastrando advogado"
             self.type_log = "log"
@@ -807,19 +808,6 @@ class PreCadastro(ElawBot):
                 message="Erro ao encontrar elemento",
             )
             naoinfomadoc.click()
-
-            """ CORRIGIR """
-            # sleep(0.5)
-            # continuebutton = self.wait.until(
-            #     ec.presence_of_element_located(
-            #         (By.CSS_SELECTOR, self.elements.bota_continuar)
-            #     ),
-            #     message="Erro ao encontrar elemento",
-            # )
-            # continuebutton.click()
-
-            # sleep(0.5)
-            """ CORRIGIR """
 
             sleep(0.5)
             continuebutton = wait.until(
@@ -871,10 +859,10 @@ class PreCadastro(ElawBot):
 
             interact.sleep_load(ELEMENT_LOAD)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(
                 message="Não foi possível cadastrar advogado",
                 e=e,
@@ -892,7 +880,6 @@ class PreCadastro(ElawBot):
         """
         try:
             prt = self.prt
-            logger = self.logger
             self.message = "Cadastrando parte"
             self.type_log = "log"
             prt()
@@ -1016,10 +1003,9 @@ class PreCadastro(ElawBot):
                 ec.presence_of_element_located((By.CSS_SELECTOR, element_close)),
             ).click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            logger.exception("".join(traceback.format_exception(e)))
             raise ExecutionError(e=e) from e
 
     def salvar_tudo(self) -> None:
@@ -1160,3 +1146,5 @@ class PreCadastro(ElawBot):
                 )
 
             raise ExecutionError(mensagem_erro)
+
+        return False

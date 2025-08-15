@@ -4,7 +4,6 @@ Extract and manage process intimation information from the Projudi system.
 """
 
 import time
-import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -87,7 +86,7 @@ class Intimacoes(ProjudiBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 self.logger.exception(str(e))
@@ -197,10 +196,10 @@ class Intimacoes(ProjudiBot):
                     'a[class="arrowNextOn"]',
                 ).click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             self.logger.exception(str(e))
             raise ExecutionError(e=e) from e
 

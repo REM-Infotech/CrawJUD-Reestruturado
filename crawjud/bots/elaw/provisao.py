@@ -11,13 +11,10 @@ Attributes:
 
 """
 
-import time
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 from time import sleep
-from typing import Self
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver import Keys
@@ -39,40 +36,6 @@ class Provisao(ElawBot):
 
     """
 
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize bot instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Provisao instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
-
     def execution(self) -> None:
         """Execute the main processing loop for provisions."""
         frame = self.dataFrame()
@@ -92,7 +55,7 @@ class Provisao(ElawBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -130,8 +93,6 @@ class Provisao(ElawBot):
             ExecutionError: If an error occurs during execution.
 
         """
-        # module = "search_processo"
-
         try:
             search = self.search_bot()
             if search is True:
@@ -149,10 +110,10 @@ class Provisao(ElawBot):
             if search is False:
                 raise ExecutionError(message="Processo não encontrado!")
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise e
 
     def chk_risk(self) -> None:
@@ -181,7 +142,6 @@ class Provisao(ElawBot):
         """
         calls = []
 
-        # module = "get_valores_proc"
         get_valores = self.get_valores_proc()
 
         provisao = (
@@ -304,10 +264,10 @@ class Provisao(ElawBot):
 
             self.interact.sleep_load('div[id="j_id_8c"]')
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(
                 message="Não foi possivel atualizar provisão",
                 e=e,
@@ -330,54 +290,45 @@ class Provisao(ElawBot):
             None
 
         """
-        try:
+        self.interact.sleep_load('div[id="j_id_2z"]')
+        self.message = "Informando valores"
+        self.type_log = "log"
+        self.prt()
+
+        row_valores = self.wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
+            )),
+        ).find_elements(
+            By.XPATH,
+            './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
+        )
+
+        for row_valor in row_valores:
+            campo_valor_dml = row_valor.find_elements(By.TAG_NAME, "td")[
+                9
+            ].find_element(By.CSS_SELECTOR, 'input[id*="_input"]')
+
+            valor_informar = self.bot_data.get("VALOR_ATUALIZACAO")
+
+            campo_valor_dml.send_keys(Keys.CONTROL + "a")
+            campo_valor_dml.send_keys(Keys.BACKSPACE)
             self.interact.sleep_load('div[id="j_id_2z"]')
-            self.message = "Informando valores"
-            self.type_log = "log"
-            self.prt()
 
-            row_valores = self.wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
-                )),
-            ).find_elements(
-                By.XPATH,
-                './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
+            if isinstance(valor_informar, int):
+                valor_informar = str(valor_informar) + ",00"
+
+            elif isinstance(valor_informar, float):
+                valor_informar = f"{valor_informar:.2f}".replace(".", ",")
+
+            campo_valor_dml.send_keys(valor_informar)
+
+            id_campo_valor_dml = campo_valor_dml.get_attribute("id")
+            self.driver.execute_script(
+                f"document.getElementById('{id_campo_valor_dml}').blur()",
             )
-
-            for row_valor in row_valores:
-                campo_valor_dml = row_valor.find_elements(By.TAG_NAME, "td")[
-                    9
-                ].find_element(By.CSS_SELECTOR, 'input[id*="_input"]')
-
-                valor_informar = self.bot_data.get("VALOR_ATUALIZACAO")
-                # if valor_informar == 0:
-                #     raise ExecutionError(message="Valor de atualização inválido")
-
-                campo_valor_dml.send_keys(Keys.CONTROL + "a")
-                campo_valor_dml.send_keys(Keys.BACKSPACE)
-                self.interact.sleep_load('div[id="j_id_2z"]')
-
-                if isinstance(valor_informar, int):
-                    valor_informar = str(valor_informar) + ",00"
-
-                elif isinstance(valor_informar, float):
-                    valor_informar = f"{valor_informar:.2f}".replace(".", ",")
-
-                campo_valor_dml.send_keys(valor_informar)
-
-                id_campo_valor_dml = campo_valor_dml.get_attribute("id")
-                self.driver.execute_script(
-                    f"document.getElementById('{id_campo_valor_dml}').blur()",
-                )
-                self.interact.sleep_load('div[id="j_id_2z"]')
-
-        except Exception as e:
-            # TODO(Nicholas Silva): Criação de Exceptions
-            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
-            raise e
+            self.interact.sleep_load('div[id="j_id_2z"]')
 
     def set_risk(self) -> None:
         """Set the risk type for the provision.
@@ -389,64 +340,43 @@ class Provisao(ElawBot):
         self.driver.execute_script(
             'document.getElementById("j_id_2z:j_id_32_2e:processoAmountObjetoDt").style.zoom = "0.5" ',
         )
-        try:
-            self.message = "Alterando risco"
-            self.type_log = "log"
-            self.prt()
+        self.message = "Alterando risco"
+        self.type_log = "log"
+        self.prt()
 
-            row_valores = self.wait.until(
-                ec.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
-                )),
-            ).find_elements(
-                By.XPATH,
-                './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
+        row_valores = self.wait.until(
+            ec.presence_of_element_located((
+                By.CSS_SELECTOR,
+                "tbody[id='j_id_2z:j_id_32_2e:processoAmountObjetoDt_data']",
+            )),
+        ).find_elements(
+            By.XPATH,
+            './/tr[contains(@class, "ui-datatable-odd") or contains(@class, "ui-datatable-even")]',
+        )
+
+        for row_risk in row_valores:
+            selector_filter_risk = (
+                row_risk.find_elements(By.TAG_NAME, "td")[10]
+                .find_element(By.TAG_NAME, "div")
+                .find_element(By.TAG_NAME, "select")
             )
 
-            # def filter_risk(x) -> bool:
-            #     td_values = x.find_elements(By.TAG_NAME, "td")
-            #     input_values = td_values[9].find_element(By.CSS_SELECTOR, 'input[id*="_input"]')
-            #     value_attribute = input_values.get_attribute("value")
+            id_selector = selector_filter_risk.get_attribute("id")
+            css_selector_filter_risk = f'select[id="{id_selector}"]'
 
-            #     return value_attribute is not None and value_attribute != ""
+            provisao_from_xlsx = (
+                str(self.bot_data.get("PROVISAO"))
+                .lower()
+                .replace("possivel", "possível")
+                .replace("provavel", "provável")
+            )
 
-            # selector_filter_risk = list(
-            #     filter(
-            #         filter_risk,
-            #         row_valores,
-            #     )
-            # )
+            self.interact.select2_elaw(
+                css_selector_filter_risk,
+                provisao_from_xlsx,
+            )
 
-            for row_risk in row_valores:
-                selector_filter_risk = (
-                    row_risk.find_elements(By.TAG_NAME, "td")[10]
-                    .find_element(By.TAG_NAME, "div")
-                    .find_element(By.TAG_NAME, "select")
-                )
-
-                id_selector = selector_filter_risk.get_attribute("id")
-                css_selector_filter_risk = f'select[id="{id_selector}"]'
-
-                provisao_from_xlsx = (
-                    str(self.bot_data.get("PROVISAO"))
-                    .lower()
-                    .replace("possivel", "possível")
-                    .replace("provavel", "provável")
-                )
-
-                self.interact.select2_elaw(
-                    css_selector_filter_risk,
-                    provisao_from_xlsx,
-                )
-
-                self.interact.sleep_load('div[id="j_id_3c"]')
-
-        except Exception as e:
-            # TODO(Nicholas Silva): Criação de Exceptions
-            # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
-            raise e
+            self.interact.sleep_load('div[id="j_id_3c"]')
 
     def informar_datas(self) -> None:
         """Inform the correction base date and interest date.
@@ -501,10 +431,10 @@ class Provisao(ElawBot):
 
                 set_data_juros(data_base_juros)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise e
 
     def informar_motivo(self) -> None:
@@ -542,10 +472,10 @@ class Provisao(ElawBot):
                 f"document.getElementById('{id_informar_motivo}').blur()",
             )
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise e
 
     def save_changes(self) -> None:

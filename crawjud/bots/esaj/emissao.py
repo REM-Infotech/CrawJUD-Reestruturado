@@ -7,7 +7,6 @@ navigating forms, and extracting barcodes following the ESaj requirements.
 import platform
 import re
 import time
-import traceback
 from contextlib import suppress
 from time import sleep
 from typing import Self
@@ -129,7 +128,7 @@ class Emissao(ESajBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -180,10 +179,10 @@ class Emissao(ESajBot):
             self.downloadpdf(self.generate_doc())
             self.append_success(self.get_barcode())
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def custas_iniciais(self) -> None:
@@ -496,8 +495,8 @@ class Emissao(ESajBot):
                 self.nomearquivo,
             ]
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e

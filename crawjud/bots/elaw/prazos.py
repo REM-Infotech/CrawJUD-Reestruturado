@@ -10,10 +10,7 @@ Classes:
 from __future__ import annotations
 
 import os
-import time
-import traceback
 from contextlib import suppress
-from typing import Self
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -31,40 +28,6 @@ class Prazos(ElawBot):
 
 
     """
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Initialize bot instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize the Prazos instance.
-
-        Args:
-            *args (tuple[str | int]): Variable length argument list.
-            **kwargs (dict[str, str | int]): Arbitrary keyword arguments.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()
 
     def execution(self) -> None:
         """Execute the main processing loop for deadlines."""
@@ -84,7 +47,7 @@ class Prazos(ElawBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -161,10 +124,10 @@ class Prazos(ElawBot):
 
             self.append_success([comprovante], self.message)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def TablePautas(self) -> None:  # noqa: N802
@@ -188,10 +151,10 @@ class Prazos(ElawBot):
             self.type_log = "log"
             self.prt()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def NovaPauta(self) -> None:  # noqa: N802
@@ -261,10 +224,10 @@ class Prazos(ElawBot):
 
             DataAudiencia.send_keys(self.data_Concat)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def save_Prazo(self) -> None:  # noqa: N802
@@ -286,10 +249,10 @@ class Prazos(ElawBot):
 
             btn_salvar.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def CheckLancamento(self) -> dict[str, str] | None:  # noqa: N802
@@ -346,8 +309,8 @@ class Prazos(ElawBot):
 
             return data
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e

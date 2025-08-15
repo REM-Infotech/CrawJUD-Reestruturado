@@ -83,7 +83,7 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -183,7 +183,7 @@ class ElawCadadastro(CadastroComplementar, PreCadastro):
                 if self.confirm_save() is True:
                     self.print_comprovante()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             self.logger.exception("".join(traceback.format_exception(exc=e)))

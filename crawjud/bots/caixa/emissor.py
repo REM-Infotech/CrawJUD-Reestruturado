@@ -7,11 +7,8 @@ and PDF processing in compliance with Google/PEP 257 docstring standards.
 import os
 import re
 import shutil
-import time
-import traceback
 from contextlib import suppress
 from time import sleep
-from typing import Self
 
 from pypdf import PdfReader
 from selenium.webdriver.common.by import By
@@ -32,43 +29,6 @@ class Emissor(CrawJUD):
     """
 
     count_doc = OtherUtils.count_doc
-
-    @classmethod
-    def initialize(
-        cls,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> Self:
-        """Create a new Emissor instance for handling deposit operations systematically.
-
-        Args:
-            *args (str|int): Positional parameters for setup and environment details.
-            **kwargs (str|int): Configuration and keyword parameters for initialization.
-
-        Returns:
-            Emissor: Newly instantiated Emissor bot ready for execution.
-
-        """
-        return cls(*args, **kwargs)
-
-    def __init__(
-        self,
-        *args: str | int,
-        **kwargs: str | int,
-    ) -> None:
-        """Initialize Emissor with environment variables, login, and performance tracking.
-
-        Args:
-            *args (str|int): Positional parameters for environment setup.
-            **kwargs (str|int): Keyword arguments used for custom configuration.
-
-        """
-        super().__init__()
-        self.module_bot = __name__
-
-        super().setup(*args, **kwargs)
-        super().auth_bot()
-        self.start_time = time.perf_counter()  # Tracks the bot's start time
 
     def execution(self) -> None:
         """Run the main operation loop and handle each DataFrame row comprehensively.
@@ -92,7 +52,7 @@ class Emissor(CrawJUD):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -141,12 +101,12 @@ class Emissor(CrawJUD):
             data = self.get_val_doc_and_codebar(nameboleto)
             self.append_success(data)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def get_site(self) -> None:

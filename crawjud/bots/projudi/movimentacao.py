@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import time
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
@@ -83,7 +82,7 @@ class Movimentacao(ProjudiBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -159,10 +158,10 @@ class Movimentacao(ProjudiBot):
                 data.update({"MOTIVO_ERRO": self.message})
                 self.append_error(data)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def set_page_size(self) -> None:

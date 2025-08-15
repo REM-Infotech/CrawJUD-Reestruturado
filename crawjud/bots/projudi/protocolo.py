@@ -126,7 +126,7 @@ class Protocolo(ProjudiBot):
 
             self.append_success(data)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(e=e) from e
@@ -351,7 +351,7 @@ class Protocolo(ProjudiBot):
             input_move_option.click()
             """ Corrigir elements """
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
 
@@ -414,7 +414,7 @@ class Protocolo(ProjudiBot):
                     option.click()
                     break
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
 
@@ -441,7 +441,7 @@ class Protocolo(ProjudiBot):
             )
             radiobutton.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
 
@@ -507,7 +507,7 @@ class Protocolo(ProjudiBot):
                         option.click()
                         break
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
 
@@ -563,7 +563,7 @@ class Protocolo(ProjudiBot):
             self.type_log = "log"
             self.prt()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
 
@@ -652,7 +652,7 @@ class Protocolo(ProjudiBot):
 
             return [self.bot_data.get("NUMERO_PROCESSO"), self.message, comprovante1]
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(e=e) from e

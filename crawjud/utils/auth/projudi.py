@@ -67,7 +67,7 @@ class ProjudiAuth(ProjudiBot):
             if alert:
                 alert.accept()
 
-        except Exception as e:
+        except ExecutionError as e:
             raise LoginSystemError(exception=e) from e
 
         return check_login is not None

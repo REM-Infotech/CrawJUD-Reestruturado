@@ -5,7 +5,6 @@ Manage participant processing in the Projudi system by interacting with process 
 
 import os
 import time
-import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -78,7 +77,7 @@ class ProcParte(ProjudiBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old = self.message
@@ -113,10 +112,10 @@ class ProcParte(ProjudiBot):
                     if self.driver.title.lower() == "a sessao expirou":
                         self.auth_bot()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             old_message = None
 
             # check_window = any([isinstance(e, NoSuchWindowException), isinstance(e, MaxRetryError)])
@@ -187,10 +186,10 @@ class ProcParte(ProjudiBot):
                 if self.driver.title.lower() == "a sessao expirou":
                     self.auth_bot()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def use_list_process(self, list_processos: list[WebElement]) -> None:

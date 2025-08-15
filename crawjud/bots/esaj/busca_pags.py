@@ -4,7 +4,6 @@ This module manages page search operations for paid costs in the CrawJUD-Bots ap
 """
 
 import time
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
@@ -97,7 +96,7 @@ class BuscaPags(ESajBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -143,10 +142,10 @@ class BuscaPags(ESajBot):
             self.get_page_custas_pagas()
             self.page_custas()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def get_page_custas_pagas(self) -> None:

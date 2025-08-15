@@ -13,7 +13,6 @@ Attributes:
 
 import os
 import time
-import traceback
 from contextlib import suppress
 from datetime import datetime
 from time import sleep
@@ -93,7 +92,7 @@ class SolPags(ElawBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -147,10 +146,10 @@ class SolPags(ElawBot):
             elif search is not True:
                 raise ExecutionError(message="Processo não encontrado!")
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def new_payment(self) -> None:
@@ -177,10 +176,10 @@ class SolPags(ElawBot):
             )
             novo_pgto.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def set_pgto(self, namedef: str) -> None:
@@ -234,10 +233,10 @@ class SolPags(ElawBot):
 
             raise ExecutionError(message="Tipo de Pagamento não encontrado")
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def condenacao(self) -> None:
@@ -486,10 +485,10 @@ class SolPags(ElawBot):
             )
             conta_debito.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def custas(self) -> None:
@@ -695,8 +694,6 @@ class SolPags(ElawBot):
             centro_custas.click()
             centro_custas.send_keys("A906030100")
 
-            # self.driver.execute_script(f"document.querySelector('{self.elements.css_centro_custas}').blur()")
-
             self.message = "Informando conta débito"
             self.type_log = "log"
             self.prt()
@@ -724,10 +721,10 @@ class SolPags(ElawBot):
                 )
                 conta_debito.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def save_changes(self) -> None:
@@ -744,10 +741,10 @@ class SolPags(ElawBot):
             )
             save.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def confirm_save(self) -> None:
@@ -907,10 +904,10 @@ class SolPags(ElawBot):
 
             raise ExecutionError(message="Pagamento não solicitado")
 
-        except Exception as e:
+        except Exception:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             return [
                 self.bot_data.get("NUMERO_PROCESSO"),
                 "Pagamento solicitado com sucesso!!",

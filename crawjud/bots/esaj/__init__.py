@@ -56,10 +56,10 @@ class Esaj:
 
             self.bot_call.initialize(*args, **kwargs).execution()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             err = traceback.format_exc()
             logger.exception(err)
             raise StartError(traceback.format_exc()) from e

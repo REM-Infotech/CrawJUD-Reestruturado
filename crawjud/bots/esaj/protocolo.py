@@ -6,7 +6,6 @@ This module manages protocol operations in the ESaj system using the CrawJUD fra
 import os
 import shutil
 import time
-import traceback
 import unicodedata
 from contextlib import suppress
 from pathlib import Path
@@ -117,7 +116,7 @@ class Protocolo(ESajBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -170,10 +169,10 @@ class Protocolo(ESajBot):
             data = self.get_confirm_protocol()
             self.append_success(data, message=data[1])
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def init_protocolo(self) -> None:
@@ -537,8 +536,8 @@ class Protocolo(ESajBot):
                 name_recibo,
             ]
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(message="Erro ao confirmar protocolo", e=e) from e

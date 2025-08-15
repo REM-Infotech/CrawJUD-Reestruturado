@@ -9,7 +9,6 @@ Classes:
 
 from __future__ import annotations
 
-import traceback
 from contextlib import suppress
 from time import sleep
 
@@ -48,7 +47,7 @@ class Andamentos(ElawBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -115,10 +114,10 @@ class Andamentos(ElawBot):
                     self.message,
                 ])
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def info_data(self) -> None:
@@ -147,10 +146,10 @@ class Andamentos(ElawBot):
 
             self.interact.sleep_load('div[id="j_id_34"]')
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def info_ocorrencia(self) -> None:
@@ -179,10 +178,10 @@ class Andamentos(ElawBot):
 
             self.interact.send_key(ocorrencia, text_andamento)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def info_observacao(self) -> None:
@@ -211,10 +210,10 @@ class Andamentos(ElawBot):
 
             self.interact.send_key(observacao, text_andamento)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def add_anexo(self) -> None:
@@ -248,28 +247,22 @@ class Andamentos(ElawBot):
             )
             save_button.click()
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(
                 message="Não foi possivel salvar andamento",
                 e=e,
             ) from e
 
-        try:
-            check_save = WebDriverWait(self.driver, 10).until(
-                ec.url_to_be("https://amazonas.elaw.com.br/processoView.elaw"),
+        check_save = WebDriverWait(self.driver, 10).until(
+            ec.url_to_be("https://amazonas.elaw.com.br/processoView.elaw"),
+        )
+        if check_save:
+            sleep(3)
+
+            self.append_success(
+                [self.numproc, "Andamento salvo com sucesso!", ""],
+                "Andamento salvo com sucesso!",
             )
-            if check_save:
-                sleep(3)
-
-                self.append_success(
-                    [self.numproc, "Andamento salvo com sucesso!", ""],
-                    "Andamento salvo com sucesso!",
-                )
-
-        except Exception:
-            raise ExecutionError(
-                message="Aviso: não foi possivel validar salvamento de andamento",
-            ) from None

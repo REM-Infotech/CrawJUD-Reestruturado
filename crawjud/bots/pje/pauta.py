@@ -152,7 +152,7 @@ class Pauta(PjeBot):
                     type_log=type_log,
                 )
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e
@@ -254,7 +254,7 @@ class Pauta(PjeBot):
                         btn_next.click()
                         self.get_pautas(current_date, vara)
 
-                except Exception as e:
+                except ExecutionError as e:
                     # TODO(Nicholas Silva): Criação de Exceptions
                     # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                     raise ExecutionError(
@@ -267,7 +267,7 @@ class Pauta(PjeBot):
 
             sleep(times)
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
             raise ExecutionError(exception=e, bot_execution_id=self.pid) from e

@@ -5,7 +5,6 @@ ensuring detailed extraction and logging of information.
 """
 
 import time
-import traceback
 from contextlib import suppress
 from typing import Self
 
@@ -77,7 +76,7 @@ class Capa(ESajBot):
             try:
                 self.queue()
 
-            except Exception as e:
+            except ExecutionError as e:
                 # TODO(Nicholas Silva): Criação de Exceptions
                 # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
                 old_message = None
@@ -121,10 +120,10 @@ class Capa(ESajBot):
 
             self.append_success(self.get_process_informations())
 
-        except Exception as e:
+        except ExecutionError as e:
             # TODO(Nicholas Silva): Criação de Exceptions
             # https://github.com/REM-Infotech/CrawJUD-Reestruturado/issues/35
-            self.logger.exception("".join(traceback.format_exception(e)))
+
             raise ExecutionError(e=e) from e
 
     def get_process_informations(self) -> list:
