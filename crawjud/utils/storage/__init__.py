@@ -207,6 +207,7 @@ class Storage[T](Client):  # noqa: D101
         object_name: str,
         data: BinaryIO,
         length: int,
+        content_type: str = "application/octet-stream",
         metadata: T | None = None,
         sse: T | None = None,
         progress: T | None = None,
@@ -221,19 +222,20 @@ class Storage[T](Client):  # noqa: D101
         bucket_name = self.bucket.name
 
         return super().put_object(
-            bucket_name,
-            object_name,
-            data,
-            length,
-            metadata,
-            sse,
-            progress,
-            part_size,
-            num_parallel_uploads,
-            tags,
-            retention,
-            legal_hold,
-            write_offset,
+            bucket_name=bucket_name,
+            object_name=object_name,
+            content_type=content_type,
+            data=data,
+            length=length,
+            metadata=metadata,
+            sse=sse,
+            progress=progress,
+            part_size=part_size,
+            num_parallel_uploads=num_parallel_uploads,
+            tags=tags,
+            retention=retention,
+            legal_hold=legal_hold,
+            write_offset=write_offset,
         )
 
     def append_object(

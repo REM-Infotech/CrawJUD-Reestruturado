@@ -7,6 +7,7 @@ import secrets
 import traceback
 from contextlib import suppress
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from threading import Semaphore
 from time import sleep
@@ -153,7 +154,7 @@ class PjeBot[T](ClassBot):
                 f.write(b"")
 
             try:
-                self.storage.fput_object(object_name=dest_name, file_path=file_path)
+                self.storage.put_object(object_name=dest_name, data=BytesIO(b""))
 
             except (FileUploadError, Exception) as e:
                 upload_file = False
