@@ -1,5 +1,5 @@
 """EMPTY."""
 
-from . import pje, resources
+from . import pje
 
-__all__ = ["pje", "resources"]
+__all__ = ["pje"]

@@ -119,7 +119,7 @@ async def register_routes(app: Quart) -> None:
     """
     async with app.app_context():
         # Dynamically import additional route modules as needed.
-        import_module("api.routes", package=__package__)
+        import_module("crawjud.routes", package=__package__)
 
     from crawjud.routes.auth import auth
     from crawjud.routes.bot import bot
