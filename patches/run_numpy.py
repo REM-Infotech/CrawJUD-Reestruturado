@@ -1,52 +1,44 @@
 import argparse
 import ast
-from io import BytesIO
-import pickle
+import dill as pickle
+import numpy as np
 import sys
 from contextlib import suppress
 
-import numpy as np
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--function", help="Função do NumPy a ser chamada", default="__name__"
+    )
+    parser.add_argument("--args", help="Argumentos para a função", default="()")
+    parser.add_argument(
+        "--kwargs", help="Argumentos nomeados para a função", default="{}"
+    )
 
-    def main():
-        args = sys.argv[1:]
-        parser = argparse.ArgumentParser("Celery App CrawJUD.")
-        parser.add_argument(
-            "--function",
-            default="worker",
-            help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
-        )
+    args = parser.parse_args()
 
-        parser.add_argument(
-            "--args",
-            default="worker",
-            help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
-        )
+    result = None
 
-        parser.add_argument(
-            "--kwargs",
-            default="worker",
-            help="Tipo de inicialização do celery (ex.: beat, worker, etc.)",
-        )
+    function_name = args.function
+    func = getattr(np, function_name)
 
-        namespaces = parser.parse_args(args)
+    _args = ast.literal_eval(
+        args.args
+    )  # Convertendo os argumentos de string para tupla/lista
+    _kwargs = ast.literal_eval(
+        args.kwargs
+    )  # Convertendo os kwargs para um dicionário
 
-        with suppress(Exception):
-            function_name = namespaces.function
-            func = getattr(np, function_name)
-            if callable(func):
-                _args = ast.literal_eval(namespaces.args)
-                _kwargs = ast.literal_eval(namespaces.kwargs)
-                result = func(*_args, **_kwargs)
-                # Converte arrays numpy para listas Python padrão
-                if isinstance(result, np.ndarray):
-                    result = result.tolist()
-                # Converte outros tipos numpy para tipos Python nativos
-                elif hasattr(result, "item"):
-                    result = result.item()
-                with open(f"{function_name}.pkl", "wb") as f:
-                    pickle.dump(result, f)
-                print(f"{function_name}.pkl")
+    if callable(func):
+        try:
+            result = func(*_args, **_kwargs)  # Chama a função com os argumentos
+        except Exception:
+            result = func
 
-    main()
+    else:
+        result = func
+
+    with open(f"{function_name}.pkl", "wb") as f:
+        pickle.dump(result, f)
+
+    print(f"{function_name}.pkl")

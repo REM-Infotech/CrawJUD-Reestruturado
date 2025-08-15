@@ -1,87 +1,118 @@
-from pathlib import Path
+import inspect
 import subprocess
 import sys
 import threading
+import dill as pickle
+from pathlib import Path
+import ast
 
-obj = None
-
-dict_attrs = {}
+last_check = None
 
 
+class Dummy(object): ...
+
+
+# O objetivo de fazer isso é que, ao chamar qualquer função do NumPy, ela será redirecionada para um subprocesso.
 class ModCall[T]:
-    def __getattribute__(self, arg: T = None):
-        last_check = arg
+    def __getattribute__(self, attr):
+        global last_check
+        try:
+            last_check = attr
 
-        def call_func(*args, **kwargs) -> None:
             p = sys.exec_prefix
             result = subprocess.run(
                 [
-                    str(Path(p).joinpath("python").as_posix()),
-                    str(Path(__file__).parent.joinpath("run_numpy.py")),
+                    str(
+                        Path(p).joinpath("python").as_posix()
+                    ),  # Caminho para o Python
+                    str(
+                        Path(__file__).parent.joinpath("run_numpy.py")
+                    ),  # Arquivo que vai rodar o código no subprocesso
                     "--function",
-                    last_check,
-                    "--args",
-                    f"{args}",
-                    "--kwargs",
-                    f"{kwargs}",
+                    last_check,  # Função que será chamada
                 ],
                 capture_output=True,
                 text=True,
             )
 
-            if result.stdout:
-                import pickle
-
-                with open(f"{last_check}.pkl", "rb") as f:
-                    r_pickle = pickle.load(f)
-                    return r_pickle
+            filename = f"{last_check}.pkl"
+            try:
+                with open(filename, "rb") as f:
+                    return pickle.load(f)
+            except EOFError:
+                # Arquivo está vazio ou corrompido
+                print(f"Erro: arquivo {filename} está vazio ou corrompido.")
+                return Dummy
             return result
+        except Exception:
+            last_check = attr
 
-        return call_func
+            def call_func(*args, **kwargs) -> None:
+                p = sys.exec_prefix
+                result = subprocess.run(
+                    [
+                        str(
+                            Path(p).joinpath("python").as_posix()
+                        ),  # Caminho para o Python
+                        str(
+                            Path(__file__).parent.joinpath("run_numpy.py")
+                        ),  # Arquivo que vai rodar o código no subprocesso
+                        "--function",
+                        last_check,  # Função que será chamada
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
 
-    def __call__(self, *args, **kwds):
-        pass
+                filename = f"{last_check}.pkl"
+                try:
+                    with open(filename, "rb") as f:
+                        return pickle.load(f)
+                except EOFError:
+                    # Arquivo está vazio ou corrompido
+                    print(f"Erro: arquivo {filename} está vazio ou corrompido.")
+                    return Dummy
+                return result
+
+            return call_func
 
 
-class NumPy[T]:
+class NumPy:
     name = "numpy"
     __name__ = "numpy"
 
-    def __getattribute__(self, arg: T = None):
+    def __getattribute__(self, arg=None):
         return self
 
     def __call__(self, *args, **kwds):
         return ModCall()
 
 
-# Import Hook para interceptar o carregamento do módulo numpy
-class NumpyImportHook[T]:
+# Hook para interceptar o carregamento do módulo numpy
+class NumpyImportHook:
     def find_spec(self, fullname, path, target=None):
-        # Quando o numpy for importado, aplicamos o patch
         if fullname == "numpy":
-            return NumPy()
+            return (
+                NumPy()
+            )  # Intercepta a importação do numpy e retorna nossa versão modificada
         return None
 
-    def pega_atributo(self, *args, **kwargs) -> None:
-        print("ok")
 
-
-# Registrar o import hook para intercepção
+# Registrar o import hook
 sys.meta_path.insert(0, NumpyImportHook())
 
 # Teste simples: Ao importar numpy, ele já será patchado automaticamente
 if __name__ == "__main__":
     import numpy as np
 
-    np.__getattribute__ = NumpyImportHook.pega_atributo.__get__(np)
     # Testando a execução de múltiplas threads com numpy
     arr = np.array([1, 2, 3, 4, 5])
 
     # Função exemplo que utiliza o numpy
     def func():
         print(
-            np.sum(arr),
-        )  # A chamada a np.sum será automaticamente redirecionada para subprocesso se necessário
+            np.sum(arr)
+        )  # A chamada a np.sum será automaticamente redirecionada para subprocesso
 
     # Criando threads para testar
     threads = []
