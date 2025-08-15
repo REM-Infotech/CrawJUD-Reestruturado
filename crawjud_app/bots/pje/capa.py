@@ -229,6 +229,7 @@ class Capa[T](PjeBot):  # noqa: D101
                     file_name=file_name,
                     response_data=response,
                     data_bot=data,
+                    row=row,
                 )
 
         except ExecutionError as e:
