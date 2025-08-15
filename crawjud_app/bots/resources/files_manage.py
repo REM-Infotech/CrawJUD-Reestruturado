@@ -40,7 +40,7 @@ def download_files(
     folder_temp_ = storage_folder_name.upper()
     json_name_ = f"{storage_folder_name.upper()}.json"
 
-    object_name_ = str(Path(folder_temp_).joinpath(json_name_))
+    object_name_ = Path(folder_temp_).joinpath(json_name_).as_posix()
     config_file = storage.bucket.get_object(object_name_)
 
     path_files.joinpath(object_name_).parent.mkdir(exist_ok=True, parents=True)
@@ -50,7 +50,7 @@ def download_files(
     if data_json_.get("xlsx"):
         xlsx_name_ = secure_filename(data_json_.get("xlsx"))
 
-        path_minio_ = str(Path(folder_temp_).joinpath(xlsx_name_))
+        path_minio_ = Path(folder_temp_).joinpath(xlsx_name_).as_posix()
         file_xlsx = storage.bucket.get_object(path_minio_)
         file_base91str = base91.encode(file_xlsx.data)
 
@@ -68,7 +68,7 @@ def download_files(
         files_list: list[str] = data_json_.get("otherfiles")
         for file in files_list:
             file = secure_filename(file)
-            path_minio_ = str(Path(folder_temp_).joinpath(file))
+            path_minio_ = Path(folder_temp_).joinpath(file).as_posix()
             file_ = storage.bucket.get_object(path_minio_)
             suffix_ = Path(file).suffix
 
