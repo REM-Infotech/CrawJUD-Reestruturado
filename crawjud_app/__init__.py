@@ -2,8 +2,8 @@
 
 import importlib
 
+from crawjud.custom import AsyncCelery as Celery
 from crawjud.utils.load_config import Config
-from crawjud_app.custom import AsyncCelery as Celery
 
 app = Celery(__name__)
 

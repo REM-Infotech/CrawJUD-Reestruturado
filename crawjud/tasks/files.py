@@ -8,10 +8,10 @@ from pathlib import Path
 import pandas as pd
 from werkzeug.utils import secure_filename
 
+from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task
 from crawjud.utils.models.logs import CachedExecution
 from crawjud.utils.storage import Storage
-from crawjud_app.custom.task import ContextTask
 
 workdir_path = Path(__file__).cwd()
 

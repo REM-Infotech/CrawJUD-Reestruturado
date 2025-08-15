@@ -6,8 +6,8 @@ Este módulo fornece:
 
 from typing import AnyStr, ParamSpec, TypeVar
 
+from crawjud.custom.task import ContextTask
 from crawjud.interfaces.types.celery.canvas import Signature
-from crawjud_app.custom.task import ContextTask
 
 P = ParamSpec("P")
 R = TypeVar("R")

@@ -11,9 +11,9 @@ from pandas import Timestamp, read_excel
 
 from crawjud.common.exceptions.bot import ExecutionError
 from crawjud.controllers.bots.master.abs_master import AbstractCrawJUD
+from crawjud.custom.canvas import subtask
+from crawjud.custom.task import ContextTask
 from crawjud.interfaces.dict.bot import BotData
-from crawjud_app.custom.canvas import subtask
-from crawjud_app.custom.task import ContextTask
 
 if TYPE_CHECKING:
     from socketio import SimpleClient

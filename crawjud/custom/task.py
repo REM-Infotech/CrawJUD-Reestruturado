@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, ClassVar, Generic, ParamSpec
 from celery.app.task import Task as TaskBase
 from dotenv import dotenv_values
 
-from crawjud_app.custom.canvas import subtask
+from crawjud.custom.canvas import subtask
 
 environ = dotenv_values()
 P = ParamSpec("P")

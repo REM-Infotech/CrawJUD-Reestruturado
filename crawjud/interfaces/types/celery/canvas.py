@@ -24,7 +24,7 @@ from celery.result import AsyncResult as __AsyncResult
 from celery.result import states
 
 if TYPE_CHECKING:
-    from crawjud_app.custom.celery import AsyncCelery
+    from crawjud.custom.celery import AsyncCelery
 
 P = ParamSpec("P")
 R = TypeVar("R")

@@ -12,8 +12,8 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
+from crawjud.custom.task import ContextTask
 from crawjud.decorators import shared_task
-from crawjud_app.custom.task import ContextTask
 
 environ = dotenv_values()
 workdir_path = Path(__file__).cwd()

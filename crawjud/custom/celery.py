@@ -9,7 +9,7 @@ from typing import AnyStr
 
 from celery import Celery
 
-from crawjud_app.custom.task import ContextTask
+from crawjud.custom.task import ContextTask
 
 
 class AsyncCelery[T](Celery):
